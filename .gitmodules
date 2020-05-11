@@ -1,0 +1,3 @@
+[submodule "Merlin/vendor/spdlog"]
+	path = Merlin/vendor/spdlog
+	url = https://github.com/gabime/spdlog
