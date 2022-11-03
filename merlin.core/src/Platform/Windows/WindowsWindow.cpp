@@ -52,11 +52,7 @@ namespace Merlin {
 		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		GLCORE_ASSERT(status, "WindowsWindow", "Failed to initialize Glad!");
 
-
-		LOG_INFO("OpenGL Info") <<
-			"	Vendor: "	<< (const char*) glGetString(GL_VENDOR)  << Console::endl <<
-			"	Renderer: " << (const char*) glGetString(GL_RENDERER)<< Console::endl <<
-			"	Version: "	<< (const char*) glGetString(GL_VERSION) << Console::endl;
+		//OpenGl is ready
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);

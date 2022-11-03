@@ -4,3 +4,4 @@
 #include "Merlin/Renderer/VertexArray.h"
 #include "Merlin/Renderer/Shader.h"
 #include "Merlin/Renderer/SceneManager.h"
+#include "Merlin/Renderer/Mesh.h"

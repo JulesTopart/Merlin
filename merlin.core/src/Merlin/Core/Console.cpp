@@ -2,6 +2,8 @@
 #include "Console.h"
 #include <glad/glad.h>
 
+#include <iostream>
+
 namespace Merlin {
 	std::string Console::endl = "\n";
 
@@ -31,6 +33,20 @@ namespace Merlin {
 		}
 	}
 
+
+	std::string Console::alignLeft(const int n, const std::string& x) { // converts x to string with spaces behind such that length is n if x is not longer than n
+		std::string s = x;
+		for (int i = 0u; i < n; i++) s += " ";
+		return s.substr(0, max(n, (int)x.length()));
+	}
+
+	std::string Console::alignRight(const int n, const std::string& x) { // converts x to string with spaces in front such that length is n if x is not longer than n
+		std::string s = "";
+		for (int i = 0u; i < n; i++) s += " ";
+		s += x;
+		return s.substr((int)min((int)s.length() - (int)n, (int)n), s.length());
+	}
+
 	ConsoleStream Console::trace(std::string origin) {
 		return ConsoleStream(ConsoleLevel::_TRACE, origin);
 	}
@@ -53,6 +69,19 @@ namespace Merlin {
 
 	ConsoleStream Console::critical(std::string origin) {
 		return ConsoleStream(ConsoleLevel::_CRITICAL, origin);
+	}
+
+	ConsoleStream Console::print(){
+		return ConsoleStream(ConsoleLevel::_NO_HEADER, "");
+	}
+
+	void Console::printProgress(double percentage){
+		int val = (int)(percentage * 100);
+		int lpad = (int)(percentage * PBWIDTH);
+		int rpad = PBWIDTH - lpad;
+		printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+
+		fflush(stdout);
 	}
 
 	void Console::write(std::string str) {
@@ -191,6 +220,16 @@ namespace Merlin {
 		return ConsoleStream(*this);
 	}
 
+	ConsoleStream ConsoleStream::operator<<(size_t i){
+		if (_level >= Console::GetLevel()) {
+			std::string str = this->font();
+			str += std::to_string(i) + ConsoleStream::endFont();
+
+			Console::write(str);
+		}
+		return ConsoleStream(*this);
+	}
+
 
 	ConsoleStream ConsoleStream::operator<<(float i) {
 		if (_level >= Console::GetLevel()) {
@@ -239,6 +278,18 @@ namespace Merlin {
 			std::stringstream address;
 			address << i;
 			str += address.str() + ConsoleStream::endFont();
+
+			Console::write(str);
+		}
+		return ConsoleStream(*this);
+	}
+
+	ConsoleStream ConsoleStream::operator<<(std::ostream os){
+		if (_level >= Console::GetLevel()) {
+			std::string str = this->font();
+			std::stringstream ss;
+			ss << os.rdbuf();
+			str += ss.str() + ConsoleStream::endFont();
 
 			Console::write(str);
 		}

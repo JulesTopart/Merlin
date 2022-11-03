@@ -59,7 +59,7 @@
       <PrecompiledHeaderFile>glpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLCORE_PLATFORM_WINDOWS;GLFW_INCLUDE_NONE;GLCORE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor\assimp\include;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -81,7 +81,7 @@
       <PrecompiledHeaderFile>glpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLCORE_PLATFORM_WINDOWS;GLFW_INCLUDE_NONE;GLCORE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor\assimp\include;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -101,6 +101,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Merlin\Util\MeshLoader.h" />
+    <ClInclude Include="src\Merlin\Renderer\Mesh.h" />
     <ClInclude Include="src\Merlin\Renderer\ShaderBase.h" />
     <ClInclude Include="src\Merlin\Tensor\ComputeShader.h" />
     <ClInclude Include="src\Merlin.h" />
@@ -127,8 +129,8 @@
     <ClInclude Include="src\Merlin\Renderer\VertexArray.h" />
     <ClInclude Include="src\Merlin\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\Merlin\Util\OpenGLDebug.h" />
-    <ClInclude Include="src\Merlin\Util\OrthographicCamera.h" />
-    <ClInclude Include="src\Merlin\Util\OrthographicCameraController.h" />
+    <ClInclude Include="src\Merlin\Util\Camera.h" />
+    <ClInclude Include="src\Merlin\Util\CameraController.h" />
     <ClInclude Include="src\MerlinUtils.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
@@ -136,6 +138,8 @@
     <ClInclude Include="src\Merlin\Renderer\Texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Merlin\Util\MeshLoader.cpp" />
+    <ClCompile Include="src\Merlin\Renderer\Mesh.cpp" />
     <ClCompile Include="src\Merlin\Renderer\ShaderBase.cpp" />
     <ClCompile Include="src\Merlin\Tensor\ComputeShader.cpp" />
     <ClCompile Include="src\Merlin\Core\Application.cpp" />
@@ -150,8 +154,8 @@
     <ClCompile Include="src\Merlin\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\Merlin\Renderer\VertexBuffer.cpp" />
     <ClCompile Include="src\Merlin\Util\OpenGLDebug.cpp" />
-    <ClCompile Include="src\Merlin\Util\OrthographicCamera.cpp" />
-    <ClCompile Include="src\Merlin\Util\OrthographicCameraController.cpp" />
+    <ClCompile Include="src\Merlin\Util\Camera.cpp" />
+    <ClCompile Include="src\Merlin\Util\CameraController.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\glpch.cpp">

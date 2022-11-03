@@ -2,6 +2,7 @@
 
 // Utility header file - include into application for access to utility classes/functions
 
-#include "Merlin/Util/OrthographicCamera.h"
-#include "Merlin/Util/OrthographicCameraController.h"
+#include "Merlin/Util/Camera.h"
+#include "Merlin/Util/CameraController.h"
 #include "Merlin/Util/OpenGLDebug.h"
+#include "Merlin/Util/MeshLoader.h"

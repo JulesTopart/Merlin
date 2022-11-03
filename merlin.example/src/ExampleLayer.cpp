@@ -4,8 +4,11 @@ using namespace Merlin;
 using namespace Merlin::Utils;
 using namespace Merlin::Renderer;
 
+#include <iostream>
+#include <iomanip>
+
 ExampleLayer::ExampleLayer()
-	: m_CameraController(16.0f / 9.0f)
+	: m_CameraController(16.0f / 9.0f, true)
 {
 
 }
@@ -21,7 +24,8 @@ void ExampleLayer::OnAttach()
 	
 	EnableGLDebugging();
 
-	Console::SetLevel(ConsoleLevel::_TRACE);
+	Console::SetLevel(ConsoleLevel::_INFO);
+
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -63,8 +67,6 @@ void ExampleLayer::OnAttach()
 	m_VAO->Unbind();
 	m_EBO->Unbind();
 	
-
-
 }
 
 void ExampleLayer::OnDetach()
