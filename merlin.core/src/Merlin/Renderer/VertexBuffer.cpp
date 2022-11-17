@@ -5,6 +5,16 @@
 #include <glad/glad.h>
 
 namespace Merlin::Renderer {
+
+	VertexBufferLayout Vertex::GetLayout() {
+		VertexBufferLayout layout;
+		layout.Push<float>(3); //Vertex pos
+		layout.Push<float>(3); //Vertex normal
+		layout.Push<float>(3); //Vertex color
+		layout.Push<float>(2); //Texture coordinates
+		return layout;
+	}
+
 	VertexBuffer::VertexBuffer(std::vector<Vertex>& vertices) {
 		glCreateBuffers(1, &m_RendererID);
 		// The following commands will talk about our 'vertexbuffer' buffer

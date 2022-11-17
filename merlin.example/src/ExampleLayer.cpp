@@ -45,24 +45,29 @@ void ExampleLayer::OnAttach()
 	m_VAO->Bind();
 
 	std::vector<Vertex> vertices = {
-		Vertex{ glm::vec3(-0.5f, -0.5f, 0.0f)},
-		Vertex{ glm::vec3( 0.5f, -0.5f, 0.0f)},
-		Vertex{ glm::vec3( 0.5f,  0.5f, 0.0f)},
-		Vertex{ glm::vec3(-0.5f,  0.5f, 0.0f)}
+		Vertex{ glm::vec3(-0.5f, -0.5f, -0.5f)},
+		Vertex{ glm::vec3( 0.5f, -0.5f, -0.5f)},
+		Vertex{ glm::vec3( 0.5f,  0.5f, -0.5f)},
+		Vertex{ glm::vec3(-0.5f,  0.5f, -0.5f)},
+		Vertex{ glm::vec3(-0.5f, -0.5f,  0.5f)},
+		Vertex{ glm::vec3( 0.5f, -0.5f,  0.5f)},
+		Vertex{ glm::vec3( 0.5f,  0.5f,  0.5f)},
+		Vertex{ glm::vec3(-0.5f,  0.5f,  0.5f)}
 	};
 
-	std::vector<GLuint> indices = { 0, 1, 2, 2, 3, 0 };
+	std::vector<GLuint> indices = { 
+		0, 1, 3, 3, 1, 2,
+		1, 5, 2, 2, 5, 6,
+		5, 4, 6, 6, 4, 7,
+		4, 0, 7, 7, 0, 3,
+		3, 2, 7, 7, 2, 6,
+		4, 5, 0, 0, 5, 1 
+	};
 
 	m_VBO = std::make_shared<VBO>(vertices);
 	m_EBO = std::make_shared<EBO>(indices);
 	
-
-	VertexBufferLayout layout;
-	layout.Push<float>(3); //Vertex pos
-	layout.Push<float>(3); //Vertex normal
-	layout.Push<float>(3); //Vertex color
-	layout.Push<float>(2); //Texture coordinates
-	m_VAO->AddBuffer(*m_VBO, layout);
+	m_VAO->AddBuffer(*m_VBO, Vertex::GetLayout());
 
 	m_VAO->Unbind();
 	m_EBO->Unbind();
@@ -108,7 +113,7 @@ void ExampleLayer::OnUpdate(Timestep ts)
 	m_Shader->SetUniform4f("color", m_SquareColor);
 
 	m_VAO->Bind();
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
 	m_VAO->Unbind();
 	
 }
