@@ -16,7 +16,7 @@ namespace Merlin::Renderer {
 		glm::vec2
 			textureUV = glm::vec2(0.0f, 0.0f);
 
-		static VertexBufferLayout GetLayout();
+		static VertexBufferLayout GetLayout(); //Keep that static
 	};
 
 	class VertexBuffer {

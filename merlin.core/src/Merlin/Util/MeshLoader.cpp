@@ -88,3 +88,14 @@ namespace Merlin::Utils::MeshLoader {
 }
 
 */
+
+namespace Merlin::Utils::MeshLoader {
+	GeometryLayout GeometryData::GetLayout() {
+		GeometryLayout layout;
+		layout.Push<float>(3); //Vertex pos
+		layout.Push<float>(3); //Vertex normal
+		layout.Push<float>(3); //Vertex color
+		layout.Push<float>(2); //Texture coordinates
+		return layout;
+	}
+}
