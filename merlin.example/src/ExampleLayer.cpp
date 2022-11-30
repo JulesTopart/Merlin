@@ -8,9 +8,9 @@ using namespace Merlin::Renderer;
 #include <iomanip>
 
 ExampleLayer::ExampleLayer()
-	: m_CameraController(16.0f / 9.0f, true)
+	: m_CameraController(45.0f, 16.0f / 9.0f)
 {
-
+	m_CameraController.GetCamera().SetPosition(glm::vec3(0,0,1));
 }
 
 ExampleLayer::~ExampleLayer()
@@ -20,17 +20,16 @@ ExampleLayer::~ExampleLayer()
 
 void ExampleLayer::OnAttach()
 {
-
-	
 	EnableGLDebugging();
 
 	Console::SetLevel(ConsoleLevel::_INFO);
-
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
+
+	//m_CameraController.GetCamera().SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
 
 	m_Shader = std::make_shared<Shader>("default");
 
@@ -46,15 +45,16 @@ void ExampleLayer::OnAttach()
 
 	std::vector<Vertex> vertices = {
 		Vertex{ glm::vec3(-0.5f, -0.5f, -0.5f)},
-		Vertex{ glm::vec3( 0.5f, -0.5f, -0.5f)},
-		Vertex{ glm::vec3( 0.5f,  0.5f, -0.5f)},
+		Vertex{ glm::vec3(0.5f, -0.5f, -0.5f)},
+		Vertex{ glm::vec3(0.5f,  0.5f, -0.5f)},
 		Vertex{ glm::vec3(-0.5f,  0.5f, -0.5f)},
 		Vertex{ glm::vec3(-0.5f, -0.5f,  0.5f)},
-		Vertex{ glm::vec3( 0.5f, -0.5f,  0.5f)},
-		Vertex{ glm::vec3( 0.5f,  0.5f,  0.5f)},
+		Vertex{ glm::vec3(0.5f, -0.5f,  0.5f)},
+		Vertex{ glm::vec3(0.5f,  0.5f,  0.5f)},
 		Vertex{ glm::vec3(-0.5f,  0.5f,  0.5f)}
 	};
 
+	
 	std::vector<GLuint> indices = { 
 		0, 1, 3, 3, 1, 2,
 		1, 5, 2, 2, 5, 6,
@@ -64,10 +64,23 @@ void ExampleLayer::OnAttach()
 		4, 5, 0, 0, 5, 1 
 	};
 
+	glm::vec3 normals[6] =
+	{
+		glm::vec3(0, 0, 1),
+		glm::vec3(1, 0, 0),
+		glm::vec3(0, 0, -1),
+		glm::vec3(-1, 0, 0),
+		glm::vec3(0, 1, 0),
+		glm::vec3(0, -1, 0)
+	};
+	
+
 	m_VBO = std::make_shared<VBO>(vertices);
 	m_EBO = std::make_shared<EBO>(indices);
 	
 	m_VAO->AddBuffer(*m_VBO, Vertex::GetLayout());
+
+	
 
 	m_VAO->Unbind();
 	m_EBO->Unbind();
@@ -110,6 +123,7 @@ void ExampleLayer::OnUpdate(Timestep ts)
 	m_Shader->Use();
 
 	m_Shader->SetMatrix4f("view", m_CameraController.GetCamera().GetViewProjectionMatrix());
+	//m_Shader->SetUniform4f("lightPos", m_SquareColor);
 	m_Shader->SetUniform4f("color", m_SquareColor);
 
 	m_VAO->Bind();
@@ -120,7 +134,12 @@ void ExampleLayer::OnUpdate(Timestep ts)
 
 void ExampleLayer::OnImGuiRender()
 {
-	ImGui::Begin("Controls");
+
+	ImGui::Begin("Camera");
+	ImGui::SliderFloat3("Model Matrix Translation", &model_matrix_translation.x, 0.0f, 960.0f);
+	ImGui::End();
+
+	ImGui::Begin("Controles");
 	if (ImGui::ColorEdit4("Square Base Color", glm::value_ptr(m_SquareBaseColor)))
 		m_SquareColor = m_SquareBaseColor;
 	ImGui::ColorEdit4("Square Alternate Color", glm::value_ptr(m_SquareAlternateColor));

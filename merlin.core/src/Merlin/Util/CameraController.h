@@ -11,29 +11,30 @@ namespace Merlin::Utils {
 	class CameraController
 	{
 	public:
-		CameraController(float aspectRatio, bool rotation = false);
+		CameraController(float fov, float aspectRatio, float nearPlane = 0.1f, float farPlane = 100.0f);
 
 		void OnUpdate(Timestep ts);
 		void OnEvent(Event& e);
 
-		Camera& GetCamera() { return m_Camera; }
-		const Camera& GetCamera() const { return m_Camera; }
+		Camera& GetCamera() { return _Camera; }
+		const Camera& GetCamera() const { return _Camera; }
 
-		float GetZoomLevel() const { return m_ZoomLevel; }
-		void SetZoomLevel(float level) { m_ZoomLevel = level; }
+		float GetCameraSpeed() const { return _CameraSpeed; }
+		void SetCameraSpeed(float speed) { _CameraSpeed = speed; }
 	private:
 		bool OnMouseScrolled(MouseScrolledEvent& e);
 		bool OnWindowResized(WindowResizeEvent& e);
 	private:
-		float m_AspectRatio;
-		float m_ZoomLevel = 1.0f;
-		Camera m_Camera;
+		float _AspectRatio,
+			 _fov,
+			 _CameraSpeed,
+			 _farPlane,
+			 _nearPlane;
+		
+		Camera _Camera;
 
-		bool m_Rotation;
-
-		glm::vec3 m_CameraPosition = { 0.0f, 0.0f, 0.0f };
-		float m_CameraRotation = 0.0f; //In degrees, in the anti-clockwise direction
-		float m_CameraTranslationSpeed = 5.0f, m_CameraRotationSpeed = 180.0f;
+		glm::vec3 _dU = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 _dR = { 0.0f, 0.0f, 0.0f }; //In degrees, in the anti-clockwise direction, yaw, pitch, roll
 	};
 
 }

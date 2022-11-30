@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
-//#include "opengl/Mesh.h"
+
+#include "Mesh.h"
 #include "Shader.h"
 
 namespace Merlin::Renderer {
@@ -19,7 +20,7 @@ namespace Merlin::Renderer {
 		void RemoveObject(std::string name);
 
 		//Mesh& SpawnPlane(std::string name);
-		//Mesh& SpawnCube(std::string name);
+		Mesh& SpawnCube(std::string name);
 		//Mesh& SpawnMesh(std::string name, QString path);
 		//Mesh& SpawnAxis(std::string name);
 

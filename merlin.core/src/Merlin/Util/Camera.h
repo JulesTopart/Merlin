@@ -8,28 +8,57 @@ namespace Merlin::Utils {
 	class Camera
 	{
 	public:
-		Camera(float left, float right, float bottom, float top);
+		Camera();
 
-		void SetProjection(float left, float right, float bottom, float top);
+		//Set projection
+		void SetOrthographic(float aspectRatio = 16.0f / 9.0f, float nearPlane = 0.1f, float farPlane = 100.f);
+		void SetPerspective(float fov = 45.0f, float aspectRatio = 16.0f / 9.0f, float nearPlane = 0.1f, float farPlane = 100.f);
 
-		const glm::vec3& GetPosition() const { return m_Position; }
-		void SetPosition(const glm::vec3& position) { m_Position = position; RecalculateViewMatrix(); }
+		void Translate(float dx, float dy, float dz);
+		void Translate(glm::vec3 du);
 
-		float GetRotation() const { return m_Rotation; }
-		void SetRotation(float rotation) { m_Rotation = rotation; RecalculateViewMatrix(); }
+		void Rotate(float dRx, float dRy, float dRz);
+		void Rotate(glm::vec3 dR);
 
-		const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
-		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
-		const glm::mat4& GetViewProjectionMatrix() const { return m_ViewProjectionMatrix; }
+		bool isOrthoGraphic() const { return _OrthoGraphic; }
+
+		void Reset();
+
+		const glm::vec3& GetPosition() const { return _Position; }
+		void SetPosition(const glm::vec3& position) { _Position = position; RecalculateViewMatrix(); }
+		
+		const glm::vec3& GetTarget() const { return _Target; }
+		void SetTarget(const glm::vec3& target) { _Target = target; RecalculateViewMatrix(); }
+
+		glm::vec3 GetRotation() const { return _Rotation; }
+		void SetRotation(glm::vec3 rotation) { _Rotation = rotation; RecalculateViewMatrix(); }
+
+		glm::vec3 Right() const { return _Right; }
+		glm::vec3 Front() const { return _Front; }
+		glm::vec3 Up() const { return _Up; }
+
+		const glm::mat4& GetProjectionMatrix() const { return _ProjectionMatrix; }
+		const glm::mat4& GetViewMatrix() const { return _ViewMatrix; }
+		const glm::mat4& GetViewProjectionMatrix() const { return _ViewProjectionMatrix; }
 
 	private:
 		void RecalculateViewMatrix();
-		glm::mat4 m_ProjectionMatrix;
-		glm::mat4 m_ViewMatrix;
-		glm::mat4 m_ViewProjectionMatrix;
+		glm::mat4 _ProjectionMatrix;
+		glm::mat4 _ViewMatrix;
+		glm::mat4 _ViewProjectionMatrix;
 
-		glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
-		float m_Rotation = 0.0f;
+		glm::vec3 _Position = { 0.0f, -5.0f, 2.0f };
+		glm::vec3 _Rotation = { 0.0f, 0.0f, 0.0f };
+
+		glm::vec3 _Target = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 _WorldUp = { 0.0f, 0.0f, 1.0f };
+
+		glm::vec3 _Right = { 1.0f, 0.0f, 0.0f };
+		glm::vec3 _Front = { 0.0f, 1.0f, 0.0f };
+		glm::vec3 _Up    = { 0.0f, 0.0f, 1.0f };
+
+
+		bool _OrthoGraphic = false;
 	};
 
 }

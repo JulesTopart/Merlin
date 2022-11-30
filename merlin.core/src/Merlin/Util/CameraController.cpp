@@ -6,53 +6,52 @@
 
 namespace Merlin::Utils {
 
-	CameraController::CameraController(float aspectRatio, bool rotation)
-		: m_AspectRatio(aspectRatio), m_Camera(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel), m_Rotation(rotation)
+	CameraController::CameraController(float fov, float aspectRatio, float nearPlane, float farPlane)
+		: _AspectRatio(aspectRatio), _Camera(), _fov(fov), _CameraSpeed(1.0f), _nearPlane(nearPlane), _farPlane(farPlane)
 	{
+		_Camera.SetPerspective(fov,_AspectRatio, _nearPlane, _farPlane);
 	}
 
 	void CameraController::OnUpdate(Timestep ts)
 	{
 		if (Input::IsKeyPressed(MRL_KEY_A))
 		{
-			m_CameraPosition.x -= cos(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-			m_CameraPosition.y -= sin(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
+			_dU.x -= _CameraSpeed *ts;
 		}
 		else if (Input::IsKeyPressed(MRL_KEY_D))
 		{
-			m_CameraPosition.x += cos(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-			m_CameraPosition.y += sin(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
+			_dU.x += _CameraSpeed *ts;
 		}
 
 		if (Input::IsKeyPressed(MRL_KEY_W))
 		{
-			m_CameraPosition.x += -sin(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-			m_CameraPosition.y += cos(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
+			_dU.y += _CameraSpeed *ts;
 		}
 		else if (Input::IsKeyPressed(MRL_KEY_S))
 		{
-			m_CameraPosition.x -= -sin(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-			m_CameraPosition.y -= cos(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
+			_dU.y -= _CameraSpeed *ts;
 		}
 
-		if (m_Rotation)
+		if (Input::IsKeyPressed(MRL_KEY_LEFT_CONTROL))
 		{
-			if (Input::IsKeyPressed(MRL_KEY_Q))
-				m_CameraRotation += m_CameraRotationSpeed * ts;
-			if (Input::IsKeyPressed(MRL_KEY_E))
-				m_CameraRotation -= m_CameraRotationSpeed * ts;
-
-			if (m_CameraRotation > 180.0f)
-				m_CameraRotation -= 360.0f;
-			else if (m_CameraRotation <= -180.0f)
-				m_CameraRotation += 360.0f;
-
-			m_Camera.SetRotation(m_CameraRotation);
+			_dU.z -= _CameraSpeed * ts;
+		}
+		else if (Input::IsKeyPressed(MRL_KEY_SPACE))
+		{
+			_dU.z += _CameraSpeed * ts;
 		}
 
-		m_Camera.SetPosition(m_CameraPosition);
+		
+		if (Input::IsKeyPressed(MRL_KEY_Q))
+			_dR.x += _CameraSpeed * 3.14f * ts;
+		if (Input::IsKeyPressed(MRL_KEY_E))
+			_dR.x -= _CameraSpeed * 3.14f * ts;
 
-		m_CameraTranslationSpeed = m_ZoomLevel;
+		_Camera.Translate(_dU);
+		_Camera.Rotate(_dR);
+
+		_dU = glm::vec3(0.0f);
+		_dR = glm::vec3(0.0f);
 	}
 
 	void CameraController::OnEvent(Event& e)
@@ -64,16 +63,15 @@ namespace Merlin::Utils {
 
 	bool CameraController::OnMouseScrolled(MouseScrolledEvent& e)
 	{
-		m_ZoomLevel -= e.GetYOffset() * 0.25f;
-		m_ZoomLevel = std::max(m_ZoomLevel, 0.25f);
-		m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
+		_CameraSpeed += e.GetYOffset() * 0.25f;
+		_CameraSpeed = glm::max(_CameraSpeed, 0.25f);
 		return false;
 	}
 
 	bool CameraController::OnWindowResized(WindowResizeEvent& e)
 	{
-		m_AspectRatio = (float)e.GetWidth() / (float)e.GetHeight();
-		m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
+		_AspectRatio = (float)e.GetWidth() / (float)e.GetHeight();
+		_Camera.SetPerspective(_fov, _AspectRatio, _nearPlane, _farPlane);
 		return false;
 	}
 
