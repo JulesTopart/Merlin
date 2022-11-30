@@ -43,12 +43,13 @@ namespace Merlin::Utils {
 
 		
 		if (Input::IsKeyPressed(MRL_KEY_Q))
-			_dR.x += _CameraSpeed * 3.14f * ts;
+			_dR.y += _CameraSpeed * 3.14f;
 		if (Input::IsKeyPressed(MRL_KEY_E))
-			_dR.x -= _CameraSpeed * 3.14f * ts;
+			_dR.y -= _CameraSpeed * 3.14f;
 
+		
 		_Camera.Translate(_dU);
-		_Camera.Rotate(_dR);
+		_Camera.Rotate(_dR * float(ts));
 
 		_dU = glm::vec3(0.0f);
 		_dR = glm::vec3(0.0f);
@@ -59,6 +60,23 @@ namespace Merlin::Utils {
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<MouseScrolledEvent>(GLCORE_BIND_EVENT_FN(CameraController::OnMouseScrolled));
 		dispatcher.Dispatch<WindowResizeEvent>(GLCORE_BIND_EVENT_FN(CameraController::OnWindowResized));
+		dispatcher.Dispatch<MouseMovedEvent>(GLCORE_BIND_EVENT_FN(CameraController::OnMouseMoved));
+	}
+
+
+	bool CameraController::OnMouseMoved(MouseMovedEvent& e) {
+		glm::vec2 newMousePos = glm::vec2(e.GetX(), e.GetY());
+		
+
+		if (Input::IsMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
+			_deltaMousePos = _lastMousePos - newMousePos;
+
+			_dR.x = _deltaMousePos.y*10.0f;
+			_dR.z = _deltaMousePos.x * 10.0f;
+		}
+
+		_lastMousePos = newMousePos;
+		return false;
 	}
 
 	bool CameraController::OnMouseScrolled(MouseScrolledEvent& e)

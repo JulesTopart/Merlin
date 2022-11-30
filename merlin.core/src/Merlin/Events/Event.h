@@ -3,6 +3,9 @@
 #include "glpch.h"
 #include "../Core/Core.h"
 
+#include "../Core/KeyCodes.h"
+#include "../Core/MouseButtonCodes.h"
+
 namespace Merlin {
 
 	// Events in Hazel are currently blocking, meaning when an event occurs it

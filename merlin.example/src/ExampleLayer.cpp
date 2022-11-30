@@ -101,13 +101,22 @@ void ExampleLayer::OnEvent(Event& event)
 	dispatcher.Dispatch<MouseButtonPressedEvent>(
 		[&](MouseButtonPressedEvent& e)
 		{
-			m_SquareColor = m_SquareAlternateColor;
+			if (e.GetMouseButton() == MRL_MOUSE_BUTTON_LEFT) {
+				m_SquareColor = m_SquareAlternateColor;
+			}else if (e.GetMouseButton() == MRL_MOUSE_BUTTON_RIGHT) {
+
+			}
+
 			return false;
 		});
 	dispatcher.Dispatch<MouseButtonReleasedEvent>(
 		[&](MouseButtonReleasedEvent& e)
 		{
-			m_SquareColor = m_SquareBaseColor;
+			if (e.GetMouseButton() == MRL_MOUSE_BUTTON_LEFT) {
+				m_SquareColor = m_SquareBaseColor;
+			}else if (e.GetMouseButton() == MRL_MOUSE_BUTTON_RIGHT) {
+
+			}
 			return false;
 		});
 }
@@ -136,7 +145,11 @@ void ExampleLayer::OnImGuiRender()
 {
 
 	ImGui::Begin("Camera");
-	ImGui::SliderFloat3("Model Matrix Translation", &model_matrix_translation.x, 0.0f, 960.0f);
+
+	model_matrix_translation = m_CameraController.GetCamera().GetPosition();
+	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
+		m_CameraController.GetCamera().SetPosition(model_matrix_translation);
+	}
 	ImGui::End();
 
 	ImGui::Begin("Controles");

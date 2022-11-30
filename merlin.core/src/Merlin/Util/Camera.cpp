@@ -67,9 +67,9 @@ namespace Merlin::Utils {
 	void Camera::RecalculateViewMatrix() {
 
 		glm::vec3 direction;
-		direction.x = cos(glm::radians(_Rotation.x)) * cos(glm::radians(_Rotation.y));
-		direction.y = sin(glm::radians(_Rotation.y));
-		direction.z = cos(glm::radians(_Rotation.x)) * sin(glm::radians(_Rotation.y));
+		direction.z = sin(glm::radians(_Rotation.y));
+		direction.y = cos(glm::radians(_Rotation.x)) * cos(glm::radians(_Rotation.y));
+		direction.x = cos(glm::radians(_Rotation.x)) * sin(glm::radians(_Rotation.y));
 
 		_Front = normalize(direction);
 		_Right = glm::normalize(glm::cross(_Front, _WorldUp));

@@ -23,6 +23,7 @@ namespace Merlin::Utils {
 		void SetCameraSpeed(float speed) { _CameraSpeed = speed; }
 	private:
 		bool OnMouseScrolled(MouseScrolledEvent& e);
+		bool OnMouseMoved(MouseMovedEvent& e);
 		bool OnWindowResized(WindowResizeEvent& e);
 	private:
 		float _AspectRatio,
@@ -32,6 +33,9 @@ namespace Merlin::Utils {
 			 _nearPlane;
 		
 		Camera _Camera;
+
+		glm::vec2 _lastMousePos = { 0.0f, 0.0f};
+		glm::vec2 _deltaMousePos = { 0.0f, 0.0f };
 
 		glm::vec3 _dU = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 _dR = { 0.0f, 0.0f, 0.0f }; //In degrees, in the anti-clockwise direction, yaw, pitch, roll
