@@ -48,7 +48,7 @@ namespace Merlin::Utils {
 		glm::mat4 _ViewProjectionMatrix;
 
 		glm::vec3 _Position = { 0.0f, -5.0f, 2.0f };
-		glm::vec3 _Rotation = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 _Rotation = { 0.0f, 0.0f, 0.0f }; //roll, pitch, yaw
 
 		glm::vec3 _Target = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 _WorldUp = { 0.0f, 0.0f, 1.0f };

@@ -12,7 +12,7 @@ void main(){
 
 	vec3 n = normalize(normal);
 
-	vec3 ambient = lightColor * 0.2f;
+	vec3 ambient = lightColor * 0.5f;
 	vec3 diffuse = lightColor * max(dot(n, lightDir), 0.0);
 	//float specular = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 	o_Color = vec4(ambient + diffuse, 1.0f) * color;
