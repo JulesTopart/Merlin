@@ -71,8 +71,8 @@ namespace Merlin::Utils {
 		if (Input::IsMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
 			_deltaMousePos = _lastMousePos - newMousePos;
 
-			_dR.y = _deltaMousePos.y;
 			_dR.z = _deltaMousePos.x;
+			//_dR.y = _deltaMousePos.y;
 		}
 
 		_lastMousePos = newMousePos;

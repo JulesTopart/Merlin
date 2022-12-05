@@ -19,7 +19,6 @@ private:
 	std::shared_ptr<Merlin::Renderer::Shader> m_Shader;
 	std::shared_ptr<Merlin::Renderer::VertexArray> m_VAO;
 	std::shared_ptr<Merlin::Renderer::VertexBuffer> m_VBO;
-	std::shared_ptr<Merlin::Renderer::IndexBuffer> m_EBO;
 
 	Merlin::Utils::CameraController m_CameraController;
 

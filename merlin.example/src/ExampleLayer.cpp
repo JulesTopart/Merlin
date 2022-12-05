@@ -10,7 +10,7 @@ using namespace Merlin::Renderer;
 ExampleLayer::ExampleLayer()
 	: m_CameraController(45.0f, 16.0f / 9.0f)
 {
-	m_CameraController.GetCamera().SetPosition(glm::vec3(0,0,1));
+	m_CameraController.GetCamera().SetPosition(glm::vec3(-2.0f, 0.0f, 1.0f));
 }
 
 ExampleLayer::~ExampleLayer()
@@ -34,8 +34,8 @@ void ExampleLayer::OnAttach()
 	m_Shader = std::make_shared<Shader>("default");
 
 	m_Shader->Compile(
-		"assets/shaders/test.vert.glsl",
-		"assets/shaders/test.frag.glsl"
+		"assets/shaders/axis.vert.glsl",
+		"assets/shaders/axis.frag.glsl"
 	);
 
 	m_Shader->Use();
@@ -43,6 +43,7 @@ void ExampleLayer::OnAttach()
 	m_VAO = std::make_shared<VAO>();
 	m_VAO->Bind();
 
+	/* Cube
 	std::vector<Vertex> vertices = {
 		Vertex{ glm::vec3(-0.5f, -0.5f, -0.5f)},
 		Vertex{ glm::vec3(0.5f, -0.5f, -0.5f)},
@@ -52,45 +53,40 @@ void ExampleLayer::OnAttach()
 		Vertex{ glm::vec3(0.5f, -0.5f,  0.5f)},
 		Vertex{ glm::vec3(0.5f,  0.5f,  0.5f)},
 		Vertex{ glm::vec3(-0.5f,  0.5f,  0.5f)}
-	};
 
+		std::vector<GLuint> indices = {
+			0, 1, 3, 3, 1, 2,
+			1, 5, 2, 2, 5, 6,
+			5, 4, 6, 6, 4, 7,
+			4, 0, 7, 7, 0, 3,
+			3, 2, 7, 7, 2, 6,
+			4, 5, 0, 0, 5, 1
+		};
+
+	};
+	*/
 	
-	std::vector<GLuint> indices = { 
-		0, 1, 3, 3, 1, 2,
-		1, 5, 2, 2, 5, 6,
-		5, 4, 6, 6, 4, 7,
-		4, 0, 7, 7, 0, 3,
-		3, 2, 7, 7, 2, 6,
-		4, 5, 0, 0, 5, 1 
+	//Axis
+	std::vector<Vertex> vertices = {
+		Vertex{ glm::vec3(0.2f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
+		Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
+		Vertex{ glm::vec3(0.0f, 0.2f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+		Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+		Vertex{ glm::vec3(0.0f, 0.0f, 0.2f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+		Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}
 	};
 
-	glm::vec3 normals[6] =
-	{
-		glm::vec3(0, 0, 1),
-		glm::vec3(1, 0, 0),
-		glm::vec3(0, 0, -1),
-		glm::vec3(-1, 0, 0),
-		glm::vec3(0, 1, 0),
-		glm::vec3(0, -1, 0)
-	};
 	
 
 	m_VBO = std::make_shared<VBO>(vertices);
-	m_EBO = std::make_shared<EBO>(indices);
-	
 	m_VAO->AddBuffer(*m_VBO, Vertex::GetLayout());
-
-	
-
 	m_VAO->Unbind();
-	m_EBO->Unbind();
 	
 }
 
 void ExampleLayer::OnDetach()
 {
 	m_VAO.reset();
-	m_EBO.reset();
 }
 
 void ExampleLayer::OnEvent(Event& event)
@@ -133,10 +129,11 @@ void ExampleLayer::OnUpdate(Timestep ts)
 
 	m_Shader->SetMatrix4f("view", m_CameraController.GetCamera().GetViewProjectionMatrix());
 	//m_Shader->SetUniform4f("lightPos", m_SquareColor);
-	m_Shader->SetUniform4f("color", m_SquareColor);
+	//m_Shader->SetUniform4f("color", m_SquareColor);
 
 	m_VAO->Bind();
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+	glDrawArrays(GL_LINES, 0, 6);
+	//glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
 	m_VAO->Unbind();
 	
 }

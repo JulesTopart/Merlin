@@ -13,7 +13,7 @@ namespace Merlin::Utils {
 	}
 
 	void Camera::Reset(){
-		_Position = { 1.0f, 0.0f, 2.0f };
+		_Position = { 0.0f, 0.0f, 0.0f };
 		_Rotation = { 0.0f, 0.0f, 0.0f };
 
 		_Target = { 0.0f, 0.0f, 0.0f };
@@ -68,9 +68,9 @@ namespace Merlin::Utils {
 
 		glm::vec3 direction;
 		
-		direction.x = cos(glm::radians(_Rotation.z)) * cos(glm::radians(_Rotation.x));
+		direction.x = cos(glm::radians(_Rotation.y)) * cos(glm::radians(_Rotation.x));
 		direction.y = sin(glm::radians(_Rotation.x));
-		direction.z = sin(glm::radians(_Rotation.z)) * cos(glm::radians(_Rotation.x));
+		direction.z = sin(glm::radians(_Rotation.y)) * cos(glm::radians(_Rotation.x));
 		
 		
 
