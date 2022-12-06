@@ -2,6 +2,7 @@
 #include "Camera.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace Merlin::Utils {
 
@@ -66,13 +67,11 @@ namespace Merlin::Utils {
 
 	void Camera::RecalculateViewMatrix() {
 
-		glm::vec3 direction;
+		glm::vec3 direction = { 1.0f, 0.0f, 0.0f };
+		glm::vec3 eulerAngles = _Rotation;
+		glm::fquat quaternion{ glm::radians(eulerAngles) };
 		
-		direction.x = cos(glm::radians(_Rotation.y)) * cos(glm::radians(_Rotation.x));
-		direction.y = sin(glm::radians(_Rotation.x));
-		direction.z = sin(glm::radians(_Rotation.y)) * cos(glm::radians(_Rotation.x));
-		
-		
+		direction = quaternion * direction;
 
 		_Front = normalize(direction);
 		_Right = glm::normalize(glm::cross(_Front, _WorldUp));

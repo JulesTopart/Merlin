@@ -43,11 +43,11 @@ namespace Merlin::Utils {
 
 		
 		if (Input::IsKeyPressed(MRL_KEY_Q))
-			_dR.y += _CameraSpeed;
+			_dR.x += _CameraSpeed;
 		if (Input::IsKeyPressed(MRL_KEY_E))
-			_dR.y -= _CameraSpeed;
+			_dR.x -= _CameraSpeed;
 
-		
+		_dR *= ts * _CameraSpeed;
 		_Camera.Translate(_dU);
 		_Camera.Rotate(_dR);
 
@@ -71,8 +71,8 @@ namespace Merlin::Utils {
 		if (Input::IsMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
 			_deltaMousePos = _lastMousePos - newMousePos;
 
-			_dR.z = _deltaMousePos.x;
-			//_dR.y = _deltaMousePos.y;
+			_dR.z = -_deltaMousePos.x;
+			_dR.y = _deltaMousePos.y;
 		}
 
 		_lastMousePos = newMousePos;
