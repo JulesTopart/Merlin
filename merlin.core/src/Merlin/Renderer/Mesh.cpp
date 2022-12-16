@@ -42,8 +42,8 @@ namespace Merlin::Renderer {
 		shader.SetMatrix4f("view", camera.GetViewMatrix()); //Sync camera with GPU
 
 		vao.Bind();
-		if (indices > 0) glDrawElements(drawMode, indices, GL_UNSIGNED_INT, nullptr); //Draw elements using EBO
-		else glDrawArrays(drawMode, 0, vertices); //Draw
+		if (indices.size() > 0) glDrawElements(drawMode, indices.size(), GL_UNSIGNED_INT, nullptr); //Draw elements using EBO
+		else glDrawArrays(drawMode, 0, vertices.size()); //Draw
 		vao.Unbind();
 	}
 
@@ -59,9 +59,9 @@ namespace Merlin::Renderer {
 
 	Mesh& Mesh::LoadVertex(std::vector<Vertex>& _vertices) {
 
-		vertices = _vertices.size();
+		vertices = _vertices;
 
-		Console::info("Mesh") << "Loaded " << vertices << "verticles." << Console::endl;
+		Console::info("Mesh") << "Loaded " << vertices.size() << "verticles." << Console::endl;
 		
 		vao.Bind();
 		VBO vbo(_vertices);
@@ -79,8 +79,10 @@ namespace Merlin::Renderer {
 
 	Mesh& Mesh::LoadVertex(std::vector<Vertex>& _vertices, std::vector<GLuint>& _indices) {
 
-		vertices = _vertices.size();
-		indices = _indices.size();
+		vertices = std::move(_vertices);
+		_vertices.clear();
+		indices = std::move(_indices);
+		_indices.clear();
 
 		Console::info("Mesh") << "Loaded " << _indices.size() << "facets." << Console::endl;
 
@@ -88,11 +90,7 @@ namespace Merlin::Renderer {
 		VBO vbo(_vertices);
 		EBO ebo(_indices);
 
-		VertexBufferLayout layout;
-		layout.Push<float>(3); //Vertex pos
-		layout.Push<float>(3); //Vertex normal
-		layout.Push<float>(3); //Vertex color
-		layout.Push<float>(2); //Texture coordinates
+		VertexBufferLayout layout = Vertex::GetLayout();
 		vao.AddBuffer(vbo, layout);
 
 		vao.Unbind();

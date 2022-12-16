@@ -5,4 +5,4 @@
 #include "Merlin/Util/Camera.h"
 #include "Merlin/Util/CameraController.h"
 #include "Merlin/Util/OpenGLDebug.h"
-#include "Merlin/Util/MeshLoader.h"
+#include "Merlin/Util/ModelLoader.h"

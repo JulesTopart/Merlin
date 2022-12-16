@@ -101,7 +101,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Merlin\Util\MeshLoader.h" />
+    <ClInclude Include="src\Merlin\Renderer\Vertex.h" />
+    <ClInclude Include="src\Merlin\Util\ModelLoader.h" />
     <ClInclude Include="src\Merlin\Renderer\Mesh.h" />
     <ClInclude Include="src\Merlin\Renderer\ShaderBase.h" />
     <ClInclude Include="src\Merlin\Tensor\ComputeShader.h" />
@@ -138,7 +139,7 @@
     <ClInclude Include="src\Merlin\Renderer\Texture.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Merlin\Util\MeshLoader.cpp" />
+    <ClCompile Include="src\Merlin\Util\ModelLoader.cpp" />
     <ClCompile Include="src\Merlin\Renderer\Mesh.cpp" />
     <ClCompile Include="src\Merlin\Renderer\ShaderBase.cpp" />
     <ClCompile Include="src\Merlin\Tensor\ComputeShader.cpp" />

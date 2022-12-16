@@ -33,9 +33,8 @@ namespace Merlin::Renderer {
 		inline const std::string name() const { return _name; }
 
 	private:
-		GLuint vertices;
-		GLuint indices;
-
+		std::vector<Vertex> vertices;
+		std::vector<GLuint> indices;
 		std::vector<Texture> textures;
 
 		std::string _name;
