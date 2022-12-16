@@ -90,12 +90,47 @@ namespace Merlin::Utils::MeshLoader {
 */
 
 namespace Merlin::Utils::MeshLoader {
-	GeometryLayout GeometryData::GetLayout() {
-		GeometryLayout layout;
-		layout.Push<float>(3); //Vertex pos
-		layout.Push<float>(3); //Vertex normal
-		layout.Push<float>(3); //Vertex color
-		layout.Push<float>(2); //Texture coordinates
-		return layout;
+
+	bool stringEndWith(std::string filepath, std::string extension) {
+		if (filepath.size() >= extension.size() &&
+			filepath.compare(filepath.size() - extension.size(), extension.size(), extension) == 0)
+			return true;
+		else
+			return false;
 	}
+
+	
+	SupportedFileType GetFileType(std::string filepath){
+		if (stringEndWith(filepath, ".obj")) {
+			return SupportedFileType::OBJ;
+		}
+		else if (stringEndWith(filepath, ".stl")) {
+			return SupportedFileType::STL;
+		}
+		else if (stringEndWith(filepath, ".bin")) {
+			return SupportedFileType::BINARY;
+		}
+		else return SupportedFileType::UNKNOWN;
+	}
+
+	/*
+	std::shared_ptr<Renderer::Mesh> ImportMesh(std::string name, std::string filepath) {
+		SupportedFileType ft = GetFileType(filepath); 
+		
+		switch (ft) {
+		case SupportedFileType::STL :
+
+			break;
+
+		case SupportedFileType::OBJ:
+
+			break;
+
+		default:
+
+			break;
+		}
+
+		return std::shared_ptr<Renderer::Mesh>("none");
+	}*/
 }

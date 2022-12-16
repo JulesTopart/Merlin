@@ -6,6 +6,7 @@
 #include "VertexArray.h"
 
 namespace Merlin::Renderer {
+
 	class Mesh {
 	public:
 		Mesh(std::string name);
@@ -29,14 +30,12 @@ namespace Merlin::Renderer {
 		Mesh& rotate(float angle, glm::vec3 v);
 		Mesh& SetDrawMode(GLuint mode);
 
-		inline const std::string name() const { return _name; };
-
-
-		
+		inline const std::string name() const { return _name; }
 
 	private:
-		std::vector<Vertex> vertices;
-		std::vector<GLuint> indices;
+		GLuint vertices;
+		GLuint indices;
+
 		std::vector<Texture> textures;
 
 		std::string _name;
@@ -48,7 +47,6 @@ namespace Merlin::Renderer {
 		std::string linkedShaderName = "default";
 
 		Shader* _shader = nullptr;
-
 	};
 
 }
