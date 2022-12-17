@@ -15,7 +15,6 @@ namespace Merlin::Utils{
 		enum class FileType {
 			OBJ,
 			STL,
-			GLTF,
 			UNKNOWN
 		};
 
@@ -38,20 +37,13 @@ namespace Merlin::Utils{
 
 		// Parse an STL file and extract the data
 		static bool ParseSTL(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
-		static bool ParseSTLASCII(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
-
-		// Parse a glTF file and extract the data
-		static bool ParseGLTF(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
+		static bool ParseSTL_ASCII(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
+		static bool ParseSTL_BINARY(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
 
 		// Parse a any file and extract the data
 		static bool ParseFile(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
 
 
 	};
-
-	//Usage : std::unique_ptr<Mesh> model = ModelLoader::LoadModel("model.obj");
-	std::unique_ptr<Mesh> LoadModel(const std::string& filepath);
-
-
 
 }

@@ -7,6 +7,8 @@
 #include <vector>
 #include <memory>
 
+#include <tiny_gltf.h>
+
 #include "../Renderer/Vertex.h"
 
 namespace Merlin::Utils {
@@ -124,8 +126,38 @@ namespace Merlin::Utils {
         return true;
 	}
 
+    bool ModelLoader::ParseSTL(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
+        // Open the file for reading
+        std::ifstream file(filepath, std::ios::binary);
+
+        // Check if the file was successfully opened
+        if (!file.is_open()) {
+            std::cerr << "Error: Failed to open file " << filepath << std::endl;
+            return false;
+        }
+
+        // Read the first 80 bytes of the file (the size of the header in a binary STL file)
+        char header[81];
+        file.read(header, 80);
+        header[80] = '\0';
+
+        // Close the file
+        file.close();
+
+        // Check if the first 5 characters of the header are "solid"
+        if (std::strncmp(header, "solid", 5) == 0) {
+            // The file is an ASCII STL file
+            return ParseSTL_ASCII(filepath, vertices, indices);
+        }
+        else {
+            // The file is a binary STL file
+            return ParseSTL_BINARY(filepath, vertices, indices);
+        }
+    }
+
+
 	// Parse an STL file and extract the data
-	bool ModelLoader::ParseSTL(const std::string& file_path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
+	bool ModelLoader::ParseSTL_BINARY(const std::string& file_path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
         // Open the file in binary mode
         std::ifstream file(file_path, std::ios::binary);
         if (!file) {
@@ -183,7 +215,7 @@ namespace Merlin::Utils {
 	}
 
     // Parse an STL file and extract the data
-    bool ModelLoader::ParseSTLASCII(const std::string& file_path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
+    bool ModelLoader::ParseSTL_ASCII(const std::string& file_path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
         // Open the file in text mode
         std::ifstream file(file_path);
         if (!file) {
@@ -220,11 +252,7 @@ namespace Merlin::Utils {
             }
         }
     }
-
-	// Parse a glTF file and extract the data
-	bool ModelLoader::ParseGLTF(const std::string& file_path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
-        return false;
-	}
+	
 
 	// Parse a any file and extract the data
 	bool ModelLoader::ParseFile(const std::string& file_path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
@@ -234,8 +262,6 @@ namespace Merlin::Utils {
 			return ParseOBJ(file_path, vertices, indices);
 		case FileType::STL:
 			return ParseSTL(file_path, vertices, indices);
-		case FileType::GLTF:
-			return ParseGLTF(file_path, vertices, indices);
 		default:
 			// Unknown file type
 			return false;
@@ -249,9 +275,6 @@ namespace Merlin::Utils {
 		}
 		else if (extension == "stl") {
 			return FileType::STL;
-		}
-		else if (extension == "gltf") {
-			return FileType::GLTF;
 		}
 		else {
 			// Unknown file type

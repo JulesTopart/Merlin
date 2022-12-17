@@ -76,8 +76,6 @@ void ExampleLayer::OnAttach()
 		Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}
 	};
 
-	
-
 	m_VBO = std::make_shared<VBO>(vertices);
 	m_VAO->AddBuffer(*m_VBO, Vertex::GetLayout());
 	m_VAO->Unbind();

@@ -14,30 +14,55 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImGui", "merlin.core\vendor\imgui\ImGui.vcxproj", "{C0FF640D-2C14-8DBE-F595-301E616989EF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.core", "merlin.core\merlin.core.vcxproj", "{20200B5F-8CD5-8354-15CA-7D2B817E7A58}"
+	ProjectSection(ProjectDependencies) = postProject
+		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF} = {160B8A25-02D8-E430-2BF1-D2D8171D1ABF}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinygltf", "merlin.core\vendor\tinygltf\tinygltf.vcxproj", "{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{56515698-C2DC-C35C-CBED-465137F81F5D}.Debug|x64.ActiveCfg = Debug|x64
 		{56515698-C2DC-C35C-CBED-465137F81F5D}.Debug|x64.Build.0 = Debug|x64
+		{56515698-C2DC-C35C-CBED-465137F81F5D}.Debug|x86.ActiveCfg = Debug|x64
 		{56515698-C2DC-C35C-CBED-465137F81F5D}.Release|x64.ActiveCfg = Release|x64
 		{56515698-C2DC-C35C-CBED-465137F81F5D}.Release|x64.Build.0 = Release|x64
+		{56515698-C2DC-C35C-CBED-465137F81F5D}.Release|x86.ActiveCfg = Release|x64
 		{154B857C-0182-860D-AA6E-6C109684020F}.Debug|x64.ActiveCfg = Debug|x64
+		{154B857C-0182-860D-AA6E-6C109684020F}.Debug|x86.ActiveCfg = Debug|x64
 		{154B857C-0182-860D-AA6E-6C109684020F}.Release|x64.ActiveCfg = Release|x64
 		{154B857C-0182-860D-AA6E-6C109684020F}.Release|x64.Build.0 = Release|x64
+		{154B857C-0182-860D-AA6E-6C109684020F}.Release|x86.ActiveCfg = Release|x64
 		{BDD6857C-A90D-870D-52FA-6C103E10030F}.Debug|x64.ActiveCfg = Debug|x64
+		{BDD6857C-A90D-870D-52FA-6C103E10030F}.Debug|x86.ActiveCfg = Debug|x64
 		{BDD6857C-A90D-870D-52FA-6C103E10030F}.Release|x64.ActiveCfg = Release|x64
 		{BDD6857C-A90D-870D-52FA-6C103E10030F}.Release|x64.Build.0 = Release|x64
+		{BDD6857C-A90D-870D-52FA-6C103E10030F}.Release|x86.ActiveCfg = Release|x64
 		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Debug|x64.ActiveCfg = Debug|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Debug|x86.ActiveCfg = Debug|x64
 		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Release|x64.ActiveCfg = Release|x64
 		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Release|x64.Build.0 = Release|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Release|x86.ActiveCfg = Release|x64
 		{20200B5F-8CD5-8354-15CA-7D2B817E7A58}.Debug|x64.ActiveCfg = Debug|x64
 		{20200B5F-8CD5-8354-15CA-7D2B817E7A58}.Debug|x64.Build.0 = Debug|x64
+		{20200B5F-8CD5-8354-15CA-7D2B817E7A58}.Debug|x86.ActiveCfg = Debug|x64
 		{20200B5F-8CD5-8354-15CA-7D2B817E7A58}.Release|x64.ActiveCfg = Release|x64
 		{20200B5F-8CD5-8354-15CA-7D2B817E7A58}.Release|x64.Build.0 = Release|x64
+		{20200B5F-8CD5-8354-15CA-7D2B817E7A58}.Release|x86.ActiveCfg = Release|x64
+		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}.Debug|x64.ActiveCfg = Debug|x64
+		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}.Debug|x64.Build.0 = Debug|x64
+		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}.Debug|x86.ActiveCfg = Debug|Win32
+		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}.Debug|x86.Build.0 = Debug|Win32
+		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}.Release|x64.ActiveCfg = Release|x64
+		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}.Release|x64.Build.0 = Release|x64
+		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}.Release|x86.ActiveCfg = Release|Win32
+		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,6 +71,7 @@ Global
 		{154B857C-0182-860D-AA6E-6C109684020F} = {53E47842-3FC8-3998-A828-34EB942B241A}
 		{BDD6857C-A90D-870D-52FA-6C103E10030F} = {53E47842-3FC8-3998-A828-34EB942B241A}
 		{C0FF640D-2C14-8DBE-F595-301E616989EF} = {53E47842-3FC8-3998-A828-34EB942B241A}
+		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF} = {53E47842-3FC8-3998-A828-34EB942B241A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08CE0857-BD26-4581-B676-934B26490A92}
