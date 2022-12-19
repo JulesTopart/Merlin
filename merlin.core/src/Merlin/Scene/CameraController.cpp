@@ -4,7 +4,7 @@
 #include "Merlin/Core/Input.h"
 #include "Merlin/Core/KeyCodes.h"
 
-namespace Merlin::Utils {
+namespace Merlin::Scene {
 
 	CameraController::CameraController(float fov, float aspectRatio, float nearPlane, float farPlane)
 		: _AspectRatio(aspectRatio), _Camera(), _fov(fov), _CameraSpeed(1.0f), _nearPlane(nearPlane), _farPlane(farPlane)
@@ -82,7 +82,7 @@ namespace Merlin::Utils {
 	bool CameraController::OnMouseScrolled(MouseScrolledEvent& e)
 	{
 		_CameraSpeed += e.GetYOffset() * 0.25f;
-		_CameraSpeed = glm::max(_CameraSpeed, 0.25f);
+		_CameraSpeed = max(_CameraSpeed, 0.25f);
 		return false;
 	}
 

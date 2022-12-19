@@ -13,8 +13,52 @@
 
 namespace Merlin::Utils {
 
+
+    std::shared_ptr<Mesh> ModelLoader::LoadCube(std::string name) {
+        
+        std::vector<Vertex> vertices = {
+            Vertex{ glm::vec3(-0.5f, -0.5f, -0.5f)},
+            Vertex{ glm::vec3(0.5f, -0.5f, -0.5f)},
+            Vertex{ glm::vec3(0.5f,  0.5f, -0.5f)},
+            Vertex{ glm::vec3(-0.5f,  0.5f, -0.5f)},
+            Vertex{ glm::vec3(-0.5f, -0.5f,  0.5f)},
+            Vertex{ glm::vec3(0.5f, -0.5f,  0.5f)},
+            Vertex{ glm::vec3(0.5f,  0.5f,  0.5f)},
+            Vertex{ glm::vec3(-0.5f,  0.5f,  0.5f)} 
+        };
+
+        std::vector<GLuint> indices = {
+            0, 1, 3, 3, 1, 2,
+            1, 5, 2, 2, 5, 6,
+            5, 4, 6, 6, 4, 7,
+            4, 0, 7, 7, 0, 3,
+            3, 2, 7, 7, 2, 6,
+            4, 5, 0, 0, 5, 1
+        };
+
+        std::shared_ptr<Mesh> cube = std::make_shared<Mesh>("Cube");
+        cube->LoadVertex(vertices, indices);
+        return cube;
+    }
+
+    std::shared_ptr<Mesh> ModelLoader::LoadAxis(std::string name) {
+        //Axis
+        std::vector<Vertex> vertices = {
+            Vertex{ glm::vec3(0.2f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
+            Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
+            Vertex{ glm::vec3(0.0f, 0.2f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+            Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+            Vertex{ glm::vec3(0.0f, 0.0f, 0.2f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+            Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}
+        };
+
+        std::shared_ptr<Mesh> axis = std::make_shared<Mesh>("Axis");
+        axis->LoadVertex(vertices);
+        return axis;
+    }
+
 	// Load a model from the specified file and return a pointer to a new Mesh object
-	std::unique_ptr<Mesh> ModelLoader::LoadModel(const std::string& file_path) {
+    std::shared_ptr<Mesh> ModelLoader::LoadModel(const std::string& file_path) {
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
 
@@ -23,7 +67,7 @@ namespace Merlin::Utils {
         }
 
         // Create a Mesh object using the parsed vertex and index data
-        auto mesh = std::make_unique<Mesh>(GetFileName(file_path));
+        auto mesh = std::make_shared<Mesh>(GetFileName(file_path));
         mesh->LoadVertex(vertices, indices);
         return mesh;
 	}

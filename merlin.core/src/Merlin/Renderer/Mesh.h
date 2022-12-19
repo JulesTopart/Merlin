@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include "Shader.h"
 #include "Texture.h"
-#include "../Util/Camera.h"
+
 #include "VertexArray.h"
 
 namespace Merlin::Renderer {
@@ -12,7 +12,7 @@ namespace Merlin::Renderer {
 		Mesh(std::string name);
 		~Mesh();
 
-		void Draw(Shader&, Utils::Camera&); //Draw the mesh
+		void Draw(Shader&, glm::mat4 view); //Draw the mesh
 
 
 		Mesh& LinkShader(std::string shaderName, Shader& shader);

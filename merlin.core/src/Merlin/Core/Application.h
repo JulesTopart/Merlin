@@ -9,7 +9,7 @@
 
 #include "Timestep.h"
 
-#include "../ImGui/ImGuiLayer.h"
+#include "../UI/ImGuiLayer.h"
 
 namespace Merlin {
 

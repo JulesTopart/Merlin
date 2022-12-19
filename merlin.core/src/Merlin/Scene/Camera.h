@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include "../Renderer/Shader.h"
 
-namespace Merlin::Utils {
+namespace Merlin::Scene {
 
 	class Camera
 	{

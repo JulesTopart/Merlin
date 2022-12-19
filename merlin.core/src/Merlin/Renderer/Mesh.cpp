@@ -4,8 +4,6 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "IndexBuffer.h"
 
-using Camera = Merlin::Utils::Camera;
-
 namespace Merlin::Renderer {
 	Mesh::Mesh(std::string n) {
 		_name = n;
@@ -18,7 +16,7 @@ namespace Merlin::Renderer {
 		}
 	}
 
-	void Mesh::Draw(Shader& shader, Camera& camera) {
+	void Mesh::Draw(Shader& shader, glm::mat4 view) {
 		shader.Use();
 
 		unsigned int numDiffuse = 0;
@@ -39,7 +37,7 @@ namespace Merlin::Renderer {
 			textures[i].Bind();
 		}
 
-		shader.SetMatrix4f("view", camera.GetViewMatrix()); //Sync camera with GPU
+		shader.SetMatrix4f("view", view); //Sync camera with GPU
 
 		vao.Bind();
 		if (indices.size() > 0) glDrawElements(drawMode, indices.size(), GL_UNSIGNED_INT, nullptr); //Draw elements using EBO

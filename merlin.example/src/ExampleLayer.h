@@ -1,8 +1,6 @@
 #pragma once
 
 #include <Merlin.h>
-#include <MerlinRenderer.h>
-#include <MerlinUtils.h>
 
 class ExampleLayer : public Merlin::Layer
 {
@@ -16,14 +14,13 @@ public:
 	virtual void OnUpdate(Merlin::Timestep ts) override;
 	virtual void OnImGuiRender() override;
 private:
-	std::shared_ptr<Merlin::Renderer::Shader> m_Shader;
-	std::shared_ptr<Merlin::Renderer::VertexArray> m_VAO;
-	std::shared_ptr<Merlin::Renderer::VertexBuffer> m_VBO;
+	std::shared_ptr<Merlin::Renderer::Shader> modelShader;
+	std::shared_ptr<Merlin::Renderer::Shader> axisShader;
 
-	Merlin::Utils::CameraController m_CameraController;
+	std::shared_ptr<Merlin::Renderer::Mesh> axis;
+	std::shared_ptr<Merlin::Renderer::Mesh> model;
 
-	glm::vec4 m_SquareBaseColor = { 0.8f, 0.2f, 0.3f, 1.0f };
-	glm::vec4 m_SquareAlternateColor = { 0.2f, 0.3f, 0.8f, 1.0f };
-	glm::vec4 m_SquareColor = m_SquareBaseColor;
+	Merlin::Scene::CameraController cameraController;
+
 	glm::vec3 model_matrix_translation = { 0.8f, 0.2f, 0.3f};
 };

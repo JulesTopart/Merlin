@@ -8,7 +8,9 @@ namespace Merlin::Utils{
 	class ModelLoader {
 	public:
 		// Load a model from the specified file and return a pointer to a new Mesh object
-		static std::unique_ptr<Mesh> LoadModel(const std::string& filepath);
+		static std::shared_ptr<Mesh> LoadModel(const std::string& filepath);
+		static std::shared_ptr<Mesh> LoadAxis(std::string name);
+		static std::shared_ptr<Mesh> LoadCube(std::string name);
 
 	private:
 
