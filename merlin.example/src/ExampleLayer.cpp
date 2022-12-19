@@ -46,61 +46,26 @@ void ExampleLayer::OnAttach()
 	axis = ModelLoader::LoadAxis("axis");
 	model = ModelLoader::LoadCube("cube");
 
-	axis->LinkShader();
 }
 
-void ExampleLayer::OnDetach()
-{
+void ExampleLayer::OnDetach(){
 	model.reset();
 }
 
-void ExampleLayer::OnEvent(Event& event)
-{
+void ExampleLayer::OnEvent(Event& event){
 	cameraController.OnEvent(event);
-
-	EventDispatcher dispatcher(event);
-	dispatcher.Dispatch<MouseButtonPressedEvent>(
-		[&](MouseButtonPressedEvent& e)
-		{
-			if (e.GetMouseButton() == MRL_MOUSE_BUTTON_LEFT) {
-				
-			}else if (e.GetMouseButton() == MRL_MOUSE_BUTTON_RIGHT) {
-
-			}
-
-			return false;
-		});
-	dispatcher.Dispatch<MouseButtonReleasedEvent>(
-		[&](MouseButtonReleasedEvent& e)
-		{
-			if (e.GetMouseButton() == MRL_MOUSE_BUTTON_LEFT) {
-				
-			}else if (e.GetMouseButton() == MRL_MOUSE_BUTTON_RIGHT) {
-
-			}
-			return false;
-		});
 }
 
-void ExampleLayer::OnUpdate(Timestep ts)
-{
+void ExampleLayer::OnUpdate(Timestep ts){
 	
 	cameraController.OnUpdate(ts);
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	
+	model->Draw(*modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
+	axis->Draw(*axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
 
-	shader->SetMatrix4f("view", m_CameraController.GetCamera().GetViewProjectionMatrix());
-	//m_Shader->SetUniform4f("lightPos", m_SquareColor);
-	//m_Shader->SetUniform4f("color", m_SquareColor);
-
-	m_VAO->Bind();
-	glDrawArrays(GL_LINES, 0, 6);
-	//glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
-	m_VAO->Unbind();
-	
 }
 
 void ExampleLayer::OnImGuiRender()
@@ -108,15 +73,9 @@ void ExampleLayer::OnImGuiRender()
 
 	ImGui::Begin("Camera");
 
-	model_matrix_translation = m_CameraController.GetCamera().GetPosition();
+	model_matrix_translation = cameraController.GetCamera().GetPosition();
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
-		m_CameraController.GetCamera().SetPosition(model_matrix_translation);
+		cameraController.GetCamera().SetPosition(model_matrix_translation);
 	}
-	ImGui::End();
-
-	ImGui::Begin("Controles");
-	if (ImGui::ColorEdit4("Square Base Color", glm::value_ptr(m_SquareBaseColor)))
-		m_SquareColor = m_SquareBaseColor;
-	ImGui::ColorEdit4("Square Alternate Color", glm::value_ptr(m_SquareAlternateColor));
 	ImGui::End();
 }
