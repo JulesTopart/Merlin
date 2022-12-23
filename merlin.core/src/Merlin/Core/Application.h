@@ -16,7 +16,7 @@ namespace Merlin {
 	class Application
 	{
 	public:
-		Application(const std::string& name = "OpenGL Sandbox", uint32_t width = 1280, uint32_t height = 720);
+		Application(const std::string& name = "OpenGL Sandbox", uint32_t width = 1280, uint32_t height = 720, bool vsync = true, bool multisampling = true);
 		virtual ~Application() = default;
 
 		void Run();

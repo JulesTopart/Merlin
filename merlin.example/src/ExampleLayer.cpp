@@ -7,19 +7,15 @@ using namespace Merlin::Renderer;
 #include <iostream>
 #include <iomanip>
 
-ExampleLayer::ExampleLayer()
-	: cameraController(45.0f, 16.0f / 9.0f)
-{
+ExampleLayer::ExampleLayer() : cameraController(45.0f, 16.0f / 9.0f){
 	cameraController.GetCamera().SetPosition(glm::vec3(-2.0f, 0.0f, 1.0f));
 }
 
-ExampleLayer::~ExampleLayer()
-{
+ExampleLayer::~ExampleLayer(){
 
 }
 
-void ExampleLayer::OnAttach()
-{
+void ExampleLayer::OnAttach(){
 	EnableGLDebugging();
 
 	Console::SetLevel(ConsoleLevel::_INFO);
@@ -44,7 +40,9 @@ void ExampleLayer::OnAttach()
 	);
 	
 	axis = ModelLoader::LoadAxis("axis");
-	model = ModelLoader::LoadCube("cube");
+	//model = ModelLoader::LoadCube("cube");
+	model = ModelLoader::LoadPlane("plane");
+	model->translate(glm::vec3(0, 0, -1));
 
 }
 
@@ -63,6 +61,12 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	modelShader->Use();
+	modelShader->SetUniform3f("lightPos", glm::vec3(0,0,3));
+	modelShader->SetUniform3f("lightColor", glm::vec3(1, 1, 1));
+	modelShader->SetUniform3f("viewPos", cameraController.GetCamera().GetPosition());
+	modelShader->SetFloat("shininess", 1.0f);
+
 	model->Draw(*modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
 	axis->Draw(*axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
 
@@ -70,7 +74,6 @@ void ExampleLayer::OnUpdate(Timestep ts){
 
 void ExampleLayer::OnImGuiRender()
 {
-
 	ImGui::Begin("Camera");
 
 	model_matrix_translation = cameraController.GetCamera().GetPosition();

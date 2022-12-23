@@ -101,6 +101,9 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Merlin\Renderer\RenderBuffer.h" />
+    <ClInclude Include="src\Merlin\Renderer\FrameBuffer.h" />
+    <ClInclude Include="src\Merlin\Renderer\ScreenQuadRenderer.h" />
     <ClInclude Include="src\Merlin\Renderer\Vertex.h" />
     <ClInclude Include="src\Merlin\Util\ModelLoader.h" />
     <ClInclude Include="src\Merlin\Renderer\Mesh.h" />
@@ -137,6 +140,9 @@
     <ClInclude Include="src\Merlin\Renderer\Texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Merlin\Renderer\RenderBuffer.cpp" />
+    <ClCompile Include="src\Merlin\Renderer\FrameBuffer.cpp" />
+    <ClCompile Include="src\Merlin\Renderer\ScreenQuadRenderer.cpp" />
     <ClCompile Include="src\Merlin\Util\ModelLoader.cpp" />
     <ClCompile Include="src\Merlin\Renderer\Mesh.cpp" />
     <ClCompile Include="src\Merlin\Renderer\ShaderBase.cpp" />

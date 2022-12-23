@@ -37,6 +37,8 @@ namespace Merlin {
 		m_Data.Title = props.Title;
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
+		m_Data.VSync = props.VSync;
+		m_Data.MSAA = props.MSAA;
 
 		if (!s_GLFWInitialized)
 		{
@@ -45,6 +47,8 @@ namespace Merlin {
 			glfwSetErrorCallback(GLFWErrorCallback);
 			s_GLFWInitialized = true;
 		}
+
+		if(props.MSAA) glfwWindowHint(GLFW_SAMPLES, 4);
 
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 
@@ -55,7 +59,7 @@ namespace Merlin {
 		//OpenGl is ready
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
-		SetVSync(true);
+		if (props.VSync)SetVSync(true);
 
 		// Set GLFW callbacks
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)

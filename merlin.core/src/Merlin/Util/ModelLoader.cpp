@@ -38,7 +38,31 @@ namespace Merlin::Utils {
 
         std::shared_ptr<Mesh> cube = std::make_shared<Mesh>("Cube");
         cube->LoadVertex(vertices, indices);
+        cube->SetDrawMode(GL_TRIANGLES);
         return cube;
+    }
+
+
+    std::shared_ptr<Mesh> ModelLoader::LoadPlane(std::string name) {
+        
+        //Plane
+        std::vector<Vertex> vertices = {
+            //             COORDINATES          /             NORMAL         /          COLOR          /        	TexCoord       /
+            Vertex{ glm::vec3(-1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
+            Vertex{ glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
+            Vertex{ glm::vec3( 1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
+            Vertex{ glm::vec3( 1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)}
+        };
+
+        std::vector<GLuint> indices = {
+            0, 1, 2,
+            0, 2, 3
+        };
+
+        std::shared_ptr<Mesh> plane = std::make_shared<Mesh>("Plane");
+        plane->LoadVertex(vertices, indices);
+        plane->SetDrawMode(GL_TRIANGLES);
+        return plane;
     }
 
     std::shared_ptr<Mesh> ModelLoader::LoadAxis(std::string name) {
@@ -54,6 +78,7 @@ namespace Merlin::Utils {
 
         std::shared_ptr<Mesh> axis = std::make_shared<Mesh>("Axis");
         axis->LoadVertex(vertices);
+        axis->SetDrawMode(GL_LINES);
         return axis;
     }
 

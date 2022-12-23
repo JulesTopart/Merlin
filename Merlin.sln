@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.example", "merlin.ex
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{53E47842-3FC8-3998-A828-34EB942B241A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLFW", "merlin.core\vendor\GLFW\GLFW.vcxproj", "{154B857C-0182-860D-AA6E-6C109684020F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLFW", "merlin.core\vendor\glfw\GLFW.vcxproj", "{154B857C-0182-860D-AA6E-6C109684020F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Glad", "merlin.core\vendor\Glad\Glad.vcxproj", "{BDD6857C-A90D-870D-52FA-6C103E10030F}"
 EndProject
@@ -20,6 +20,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.core", "merlin.core\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinygltf", "merlin.core\vendor\tinygltf\tinygltf.vcxproj", "{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.multisampling", "merlin.multisampling\merlin.multisampling.vcxproj", "{6C484867-32C9-4676-81E6-A87030921AE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -29,10 +31,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{56515698-C2DC-C35C-CBED-465137F81F5D}.Debug|x64.ActiveCfg = Debug|x64
-		{56515698-C2DC-C35C-CBED-465137F81F5D}.Debug|x64.Build.0 = Debug|x64
 		{56515698-C2DC-C35C-CBED-465137F81F5D}.Debug|x86.ActiveCfg = Debug|x64
 		{56515698-C2DC-C35C-CBED-465137F81F5D}.Release|x64.ActiveCfg = Release|x64
-		{56515698-C2DC-C35C-CBED-465137F81F5D}.Release|x64.Build.0 = Release|x64
 		{56515698-C2DC-C35C-CBED-465137F81F5D}.Release|x86.ActiveCfg = Release|x64
 		{154B857C-0182-860D-AA6E-6C109684020F}.Debug|x64.ActiveCfg = Debug|x64
 		{154B857C-0182-860D-AA6E-6C109684020F}.Debug|x86.ActiveCfg = Debug|x64
@@ -63,6 +63,12 @@ Global
 		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}.Release|x64.Build.0 = Release|x64
 		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}.Release|x86.ActiveCfg = Release|Win32
 		{160B8A25-02D8-E430-2BF1-D2D8171D1ABF}.Release|x86.Build.0 = Release|Win32
+		{6C484867-32C9-4676-81E6-A87030921AE7}.Debug|x64.ActiveCfg = Debug|x64
+		{6C484867-32C9-4676-81E6-A87030921AE7}.Debug|x64.Build.0 = Debug|x64
+		{6C484867-32C9-4676-81E6-A87030921AE7}.Debug|x86.ActiveCfg = Debug|x64
+		{6C484867-32C9-4676-81E6-A87030921AE7}.Release|x64.ActiveCfg = Release|x64
+		{6C484867-32C9-4676-81E6-A87030921AE7}.Release|x64.Build.0 = Release|x64
+		{6C484867-32C9-4676-81E6-A87030921AE7}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

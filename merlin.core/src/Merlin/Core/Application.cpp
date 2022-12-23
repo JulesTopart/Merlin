@@ -13,7 +13,7 @@ namespace Merlin {
 
 	Application* Application::s_Instance = nullptr;
 
-	Application::Application(const std::string& name, uint32_t width, uint32_t height)
+	Application::Application(const std::string& name, uint32_t width, uint32_t height, bool vsync, bool multisampling)
 	{
 		if (!s_Instance)
 		{
@@ -24,7 +24,7 @@ namespace Merlin {
 		GLCORE_ASSERT(!s_Instance, "Application", "Application already exists!");
 		s_Instance = this;
 
-		m_Window = std::unique_ptr<Window>(Window::Create({ name, width, height }));
+		m_Window = std::unique_ptr<Window>(Window::Create({ name, width, height, vsync, multisampling }));
 		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 
 		int deviceMem;
@@ -34,13 +34,13 @@ namespace Merlin {
 		
 		Console::print() 
 			<< "| -------------- | " << "------------------------------------------------------------"	<< "|" << Console::endl
-			<< "| Merlin Engine  | " << Console::alignLeft(60, "v1.0.0")								<< "|" << Console::endl
+			<< "| Merlin Engine  | " << Console::alignLeft(60, "v1.0.8")								<< "|" << Console::endl
 			<< "| -------------- | " << "------------------------------------------------------------"	<< "|" << Console::endl
 			<< "| Device vendor  | " << Console::alignLeft(60, (const char*)glGetString(GL_VENDOR))		<< "|" << Console::endl
 			<< "| Device name    | " << Console::alignLeft(60, (const char*)glGetString(GL_RENDERER))	<< "|" << Console::endl
 			<< "| OpenGL version | " << Console::alignLeft(60, (const char*)glGetString(GL_VERSION))	<< "|" << Console::endl
 			<< "| GLSL version   | " << Console::alignLeft(60, (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION)) << "|" << Console::endl
-			<< "| Device RAM     | " << Console::alignLeft(60, std::to_string(availableMem / 1000000.0f) + " / " + std::to_string(deviceMem / 1000000) + " Go") << "|" << Console::endl
+			<< "| Device RAM     | " << Console::alignLeft(60, std::to_string(availableMem / 1000000.0f) + " / " + std::to_string(deviceMem / 1000000.0f) + " Go") << "|" << Console::endl
 			<< "| -------------- | " << "------------------------------------------------------------"	<< "|" << Console::endl;
 
 		m_ImGuiLayer = new ImGuiLayer();

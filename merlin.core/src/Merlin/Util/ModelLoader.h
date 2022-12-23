@@ -9,6 +9,7 @@ namespace Merlin::Utils{
 	public:
 		// Load a model from the specified file and return a pointer to a new Mesh object
 		static std::shared_ptr<Mesh> LoadModel(const std::string& filepath);
+		static std::shared_ptr<Mesh> LoadPlane(std::string name);
 		static std::shared_ptr<Mesh> LoadAxis(std::string name);
 		static std::shared_ptr<Mesh> LoadCube(std::string name);
 

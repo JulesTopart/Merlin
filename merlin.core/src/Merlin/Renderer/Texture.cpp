@@ -5,72 +5,122 @@
 
 namespace Merlin::Renderer {
 
-	Texture::Texture() : _type(Type::SPECULAR) {}
-	Texture::~Texture() {}
-
-	void Texture::Create() {
+	Texture::Texture(GLuint samples) : _type(Type::SPECULAR), _samples(samples), _format(GL_RGBA) {
+		//Set the target based on the number of samples
 		glGenTextures(1, &_TextureID);
+		
+		if (samples > 0) {
+			_Target = GL_TEXTURE_2D_MULTISAMPLE;
+			Bind();
+		}else {
+			_Target = GL_TEXTURE_2D;
+			Bind();
+			SetInterpolationMode(GL_NEAREST, GL_NEAREST);
+			SetRepeatMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+			SetBorderColor4f(1, 0, 0, 1);
+		}
+		
+		
 	}
-
-	void Texture::Delete() {
+	Texture::~Texture() {
 		glDeleteTextures(1, &_TextureID);
 	}
 
 	void Texture::Bind() {
+		// Activate the appropriate texture unit (offsetting from Texture0 using the _unit)
+		glActiveTexture(GL_TEXTURE0 + _unit);
+		// Bind the texture to the appropriate target
+		glBindTexture(_Target, _TextureID);
+	}
+
+	void Texture::Bind(GLuint unit) {
+		// Activate the appropriate texture unit (offsetting from Texture0 using the unit parameter)
 		glActiveTexture(GL_TEXTURE0 + unit);
-		glBindTexture(GL_TEXTURE_2D, _TextureID);
+		// Bind the texture to the appropriate target
+		glBindTexture(_Target, _TextureID);
+		
 	}
 
 	void Texture::Unbind() {
-		glBindTexture(GL_TEXTURE_2D, 0);
+		// Unbind the texture to the appropriate target
+		glBindTexture(_Target, 0);
+
 	}
 
-	void Texture::SetInterpolation(GLuint settingMin, GLuint settingMag) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, settingMin);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, settingMag);
-	}
-	void Texture::SetRepeat(GLuint setting) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, setting);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, setting);
+	void Texture::SetInterpolationMode(GLuint settingMin, GLuint settingMag) {
+		if (_samples > 0) Console::error("Texture") << "You cannot set interpolation filter on a multisampled texture" << Console::endl;
+		glTexParameteri(_Target, GL_TEXTURE_MIN_FILTER, settingMin);
+		glTexParameteri(_Target, GL_TEXTURE_MAG_FILTER, settingMag);
 	}
 
-	void Texture::SetBorderColor(float colors[4]) {
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, colors);
+	void Texture::SetRepeatMode(GLuint _wrapS, GLuint _wrapT) {
+		if (_samples > 0) Console::error("Texture") << "You cannot set warp behavior on a multisampled texture" << Console::endl;
+		glTexParameteri(_Target, GL_TEXTURE_WRAP_S, _wrapS);
+		glTexParameteri(_Target, GL_TEXTURE_WRAP_T, _wrapT);
 	}
 
-	void Texture::SetBorderColor(float R, float G, float B, float A) {
+	void Texture::SetBorderColor4f(float colors[4]) {
+		if (_samples > 0) Console::error("Texture") << "You cannot set a border color on a multisampled texture" << Console::endl;
+		glTexParameterfv(_Target, GL_TEXTURE_BORDER_COLOR, colors);
+	}
+
+	void Texture::SetBorderColor4f(float R, float G, float B, float A) {
+		if (_samples > 0) Console::error("Texture") << "You cannot set a border color on a multisampled texture" << Console::endl;
 		float colors[4] = { R,G,B,A };
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, colors);
+		glTexParameterfv(_Target, GL_TEXTURE_BORDER_COLOR, colors);
 	}
 
-	void Texture::Load(const std::string img_file_path, Type t, GLuint format) {
-		_type = t;
-		unit = t == Type::DIFFUSE ? 0 : 1;
+	void Texture::Resize(GLsizei width, GLsizei height) {
+		// Update the dimensions of the texture
+		_width = width;
+		_height = height;
+
+		// Bind the texture
+		Bind();
+		// Resize the texture using glTexImage2D
+		if (_samples > 0)
+			glTexImage2DMultisample(_Target, _samples, _format, _width, _height, GL_TRUE);
+		else
+			glTexImage2D(_Target, 0, _format, width, height, 0, _format, GL_UNSIGNED_BYTE, nullptr);
+	}
+
+	void Texture::LoadFromFile(const std::string img_file_path, Type t, GLenum format) {
 
 		int widthImg, heightImg, numColCh;
 		// Flips the image so it appears right side up
 		stbi_set_flip_vertically_on_load(true);
 
 		unsigned char* bytes = stbi_load(img_file_path.c_str(), &widthImg, &heightImg, &numColCh, 0);
+	
+		if (bytes == nullptr) {
+			Console::error("Texture") << "Cannot load image : " << std::filesystem::current_path().string() << "/" << img_file_path << Console::endl;
+		}else {
+			Console::info("Texture") << "Texture : (" << img_file_path << ") loaded sucessfully." << Console::endl;
+
+			LoadFromData(bytes, widthImg, heightImg, t, format);
+			if (_samples == 0) GenerateMipMap();
+		}
+		//stbi_image_free(bytes);
+		Unbind();
+	}
+
+	void Texture::LoadFromData(unsigned char* data, int width, int height, Type t, GLenum format) {
+		_type = t;
+		_width = width;
+		_height = height;
+		_format = format;
 
 		Bind();
 
-		SetBorderColor(0.0f, 0.0f, 0.0f, 1.0f);
-		SetInterpolation(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-		SetRepeat(GL_CLAMP_TO_BORDER);
-
-
-		if (bytes != NULL) {
-			Console::error("Texture") << "Cannot load image : " << std::filesystem::current_path().string() << img_file_path << Console::endl;
-		}
-		else {
-			Console::info("Texture") << "Texture : (" << img_file_path << ") loaded sucessfully." << Console::endl;
-			
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, widthImg, heightImg, 0, format, GL_UNSIGNED_BYTE, bytes);
-			glGenerateMipmap(GL_TEXTURE_2D);
-
-		}
+		if(_samples > 0)
+			glTexImage2DMultisample(_Target, _samples, format, _width, _height, GL_TRUE);
+		else
+			glTexImage2D(_Target, 0, _format, _width, _height, 0, _format, GL_UNSIGNED_BYTE, data);
 		Unbind();
+	}
+
+	void Texture::GenerateMipMap() {
+		glGenerateMipmap(_Target);
 	}
 
 	std::string Texture::typeToString() const {
@@ -86,10 +136,13 @@ namespace Merlin::Renderer {
 		return "ERROR";
 	}
 
-	void Texture::textureUnit(Shader& shader, const std::string uniform, GLuint u) {
-		//shader.Use();
+	void Texture::SetUnit(GLuint unit) {
+		_unit = unit;
+	}
+
+	void Texture::SyncTextureUnit(Shader& shader, const std::string uniform) {
 		GLuint textureUnit = shader.GetUniformLocation(uniform.c_str());
-		glUniform1i(textureUnit, u);
+		glUniform1i(textureUnit, _unit);
 	}
 
 }

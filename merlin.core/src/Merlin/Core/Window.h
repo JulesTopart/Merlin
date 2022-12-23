@@ -12,11 +12,12 @@ namespace Merlin {
 		std::string Title;
 		uint32_t Width;
 		uint32_t Height;
+		bool VSync, MSAA;
 
 		WindowProps(const std::string& title = "OpenGL Sandbox",
 			        uint32_t width = 1280,
-			        uint32_t height = 720)
-			: Title(title), Width(width), Height(height)
+			        uint32_t height = 720, bool vsync = false, bool multisampling = false )
+			: Title(title), Width(width), Height(height), MSAA(multisampling), VSync(vsync)
 		{
 		}
 	};

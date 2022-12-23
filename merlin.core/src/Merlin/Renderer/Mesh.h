@@ -14,8 +14,7 @@ namespace Merlin::Renderer {
 
 		void Draw(Shader&, glm::mat4 view); //Draw the mesh
 
-
-		Mesh& LinkShader(std::string shaderName, Shader& shader);
+		Mesh& LinkShader(std::string shaderName, std::shared_ptr<Shader>& shader);
 		std::string GetLinkedShaderName() const;
 		Shader& GetLinkedShader() const;
 
@@ -35,17 +34,17 @@ namespace Merlin::Renderer {
 	private:
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;
-		std::vector<Texture> textures;
+		std::vector<std::shared_ptr<Texture>> textures;
 
 		std::string _name;
 
 		VertexArray  vao;
 		glm::mat4 model;
 
-		GLuint drawMode = GL_TRIANGLE_STRIP;
-		std::string linkedShaderName = "default";
+		GLuint drawMode = GL_TRIANGLES;
 
-		Shader* _shader = nullptr;
+		std::string linkedShaderName = "default";
+		std::shared_ptr<Shader> _shader;
 	};
 
 }

@@ -33,7 +33,7 @@ namespace Merlin {
 		{
 			std::string Title;
 			uint32_t Width, Height;
-			bool VSync;
+			bool VSync, MSAA;
 
 			EventCallbackFn EventCallback;
 		};

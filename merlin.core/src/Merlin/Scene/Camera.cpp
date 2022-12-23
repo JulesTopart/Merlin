@@ -7,7 +7,7 @@
 namespace Merlin::Scene {
 
 	Camera::Camera()
-		: _ProjectionMatrix(glm::perspective(45.0f, 16.0f / 9.0f, 0.01f, 100.f)), _ViewMatrix(1.0f)
+		: _ProjectionMatrix(glm::perspective(45.0f, 16.0f / 9.0f, 0.0001f, 100.f)), _ViewMatrix(1.0f)
 	{
 		_ViewProjectionMatrix = _ProjectionMatrix * _ViewMatrix;
 		RecalculateViewMatrix();

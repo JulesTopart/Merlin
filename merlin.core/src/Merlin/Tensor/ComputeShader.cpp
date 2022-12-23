@@ -59,7 +59,6 @@ namespace Merlin::Tensor {
 
 	}
 
-
 	void ComputeShader::Dispatch(GLuint x, GLuint y, GLuint z) {
 		//glDispatchCompute(ceil(_width/8), ceil(_height/4), 1);
 
