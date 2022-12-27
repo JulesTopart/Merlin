@@ -20,28 +20,28 @@ namespace Merlin::Renderer {
         void SetAllDrawBuffer();
         void Print();
 
+        inline GLuint const id() { return _FrameBufferID; }
+
         static std::shared_ptr<FrameBuffer> Create(int width, int height);
 
         std::shared_ptr<Texture> GetColorAttachment(GLsizei id);
         void AddColorAttachment(std::shared_ptr<Texture> tex);
-        void SetDepthAttachment(std::shared_ptr<Texture> tex);
-        void SetDepthAttachment(std::shared_ptr<RenderBuffer>  rbo);
-        void SetStencilAttachment(std::shared_ptr<RenderBuffer>  rbo);
+        void AddDepthStencilAttachment(std::shared_ptr<RenderBuffer> rbo);
 
-        std::shared_ptr<Texture> CreateTextureAttachment(GLenum format, GLuint samples);
-        std::shared_ptr<RenderBuffer> CreateRenderBufferAttachment(GLenum format, GLuint samples);
+        std::shared_ptr<Texture> CreateTextureAttachment(GLenum format, GLuint samples = 0);
+        std::shared_ptr<RenderBuffer> CreateRenderBufferAttachment(GLenum format, GLuint samples = 0);
         
     private:
         std::vector<std::shared_ptr<Texture>> textures;
-        std::shared_ptr<RenderBuffer> depth_rbo;
-        std::shared_ptr<Texture> depth_tex;
-        std::shared_ptr<RenderBuffer> stencil_rbo;
+        std::shared_ptr<RenderBuffer> depth_stencil_rbo;
 
         static GLint MaxColorAttachement;
 
-        int m_width = 0;
-        int m_height = 0;
+        int _width = 0;
+        int _height = 0;
 
-        GLuint m_fbo;
+        GLuint _FrameBufferID;
     };
+
+    typedef FrameBuffer FBO;
 }

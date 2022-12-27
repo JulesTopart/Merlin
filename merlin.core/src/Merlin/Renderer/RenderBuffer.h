@@ -20,5 +20,6 @@ namespace Merlin::Renderer {
         GLuint _RenderbufferID;
         GLuint _samples;
     };
-
+    typedef RenderBuffer RBO;
 }
+

@@ -11,17 +11,12 @@ namespace Merlin::Renderer {
 		
 		if (samples > 0) {
 			_Target = GL_TEXTURE_2D_MULTISAMPLE;
-			Bind();
+
 		}else {
 			_Target = GL_TEXTURE_2D;
-			Bind();
-			SetInterpolationMode(GL_NEAREST, GL_NEAREST);
-			SetRepeatMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-			SetBorderColor4f(1, 0, 0, 1);
 		}
-		
-		
 	}
+
 	Texture::~Texture() {
 		glDeleteTextures(1, &_TextureID);
 	}
@@ -77,6 +72,18 @@ namespace Merlin::Renderer {
 
 		// Bind the texture
 		Bind();
+		// Resize the texture using glTexImage2D
+		if (_samples > 0)
+			glTexImage2DMultisample(_Target, _samples, _format, _width, _height, GL_TRUE);
+		else
+			glTexImage2D(_Target, 0, _format, width, height, 0, _format, GL_UNSIGNED_BYTE, nullptr);
+	}
+
+	void Texture::Allocate(int width, int height, GLenum format) {
+		// Update the dimensions of the texture
+		_width = width;
+		_height = height;
+
 		// Resize the texture using glTexImage2D
 		if (_samples > 0)
 			glTexImage2DMultisample(_Target, _samples, _format, _width, _height, GL_TRUE);

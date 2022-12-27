@@ -23,10 +23,9 @@ private:
 	std::shared_ptr<Mesh> axis;
 	std::shared_ptr<Mesh> model;
 
-	std::shared_ptr<FrameBuffer> spframe;
-	std::shared_ptr<FrameBuffer> frame;
+	std::shared_ptr<FBO> msaa_fbo;
+	std::shared_ptr<FBO> fbo;
 	std::shared_ptr<ScreenQuadRenderer> screen;
-	//std::shared_ptr<Texture> tex;
 
 	GLuint emptyVAO = 0;
 

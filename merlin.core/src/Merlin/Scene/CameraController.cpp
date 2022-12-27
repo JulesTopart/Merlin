@@ -82,12 +82,12 @@ namespace Merlin::Scene {
 	bool CameraController::OnMouseScrolled(MouseScrolledEvent& e)
 	{
 		_CameraSpeed += e.GetYOffset() * 0.25f;
-		_CameraSpeed = max(_CameraSpeed, 0.25f);
+		_CameraSpeed = std::max<float>(_CameraSpeed, 0.25f);
 		return false;
 	}
 
-	bool CameraController::OnWindowResized(WindowResizeEvent& e)
-	{
+	bool CameraController::OnWindowResized(WindowResizeEvent& e){
+		if(e.GetHeight() == 0 || e.GetWidth() == 0) return false;
 		_AspectRatio = (float)e.GetWidth() / (float)e.GetHeight();
 		_Camera.SetPerspective(_fov, _AspectRatio, _nearPlane, _farPlane);
 		return false;

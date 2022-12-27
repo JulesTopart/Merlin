@@ -5,9 +5,9 @@
 namespace Merlin::Renderer {
 	ScreenQuadRenderer::ScreenQuadRenderer() {
 		
-		vao = std::make_unique<VAO>();
+		vao = std::make_shared<VAO>();
 
-		shader = std::make_unique<Shader>("screen");
+		shader = std::make_shared<Shader>("screen");
 		shader->Compile(
 			"assets/shaders/screen.quad.vert.glsl",
 			"assets/shaders/screen.quad.frag.glsl"
@@ -20,13 +20,13 @@ namespace Merlin::Renderer {
 	void ScreenQuadRenderer::Draw(const std::shared_ptr<Texture>& tex) {
 
 		shader->Use(); //Activate shader
-		tex->SyncTextureUnit(*shader, "screen");
+		//tex->SyncTextureUnit(*shader, "screen");
 		tex->Bind(); //Bind texture
 		vao->Bind(); //Bind empty geometry
 		
 		glDrawArrays(GL_TRIANGLES, 0, 6); //Draw a screen squad
-		tex->Unbind();
-		vao->Unbind(); //Bind empty geometry
+		tex->Unbind(); //Unind Texture
+		vao->Unbind(); //Unind geometry
 	}
 
 }

@@ -27,21 +27,19 @@ void ExampleLayer::OnAttach(){
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
 	//glCullFace(GL_FRONT);
 	//glFrontFace(GL_CW);
 
 	screen = std::make_shared<ScreenQuadRenderer>();
 
-	spframe = FrameBuffer::Create(_height, _width); //MSAA FrameBuffer
-	spframe->AddColorAttachment(spframe->CreateTextureAttachment(GL_RGBA,4));
+	//spframe = FrameBuffer::Create(_height, _width); //MSAA FrameBuffer
+	//spframe->AddColorAttachment(spframe->CreateTextureAttachment(GL_RGBA,4));
+	//spframe->AddDepthStencilAttachment(spframe->CreateRenderBufferAttachment(GL_DEPTH24_STENCIL8, 4));
 
-	frame = FrameBuffer::Create(_height, _width); //PostProcessing FrameBuffer
-	frame->AddColorAttachment(frame->CreateTextureAttachment(GL_RGBA, 0));
-
-	//Textures
-	//tex = std::make_shared<Texture>(0);
-	//tex->LoadFromFile("assets/textures/wall.jpg", Texture::Type::DIFFUSE, GL_RGB);
+	//frame = FrameBuffer::Create(_height, _width); //PostProcessing FrameBuffer
+	//frame->AddColorAttachment(frame->CreateTextureAttachment(GL_RGBA, 0));
 
 	//Shaders
 	axisShader = std::make_shared<Shader>("axis");
@@ -60,6 +58,26 @@ void ExampleLayer::OnAttach(){
 	axis = ModelLoader::LoadAxis("axis");
 	model = ModelLoader::LoadPlane("plane");
 	model->translate(glm::vec3(0, 0, -1));
+
+
+	// Create MSAA Frame Buffer Object
+	msaa_fbo = std::make_shared<FBO>(_width, _height );
+	msaa_fbo->Bind();
+
+	//Create Texture  attachement
+	msaa_fbo->AddColorAttachment(msaa_fbo->CreateTextureAttachment(GL_RGB, 4));
+	// Create Render Buffer Object
+	msaa_fbo->AddDepthStencilAttachment(msaa_fbo->CreateRenderBufferAttachment(GL_DEPTH24_STENCIL8, 4));
+
+
+	// Create non MSAA Frame Buffer Object
+	fbo = std::make_shared<FBO>(_width, _height);
+	fbo->Bind();
+
+	//Create Texture  attachement
+	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGB, 0));
+
+
 }
 
 void ExampleLayer::OnDetach(){}
@@ -70,13 +88,16 @@ void ExampleLayer::OnEvent(Event& event){
 
 void ExampleLayer::OnUpdate(Timestep ts){
 	
-	glEnable(GL_DEPTH_TEST);
-	spframe->Bind();
-
 	cameraController.OnUpdate(ts);
 
+	// Bind the custom framebuffer
+	msaa_fbo->Bind();
+	// Specify the color of the background
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	// Clean the back buffer and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// Enable depth testing since it's disabled when drawing the framebuffer rectangle
+	glEnable(GL_DEPTH_TEST);
 
 	modelShader->Use();
 	modelShader->SetUniform3f("lightPos", glm::vec3(0,0,3));
@@ -88,16 +109,28 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	axis->Draw(*axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
 
 
-	spframe->Bind(GL_READ_FRAMEBUFFER);
-	frame->Bind(GL_DRAW_FRAMEBUFFER);
+	msaa_fbo->Bind(GL_READ_FRAMEBUFFER);
+	fbo->Bind(GL_DRAW_FRAMEBUFFER);
+
 	// Copy the multisampled framebuffer to the non-multisampled framebuffer, applying multisample resolve filters as needed
 	glBlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_TEST);
-	screen->Draw(frame->GetColorAttachment(0));
-	//screen->Draw(tex);
+	// Bind the default framebuffer
+	msaa_fbo->Unbind();
 
+	glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
+	screen->Draw(msaa_fbo->GetColorAttachment(0));
+
+
+	//spframe->Bind(GL_READ_FRAMEBUFFER);
+	//frame->Bind(GL_DRAW_FRAMEBUFFER);
+
+	// Copy the multisampled framebuffer to the non-multisampled framebuffer, applying multisample resolve filters as needed
+	//glBlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glDisable(GL_DEPTH_TEST);
+	//screen->Draw(frame->GetColorAttachment(0));
 }
 
 void ExampleLayer::OnImGuiRender()

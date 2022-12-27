@@ -11,10 +11,17 @@ namespace Merlin::Renderer {
 		// Render the screen quad
 		void Draw(const std::shared_ptr<Texture>& tex);
 
+		inline std::shared_ptr<VAO> GetVAO(){ return vao; }
+		inline std::shared_ptr<Shader> GetShader() { return shader; }
+
 	private:
 		//Empty vertex array object for the binding quad
-		std::unique_ptr<VAO> vao;
+		std::shared_ptr<VAO> vao;
 		// Shader program for rendering the screen quad
-		std::unique_ptr<Shader> shader;
+		std::shared_ptr<Shader> shader;
 	};
+
+	typedef ScreenQuadRenderer SQRenderer;
 }
+
+

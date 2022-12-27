@@ -26,6 +26,7 @@ namespace Merlin::Renderer {
 		void LoadFromFile(const std::string img_file_path, Type t = Type::DIFFUSE, GLenum format = GL_RGBA);
 		void LoadFromData(unsigned char* data, int width, int height, Type t = Type::DIFFUSE, GLenum format = GL_RGBA);
 
+		void Allocate(int width, int height, GLenum format = GL_RGBA);
 		void Resize(GLsizei width, GLsizei height);
 		void GenerateMipMap();
 		void SetUnit(GLuint unit);
@@ -37,7 +38,7 @@ namespace Merlin::Renderer {
 
 		inline const GLuint id() const { return _TextureID; }
 	private:
-		Type _type;
+		Type _type = Type::DIFFUSE;
 		GLuint _samples;
 		GLuint _unit = 0;
 		GLenum _format;
