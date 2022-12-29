@@ -147,8 +147,8 @@ namespace Merlin::Renderer {
 		_unit = unit;
 	}
 
-	void Texture::SyncTextureUnit(Shader& shader, const std::string uniform) {
-		GLuint textureUnit = shader.GetUniformLocation(uniform.c_str());
+	void Texture::SyncTextureUnit(std::shared_ptr<Shader> shader, const std::string uniform) {
+		GLuint textureUnit = shader->GetUniformLocation(uniform.c_str());
 		glUniform1i(textureUnit, _unit);
 	}
 

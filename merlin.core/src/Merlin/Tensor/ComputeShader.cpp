@@ -23,7 +23,7 @@ namespace Merlin::Tensor {
 	}
 
 	void ComputeShader::Delete() {
-		Console::warn("ComputeShader") << "Destructing Shader " << id() << Console::endl;
+		Console::trace("ComputeShader") << "Destructing Shader " << id() << Console::endl;
 		if (compiled() != 0) {
 			ShaderID = 0;
 		}
@@ -65,7 +65,7 @@ namespace Merlin::Tensor {
 		_xWkgrp = x;
 		_yWkgrp = y;
 		_zWkgrp = z;
-		Console::info("ComputeShader") << "Dispatch: " << _xWkgrp << "x" << _yWkgrp << "x" << _zWkgrp << Console::endl;
+		Console::trace("ComputeShader") << "Dispatch: " << _xWkgrp << "x" << _yWkgrp << "x" << _zWkgrp << Console::endl;
 		glDispatchCompute(_xWkgrp, _yWkgrp, _zWkgrp);
 	}
 

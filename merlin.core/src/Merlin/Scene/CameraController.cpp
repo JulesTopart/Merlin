@@ -81,7 +81,7 @@ namespace Merlin::Scene {
 
 	bool CameraController::OnMouseScrolled(MouseScrolledEvent& e)
 	{
-		_CameraSpeed += e.GetYOffset() * 0.25f;
+		_CameraSpeed += e.GetYOffset() * 0.25f * _CameraSpeed;
 		_CameraSpeed = std::max<float>(_CameraSpeed, 0.25f);
 		return false;
 	}

@@ -48,7 +48,6 @@ namespace Merlin::Scene {
 
 	void Camera::Rotate(glm::vec3 dR) {
 		_Rotation += dR;
-
 		RecalculateViewMatrix();
 	}
 

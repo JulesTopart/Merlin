@@ -1,4 +1,5 @@
 #pragma once
+#include <glad/glad.h>
 
 namespace Merlin::Renderer {
     class RenderBuffer
@@ -19,6 +20,8 @@ namespace Merlin::Renderer {
     private:
         GLuint _RenderbufferID;
         GLuint _samples;
+        GLenum _format;
+
     };
     typedef RenderBuffer RBO;
 }

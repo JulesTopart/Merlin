@@ -28,18 +28,11 @@ void ExampleLayer::OnAttach(){
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
-	//glFrontFace(GL_CW);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glFrontFace(GL_CW);
 
 	screen = std::make_shared<ScreenQuadRenderer>();
-
-	//spframe = FrameBuffer::Create(_height, _width); //MSAA FrameBuffer
-	//spframe->AddColorAttachment(spframe->CreateTextureAttachment(GL_RGBA,4));
-	//spframe->AddDepthStencilAttachment(spframe->CreateRenderBufferAttachment(GL_DEPTH24_STENCIL8, 4));
-
-	//frame = FrameBuffer::Create(_height, _width); //PostProcessing FrameBuffer
-	//frame->AddColorAttachment(frame->CreateTextureAttachment(GL_RGBA, 0));
 
 	//Shaders
 	axisShader = std::make_shared<Shader>("axis");
@@ -65,7 +58,7 @@ void ExampleLayer::OnAttach(){
 	msaa_fbo->Bind();
 
 	//Create Texture  attachement
-	msaa_fbo->AddColorAttachment(msaa_fbo->CreateTextureAttachment(GL_RGB, 4));
+	msaa_fbo->AddColorAttachment(msaa_fbo->CreateTextureAttachment(GL_RGBA, 4));
 	// Create Render Buffer Object
 	msaa_fbo->AddDepthStencilAttachment(msaa_fbo->CreateRenderBufferAttachment(GL_DEPTH24_STENCIL8, 4));
 
@@ -75,7 +68,7 @@ void ExampleLayer::OnAttach(){
 	fbo->Bind();
 
 	//Create Texture  attachement
-	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGB, 0));
+	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 0));
 
 
 }
@@ -105,9 +98,8 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	modelShader->SetUniform3f("viewPos", cameraController.GetCamera().GetPosition());
 	modelShader->SetFloat("shininess", 1.0f);
 
-	model->Draw(*modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
-	axis->Draw(*axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
-
+	model->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
+	axis->Draw(axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
 
 	msaa_fbo->Bind(GL_READ_FRAMEBUFFER);
 	fbo->Bind(GL_DRAW_FRAMEBUFFER);
@@ -121,16 +113,6 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
 	screen->Draw(msaa_fbo->GetColorAttachment(0));
 
-
-	//spframe->Bind(GL_READ_FRAMEBUFFER);
-	//frame->Bind(GL_DRAW_FRAMEBUFFER);
-
-	// Copy the multisampled framebuffer to the non-multisampled framebuffer, applying multisample resolve filters as needed
-	//glBlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//glDisable(GL_DEPTH_TEST);
-	//screen->Draw(frame->GetColorAttachment(0));
 }
 
 void ExampleLayer::OnImGuiRender()

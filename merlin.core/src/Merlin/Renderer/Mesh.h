@@ -12,11 +12,11 @@ namespace Merlin::Renderer {
 		Mesh(std::string name);
 		~Mesh();
 
-		void Draw(Shader&, glm::mat4 view); //Draw the mesh
+		void Draw(std::shared_ptr<Shader> shader, glm::mat4 view); //Draw the mesh
 
 		Mesh& LinkShader(std::string shaderName, std::shared_ptr<Shader>& shader);
 		std::string GetLinkedShaderName() const;
-		Shader& GetLinkedShader() const;
+		std::shared_ptr<Shader> GetLinkedShader() const;
 
 		Mesh& LoadTexture(std::string path, Texture::Type t = Texture::Type::DIFFUSE, GLuint format = GL_RGBA);
 		Mesh& LoadVertex(std::vector<Vertex>& _vertices);

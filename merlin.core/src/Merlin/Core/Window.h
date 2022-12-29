@@ -1,7 +1,5 @@
 #pragma once
 
-#include "glpch.h"
-
 #include "Merlin/Core/Core.h"
 #include "Merlin/Events/Event.h"
 

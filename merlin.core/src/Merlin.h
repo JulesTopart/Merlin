@@ -18,6 +18,8 @@
 #include "Merlin/Scene/SceneManager.h"
 
 #include "Merlin/Tensor/ComputeShader.h"
+#include "Merlin/Tensor/ShaderStorageBuffer.h"
+#include "Merlin/Tensor/ParticleSystem.h"
 
 #include "Merlin/Util/OpenGLDebug.h"
 #include "Merlin/Util/ModelLoader.h"

@@ -27,16 +27,19 @@ namespace Merlin::Renderer {
 	}
 
 	void RenderBuffer::Resize(GLsizei width, GLsizei height) {
-
+		// Allocate storage for the renderbuffer
+		if (_samples > 0)
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, _samples, _format, width, height);
+		else
+			glRenderbufferStorage(GL_RENDERBUFFER, _format, width, height);
 	}
 
 	void RenderBuffer::AllocateStorage(GLsizei width, GLsizei height, GLenum format) {
-		Bind();
+		_format = format;
 		// Allocate storage for the renderbuffer
 		if(_samples > 0)
 			glRenderbufferStorageMultisample(GL_RENDERBUFFER, _samples, format, width, height);
 		else
 			glRenderbufferStorage(GL_RENDERBUFFER, format, width, height);
-		Unbind();
 	}
 }

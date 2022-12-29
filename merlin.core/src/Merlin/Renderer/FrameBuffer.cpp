@@ -39,22 +39,18 @@ namespace Merlin::Renderer {
         for (const auto& tex : textures) {
             tex->Bind();
             tex->Resize(width, height);
+            tex->Unbind();
         }
 
         // Resize the depth texture, if it exists
         if (depth_stencil_rbo) {
             depth_stencil_rbo->Bind();
             depth_stencil_rbo->Resize(width, height);
+            depth_stencil_rbo->Unbind();
         }
     }
 
-
-    void FrameBuffer::SetDrawBuffer(GLenum drawBuffer){
-        glDrawBuffer(drawBuffer);
-    }
-
-
-    void FrameBuffer::Print() {
+    void FrameBuffer::Print() const {
         Console::info("FrameBuffer") << "The current FrameBuffer contain : " << Console::endl;
 
         for (GLsizei i = 0; i < textures.size(); i++) {
@@ -63,13 +59,12 @@ namespace Merlin::Renderer {
         if (depth_stencil_rbo)  Console::info("\t:") << "GL_DEPTH_STENCIL_ATTACHMENT" << Console::endl;
     }
 
-    void FrameBuffer::SetAllDrawBuffer() {
-        std::vector<GLenum> attachments;
-        for (GLsizei i = 0; i < textures.size(); i++) {
-            attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
+    void FrameBuffer::CheckErrors(std::string e) const {
+        // Check that the framebuffer is complete
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE) {
+            Console::error("FrameBuffer") << e << status << Console::endl;
         }
-        if (depth_stencil_rbo) attachments.push_back(GL_DEPTH_STENCIL_ATTACHMENT);
-        if(attachments.size() > 0) glDrawBuffers(attachments.size(), attachments.data());
     }
 
     void FrameBuffer::AddColorAttachment(std::shared_ptr<Texture> tex) {
@@ -80,28 +75,22 @@ namespace Merlin::Renderer {
 
         textures.push_back(tex);
         // Attach the texture to the framebuffer as a color attachment
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + textures.size()-1, tex->GetTarget(), tex->id(), 0);
 
-        // Check that the framebuffer is complete
-        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        if (status != GL_FRAMEBUFFER_COMPLETE) {
-            Console::error("FrameBuffer") << "Error creating color attachement: " << status << Console::endl;
-        }
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + textures.size()-1, tex->GetTarget(), tex->id(), 0);
+        CheckErrors("Error creating GL_COLOR_ATTACHMENT");
     }
 
     void FrameBuffer::AddDepthStencilAttachment(std::shared_ptr<RenderBuffer> rbo) {
-        // Bind the framebuffer
-        Bind();
+        if (depth_stencil_rbo) {
+            Console::error("FrameBuffer") << "GL_DEPTH_STENCIL_ATTACHMENT already set !" << Console::endl;
+            return;
+        }
         depth_stencil_rbo = rbo;
         // Attach the renderbuffer to the framebuffer as a depth attachment
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo->id());
 
         // Check that the framebuffer is complete
-        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        if (status != GL_FRAMEBUFFER_COMPLETE) {
-            Console::error("FrameBuffer") << "Error creating Depth attachement: " << status << Console::endl;
-        }
-        Unbind();
+        CheckErrors("Error creating GL_DEPTH_STENCIL_ATTACHMENT");
     }
 
     std::shared_ptr<RenderBuffer> FrameBuffer::CreateRenderBufferAttachment(GLenum format, GLuint samples){

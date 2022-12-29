@@ -38,6 +38,11 @@ namespace Merlin::Renderer {
 		return uniLoc;
 	}
 
+	void ShaderBase::SetUInt(const std::string name, GLuint value) {
+		int uniformLocation = GetUniformLocation(name.c_str());
+		glUniform1ui(uniformLocation, value);
+	}
+
 	void ShaderBase::SetInt(const std::string name, GLint value) {
 		int uniformLocation = GetUniformLocation(name.c_str());
 		glUniform1i(uniformLocation, value);

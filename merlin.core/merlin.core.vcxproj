@@ -101,6 +101,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Merlin\Tensor\ShaderStorageBuffer.h" />
+    <ClInclude Include="src\Merlin\Tensor\ParticleSystem.h" />
     <ClInclude Include="src\Merlin\Renderer\RenderBuffer.h" />
     <ClInclude Include="src\Merlin\Renderer\FrameBuffer.h" />
     <ClInclude Include="src\Merlin\Renderer\ScreenQuadRenderer.h" />
@@ -134,12 +136,14 @@
     <ClInclude Include="src\Merlin\Util\OpenGLDebug.h" />
     <ClInclude Include="src\Merlin\Scene\Camera.h" />
     <ClInclude Include="src\Merlin\Scene\CameraController.h" />
-    <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
-    <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
+    <ClInclude Include="src\Merlin\Core\WindowsInput.h" />
+    <ClInclude Include="src\Merlin\Core\WindowsWindow.h" />
     <ClInclude Include="src\glpch.h" />
     <ClInclude Include="src\Merlin\Renderer\Texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Merlin\Tensor\ShaderStorageBuffer.cpp" />
+    <ClCompile Include="src\Merlin\Tensor\ParticleSystem.cpp" />
     <ClCompile Include="src\Merlin\Renderer\RenderBuffer.cpp" />
     <ClCompile Include="src\Merlin\Renderer\FrameBuffer.cpp" />
     <ClCompile Include="src\Merlin\Renderer\ScreenQuadRenderer.cpp" />
@@ -161,8 +165,8 @@
     <ClCompile Include="src\Merlin\Util\OpenGLDebug.cpp" />
     <ClCompile Include="src\Merlin\Scene\Camera.cpp" />
     <ClCompile Include="src\Merlin\Scene\CameraController.cpp" />
-    <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
-    <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
+    <ClCompile Include="src\Merlin\Core\WindowsInput.cpp" />
+    <ClCompile Include="src\Merlin\Core\WindowsWindow.cpp" />
     <ClCompile Include="src\glpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

@@ -30,7 +30,7 @@ namespace Merlin::Renderer {
 		void Resize(GLsizei width, GLsizei height);
 		void GenerateMipMap();
 		void SetUnit(GLuint unit);
-		void SyncTextureUnit(Shader&, const std::string uniform);
+		void SyncTextureUnit(std::shared_ptr<Shader> shader, const std::string uniform);
 
 		inline const GLenum GetTarget() const { return _Target; }
 		inline const Type type() const { return _type; }

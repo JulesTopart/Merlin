@@ -16,13 +16,9 @@ namespace Merlin::Renderer {
         void Unbind();
 
         void Resize(GLsizei width, GLsizei height);
-        void SetDrawBuffer(GLenum drawBuffer);
-        void SetAllDrawBuffer();
-        void Print();
+        void Print() const;
 
         inline GLuint const id() { return _FrameBufferID; }
-
-        static std::shared_ptr<FrameBuffer> Create(int width, int height);
 
         std::shared_ptr<Texture> GetColorAttachment(GLsizei id);
         void AddColorAttachment(std::shared_ptr<Texture> tex);
@@ -30,8 +26,13 @@ namespace Merlin::Renderer {
 
         std::shared_ptr<Texture> CreateTextureAttachment(GLenum format, GLuint samples = 0);
         std::shared_ptr<RenderBuffer> CreateRenderBufferAttachment(GLenum format, GLuint samples = 0);
+
+        static std::shared_ptr<FrameBuffer> Create(int width, int height);
         
     private:
+
+        void CheckErrors(std::string prefix) const;
+
         std::vector<std::shared_ptr<Texture>> textures;
         std::shared_ptr<RenderBuffer> depth_stencil_rbo;
 

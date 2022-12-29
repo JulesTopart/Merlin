@@ -27,8 +27,6 @@ private:
 	std::shared_ptr<FBO> fbo;
 	std::shared_ptr<ScreenQuadRenderer> screen;
 
-	GLuint emptyVAO = 0;
-
 	Merlin::Scene::CameraController cameraController;
 
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f};

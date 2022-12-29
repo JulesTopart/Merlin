@@ -12,8 +12,8 @@ namespace Merlin::Renderer {
 
 	Mesh::~Mesh() {}
 
-	void Mesh::Draw(Shader& shader, glm::mat4 view) {
-		shader.Use();
+	void Mesh::Draw(std::shared_ptr<Shader> shader, glm::mat4 view) {
+		shader->Use();
 
 		unsigned int numDiffuse = 0;
 		unsigned int numSpecular = 0;
@@ -34,8 +34,8 @@ namespace Merlin::Renderer {
 			textures[i]->Bind();
 		}
 
-		shader.SetMatrix4f("view", view); //Sync camera with GPU
-		shader.SetMatrix4f("model", model); //Sync camera with GPU
+		shader->SetMatrix4f("view", view); //Sync camera with GPU
+		shader->SetMatrix4f("model", model); //Sync camera with GPU
 
 		vao.Bind();
 		if (indices.size() > 0) glDrawElements(drawMode, indices.size(), GL_UNSIGNED_INT, nullptr); //Draw elements using EBO
@@ -101,8 +101,8 @@ namespace Merlin::Renderer {
 		return *this;
 	}
 
-	Shader& Mesh::GetLinkedShader() const {
-		return *_shader;
+	std::shared_ptr<Shader> Mesh::GetLinkedShader() const {
+		return _shader;
 	}
 
 	std::string Mesh::GetLinkedShaderName() const {
