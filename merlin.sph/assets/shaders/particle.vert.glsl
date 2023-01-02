@@ -3,17 +3,13 @@
 struct Particle {
   vec3 position;
   vec3 velocity;
-  float mass;
+  float density;
+  float pressure;
 };
 
-layout (std430, binding = 1) buffer ParticleInBuffer {
+layout (std430, binding = 0) buffer ParticleBuffer {
   Particle particles[];
-}inBuffer;
-
-layout (std430, binding = 2) buffer ParticleOutBuffer {
-  Particle particles[];
-}outBuffer;
-
+};
 
 layout (location = 0) in vec3 _position;
 
@@ -28,7 +24,7 @@ uniform mat4 view;
 uniform mat4 model;
 
 void main() {
-	offset = outBuffer.particles[gl_InstanceID].position;
+	offset = particles[gl_InstanceID].position;
 
 	position = vec3(model * vec4(_position * radius + offset, 1.0f) );
 	gl_Position = view * vec4(position, 1.0f);

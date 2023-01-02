@@ -20,5 +20,4 @@ namespace Merlin::Renderer {
     };
 
     typedef VertexArray VAO;
-
 }

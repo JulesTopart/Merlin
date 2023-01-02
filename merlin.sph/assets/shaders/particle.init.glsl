@@ -1,21 +1,17 @@
-#version 450
+#version 460
 
-layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 struct Particle {
   vec3 position;
   vec3 velocity;
-  float mass;
+  float density;
+  float pressure;
 };
 
-layout (std430, binding = 1) buffer ParticleInBuffer {
+layout (std430, binding = 0) buffer ParticleBuffer {
   Particle particles[];
 }inBuffer;
-
-layout (std430, binding = 2) buffer ParticleOutBuffer {
-  Particle particles[];
-}outBuffer;
-
 
 uniform uint grid;
 uniform float gridSpacing;
@@ -27,7 +23,12 @@ void main() {
   uint j = (index % (grid * grid)) / grid;
   uint k = index % grid;
 
-  vec3 position = vec3(i, j, k) * gridSpacing;
-  inBuffer.particles[index].position = position;
-  outBuffer.particles[index].position = position;
+  Particle pt;
+
+  pt.position = vec3(i, j, k) * gridSpacing;
+  pt.velocity = vec3(0,0,0);
+  pt.density = 0.1f;
+  pt.pressure = 0.1f;
+
+  inBuffer.particles[index] = pt;
 }

@@ -22,6 +22,7 @@ namespace Merlin::Tensor{
 		GLuint ShaderID = 0;
 		std::string ShaderSrc;
 	};
+
 }
 
 

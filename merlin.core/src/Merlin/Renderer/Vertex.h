@@ -18,4 +18,6 @@ namespace Merlin::Renderer {
 
 		static VertexBufferLayout GetLayout(); //Keep that static
 	};
+
+	typedef std::vector<Vertex> Vertices;
 }

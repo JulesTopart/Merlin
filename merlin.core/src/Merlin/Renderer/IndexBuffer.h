@@ -17,4 +17,5 @@ namespace Merlin::Renderer {
 	};
 
 	typedef IndexBuffer EBO;
+	typedef std::vector<GLuint> Indices;
 }

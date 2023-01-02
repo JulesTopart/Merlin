@@ -7,7 +7,7 @@ class Example : public Application
 {
 public:
 	Example()
-		: Application("Merlin sandbox", 1280,720, true, false)
+		: Application("Merlin sandbox", 1280,720, true, true)
 	{
 		PushLayer(new ExampleLayer());
 	}

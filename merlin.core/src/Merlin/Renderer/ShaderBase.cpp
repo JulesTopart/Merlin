@@ -97,9 +97,6 @@ namespace Merlin::Renderer {
 		return std::make_shared<ShaderBase>(name);
 	}
 	
-
-
-
 	void ShaderLibrary::Add(const std::string& name, const std::shared_ptr<ShaderBase>& shader)
 	{
 		GLCORE_ASSERT(!Exists(name), "ShaderLibrary", "Shader already exists!");

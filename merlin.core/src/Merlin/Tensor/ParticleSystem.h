@@ -6,6 +6,7 @@
 #include "Merlin/Renderer/Texture.h"
 #include "Merlin/Tensor/ComputeShader.h"
 #include "Merlin/Core/Timestep.h"
+#include "Merlin/Renderer/Primitive.h"
 
 #include "glm/gtc/random.hpp"
 
@@ -16,57 +17,41 @@ namespace Merlin::Tensor {
 	struct DefaultParticle {
 		glm::vec3 position;
 		glm::vec3 velocity;
-		float mass;
+		float density;
+		float pressure;
 	};
 
 
-	template <typename T>
 	class ParticleSystem{
 	public:
-		ParticleSystem();
+		ParticleSystem(std::string name, GLsizeiptr maxCount);
 		~ParticleSystem();
 
-		void Allocate(GLsizeiptr numParticles);
-
-
 		void Update(Timestep ts);//Execute all linked compute shader
-		void Execute(std::shared_ptr<ComputeShader> step); //Execute compute shader once
-		void Draw(std::shared_ptr<Shader> shader, glm::mat4 view); //Draw the mesh
+		void Execute(Shared<ComputeShader> step); //Execute compute shader once
+		void Draw(Shared<Shader> shader, glm::mat4 view); //Draw the mesh
 
-		void LoadVertex(std::vector<Vertex>& _vertices);
-		void LoadVertex(std::vector<Vertex>& _vertices, std::vector<GLuint>& _indices);
+		void AddComputeShader(Shared<ComputeShader>);
+		void AddStorageBuffer(Shared<SSBO>);
 
-		void AddComputeShader(std::shared_ptr<ComputeShader>);
-
-		inline glm::mat4& GetModelMatrix() { return model; }
-
-		void translate(glm::vec3);
-		void rotate(glm::vec3);
-		void rotate(float angle, glm::vec3 v);
-		void SetDrawMode(GLuint mode);
+		//Primitives
+		inline void SetPrimitive(Shared<Primitive> geometry) { _geometry = geometry; }
+		inline Shared<Primitive> GetPrimitive() const { return _geometry; }
 
 		inline const std::string name() const { return _name; }
+
 
 	private:
 
 		std::string _name;
+		GLsizeiptr _particlesCount;
 
 		//Geometry
-		std::unique_ptr<VAO> vao;
-		std::vector<Vertex> vertices;
-		std::vector<GLuint> indices;
-		GLuint drawMode = GL_TRIANGLES;
+		Shared<Primitive> _geometry;
 
-		std::vector<T> _particles;
-
-		//Transformation
-		glm::mat4 model;
-
-		std::shared_ptr<SSBO> _particleInBuffer; //Buffer to store the particle
-		std::shared_ptr<SSBO> _particleOutBuffer; //Buffer to store the particle
-		std::vector<std::shared_ptr<ComputeShader>> _computeShaders; //Shader to compute the particle position
+		//Buffers & Compute Shaders
+		std::vector<Shared<SSBO>> _buffers; //Buffer to store the particle
+		std::vector<Shared<ComputeShader>> _shaders; //Shader to compute the particle position
 
 	};
-
-	template class ParticleSystem<DefaultParticle>;
 }

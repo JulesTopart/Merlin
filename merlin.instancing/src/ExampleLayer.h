@@ -29,14 +29,9 @@ private:
 	std::shared_ptr<Mesh> model;
 
 	//Mesh instancing
-	std::shared_ptr<ParticleSystem<DefaultParticle>> particleSystem;
+	std::shared_ptr<ParticleSystem> particleSystem;
 	std::shared_ptr<Shader> particleShader;
 	std::shared_ptr<ComputeShader> physics;
-
-	//Framebuffer for postprocessing
-	std::shared_ptr<FBO> msaa_fbo;
-	std::shared_ptr<FBO> fbo;
-	std::shared_ptr<ScreenQuadRenderer> screen;
 
 	//Camera
 	Merlin::Scene::CameraController cameraController;

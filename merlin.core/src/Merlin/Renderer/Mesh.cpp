@@ -54,19 +54,15 @@ namespace Merlin::Renderer {
 
 	Mesh& Mesh::LoadVertex(std::vector<Vertex>& _vertices) {
 
-		vertices = _vertices;
+		vertices = std::move(_vertices);
+		_vertices.clear();
 
 		Console::info("Mesh") << "Loaded " << vertices.size() << " verticles." << Console::endl;
 		
 		vao.Bind();
-		VBO vbo(_vertices);
+		VBO vbo(vertices);
 
-		VertexBufferLayout layout;
-		layout.Push<float>(3); //Vertex pos
-		layout.Push<float>(3); //Vertex normal
-		layout.Push<float>(3); //Vertex color
-		layout.Push<float>(2); //Texture coordinates
-		vao.AddBuffer(vbo, layout);
+		vao.AddBuffer(vbo, Vertex::GetLayout());
 		vao.Unbind();
 
 		return *this;
@@ -79,14 +75,14 @@ namespace Merlin::Renderer {
 		indices = std::move(_indices);
 		_indices.clear();
 
+		Console::info("Mesh") << "Loaded " << vertices.size() << " vertices." << Console::endl;
 		Console::info("Mesh") << "Loaded " << indices.size() << " facets." << Console::endl;
 
 		vao.Bind();
 		VBO vbo(vertices);
 		EBO ebo(indices);
 
-		VertexBufferLayout layout = Vertex::GetLayout();
-		vao.AddBuffer(vbo, layout);
+		vao.AddBuffer(vbo, Vertex::GetLayout());
 
 		vao.Unbind();
 		ebo.Unbind();
