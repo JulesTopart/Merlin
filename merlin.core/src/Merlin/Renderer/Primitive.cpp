@@ -115,6 +115,17 @@ namespace Merlin::Renderer {
 		_vao->Unbind();
 	}
 
+	void Primitive::DrawInstanced(Shared<Shader> shader, glm::mat4 view, GLsizeiptr instances) {
+		shader->Use();
+		shader->SetMatrix4f("view", view); //Sync camera with GPU
+		shader->SetMatrix4f("model", _model); //Sync camera with GPU
+
+		_vao->Bind();
+		if (_indices.size() > 0) glDrawElementsInstanced(_drawMode, _indices.size(), GL_UNSIGNED_INT, nullptr, instances); //Draw elements using EBO
+		else glDrawArraysInstanced(_drawMode, 0, _vertices.size(), instances); //Draw
+		_vao->Unbind();
+	}
+
 	Shared<Primitive> Primitive::CreateRectangle(float x, float y) {
 		Vertices v = {
 			Vertex{glm::vec3(-x / 2.0f,-y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},

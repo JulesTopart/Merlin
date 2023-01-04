@@ -14,19 +14,21 @@ layout (std430, binding = 1) buffer ParticleBuffer {
 };
 
 uniform float tstep;
+uniform float speed;
+
+uniform uint grid;
+uniform float gridSpacing;
 
 
 void main() {
   uint index = gl_GlobalInvocationID.x;
-  uint grid = 100;
-  // Calculate the indices for each dimension using div and mod
+
   uint i = index / (grid * grid);
   uint j = (index % (grid * grid)) / grid;
   uint k = index % grid;
 
-  vec3 accel = normalize(vec3(i, j, k));
-
-  particles[index].position += particles[index].velocity * tstep;
-  particles[index].velocity += accel*tstep;
+  vec3 accel = normalize(vec3(i*gridSpacing, j*gridSpacing, k*gridSpacing))*0.001f;
+  particles[index].position += particles[index].velocity * tstep * speed;
+  particles[index].velocity += accel * tstep * speed;
 
 }

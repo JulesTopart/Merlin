@@ -21,6 +21,8 @@ namespace Merlin::Tensor {
 		void Bind(GLenum target);
 		void Unbind();
 
+		void PrintAllocation();
+
 		void* Map();
 		void Unmap();
 		void SetBindingPoint(GLuint binding);
@@ -43,11 +45,14 @@ namespace Merlin::Tensor {
 	void ShaderStorageBuffer::Allocate(std::vector<T> data) {
 		// Allocate storage for the buffer object.
 		_size = data.size() * sizeof(T);
+		PrintAllocation();
 		glBufferData(GL_SHADER_STORAGE_BUFFER, _size, data.data(), GL_DYNAMIC_DRAW);
 	}
 
 	template<typename T>
 	void ShaderStorageBuffer::Allocate(GLsizeiptr count) {
+
+		
 		std::vector<T> data;
 		for (GLsizeiptr i(0); i < count; i++) {
 			data.emplace_back();

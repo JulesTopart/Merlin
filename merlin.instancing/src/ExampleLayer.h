@@ -32,12 +32,15 @@ private:
 	std::shared_ptr<ParticleSystem> particleSystem;
 	std::shared_ptr<Shader> particleShader;
 	std::shared_ptr<ComputeShader> physics;
+	std::shared_ptr<ComputeShader> init;
 
 	//Camera
 	Merlin::Scene::CameraController cameraController;
-	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f};
-	float camera_speed = 1;
 
+	bool paused = true;
+	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f};
+	float sim_speed = 1;
+	float camera_speed = 1;
 	float FPS = 0;
 	float FPS_sample = 0;
 };

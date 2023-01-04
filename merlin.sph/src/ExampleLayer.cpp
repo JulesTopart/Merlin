@@ -33,26 +33,25 @@ void ExampleLayer::OnAttach(){
 	//glFrontFace(GL_CW);
 
 	//Shaders
-	axisShader = std::make_shared<Shader>("axis");
+	axisShader = CreateShared<Shader>("axis");
 	axisShader->Compile(
 		"assets/shaders/axis.vert.glsl",
 		"assets/shaders/axis.frag.glsl"
 	);
 
-	modelShader = std::make_shared<Shader>("model");
+	modelShader = CreateShared<Shader>("model");
 	modelShader->Compile(
 		"assets/shaders/model.vert.glsl",
 		"assets/shaders/model.frag.glsl"
 	);
 
-	particleShader = std::make_shared<Shader>("particle");
+	particleShader = CreateShared<Shader>("particle");
 	particleShader->Compile(
 		"assets/shaders/particle.vert.glsl",
 		"assets/shaders/particle.frag.glsl"
 	);
-	
-	std::shared_ptr<ComputeShader> init;
-	init = std::make_shared<ComputeShader>("init");
+
+	init = CreateShared<ComputeShader>("init");
 	init->Compile("assets/shaders/particle.init.glsl");
 
 	//Load models
@@ -62,7 +61,7 @@ void ExampleLayer::OnAttach(){
 
 
 	//Particle System settings
-	GLsizeiptr gridSize = 10;
+	GLsizeiptr gridSize = 5;
 	GLsizeiptr partCount = gridSize * gridSize * gridSize;
 	float gridWidth = 2.0f;
 
@@ -70,10 +69,13 @@ void ExampleLayer::OnAttach(){
 	particleSystem = CreateShared<ParticleSystem>("particle", partCount);
 	
 	//Define the mesh for instancing (Here a cube)
-	particleSystem->SetPrimitive(Primitive::CreateCube(1.0f));
+	Shared<Primitive> cube = Primitive::CreateCube(1.0f);//Primitive::CreateCube(1.0f);
+	//cube->SetDrawMode(GL_LINES);
+	particleSystem->SetPrimitive(cube);
 
 	//Create the buffer
 	Shared<SSBO> buffer = CreateShared<SSBO>("ParticleBuffer");
+	buffer->SetBindingPoint(1);
 	buffer->Allocate<DefaultParticle>(partCount);
 	particleSystem->AddStorageBuffer(buffer);
 
@@ -86,7 +88,6 @@ void ExampleLayer::OnAttach(){
 	init->SetUInt("grid", gridSize);
 	init->SetFloat("gridSpacing", gridWidth/float(gridSize));
 	particleSystem->Execute(init); //init position using init compute shader
-
 
 	float smoothingRadius = 0.005f * 4;
 	particleShader->Use();
@@ -128,7 +129,7 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	model->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
 	axis->Draw(axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
 
-	//particleSystem->Update(ts);
+	if(!paused)particleSystem->Update(ts);
 	particleSystem->Draw(particleShader, cameraController.GetCamera().GetViewProjectionMatrix());
 }
 
@@ -140,15 +141,29 @@ void ExampleLayer::OnImGuiRender()
 	camera_speed = cameraController.GetCameraSpeed();
 
 	if (FPS_sample > 0) {
-		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS/FPS_sample)).c_str());
-		if(FPS_sample > 50) FPS_sample = 0;
+		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS / FPS_sample)).c_str());
+		if (FPS_sample > 50) FPS_sample = 0;
 	}
-	
+
+	if (paused) {
+		if (ImGui::ArrowButton("Run simulation", 1))
+			paused = !paused;
+	}
+	else {
+		if (ImGui::SmallButton("Pause simulation"))
+			paused = !paused;
+	}
+
+	if (ImGui::SmallButton("Reset simulation"))
+		particleSystem->Execute(init); //init position using init compute shader
+
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		cameraController.GetCamera().SetPosition(model_matrix_translation);
 	}
-	if (ImGui::DragFloat("Camera speed", &camera_speed, 0.0, 100.0f)) {
+	if (ImGui::SliderFloat("Camera speed", &camera_speed, 0.0, 100.0f)) {
 		cameraController.SetCameraSpeed(camera_speed);
 	}
+
+	ImGui::SliderFloat("Simulation speed", &sim_speed, 0.0, 20.0f);
 	ImGui::End();
 }

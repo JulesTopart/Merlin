@@ -1,4 +1,4 @@
-#version 450 core
+#version 460 core
 
 struct Particle {
   vec3 position;
@@ -7,7 +7,7 @@ struct Particle {
   float pressure;
 };
 
-layout (std430, binding = 0) buffer ParticleBuffer {
+layout (std430, binding = 1) buffer ParticleBuffer {
   Particle particles[];
 };
 
@@ -26,6 +26,8 @@ uniform mat4 model;
 void main() {
 	offset = particles[gl_InstanceID].position;
 
-	position = vec3(model * vec4(_position * radius + offset, 1.0f) );
+	position = vec3(model * vec4((_position) * radius + offset, 1.0f) );
+	color = normalize(offset)*vec3(1);
+
 	gl_Position = view * vec4(position, 1.0f);
 }

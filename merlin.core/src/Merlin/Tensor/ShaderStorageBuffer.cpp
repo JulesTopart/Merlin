@@ -27,6 +27,7 @@ namespace Merlin::Tensor {
 		glGenBuffers(1, &_StorageID);
 		_name = name;
 		_size = 0;
+		_binding = 0;
 		Bind();
 	}
 
@@ -52,6 +53,10 @@ namespace Merlin::Tensor {
 	void ShaderStorageBuffer::Unbind() {
 		// Bind the buffer object to the shader storage buffer target.
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	}
+
+	void ShaderStorageBuffer::PrintAllocation() {
+		Console::info("SSBO") << "Allocating " << long(_size) << " bytes in " << _name << " buffer" << Console::endl;
 	}
 
 

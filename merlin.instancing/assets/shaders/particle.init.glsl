@@ -23,6 +23,8 @@ void main() {
   uint j = (index % (grid * grid)) / grid;
   uint k = index % grid;
 
-  vec3 position = vec3(i, j, k) * gridSpacing;
+  vec3 position = vec3(i*gridSpacing, j*gridSpacing, k*gridSpacing);
+  
   particles[index].position = position;
+  particles[index].velocity = vec3(0);
 }

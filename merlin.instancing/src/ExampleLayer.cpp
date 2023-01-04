@@ -55,7 +55,6 @@ void ExampleLayer::OnAttach(){
 	physics = std::make_shared<ComputeShader>("physics");
 	physics->Compile("assets/shaders/particle.update.glsl");
 
-	std::shared_ptr<ComputeShader> init;
 	init = std::make_shared<ComputeShader>("init");
 	init->Compile("assets/shaders/particle.init.glsl");
 
@@ -66,51 +65,37 @@ void ExampleLayer::OnAttach(){
 
 
 	//Particle System settings
-	GLsizeiptr gridSize = 100;
+	GLsizeiptr gridSize = 20;
 	GLsizeiptr partCount = gridSize * gridSize * gridSize;
 	float gridWidth = 2.0f;
 
 	//Create particle system
 	particleSystem = CreateShared<ParticleSystem>("ParticleSystem", partCount);
-	
 
 	//Define the mesh for instancing (Here a cube)
-	std::vector<Vertex> vertices = {
-		//   Coordinates
-		 Vertex{ glm::vec3(-1, -1,  1)},   //        7--------6
-		 Vertex{ glm::vec3( 1, -1,  1)},   //       /|       /|
-		 Vertex{ glm::vec3( 1, -1, -1)},   //      4--------5 |
-		 Vertex{ glm::vec3(-1, -1, -1)},   //      | |      | |
-		 Vertex{ glm::vec3(-1,  1,  1)},   //      | 3------|-2
-		 Vertex{ glm::vec3( 1,  1,  1)},   //      |/       |/
-		 Vertex{ glm::vec3( 1,  1, -1)},   //      0--------1
-		 Vertex{ glm::vec3(-1,  1, -1)}
-	};
-	std::vector<GLuint> indices = {
-		1, 2, 6,// Right
-		6, 5, 1,
-		0, 4, 7,// Left
-		7, 3, 0,
-		4, 5, 6,// Top
-		6, 7, 4,
-		0, 3, 2,// Bottom
-		2, 1, 0,
-		0, 1, 5,// Back
-		5, 4, 0,
-		3, 7, 6,// Front
-		6, 2, 3
-	};
+	Shared<Primitive> cube = Primitive::CreateCube(1.0f);//Primitive::CreateCube(1.0f);
+	//cube->SetDrawMode(GL_LINES);
+	particleSystem->SetPrimitive(cube);
 
+	//Create the buffer
+	Shared<SSBO> buffer = CreateShared<SSBO>("ParticleBuffer");
+	buffer->SetBindingPoint(1);
+	buffer->Allocate<DefaultParticle>(partCount);
+	particleSystem->AddStorageBuffer(buffer);
 	particleSystem->AddComputeShader(physics);
 	
+	physics->Use();
+	physics->SetUInt("grid", gridSize);
+	physics->SetFloat("gridSpacing", gridWidth/float(gridSize));
+
 	init->Use();
 	init->SetUInt("grid", gridSize);
-	init->SetFloat("gridSpacing", gridWidth/float(gridSize));
-	particleSystem->Execute(init); //init position using init compute shader
+	init->SetFloat("gridSpacing", gridWidth / float(gridSize));
+	particleSystem->Execute(init);
 
+	float smoothingRadius = 0.005f * 4;
 	particleShader->Use();
 	particleShader->SetFloat("radius", 0.5f * gridWidth / float(gridSize)); //Set particle radius
-
 }
 
 void ExampleLayer::OnDetach(){}
@@ -148,7 +133,10 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	model->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
 	axis->Draw(axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
 
-	particleSystem->Update(ts);
+	physics->Use();
+	physics->SetFloat("speed", sim_speed);
+
+	if(!paused) particleSystem->Update(ts);
 	particleSystem->Draw(particleShader, cameraController.GetCamera().GetViewProjectionMatrix());
 }
 
@@ -160,15 +148,31 @@ void ExampleLayer::OnImGuiRender()
 	camera_speed = cameraController.GetCameraSpeed();
 
 	if (FPS_sample > 0) {
-		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS/FPS_sample)).c_str());
-		if(FPS_sample > 50) FPS_sample = 0;
+		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS / FPS_sample)).c_str());
+		if (FPS_sample > 50) FPS_sample = 0;
 	}
-	
+
+	if (paused) {
+		if (ImGui::ArrowButton("Run simulation", 1))
+			paused = !paused;
+	}
+	else {
+		if (ImGui::SmallButton("Pause simulation"))
+			paused = !paused;
+	}
+
+	if (ImGui::SmallButton("Reset simulation"))
+		particleSystem->Execute(init); //init position using init compute shader
+
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		cameraController.GetCamera().SetPosition(model_matrix_translation);
 	}
-	if (ImGui::DragFloat("Camera speed", &camera_speed, 0.0, 100.0f)) {
+	if (ImGui::SliderFloat("Camera speed", &camera_speed, 0.0, 100.0f)) {
 		cameraController.SetCameraSpeed(camera_speed);
 	}
+	if (ImGui::SliderFloat("Simulation speed", &sim_speed, 0.0, 20.0f)) {
+	}
+
+
 	ImGui::End();
 }

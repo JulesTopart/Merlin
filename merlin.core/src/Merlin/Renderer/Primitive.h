@@ -21,6 +21,7 @@ namespace Merlin::Renderer {
 		void Unbind();
 
 		void Draw(Shared<Shader> shader, glm::mat4 view);
+		void DrawInstanced(Shared<Shader> shader, glm::mat4 view, GLsizeiptr instanced);
 
 		//Transformation
 		void Translate(glm::vec3);

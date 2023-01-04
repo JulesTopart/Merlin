@@ -7,11 +7,8 @@
 #define GLDEBUG(x) Console::ClearGLError(); x; Console::CheckGLError(__FILENAME__, __LINE__);
 #define GL_(x) GLDEBUG(x)
 
-
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 60
-
-
 
 namespace Merlin {
 
@@ -56,7 +53,7 @@ namespace Merlin {
 		ConsoleLevel _level;
 	};
 
-	class Console {
+	class Console{
 	public:
 
 		static std::string endl;

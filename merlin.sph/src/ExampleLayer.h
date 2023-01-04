@@ -23,20 +23,24 @@ private:
 	GLsizei _width = 1080, _height = 720;
 	
 	//Mesh rendering
-	std::shared_ptr<Shader> modelShader;
-	std::shared_ptr<Shader> axisShader;
-	std::shared_ptr<Mesh> axis;
-	std::shared_ptr<Mesh> model;
+	Shared<Shader> modelShader;
+	Shared<Shader> axisShader;
+	Shared<Mesh> axis;
+	Shared<Mesh> model;
 
 	//Mesh instancing
-	std::shared_ptr<ParticleSystem> particleSystem;
-	std::shared_ptr<Shader> particleShader;
+	Shared<ParticleSystem> particleSystem;
+	Shared<Shader> particleShader;
+	Shared<ComputeShader> init;
 
 	//Camera
 	Merlin::Scene::CameraController cameraController;
-	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f};
-	float camera_speed = 1;
 
+	//Ui
+	bool paused = true;
+	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
+	float sim_speed = 1;
+	float camera_speed = 1;
 	float FPS = 0;
 	float FPS_sample = 0;
 };

@@ -7,7 +7,7 @@ namespace Merlin::Tensor {
 
 	ParticleSystem::ParticleSystem(std::string name, GLsizeiptr maxCount) {
 		_geometry = CreateShared<Primitive>();
-		_particlesCount = 1;
+		_particlesCount = maxCount;
 	}
 
 	ParticleSystem::~ParticleSystem() {}
@@ -22,12 +22,9 @@ namespace Merlin::Tensor {
 
 	void ParticleSystem::Update(Timestep ts) {
 
-		for (Shared<SSBO> buffer : _buffers) {
-			buffer->Bind();
-		}
-
 		for (Shared<ComputeShader> shader : _shaders) {
 			for (Shared<SSBO> buffer : _buffers) {
+				buffer->Bind();
 				buffer->Attach(shader);
 			}
 
@@ -37,7 +34,7 @@ namespace Merlin::Tensor {
 			if (uniLoc != -1) shader->SetFloat("tstep", ts);
 
 			// Dispatch the compute shader, specifying the number of work groups to execute and the number of threads per work group.
-			shader->Dispatch(_particlesCount / 128, 1, 1);
+			shader->Dispatch(_particlesCount / 1, 1, 1);
 
 			// Use glMemoryBarrier to ensure that the compute shader has finished writing to the buffer object before the CPU reads from it.
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -55,10 +52,11 @@ namespace Merlin::Tensor {
 		shader->Use();
 
 		// Dispatch the compute shader, specifying the number of work groups to execute and the number of threads per work group.
-		shader->Dispatch(_particlesCount / 128, 1, 1);
+		shader->Dispatch(_particlesCount / 1, 1, 1);
 
 		// Use glMemoryBarrier to ensure that the compute shader has finished writing to the buffer object before the CPU reads from it.
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 		
 		
 	}
@@ -69,7 +67,7 @@ namespace Merlin::Tensor {
 			buffer->Attach(shader);
 		}
 
-		_geometry->Draw(shader, view);
+		_geometry->DrawInstanced(shader, view, _particlesCount);
 	}
 
 
