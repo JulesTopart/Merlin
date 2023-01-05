@@ -23,16 +23,13 @@ void ExampleLayer::OnAttach(){
 
 	Console::SetLevel(ConsoleLevel::_INFO);
 
-	// Init OpenGL stuff
+	// Init OpenGL options
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
-	//glFrontFace(GL_CW);
 
-	//Shaders
+	//Shaders for rendering
 	axisShader = CreateShared<Shader>("axis");
 	axisShader->Compile(
 		"assets/shaders/axis.vert.glsl",
@@ -51,8 +48,14 @@ void ExampleLayer::OnAttach(){
 		"assets/shaders/particle.frag.glsl"
 	);
 
+	//Load Compute shaders for GPU based physics
 	init = CreateShared<ComputeShader>("init");
 	init->Compile("assets/shaders/particle.init.glsl");
+
+	update1 = CreateShared<ComputeShader>("update1");
+	update1->Compile("assets/shaders/particle.update.1.glsl");
+	update2 = CreateShared<ComputeShader>("update2");
+	update2->Compile("assets/shaders/particle.update.2.glsl");
 
 	//Load models
 	axis = ModelLoader::LoadAxis("axis");
@@ -61,7 +64,7 @@ void ExampleLayer::OnAttach(){
 
 
 	//Particle System settings
-	GLsizeiptr gridSize = 5;
+	GLsizeiptr gridSize = 20;
 	GLsizeiptr partCount = gridSize * gridSize * gridSize;
 	float gridWidth = 2.0f;
 
@@ -80,16 +83,24 @@ void ExampleLayer::OnAttach(){
 	particleSystem->AddStorageBuffer(buffer);
 
 	//Define the compute shaders
-	//particleSystem->AddComputeShader(phyStep1);
-	//particleSystem->AddComputeShader(phyStep2);
+	particleSystem->AddComputeShader(update1);
 
 	
+	float smoothingRadius = 0.05;
+
 	init->Use();
 	init->SetUInt("grid", gridSize);
-	init->SetFloat("gridSpacing", gridWidth/float(gridSize));
+	init->SetFloat("gridSpacing", gridWidth / float(gridSize));
+	init->SetFloat("smoothing_radius", smoothingRadius);
 	particleSystem->Execute(init); //init position using init compute shader
 
-	float smoothingRadius = 0.005f * 4;
+	smoothingRadius = 5.2;
+
+	update1->Use();
+	update1->SetFloat("simSpeed", 1.0f);
+	update1->SetInt("count", partCount);
+	update1->SetFloat("smoothing_radius", smoothingRadius);
+	
 	particleShader->Use();
 	particleShader->SetFloat("radius", 0.5f * gridWidth / float(gridSize)); //Set particle radius
 
@@ -128,6 +139,11 @@ void ExampleLayer::OnUpdate(Timestep ts){
 
 	model->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
 	axis->Draw(axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
+
+
+	update1->Use();
+	update1->SetFloat("simSpeed", sim_speed);
+	//update->SetFloat("lightColor", glm::vec3(0.3, 0.3, 0.3));
 
 	if(!paused)particleSystem->Update(ts);
 	particleSystem->Draw(particleShader, cameraController.GetCamera().GetViewProjectionMatrix());

@@ -39,7 +39,7 @@ namespace Merlin::Renderer {
 		LOG_INFO() << "Importing shader source... : " << fragment_file_path << Console::endl;
 		FragmentShaderSrc = ReadSrc(fragment_file_path);
 
-		LOG_INFO() << "Creating shaders... : " << Console::endl;
+		LOG_TRACE() << "Creating shaders... : " << Console::endl;
 		vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 		fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 

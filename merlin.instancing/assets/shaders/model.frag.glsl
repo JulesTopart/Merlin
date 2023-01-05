@@ -5,11 +5,15 @@ layout (location = 0) out vec4 o_Color;
 in vec3 position;
 in vec3 normal;
 in vec3 color;
+in vec2 texCoord;
 
 uniform vec3 lightPos;
 uniform vec3 lightColor;
 uniform vec3 viewPos;
 uniform float shininess;
+
+uniform sampler2D diffuse0;
+
 
 void main(){
     vec3 ambient = lightColor * 0.2f;
@@ -22,5 +26,8 @@ void main(){
     vec3 reflectDir = reflect(-lightDir, n);
     float specular = pow(max(dot(viewDir, reflectDir), 0.0f), shininess);
 
-    o_Color = vec4((ambient + diffuse + specular) * color, 1.0f);
+    o_Color = vec4((ambient + diffuse + specular) * vec3(texture(diffuse0, texCoord)), 1.0f);
+    //o_Color = vec4((ambient + diffuse + specular) * color, 1.0f);
+
+    //o_Color = texture(diffuse0, texCoord) + vec4(0.5);
 }

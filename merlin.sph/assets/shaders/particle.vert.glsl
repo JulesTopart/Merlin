@@ -3,8 +3,11 @@
 struct Particle {
   vec3 position;
   vec3 velocity;
+  float temperature;
+  float conductivity;
+  float capacity;
   float density;
-  float pressure;
+  float mass;
 };
 
 layout (std430, binding = 1) buffer ParticleBuffer {
@@ -27,7 +30,7 @@ void main() {
 	offset = particles[gl_InstanceID].position;
 
 	position = vec3(model * vec4((_position) * radius + offset, 1.0f) );
-	color = normalize(offset)*vec3(1);
-
+	//color = normalize(offset)*vec3(1);
+	color = vec3(particles[gl_InstanceID].temperature);
 	gl_Position = view * vec4(position, 1.0f);
 }

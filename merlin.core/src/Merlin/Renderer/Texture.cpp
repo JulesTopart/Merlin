@@ -5,7 +5,7 @@
 
 namespace Merlin::Renderer {
 
-	Texture::Texture(GLuint samples) : _type(Type::SPECULAR), _samples(samples), _format(GL_RGBA) {
+	Texture::Texture(GLuint samples) : _samples(samples), _format(GL_RGB) {
 		//Set the target based on the number of samples
 		glGenTextures(1, &_TextureID);
 		
@@ -108,7 +108,6 @@ namespace Merlin::Renderer {
 			if (_samples == 0) GenerateMipMap();
 		}
 		//stbi_image_free(bytes);
-		Unbind();
 	}
 
 	void Texture::LoadFromData(unsigned char* data, int width, int height, Type t, GLenum format) {
@@ -117,13 +116,10 @@ namespace Merlin::Renderer {
 		_height = height;
 		_format = format;
 
-		Bind();
-
 		if(_samples > 0)
 			glTexImage2DMultisample(_Target, _samples, format, _width, _height, GL_TRUE);
 		else
 			glTexImage2D(_Target, 0, _format, _width, _height, 0, _format, GL_UNSIGNED_BYTE, data);
-		Unbind();
 	}
 
 	void Texture::GenerateMipMap() {

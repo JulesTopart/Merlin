@@ -19,8 +19,11 @@ namespace Merlin::Tensor {
 	struct DefaultParticle {
 		alignas(16) glm::vec3 position;
 		alignas(16) glm::vec3 velocity;
+		GLfloat temperature;
+		GLfloat conductivity;
+		GLfloat capacity;
 		GLfloat density;
-		GLfloat pressure;
+		GLfloat mass;
 	};
 
 	

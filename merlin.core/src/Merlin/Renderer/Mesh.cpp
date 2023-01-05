@@ -52,6 +52,11 @@ namespace Merlin::Renderer {
 		return *this;
 	}
 
+	Mesh& Mesh::LoadTexture(Shared<Texture> tex) {
+		textures.push_back(tex);
+		return *this;
+	}
+
 	Mesh& Mesh::LoadVertex(std::vector<Vertex>& _vertices) {
 
 		vertices = std::move(_vertices);

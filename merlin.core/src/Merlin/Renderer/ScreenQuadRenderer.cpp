@@ -20,7 +20,6 @@ namespace Merlin::Renderer {
 	void ScreenQuadRenderer::Draw(const std::shared_ptr<Texture>& tex) {
 
 		shader->Use(); //Activate shader
-		//tex->SyncTextureUnit(*shader, "screen");
 		tex->Bind(); //Bind texture
 		vao->Bind(); //Bind empty geometry
 		

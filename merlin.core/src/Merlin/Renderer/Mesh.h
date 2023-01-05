@@ -18,6 +18,7 @@ namespace Merlin::Renderer {
 		std::string GetLinkedShaderName() const;
 		std::shared_ptr<Shader> GetLinkedShader() const;
 
+		Mesh& Mesh::LoadTexture(Shared<Texture> tex);
 		Mesh& LoadTexture(std::string path, Texture::Type t = Texture::Type::DIFFUSE, GLuint format = GL_RGBA);
 		Mesh& LoadVertex(std::vector<Vertex>& _vertices);
 		Mesh& LoadVertex(std::vector<Vertex>& _vertices, std::vector<GLuint>& _indices);

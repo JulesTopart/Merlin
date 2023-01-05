@@ -74,7 +74,7 @@ namespace Merlin::Tensor {
 		ShaderID = glCreateShader(GL_COMPUTE_SHADER);
 
 		// Read the Vertex ComputeShader code from the file
-		
+		LOG_INFO() << "Importing compute shader source... : " << shader_file_path << Console::endl;
 		ShaderSrc = ReadSrc(shader_file_path);
 
 		GLint Result = GL_FALSE;
@@ -112,6 +112,7 @@ namespace Merlin::Tensor {
 			Console::error() << &ProgramErrorMessage[0] << Console::endl;
 			_compiled = false;
 		}
+		Console::success("ComputeShader") << "shader " << shader_file_path << " compiled succesfully" << Console::endl;
 		glDetachShader(id(), ShaderID);
 		glDeleteShader(ShaderID);
 

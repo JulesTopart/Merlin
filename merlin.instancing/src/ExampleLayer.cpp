@@ -61,8 +61,8 @@ void ExampleLayer::OnAttach(){
 	//Load models
 	axis = ModelLoader::LoadAxis("axis");
 	model = ModelLoader::LoadPlane("plane");
+	//model->LoadTexture("assets/textures/wall.jpg", Texture::Type::DIFFUSE, GL_RGB);
 	model->translate(glm::vec3(0, 0, -1));
-
 
 	//Particle System settings
 	GLsizeiptr gridSize = 20;
@@ -73,7 +73,7 @@ void ExampleLayer::OnAttach(){
 	particleSystem = CreateShared<ParticleSystem>("ParticleSystem", partCount);
 
 	//Define the mesh for instancing (Here a cube)
-	Shared<Primitive> cube = Primitive::CreateCube(1.0f);//Primitive::CreateCube(1.0f);
+	Shared<Primitive> cube = Primitive::CreateSphere(1.0f, 20, 20);//Primitive::CreateCube(1.0f);
 	//cube->SetDrawMode(GL_LINES);
 	particleSystem->SetPrimitive(cube);
 
@@ -96,6 +96,7 @@ void ExampleLayer::OnAttach(){
 	float smoothingRadius = 0.005f * 4;
 	particleShader->Use();
 	particleShader->SetFloat("radius", 0.5f * gridWidth / float(gridSize)); //Set particle radius
+	
 }
 
 void ExampleLayer::OnDetach(){}
@@ -129,6 +130,13 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	modelShader->SetUniform3f("lightColor", glm::vec3(0.3, 0.3, 0.3));
 	modelShader->SetUniform3f("viewPos", cameraController.GetCamera().GetPosition());
 	modelShader->SetFloat("shininess", 16.0f);
+	
+
+	particleShader->Use();
+	particleShader->SetUniform3f("lightPos", glm::vec3(0, 0, 0));
+	particleShader->SetUniform3f("lightColor", glm::vec3(0.3, 0.3, 0.3));
+	particleShader->SetUniform3f("viewPos", cameraController.GetCamera().GetPosition());
+	particleShader->SetFloat("shininess", 4.0f);
 
 	model->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
 	axis->Draw(axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
@@ -136,8 +144,10 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	physics->Use();
 	physics->SetFloat("speed", sim_speed);
 
+
 	if(!paused) particleSystem->Update(ts);
 	particleSystem->Draw(particleShader, cameraController.GetCamera().GetViewProjectionMatrix());
+
 }
 
 void ExampleLayer::OnImGuiRender()

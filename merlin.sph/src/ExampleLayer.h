@@ -32,6 +32,8 @@ private:
 	Shared<ParticleSystem> particleSystem;
 	Shared<Shader> particleShader;
 	Shared<ComputeShader> init;
+	Shared<ComputeShader> update1;
+	Shared<ComputeShader> update2;
 
 	//Camera
 	Merlin::Scene::CameraController cameraController;
@@ -39,7 +41,7 @@ private:
 	//Ui
 	bool paused = true;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	float sim_speed = 1;
+	float sim_speed = 1.0f;
 	float camera_speed = 1;
 	float FPS = 0;
 	float FPS_sample = 0;
