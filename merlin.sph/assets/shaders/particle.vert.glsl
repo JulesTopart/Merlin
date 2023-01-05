@@ -1,13 +1,12 @@
 #version 460 core
 
 struct Particle {
-  vec3 position;
-  vec3 velocity;
+  vec4 position;
+  vec4 velocity;
+  float density;
+  float pressure;
   float temperature;
   float conductivity;
-  float capacity;
-  float density;
-  float mass;
 };
 
 layout (std430, binding = 1) buffer ParticleBuffer {
@@ -27,10 +26,11 @@ uniform mat4 view;
 uniform mat4 model;
 
 void main() {
-	offset = particles[gl_InstanceID].position;
+	offset = vec3(particles[gl_InstanceID].position);
 
 	position = vec3(model * vec4((_position) * radius + offset, 1.0f) );
+	color = vec3(0.6,0.6,1.0f);
 	//color = normalize(offset)*vec3(1);
-	color = vec3(particles[gl_InstanceID].temperature);
+	//color = vec3(particles[gl_InstanceID].pressur);
 	gl_Position = view * vec4(position, 1.0f);
 }

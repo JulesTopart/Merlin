@@ -9,6 +9,7 @@ struct Particle {
   float conductivity;
   float capacity;
   float density;
+  float pressure;
   float mass;
 };
 
@@ -19,12 +20,12 @@ layout (std430, binding = 1) buffer ParticleBuffer {
 uniform float tstep;
 uniform float simSpeed;
 uniform int count;
+uniform float smoothing_radius;
 
-#define SMOOTHING_RADIUS 0.5
 
 // Smoothing kernel function
 float w(float r) {
-    float h = SMOOTHING_RADIUS;
+    float h = smoothing_radius;
     float q = r / h;
     if (q > 2.0) {
         return 0.0;
@@ -36,9 +37,21 @@ float w(float r) {
 }
 
 
+float computeHeatFlux(Particle p, Particle pj) {
+    vec3 r = pj.position - p.position;
+    float r2 = dot(r, r);
+    if (r2 > smoothing_radius * smoothing_radius) return 0.0;
+    float A = pow(smoothing_radius, 2) * 3.14159; // Cross-sectional area
+    float L = sqrt(r2); // Distance between particles
+    float Q = -pj.conductivity * A * (pj.temperature - p.temperature) / L;
+    return Q * pj.capacity;
+}
+
+
 void main() {
   uint index = gl_GlobalInvocationID.x;
   Particle p = Pbuffer.particles[index];
+
   float dt = tstep * simSpeed;
 
   //Compute density
@@ -48,7 +61,7 @@ void main() {
         Particle pj = Pbuffer.particles[i];
         vec3 r = pj.position - p.position;
         float r2 = dot(r, r);
-        if (r2 > SMOOTHING_RADIUS * SMOOTHING_RADIUS) continue;
+        if (r2 > smoothing_radius * smoothing_radius) continue;
         density += pj.mass * w(sqrt(r2));
     }
     p.density = density;
@@ -58,26 +71,24 @@ void main() {
     float temperature = 0.0;
     for (uint i = 0; i < count; i++) {
         if (index == i) continue;
+
         Particle pj = Pbuffer.particles[i];
+
         vec3 r = pj.position - p.position;
         float r2 = dot(r, r);
-        if (r2 > SMOOTHING_RADIUS * SMOOTHING_RADIUS) continue;
-        float q = pj.conductivity * (pj.temperature - p.temperature) / r2;
-        temperature += pj.mass * q * w(sqrt(r2));
+        temperature += pj.mass * computeHeatFlux(p, pj) * w(sqrt(r2));
     }
-    //temperature += 1.2f / p.density;
+    //temperature += 0.002f / p.density;
     p.temperature = temperature * dt + p.temperature;
 
     // Clamp temperature to ambient temperature
-    //p.temperature = max(p.temperature, ambientTemperature);
+    //p.temperature = max(p.temperature, 0.2f);
 
 
-  if(index == 0 && count != 0) p.temperature = 0.6f;    
-  p.velocity += vec3(0.0,0.0,0.0) * dt;
+  if(index == 0) p.temperature = 0.8f;    
+  //p.velocity += vec3(0.0,0.0,0.0) * dt;
   p.position += p.velocity * dt;
   
-
-
 
   Pbuffer.particles[index] = p;
 }

@@ -52,10 +52,10 @@ void ExampleLayer::OnAttach(){
 	init = CreateShared<ComputeShader>("init");
 	init->Compile("assets/shaders/particle.init.glsl");
 
-	update1 = CreateShared<ComputeShader>("update1");
-	update1->Compile("assets/shaders/particle.update.1.glsl");
-	update2 = CreateShared<ComputeShader>("update2");
-	update2->Compile("assets/shaders/particle.update.2.glsl");
+	fluid1 = CreateShared<ComputeShader>("fluid.density");
+	fluid1->Compile("assets/shaders/particle.fluid.density.glsl");
+	fluid2 = CreateShared<ComputeShader>("fluid.force");
+	fluid2->Compile("assets/shaders/particle.fluid.force.glsl");
 
 	//Load models
 	axis = ModelLoader::LoadAxis("axis");
@@ -64,7 +64,7 @@ void ExampleLayer::OnAttach(){
 
 
 	//Particle System settings
-	GLsizeiptr gridSize = 20;
+	GLsizeiptr gridSize = 10;
 	GLsizeiptr partCount = gridSize * gridSize * gridSize;
 	float gridWidth = 2.0f;
 
@@ -83,23 +83,20 @@ void ExampleLayer::OnAttach(){
 	particleSystem->AddStorageBuffer(buffer);
 
 	//Define the compute shaders
-	particleSystem->AddComputeShader(update1);
-
-	
-	float smoothingRadius = 0.05;
+	particleSystem->AddComputeShader(fluid1);
+	particleSystem->AddComputeShader(fluid2);
 
 	init->Use();
 	init->SetUInt("grid", gridSize);
 	init->SetFloat("gridSpacing", gridWidth / float(gridSize));
-	init->SetFloat("smoothing_radius", smoothingRadius);
 	particleSystem->Execute(init); //init position using init compute shader
 
-	smoothingRadius = 5.2;
+	fluid1->Use();
+	fluid1->SetInt("count", partCount);
 
-	update1->Use();
-	update1->SetFloat("simSpeed", 1.0f);
-	update1->SetInt("count", partCount);
-	update1->SetFloat("smoothing_radius", smoothingRadius);
+	fluid2->Use();
+	fluid2->SetFloat("simSpeed", sim_speed);
+	fluid2->SetInt("count", partCount);
 	
 	particleShader->Use();
 	particleShader->SetFloat("radius", 0.5f * gridWidth / float(gridSize)); //Set particle radius
@@ -131,6 +128,7 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	// Clean the back buffer and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//Render shader init
 	modelShader->Use();
 	modelShader->SetUniform3f("lightPos", glm::vec3(0,0,0));
 	modelShader->SetUniform3f("lightColor", glm::vec3(0.3, 0.3, 0.3));
@@ -140,9 +138,9 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	model->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
 	axis->Draw(axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
 
-
-	update1->Use();
-	update1->SetFloat("simSpeed", sim_speed);
+	//Compute Shader init
+	fluid2->Use();
+	fluid2->SetFloat("simSpeed", sim_speed);
 	//update->SetFloat("lightColor", glm::vec3(0.3, 0.3, 0.3));
 
 	if(!paused)particleSystem->Update(ts);

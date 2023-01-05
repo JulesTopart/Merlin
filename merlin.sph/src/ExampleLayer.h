@@ -32,8 +32,8 @@ private:
 	Shared<ParticleSystem> particleSystem;
 	Shared<Shader> particleShader;
 	Shared<ComputeShader> init;
-	Shared<ComputeShader> update1;
-	Shared<ComputeShader> update2;
+	Shared<ComputeShader> fluid1;
+	Shared<ComputeShader> fluid2;
 
 	//Camera
 	Merlin::Scene::CameraController cameraController;

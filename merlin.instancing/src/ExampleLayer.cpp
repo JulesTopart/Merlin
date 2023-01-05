@@ -28,9 +28,6 @@ void ExampleLayer::OnAttach(){
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
-	//glFrontFace(GL_CW);
 
 	//Shaders
 	axisShader = std::make_shared<Shader>("axis");
@@ -61,8 +58,7 @@ void ExampleLayer::OnAttach(){
 	//Load models
 	axis = ModelLoader::LoadAxis("axis");
 	model = ModelLoader::LoadPlane("plane");
-	//model->LoadTexture("assets/textures/wall.jpg", Texture::Type::DIFFUSE, GL_RGB);
-	model->translate(glm::vec3(0, 0, -1));
+	model->translate(glm::vec3(0, 0, -0.1));
 
 	//Particle System settings
 	GLsizeiptr gridSize = 20;
