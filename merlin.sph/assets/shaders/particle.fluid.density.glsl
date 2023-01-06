@@ -5,25 +5,22 @@ layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 struct Particle {
   vec4 position;
   vec4 velocity;
-  float density;
-  float pressure;
-  float temperature;
-  float conductivity;
+  vec4 sph; //SPH : Density, Pressure
 };
 
-layout (std430, binding = 1) buffer ParticleBuffer {
+layout (std140, binding = 1) buffer ParticleBuffer {
   Particle particles[];
-}Pbuffer;
+};
 
 uniform int count;
 
 #define M_PI 3.141592653589793
-#define REST_DENS 300.f  // rest density
-#define GAS_CONST 2000.f // const for equation of state
-#define H 0.2f           // kernel radius
+#define REST_DENS 300.0  // rest density
+#define GAS_CONST 2000.0 // const for equation of state
+#define H 0.3           // kernel radius
 #define H2 H * H        // radius^2 for optimization
-#define VISC 200.f       // viscosity constant
-#define MASS 2.5f        // assume all particles have the same mass
+#define VISC 200.0       // viscosity constant
+#define MASS 2.0        // assume all particles have the same mass
 
 // Smoothing kernel function
 float poly6Kernel(vec3 r) {
@@ -37,18 +34,19 @@ float poly6Kernel(vec3 r) {
 
 
 void main() {
-  uint index = gl_GlobalInvocationID.x;
-  Particle p = Pbuffer.particles[index];
+    uint index = gl_GlobalInvocationID.x;
+    Particle p = particles[index];
 
-  //Compute density
-  float density = 0.0;
+    //Compute density
+    float density = 0.0;
     for (uint i = 0; i < count; i++) {
         if (index == i) continue;
-        vec3 r = vec3(Pbuffer.particles[i].position) -  vec3(p.position);
+        vec3 r = vec3(particles[i].position) -  vec3(p.position);
         density += MASS * poly6Kernel(r);
     }
-    p.density = density;
-    p.pressure = GAS_CONST * (p.density - REST_DENS);
 
-  Pbuffer.particles[index] = p;
+    p.sph.x = density; //density
+    p.sph.y = GAS_CONST * (density - REST_DENS);; //Pressure
+
+    particles[index] = p;
 }

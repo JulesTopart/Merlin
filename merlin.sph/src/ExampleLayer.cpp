@@ -60,11 +60,11 @@ void ExampleLayer::OnAttach(){
 	//Load models
 	axis = ModelLoader::LoadAxis("axis");
 	model = ModelLoader::LoadPlane("plane");
-	model->translate(glm::vec3(0, 0, -1));
+	model->translate(glm::vec3(0, 0, -0.1));
 
 
 	//Particle System settings
-	GLsizeiptr gridSize = 10;
+	GLsizeiptr gridSize = 16;
 	GLsizeiptr partCount = gridSize * gridSize * gridSize;
 	float gridWidth = 2.0f;
 
@@ -74,6 +74,7 @@ void ExampleLayer::OnAttach(){
 	//Define the mesh for instancing (Here a cube)
 	Shared<Primitive> cube = Primitive::CreateCube(1.0f);//Primitive::CreateCube(1.0f);
 	//cube->SetDrawMode(GL_LINES);
+	cube->Translate(glm::vec3(-1, -1, 0));
 	particleSystem->SetPrimitive(cube);
 
 	//Create the buffer

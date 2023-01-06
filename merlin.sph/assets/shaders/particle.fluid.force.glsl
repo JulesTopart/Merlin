@@ -5,30 +5,28 @@ layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 struct Particle {
   vec4 position;
   vec4 velocity;
-  float density;
-  float pressure;
-  float temperature;
-  float conductivity;
+  vec4 sph; //SPH : Density, Pressure
 };
 
-layout (std430, binding = 1) buffer ParticleBuffer {
+layout (std140, binding = 1) buffer ParticleBuffer {
   Particle particles[];
-}Pbuffer;
+};
 
 uniform float tstep;
 uniform float simSpeed;
 uniform int count;
 
-#define M_PI 3.141592653589793
-#define REST_DENS 300.f  // rest density
-#define GAS_CONST 2000.f // const for equation of state
-#define H 0.2f           // kernel radius
-#define H2 H * H        // radius^2 for optimization
-#define VISC 200.f       // viscosity constant
-#define G 9.81
+#define G vec3(0,0,-9.81f)
 #define EPS H // boundary epsilon
-#define BOUND_DAMPING -0.5f
-#define MASS 2.5f        // assume all particles have the same mass
+#define BOUND_DAMPING -0.8f
+
+#define M_PI 3.141592653589793
+#define REST_DENS 300.0  // rest density
+#define GAS_CONST 2000.0 // const for equation of state
+#define H 0.2           // kernel radius
+#define H2 H * H        // radius^2 for optimization
+#define VISC 200.0       // viscosity constant
+#define MASS 2.0        // assume all particles have the same mass
 
 // Smoothing kernel function
 float poly6Kernel(vec3 r) {
@@ -52,7 +50,7 @@ float spikyKernel(vec3 r) {
 
 void main() {
   uint index = gl_GlobalInvocationID.x;
-  Particle p = Pbuffer.particles[index];
+  Particle p = particles[index];
   float dt = tstep * simSpeed;
 
   float VISC_LAP  = 40.f / (M_PI * pow(H, 5.f)); //Laplacian
@@ -60,63 +58,65 @@ void main() {
     // Compute force
     vec3 fpressure = vec3(0.0);
     vec3 fvisco = vec3(0.0);
+
     for (uint i = 0; i < count; i++) {
         if (index == i) continue;
-        Particle pj = Pbuffer.particles[i];
-        vec3 r = vec3(Pbuffer.particles[i].position) - vec3(p.position);
+        Particle pj = particles[i];
+        vec3 r = vec3(particles[i].position) - vec3(p.position);
         if (length(r) < H){
             // compute pressure force contribution
-            fpressure += -normalize(r) * MASS * (vec3(p.position) + vec3(pj.position)) / (2.f * pj.density) * spikyKernel(r) * pow(H - length(r), 3.f);
+            fpressure += -normalize(r) * MASS * (vec3(p.position) + vec3(pj.position)) / (2.f * pj.sph.x) * spikyKernel(r) * pow(H - length(r), 3.f);
             // compute viscosity force contribution
-            fvisco += VISC * MASS * (vec3(pj.velocity) - vec3(p.velocity)) / pj.density * VISC_LAP * (H - r);
+            fvisco += VISC * MASS * (vec3(pj.velocity) - vec3(p.velocity)) / pj.sph.x * VISC_LAP * (H - r);
         }
     }
 
-    vec3 fgrav = (G * MASS / p.density) * vec3(0,0,-1);
+    vec3 fgrav = (G * MASS / p.sph.x);
     
     vec3 f = fpressure + fvisco + fgrav;
 
-    p.velocity += vec4(f,0.0)/p.density * dt;
+
+    if(length(p.velocity + vec4(f,0.0)/p.sph.x * dt) <= 1.0f)
+        p.velocity += vec4(f,0.0)/p.sph.x * dt;
     p.position += p.velocity * dt;
   
     // enforce boundary conditions
     //X Boundaries
-
-    /*
-    if (p.position.x - EPS < 0.f){
+    if (p.position.x < 0.f)
+    {
         p.velocity.x *= BOUND_DAMPING;
-        p.position.x = EPS;
+        p.position.x = 0.f;
     }
-
-    if (p.position.x  + EPS > 2.0){
+    if (p.position.x > 3.f)
+    {
         p.velocity.x *= BOUND_DAMPING;
-        p.position.x = 2.0 - EPS;
+        p.position.x = 3.f;
     }
 
     //Y Boundaries
-    if (p.position.y - EPS < 0.f)
+    if (p.position.y < 0.f)
     {
         p.velocity.y *= BOUND_DAMPING;
-        p.position.y = EPS;
+        p.position.y = 0.f;
     }
-    if(p.position.y  + EPS > 2.0)
+    if (p.position.y > 3.f)
     {
         p.velocity.y *= BOUND_DAMPING;
-        p.position.y = 2.0 - EPS;
+        p.position.y = 3.f;
     }
-
+    
     //Z Boundaries
-    if (p.position.z - EPS < 0.f)
+    if (p.position.z < 0.f)
     {
         p.velocity.z *= BOUND_DAMPING;
-        p.position.z = EPS;
+        p.position.z = 0.f;
     }
-    if(p.position.z  + EPS > 2.0)
+    if (p.position.z > 4.f)
     {
         p.velocity.z *= BOUND_DAMPING;
-        p.position.z = 2.0 - EPS;
+        p.position.z = 4.f;
     }
-    */
+    
 
-  Pbuffer.particles[index] = p;
+  particles[index] = p;
 }

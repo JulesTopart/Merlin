@@ -3,18 +3,19 @@
 layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 struct Particle {
-  vec3 position;
-  vec3 velocity;
-  float density;
-  float pressure;
+  vec4 position;
+  vec4 velocity;
+  vec4 sph; //SPH : Density, Pressure
 };
 
-layout (std430, binding = 1) buffer ParticleBuffer {
+layout (std140, binding = 1) buffer ParticleBuffer {
   Particle particles[];
-}Pbuffer;
+};
+
 
 uniform uint grid;
 uniform float gridSpacing;
+
 
 void main() {
   uint index = gl_GlobalInvocationID.x;
@@ -25,10 +26,10 @@ void main() {
 
   Particle pt;
 
-  pt.position = vec3(i, j, k) * gridSpacing;
-  pt.velocity = vec3(i,j,k) * 0.0f;
-  pt.pressure = 0.0f;
-  pt.density = 0.0f;
+  pt.position = vec4(i + grid/2, j + grid/2, k + grid/2,1) * gridSpacing;
+  pt.velocity = vec4(i,j,k,1) * 0.0f;
+  pt.sph.x = 0.0f; //Density
+  pt.sph.y = 0.0f; //Pressure
 
-  Pbuffer.particles[index] = pt;
+  particles[index] = pt;
 }

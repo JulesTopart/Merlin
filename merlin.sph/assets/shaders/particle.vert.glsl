@@ -3,13 +3,10 @@
 struct Particle {
   vec4 position;
   vec4 velocity;
-  float density;
-  float pressure;
-  float temperature;
-  float conductivity;
+  vec4 sph; //SPH : Density, Pressure
 };
 
-layout (std430, binding = 1) buffer ParticleBuffer {
+layout (std140, binding = 1) buffer ParticleBuffer {
   Particle particles[];
 };
 
@@ -29,8 +26,7 @@ void main() {
 	offset = vec3(particles[gl_InstanceID].position);
 
 	position = vec3(model * vec4((_position) * radius + offset, 1.0f) );
-	color = vec3(0.6,0.6,1.0f);
-	//color = normalize(offset)*vec3(1);
-	//color = vec3(particles[gl_InstanceID].pressur);
+	//color = vec3(0.6,0.6,1.0f);
+	color = vec3(length(particles[gl_InstanceID].velocity));
 	gl_Position = view * vec4(position, 1.0f);
 }

@@ -76,6 +76,6 @@ vec3 heat7( float interpolant )
 
 
 void main() {
-  FragColor = vec4(color, 1.0);
-  //FragColor = vec4(heat7(color.r), 1.0);
+  //FragColor = vec4(color, 1.0);
+  FragColor = vec4(heat7(color.r), 1.0);
 }
