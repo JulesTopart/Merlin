@@ -55,8 +55,8 @@ namespace Merlin::Tensor {
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	}
 
-	void ShaderStorageBuffer::PrintAllocation() {
-		Console::info("SSBO") << "Allocating " << long(_size) << " bytes in " << _name << " buffer" << Console::endl;
+	void ShaderStorageBuffer::PrintAllocation(GLsizeiptr count, GLsizeiptr typeSize) {
+		Console::info("SSBO") << "Allocating " << long(count) << " x " << long(typeSize) << "bytes = " << long(_size) << " bytes in " << _name << " buffer" << Console::endl;
 	}
 
 

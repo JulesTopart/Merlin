@@ -13,6 +13,8 @@ layout (std430, binding = 1) buffer ParticleBuffer {
 
 layout (location = 0) in vec3 _position;
 layout (location = 1) in vec3 _normal;
+layout (location = 2) in vec3 _color;
+layout (location = 3) in vec2 _texCoord;
 
 out vec3 position;
 out vec3 offset;

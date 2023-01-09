@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Merlin.h>
+using namespace Merlin::Renderer;
 
 class ExampleLayer : public Merlin::Layer
 {
@@ -14,11 +15,11 @@ public:
 	virtual void OnUpdate(Merlin::Timestep ts) override;
 	virtual void OnImGuiRender() override;
 private:
-	std::shared_ptr<Merlin::Renderer::Shader> modelShader;
-	std::shared_ptr<Merlin::Renderer::Shader> axisShader;
+	Shared<Shader> modelShader;
+	Shared<Shader> axisShader;
 
-	std::shared_ptr<Merlin::Renderer::Mesh> axis;
-	std::shared_ptr<Merlin::Renderer::Mesh> model;
+	Shared<Mesh> axis;
+	Shared<Mesh> model;
 
 	Merlin::Scene::CameraController cameraController;
 

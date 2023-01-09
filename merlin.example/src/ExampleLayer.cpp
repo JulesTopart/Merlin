@@ -67,8 +67,8 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	modelShader->SetUniform3f("viewPos", cameraController.GetCamera().GetPosition());
 	modelShader->SetFloat("shininess", 1.0f);
 
-	model->Draw(*modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
-	axis->Draw(*axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
+	model->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
+	axis->Draw(axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
 
 }
 

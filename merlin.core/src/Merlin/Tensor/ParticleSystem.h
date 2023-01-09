@@ -17,15 +17,14 @@ namespace Merlin::Tensor {
 
 	//Refer to Uniform block layout alignement: https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL
 	struct DefaultParticle {
-		alignas(16) glm::vec4 position;  //16  00
-		alignas(16) glm::vec4 velocity;  //16  16
+		alignas(16) glm::vec3 position;
+		alignas(16) glm::vec3 velocity;
 		float temperature;
 		float conductivity;
 		float capacity;
 		float density;
 		float pressure;
 		float mass;
-		//SPH : Density, Pressure
 	};
 
 	
