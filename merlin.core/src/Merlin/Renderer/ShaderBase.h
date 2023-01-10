@@ -18,6 +18,7 @@ namespace Merlin::Renderer {
 		void SetInt(const std::string name, GLint value);
 		void SetUInt(const std::string name, GLuint value);
 		void SetFloat(const std::string name, GLfloat value);
+		void SetDouble(const std::string name, GLdouble value);
 		void SetUniform2f(const std::string name, glm::vec2 value);
 		void SetUniform3f(const std::string name, glm::vec3 value);
 		void SetUniform4f(const std::string name, glm::vec4 value);

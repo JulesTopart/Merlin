@@ -31,7 +31,7 @@ namespace Merlin::Tensor {
 			shader->Use();
 			// Set the uniform variables for the compute shader.
 			GLuint uniLoc = glGetUniformLocation(shader->id(), "tstep");
-			if (uniLoc != -1) shader->SetFloat("tstep", ts);
+			if (uniLoc != -1) shader->SetDouble("tstep", ts);
 
 			// Dispatch the compute shader, specifying the number of work groups to execute and the number of threads per work group.
 			shader->Dispatch(_particlesCount / 128, 1, 1);

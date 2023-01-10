@@ -53,6 +53,11 @@ namespace Merlin::Renderer {
 		glUniform1f(uniformLocation, value);
 	}
 
+	void ShaderBase::SetDouble(const std::string name, GLdouble value) {
+		int uniformLocation = GetUniformLocation(name.c_str());
+		glUniform1d(uniformLocation, value);
+	}
+
 	void ShaderBase::SetMatrix4f(const std::string name, glm::mat4 mat) {
 		glUniformMatrix4fv(GetUniformLocation(name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 	}

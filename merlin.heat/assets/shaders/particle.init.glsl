@@ -35,10 +35,10 @@ void main() {
   pt.velocity = vec3(i,j,k) * 0.0f;
   pt.temperature = 0.0f;
   pt.conductivity = 0.16f;
-  pt.capacity = 1.0f;
+  pt.capacity = 0.1f;
   pt.density = 0.0f;
   pt.pressure = 0.0f;
-  pt.mass = 1.0f;
+  pt.mass = 0.1f;
 
   particles[index] = pt;
 }
