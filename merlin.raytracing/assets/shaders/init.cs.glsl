@@ -29,7 +29,7 @@ uniform vec3 origin; //TMRT source
 void main() {
   uint index = gl_GlobalInvocationID.x;
 
-  Ray r;
+  Ray r = rays[index];
   r.d = r.o - origin; //Compute Ray direction
   r.hitID = -1;
   r.bounce = 0;

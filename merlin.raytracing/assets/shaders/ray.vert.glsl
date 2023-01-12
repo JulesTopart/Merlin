@@ -28,7 +28,11 @@ out vec2 texCoord;
 
 void main() {
 	offset = vec3(rays[gl_InstanceID].o);
-	position = vec3(model * vec4((_position) + offset, 1.0f) );
+	normal = rays[gl_InstanceID].d;
+	if(length(_position) == 0.0)
+		position = vec3( model * vec4((_position) + offset, 1.0f) );
+	else
+		position = vec3( model * vec4((normal*length(_position) + offset), 1.0f) );
 	color = vec3(rays[gl_InstanceID].d);
 	gl_Position = view * vec4(position, 1.0f);
-}
+} 

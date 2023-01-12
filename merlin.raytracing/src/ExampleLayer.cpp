@@ -72,7 +72,7 @@ void ExampleLayer::OnAttach(){
 
 	//Load models
 	axis = Primitive::CreateCoordSystem();
-	sphere = Primitive::CreateSphere(0.1, 40, 40);
+	sphere = Primitive::CreateSphere(1, 40, 40);
 
 	model = Primitive::CreateRectangle(2, 1);
 	model->Translate(glm::vec3(0, 1, 0));
@@ -81,7 +81,7 @@ void ExampleLayer::OnAttach(){
 
 	// ---- Init Computing ----
 	rays = CreateShared<ParticleSystem>("rays", 128);
-	rays->SetPrimitive(Primitive::CreateSphere(0.01,4,4));
+	rays->SetPrimitive(Primitive::CreateLine(0.5,glm::vec3(1,0,0)));
 
 	//Data
 	rayBuffer = CreateShared<SSBO>("RayBuffer");
@@ -118,7 +118,7 @@ void ExampleLayer::OnAttach(){
 	rays->AddComputeShader(init);
 	rays->AddComputeShader(raytracing);
 
-	//rays->Execute(init);
+	rays->Execute(init);
 
 }
 
@@ -141,7 +141,7 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	updateFPS(ts);
 	cameraController.OnUpdate(ts);
 
-	glClearColor(0.8f, 0.1f, 0.1f, 1.0f); // Specify the color of the background
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f); // Specify the color of the background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);// Clean the back buffer and depth buffer
 
 	axis->Draw(axisShader, cameraController.GetCamera().GetViewProjectionMatrix());

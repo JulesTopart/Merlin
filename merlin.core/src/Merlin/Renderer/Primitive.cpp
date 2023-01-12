@@ -167,7 +167,7 @@ namespace Merlin::Renderer {
 			Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}
 		};
 
-		return CreateShared<Primitive>(v, GL_POINTS);
+		return CreateShared<Primitive>(v, GL_LINES);
 	}
 
 	Shared<Primitive> Primitive::CreateCube(float w) { return CreateCube(w, w, w); }
