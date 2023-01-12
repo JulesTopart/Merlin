@@ -7,8 +7,15 @@ using namespace Merlin::Scene;
 using namespace Merlin::Tensor;
 
 struct Ray {
-	glm::vec3 origin; //Origin
-	glm::vec3 direction; //Direction
+	alignas(16) glm::vec3 origin; //Origin
+	alignas(16) glm::vec3 direction; //Direction
+	int hitID;
+	int bounce;
+};
+
+struct Facet {
+	glm::vec3 vertex[4];
+	glm::vec3 normal;
 	int hitID;
 	int bounce;
 };
@@ -34,6 +41,7 @@ private:
 	//Rendering
 	Shared<Shader> axisShader;
 	Shared<Shader> modelShader;
+	Shared<Shader> rayShader;
 
 	Shared<Primitive> axis;
 	Shared<Primitive> sphere;
@@ -42,6 +50,7 @@ private:
 	//Computing
 	Shared<ParticleSystem> rays;
 	Shared<SSBO> rayBuffer;
+	Shared<SSBO> facetBuffer;
 
 	Shared<ComputeShader> init;
 	Shared<ComputeShader> raytracing;

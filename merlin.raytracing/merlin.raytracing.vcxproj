@@ -95,11 +95,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="assets\src\ExampleLayer.h" />
+    <ClInclude Include="src\ExampleLayer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="assets\src\ExampleApp.cpp" />
-    <ClCompile Include="assets\src\ExampleLayer.cpp" />
+    <ClCompile Include="src\ExampleApp.cpp" />
+    <ClCompile Include="src\ExampleLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\merlin.core\merlin.core.vcxproj">
@@ -115,8 +115,8 @@
     <None Include="assets\shaders\screen.quad.frag.glsl" />
     <None Include="assets\shaders\screen.quad.vert.glsl" />
     <None Include="assets\shaders\raytracing.cs.glsl" />
-    <None Include="assets\shaders\line.frag.glsl" />
-    <None Include="assets\shaders\line.vert.glsl" />
+    <None Include="assets\shaders\ray.frag.glsl" />
+    <None Include="assets\shaders\ray.vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

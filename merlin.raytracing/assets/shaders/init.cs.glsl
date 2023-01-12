@@ -12,7 +12,8 @@ struct Ray {
 
 struct Facet {
   vec3 vertex[4]; //quad 
-  vec3 normal
+  vec3 normal;
+  uint id;
 };
 
 layout (std430, binding = 1) buffer RayBuffer {

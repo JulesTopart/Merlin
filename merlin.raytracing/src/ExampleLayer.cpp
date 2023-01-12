@@ -5,7 +5,23 @@ using namespace Merlin::Utils;
 using namespace Merlin::Renderer;
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
+#include <algorithm>
+
+template<typename T>
+void LoadBinaryFile(std::string path, std::vector<T>& data) {
+	std::ifstream binary(path, std::ios::binary);
+
+	if (!binary) {
+		Console::error("Application") << "Error opening file: " << path << Console::endl;
+		return;
+	}
+
+	binary.read((char*)data.data(), data.size() * sizeof(T));
+	binary.close();
+}
+
 
 ExampleLayer::ExampleLayer() : cameraController(45.0f, 16.0f / 9.0f){
 	cameraController.GetCamera().SetPosition(glm::vec3(-2.0f, 0.0f, 0.0f));
@@ -37,6 +53,12 @@ void ExampleLayer::OnAttach(){
 		"assets/shaders/axis.frag.glsl"
 	);
 
+	rayShader = std::make_shared<Shader>("rays");
+	rayShader->Compile(
+		"assets/shaders/ray.vert.glsl",
+		"assets/shaders/ray.frag.glsl"
+	);
+
 	modelShader = std::make_shared<Shader>("model");
 	modelShader->Compile(
 		"assets/shaders/model.vert.glsl",
@@ -47,7 +69,6 @@ void ExampleLayer::OnAttach(){
 	modelShader->SetUniform3f("lightColor", glm::vec3(1, 1, 1));
 	modelShader->SetUniform3f("viewPos", cameraController.GetCamera().GetPosition());
 	modelShader->SetFloat("shininess", 1.0f);
-
 
 	//Load models
 	axis = Primitive::CreateCoordSystem();
@@ -60,11 +81,30 @@ void ExampleLayer::OnAttach(){
 
 	// ---- Init Computing ----
 	rays = CreateShared<ParticleSystem>("rays", 128);
-	rays->SetPrimitive(Primitive::CreateLine(0.05, glm::vec3(1, 0, 0)));
+	rays->SetPrimitive(Primitive::CreateSphere(0.01,4,4));
 
 	//Data
 	rayBuffer = CreateShared<SSBO>("RayBuffer");
-	rayBuffer->Allocate<Ray>(128);
+
+	std::vector<float> data;
+	data.resize(128 * 3); // allocate memory for an array 
+	LoadBinaryFile<float>("assets/geometry/rayons.float3", data);
+
+	std::vector<Ray> rayArray;
+	rayArray.resize(128);
+
+	int index = 0;
+	for (int i = 0; i < rayArray.size(); i++) {
+		rayArray[i].origin = glm::vec3(data[index], data[index + 1], data[index + 2]);
+		index += 3;
+	}
+
+	rayBuffer->Allocate<Ray>(rayArray);
+	rayBuffer->SetBindingPoint(1);
+
+	facetBuffer = CreateShared<SSBO>("FacetBuffer");
+	facetBuffer->Allocate<Facet>(1);
+	facetBuffer->SetBindingPoint(2);
 
 
 	//Programs
@@ -73,6 +113,12 @@ void ExampleLayer::OnAttach(){
 	raytracing = CreateShared<ComputeShader>("raytracing");
 	raytracing->Compile("assets/shaders/raytracing.cs.glsl");
 
+
+	rays->AddStorageBuffer(rayBuffer);
+	rays->AddComputeShader(init);
+	rays->AddComputeShader(raytracing);
+
+	//rays->Execute(init);
 
 }
 
@@ -95,14 +141,13 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	updateFPS(ts);
 	cameraController.OnUpdate(ts);
 
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Specify the color of the background
+	glClearColor(0.8f, 0.1f, 0.1f, 1.0f); // Specify the color of the background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);// Clean the back buffer and depth buffer
 
 	axis->Draw(axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
 	model->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
-	sphere->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
-
-	rays->Draw();
+	//sphere->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
+	rays->Draw(rayShader, cameraController.GetCamera().GetViewProjectionMatrix());
 }
 
 void ExampleLayer::OnImGuiRender()
