@@ -32,13 +32,19 @@ namespace Merlin::Renderer {
 		inline GLuint GetDrawMode() const { return _drawMode; }
 		inline glm::mat4& GetModelMatrix() { return _model; }
 
+
+		inline bool HasIndices() const { return _indices.size() > 0; }
+		inline std::vector<Vertex>& GetVertices() { return _vertices;  }
+		inline std::vector<GLuint>& GetIndices() { return _indices; }
+
 		//Utils
 		static Shared<Primitive> CreateRectangle(float x, float y);
+		static Shared<Primitive> CreatePoint();
+		static Shared<Primitive> CreateLine(float length, glm::vec3 dir = glm::vec3(1,0,0));
+		static Shared<Primitive> CreateCoordSystem();
 		static Shared<Primitive> CreateCube(float w);
 		static Shared<Primitive> CreateCube(float x, float y, float z);
 		static Shared<Primitive> CreateSphere(float r, int hres = 10, int vres = 10);
-
-		inline bool HasIndices() const { return _indices.size() > 0; }
 
 	private:
 		Scope<VAO> _vao;

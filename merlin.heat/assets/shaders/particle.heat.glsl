@@ -3,14 +3,14 @@
 layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 struct Particle {
-	vec3 position;
-	vec3 velocity;
-	float temperature;
-	float conductivity;
-	float capacity;
-	float density;
-	float pressure;
-	float mass;
+	dvec3 position;
+	dvec3 velocity;
+	double temperature;
+	double conductivity;
+	double capacity;
+	double density;
+	double pressure;
+	double mass;
 };
 
 layout (std430, binding = 1) buffer ParticleBuffer {
@@ -19,52 +19,51 @@ layout (std430, binding = 1) buffer ParticleBuffer {
 
 
 #define M_PI 3.141592653589793
-#define H 0.15           // kernel radius
+#define H 0.5f           // kernel radius
 #define H2 H * H        // radius^2 for optimization
 
 uniform double tstep;
-uniform float simSpeed;
+uniform double simSpeed;
 uniform int count;
 
-// Smoothing kernel function
-float poly6Kernel(vec3 r) {
-    float R = length(r);
-    if(R > H) return 0;
-
-    float R2 = R*R;
-    float a = 315.0/(64.0* M_PI * pow(H, 9));
-    return a * pow(H2-R2, 3);
-    //return a * pow(H2-r2, 3);
+// Smoothing kernel function (Quntic kernel)
+double kernel(dvec3 r) {
+    double R = length(r);
+    double q = R / H;
+    double a = (21.0/16.0*M_PI*H*H*H);
+    if (q >= 0 && q <= 2) {
+        return a * (1.0-pow(float(q/2.0), 4.0))*(2.0*q+1.0);
+    }else return 0.0f;
 }
 
-float computeHeatFlux(Particle p, Particle pj) {
-    vec3 r = pj.position - p.position;
+double computeHeatFlux(Particle p, Particle pj) {
+    dvec3 r = pj.position - p.position;
     if (length(r) > H) return 0.0;
-    float L = length(r);
-    float r2 = L*L;
-    float A = pow(H, 2) * M_PI; // Cross-sectional area
+    double L = length(r);
+    double r2 = L*L;
+    double A = pow(H, 2) * M_PI; // Cross-sectional area
      // Distance between particles
-    float Q = p.conductivity * A * (pj.temperature - p.temperature)/L;
+    double Q = -p.conductivity * A * (pj.temperature - p.temperature)/L;
     return Q;
 }
 
 
 void main() {
-  uint index = gl_GlobalInvocationID.x;
-  Particle p = particles[index];
+    uint index = gl_GlobalInvocationID.x;
+    Particle p = particles[index];
 
-  double dt = tstep * simSpeed;
+    double dt = tstep * simSpeed;
 
-  //Compute density
-  float density = 0.0;
-  for (uint i = 0; i < count; i++) {
-    if (index == i) continue;
-    Particle pj = particles[i];
-    vec3 r = pj.position - p.position;
-    if (length(r) > H) continue;
-    density += pj.mass * poly6Kernel(r);
-  }
-  p.density = density;
+    //Compute density
+    double density = 0.0;
+    for (uint i = 0; i < count; i++) {
+        if (index == i) continue;
+        Particle pj = particles[i];
+        dvec3 r = pj.position - p.position;
+        if (length(r) > H) continue;
+        density += pj.mass * length(p.velocity - pj.velocity) * kernel(r);
+    }
+    p.density = density;
 
 
     // Compute temperature
@@ -73,24 +72,22 @@ void main() {
         if (index == i) continue;
 
         Particle pj = particles[i];
+        dvec3 r = pj.position - p.position;
 
-        vec3 r = pj.position - p.position;
-        float r2 = dot(r, r);
+        flux += computeHeatFlux(p, pj) * kernel(r);
 
-        flux += computeHeatFlux(p, pj) * poly6Kernel(r);
-        //temperature += pj.mass * computeHeatFlux(p, pj) * poly6Kernel(r);
     }
-    //if(p.density > 0.0) flux += 0.000002f / p.density;
-    p.temperature = float(dt * (flux / p.mass * p.capacity) + p.temperature);
+    //if(p.density > 0.0) p.temperature += 0.02f / p.density;
+    p.temperature += dt * (flux / p.density * p.capacity);
 
     // Clamp temperature to ambient temperature
-    p.temperature = min(p.temperature, 1.0f);
-    //p.temperature = p.density / 20.0;
+    //p.temperature = min(p.temperature, 1.0f);
+    p.temperature = p.density;
 
 
-  if(index == 0) p.temperature = 0.9f;    
-  //p.velocity += vec3(0.0,0.0,0.0) * dt;
-  //p.position += p.velocity * dt;
+  if(index == 0) p.temperature = 0.6f;    
+  p.velocity += 0.0f * dt;
+  p.position += p.velocity * dt;
   
 
   particles[index] = p;

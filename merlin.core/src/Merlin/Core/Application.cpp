@@ -78,7 +78,7 @@ namespace Merlin {
 	{
 		while (m_Running)
 		{
-			float time = (float)glfwGetTime();
+			double time = (double)glfwGetTime();
 			Timestep timestep = time - m_LastFrameTime;
 			m_LastFrameTime = time;
 

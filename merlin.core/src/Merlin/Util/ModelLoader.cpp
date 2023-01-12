@@ -357,7 +357,10 @@ namespace Merlin::Utils {
 		}
 		else if (extension == "stl") {
 			return FileType::STL;
-		}
+        }
+        else if (extension == "geom") {
+            return FileType::GEOM;
+        }
 		else {
 			// Unknown file type
 			return FileType::UNKNOWN;

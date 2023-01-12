@@ -18,6 +18,7 @@ namespace Merlin::Utils{
 		enum class FileType {
 			OBJ,
 			STL,
+			GEOM,
 			UNKNOWN
 		};
 
@@ -42,6 +43,9 @@ namespace Merlin::Utils{
 		static bool ParseSTL(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
 		static bool ParseSTL_ASCII(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
 		static bool ParseSTL_BINARY(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
+
+		//ParseGeometry
+		static bool ParseGEOM(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
 
 		// Parse a any file and extract the data
 		static bool ParseFile(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);

@@ -140,6 +140,36 @@ namespace Merlin::Renderer {
 		return CreateShared<Primitive>(v, i);
 	}
 
+	Shared<Primitive> Primitive::CreatePoint() {
+		Vertices v = {
+			Vertex{glm::vec3(0,0,0), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)}
+		};
+
+		return CreateShared<Primitive>(v, GL_POINTS);
+	}
+
+	Shared<Primitive> Primitive::CreateLine(float length, glm::vec3 dir) {
+		Vertices v = {
+			Vertex{glm::vec3(0,0,0)},
+			Vertex{glm::normalize(dir) * length}
+		};
+
+		return CreateShared<Primitive>(v, GL_LINES);
+	}
+
+	Shared<Primitive> Primitive::CreateCoordSystem() {
+		Vertices v = {
+			Vertex{ glm::vec3(0.2f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
+			Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
+			Vertex{ glm::vec3(0.0f, 0.2f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(0.0f, 0.0f, 0.2f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+			Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}
+		};
+
+		return CreateShared<Primitive>(v, GL_POINTS);
+	}
+
 	Shared<Primitive> Primitive::CreateCube(float w) { return CreateCube(w, w, w); }
 
 	Shared<Primitive> Primitive::CreateCube(float x, float y, float z){
@@ -236,7 +266,7 @@ namespace Merlin::Renderer {
 
 		Vertices v;
 		for (int i(0); i < vertices.size(); i++) {
-			v.push_back({ vertices[i], normals[i] });
+			v.push_back({ vertices[i], normals[i], glm::vec3(1,1,1) });
 		}
 		return CreateShared<Primitive>(v);
 	}

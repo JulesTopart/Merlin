@@ -61,7 +61,7 @@ void ExampleLayer::OnAttach(){
 	particleSystem = CreateShared<ParticleSystem>("particle", partCount);
 	
 	//Define the mesh for instancing (Here a cube)
-	Shared<Primitive> cube = Primitive::CreateCube(1.0f);//Primitive::CreateCube(1.0f);
+	Shared<Primitive> cube = Primitive::CreateSphere(0.5f*(gridWidth/gridSize),5,5);//Primitive::CreateCube(1.0f);
 	cube->Translate(glm::vec3(-2, -2, 0));
 	particleSystem->SetPrimitive(cube); 
 
@@ -80,11 +80,9 @@ void ExampleLayer::OnAttach(){
 	particleSystem->Execute(init); //init position using init compute shader
 
 	physics->Use();
-	physics->SetFloat("simSpeed", sim_speed);
+	physics->SetDouble("simSpeed", sim_speed);
 	physics->SetInt("count", partCount);
 	
-	particleShader->Use();
-	particleShader->SetFloat("radius", 0.5f * gridWidth / float(gridSize)); //Set particle radius
 }
 
 void ExampleLayer::OnDetach(){}
@@ -114,7 +112,7 @@ void ExampleLayer::OnUpdate(Timestep ts){
 
 	//Compute Shader init
 	physics->Use();
-	physics->SetFloat("simSpeed", sim_speed);
+	physics->SetDouble("simSpeed", sim_speed);
 	//update->SetFloat("lightColor", glm::vec3(0.3, 0.3, 0.3));
 
 	if(!paused)particleSystem->Update(ts);

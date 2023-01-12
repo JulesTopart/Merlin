@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{17723ECF-E408-4BAE-BC65-1C06FCA568AC}</ProjectGuid>
+    <ProjectGuid>{A0458E97-FC88-4CE9-AE6F-7D0778401601}</ProjectGuid>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>merlin.heat.sph</RootNamespace>
+    <RootNamespace>merlin.raytracing</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>merlin.heat.sph</ProjectName>
+    <ProjectName>merlin.raytracing</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -43,16 +43,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\bin\Debug-windows-x86_64\merlin.heat.sph\</OutDir>
-    <IntDir>..\bin-int\Debug-windows-x86_64\merlin.heat.sph\</IntDir>
-    <TargetName>merlin.heat.sph</TargetName>
+    <OutDir>..\bin\Debug-windows-x86_64\merlin.raytracing\</OutDir>
+    <IntDir>..\bin-int\Debug-windows-x86_64\merlin.raytracing\</IntDir>
+    <TargetName>merlin.raytracing</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\bin\Release-windows-x86_64\merlin.heat.sph\</OutDir>
-    <IntDir>..\bin-int\Release-windows-x86_64\merlin.heat.sph\</IntDir>
-    <TargetName>merlin.heat.sph</TargetName>
+    <OutDir>..\bin\Release-windows-x86_64\merlin.raytracing\</OutDir>
+    <IntDir>..\bin-int\Release-windows-x86_64\merlin.raytracing\</IntDir>
+    <TargetName>merlin.raytracing</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -95,11 +95,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\ExampleLayer.h" />
+    <ClInclude Include="assets\src\ExampleLayer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\ExampleApp.cpp" />
-    <ClCompile Include="src\ExampleLayer.cpp" />
+    <ClCompile Include="assets\src\ExampleApp.cpp" />
+    <ClCompile Include="assets\src\ExampleLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\merlin.core\merlin.core.vcxproj">
@@ -109,10 +109,14 @@
   <ItemGroup>
     <None Include="assets\shaders\axis.frag.glsl" />
     <None Include="assets\shaders\axis.vert.glsl" />
-    <None Include="assets\shaders\particle.frag.glsl" />
-    <None Include="assets\shaders\particle.heat.glsl" />
-    <None Include="assets\shaders\particle.init.glsl" />
-    <None Include="assets\shaders\particle.vert.glsl" />
+    <None Include="assets\shaders\model.frag.glsl" />
+    <None Include="assets\shaders\model.vert.glsl" />
+    <None Include="assets\shaders\init.cs.glsl" />
+    <None Include="assets\shaders\screen.quad.frag.glsl" />
+    <None Include="assets\shaders\screen.quad.vert.glsl" />
+    <None Include="assets\shaders\raytracing.cs.glsl" />
+    <None Include="assets\shaders\line.frag.glsl" />
+    <None Include="assets\shaders\line.vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

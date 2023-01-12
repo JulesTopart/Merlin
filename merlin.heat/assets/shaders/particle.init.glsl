@@ -3,14 +3,14 @@
 layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 struct Particle {
-	vec3 position;
-	vec3 velocity;
-	float temperature;
-	float conductivity;
-	float capacity;
-	float density;
-	float pressure;
-	float mass;
+	dvec3 position;
+	dvec3 velocity;
+	double temperature;
+	double conductivity;
+	double capacity;
+	double density;
+	double pressure;
+	double mass;
 };
 
 layout (std430, binding = 1) buffer ParticleBuffer {
@@ -32,7 +32,7 @@ void main() {
   Particle pt;
 
   pt.position = vec3(i + grid/2, j + grid/2, k + grid/2) * gridSpacing;
-  pt.velocity = vec3(i,j,k) * 0.0f;
+  pt.velocity = vec3(i,j,k) * 0.00f;
   pt.temperature = 0.0f;
   pt.conductivity = 0.16f;
   pt.capacity = 0.1f;

@@ -32,6 +32,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.fluid.sph", "merlin.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.heat.sph", "merlin.heat\merlin.heat.sph.vcxproj", "{17723ECF-E408-4BAE-BC65-1C06FCA568AC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.raytracing", "merlin.raytracing\merlin.raytracing.vcxproj", "{A0458E97-FC88-4CE9-AE6F-7D0778401601}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -103,6 +105,12 @@ Global
 		{17723ECF-E408-4BAE-BC65-1C06FCA568AC}.Release|x64.ActiveCfg = Release|x64
 		{17723ECF-E408-4BAE-BC65-1C06FCA568AC}.Release|x64.Build.0 = Release|x64
 		{17723ECF-E408-4BAE-BC65-1C06FCA568AC}.Release|x86.ActiveCfg = Release|x64
+		{A0458E97-FC88-4CE9-AE6F-7D0778401601}.Debug|x64.ActiveCfg = Debug|x64
+		{A0458E97-FC88-4CE9-AE6F-7D0778401601}.Debug|x64.Build.0 = Debug|x64
+		{A0458E97-FC88-4CE9-AE6F-7D0778401601}.Debug|x86.ActiveCfg = Debug|x64
+		{A0458E97-FC88-4CE9-AE6F-7D0778401601}.Release|x64.ActiveCfg = Release|x64
+		{A0458E97-FC88-4CE9-AE6F-7D0778401601}.Release|x64.Build.0 = Release|x64
+		{A0458E97-FC88-4CE9-AE6F-7D0778401601}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -118,6 +126,7 @@ Global
 		{B21C9501-7C88-47C6-9240-B20526D70361} = {D1D60AC2-73CD-450E-870C-D9D66BA549C1}
 		{8F9D3CF0-A64B-4F40-9529-AC11CC9B4D68} = {D1D60AC2-73CD-450E-870C-D9D66BA549C1}
 		{17723ECF-E408-4BAE-BC65-1C06FCA568AC} = {D1D60AC2-73CD-450E-870C-D9D66BA549C1}
+		{A0458E97-FC88-4CE9-AE6F-7D0778401601} = {D1D60AC2-73CD-450E-870C-D9D66BA549C1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08CE0857-BD26-4581-B676-934B26490A92}

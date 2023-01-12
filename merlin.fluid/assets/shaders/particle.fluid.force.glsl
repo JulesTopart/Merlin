@@ -33,7 +33,7 @@ uniform int count;
 #define VISC 200.0       // viscosity constant
 #define MASS 2.0        // assume all particles have the same mass
 
-// Smoothing kernel function
+// Smoothing kernel function (poly6)
 float poly6Kernel(vec3 r) {
 
     if(length(r) > H) return 0;
