@@ -11,7 +11,7 @@ uniform vec3 lightColor;
 uniform vec3 viewPos;
 uniform float shininess;
 
-void main(){
+vec4 phong(){
     vec3 ambient = lightColor * 0.2f;
 
     vec3 n = normalize(normal);
@@ -21,6 +21,11 @@ void main(){
     vec3 viewDir = normalize(viewPos - position);
     vec3 reflectDir = reflect(-lightDir, n);
     float specular = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+    return vec4((ambient + diffuse + specular) * color, 1.0f);
+}
 
-    o_Color = vec4((ambient + diffuse + specular) * color, 1.0f);
+void main(){
+
+    o_Color = vec4(normal, 1.0f);
+    //o_Color = phong();
 }

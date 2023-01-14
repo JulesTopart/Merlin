@@ -11,9 +11,16 @@ struct Ray {
 };
 
 struct Facet {
-  vec3 vertex[4]; //quad 
+  vec3 vertex[3]; //triangle 
   vec3 normal;
   uint id;
+};
+
+struct Vertex {
+  vec3 position;
+  vec3 normal;
+  vec3 color;
+  vec2 texCoord;
 };
 
 layout (std430, binding = 1) buffer RayBuffer {
@@ -24,12 +31,17 @@ layout (std430, binding = 2) buffer FacetBuffer {
   Facet facets[];
 };
 
+layout (std430, binding = 3) buffer VertexBuffer {
+  Vertex vertices[];
+};
+
+
 uniform vec3 origin; //TMRT source
 
 void main() {
   uint index = gl_GlobalInvocationID.x;
 
-  Ray r;
+  Ray r = rays[index];
   r.d = r.o - origin; //Compute Ray direction
   r.hitID = -1;
   r.bounce = 0;

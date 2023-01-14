@@ -47,8 +47,7 @@ namespace Merlin::Renderer {
 		_drawMode = mode;
 		_model = glm::mat4(1.0f);
 		//Move vertices data
-		_vertices = std::move(vertices);
-		vertices.clear();
+		_vertices = vertices;
 
 		//Create VAO, VBO
 		_vao = CreateScope<VAO>();
@@ -64,10 +63,8 @@ namespace Merlin::Renderer {
 		_drawMode = mode;
 		_model = glm::mat4(1.0f);
 		//Move vertices data
-		_vertices = std::move(vertices);
-		vertices.clear();
-		_indices = std::move(indices);
-		indices.clear();
+		_vertices = vertices;
+		_indices = indices;
 
 		//Create VAO, VBO
 		_vao = CreateScope<VAO>();
@@ -167,7 +164,7 @@ namespace Merlin::Renderer {
 			Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}
 		};
 
-		return CreateShared<Primitive>(v, GL_POINTS);
+		return CreateShared<Primitive>(v, GL_LINES);
 	}
 
 	Shared<Primitive> Primitive::CreateCube(float w) { return CreateCube(w, w, w); }
@@ -271,4 +268,24 @@ namespace Merlin::Renderer {
 		return CreateShared<Primitive>(v);
 	}
 
+
+	Shared<Primitive> Primitive::CreateFromQuad(std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode) {
+		std::vector<GLuint> indices_buffer;
+		GLuint a; GLuint b;
+		GLuint c; GLuint d;
+
+		for (int i(0); i < indices.size(); i+=4) {
+			a = indices_buffer[0]; b = indices_buffer[1];
+			c = indices_buffer[2]; d = indices_buffer[3];
+
+			indices_buffer.push_back(a - 1);//first triangle
+			indices_buffer.push_back(b - 1);
+			indices_buffer.push_back(c - 1);
+
+			indices_buffer.push_back(a - 1);//second triangle
+			indices_buffer.push_back(c - 1);
+			indices_buffer.push_back(d - 1);
+		}
+		return CreateShared<Primitive>(vertices, indices_buffer);
+	}
 }

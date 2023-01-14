@@ -14,7 +14,7 @@ struct Ray {
 };
 
 struct Facet {
-	glm::vec3 vertex[4];
+	GLuint indices[3];
 	glm::vec3 normal;
 	int hitID;
 	int bounce;
@@ -51,6 +51,7 @@ private:
 	Shared<ParticleSystem> rays;
 	Shared<SSBO> rayBuffer;
 	Shared<SSBO> facetBuffer;
+	Shared<SSBO> vertexBuffer;
 
 	Shared<ComputeShader> init;
 	Shared<ComputeShader> raytracing;

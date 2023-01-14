@@ -11,17 +11,28 @@ struct Ray {
 };
 
 struct Facet {
-  vec3 vertex[4]; //quad 
+  vec3 vertex[3]; //quad 
   vec3 normal;
   uint id;
+};
+
+struct Vertex {
+  vec3 position;
+  vec3 normal;
+  vec3 color;
+  vec2 texCoord;
 };
 
 layout (std430, binding = 1) buffer RayBuffer {
   Ray rays[];
 };
 
-layout (std430, binding = 2) buffer FacetsBuffer {
+layout (std430, binding = 2) buffer FacetBuffer {
   Facet facets[];
+};
+
+layout (std430, binding = 3) buffer VertexBuffer {
+  Vertex vertices[];
 };
 
 uniform vec3 origin; //TMRT source

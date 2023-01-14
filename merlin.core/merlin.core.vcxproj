@@ -101,6 +101,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Merlin\Util\DataStream.h" />
     <ClInclude Include="src\Merlin\Renderer\Primitive.h" />
     <ClInclude Include="src\Merlin\Tensor\ShaderStorageBuffer.h" />
     <ClInclude Include="src\Merlin\Tensor\ParticleSystem.h" />
@@ -143,6 +144,7 @@
     <ClInclude Include="src\Merlin\Renderer\Texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Merlin\Util\DataStream.cpp" />
     <ClCompile Include="src\Merlin\Renderer\Primitive.cpp" />
     <ClCompile Include="src\Merlin\Tensor\ShaderStorageBuffer.cpp" />
     <ClCompile Include="src\Merlin\Tensor\ParticleSystem.cpp" />

@@ -8,18 +8,88 @@ using namespace Merlin::Renderer;
 #include <fstream>
 #include <iomanip>
 #include <algorithm>
+#include <limits>
 
 template<typename T>
 void LoadBinaryFile(std::string path, std::vector<T>& data) {
-	std::ifstream binary(path, std::ios::binary);
+	std::ifstream binary(path, std::ios::binary | std::ios::ate);
 
 	if (!binary) {
 		Console::error("Application") << "Error opening file: " << path << Console::endl;
 		return;
 	}
 
-	binary.read((char*)data.data(), data.size() * sizeof(T));
+	auto size = binary.tellg();
+	binary.seekg(0, std::ios::beg);
+	data.resize(size);
+	binary.read((char*)data.data(), size);
 	binary.close();
+}
+
+std::vector<Ray> parseRays(std::vector<float> data, int size) {
+	std::vector<Ray> rays;
+	rays.resize(size);
+	size_t index = 0;
+	for (size_t i = 0; i < rays.size(); i++) {
+		rays[i].origin = glm::vec3(data[index], data[index + 1], data[index + 2]);
+		index += 3;
+	}
+	return rays;
+}
+
+glm::vec3 computeFacetNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
+	// Uses p2 as a new origin for p1,p3
+	auto u = p2 - p1;
+	auto v = p3 - p1;
+	
+	auto x = u.y * v.z - u.z * v.y;
+	auto y = u.z * v.x - u.x * v.z;
+	auto z = u.x * v.y - u.y * v.x;
+	return glm::vec3(x, y, z);
+}
+
+Vertices parseVerticies(std::vector<float> data, int size) {
+	Vertices vertices;
+	vertices.resize(size);
+	int index = 0;
+	int vertexID = 0;
+	for (size_t i = 0; i < vertices.size(); i++) {
+		vertices[i].position = glm::vec3(data[index], data[index + 1], data[index + 2]);
+		if (vertexID == 2) {
+			vertices[i].normal = computeFacetNormal(vertices[i-2].position, vertices[i-1].position, vertices[i].position);
+			vertexID = 0;
+		}else vertexID++;
+		index += 4;
+	}
+	return vertices;
+}
+
+Indices parseIndices(std::vector<GLuint> data, int size) {
+	Indices indices;
+	//indices.resize(size);
+	size_t index = 0;
+	for (size_t i = 0; i < data.size(); i++) {
+		if (index < 3) {
+			indices.push_back(data[i] - 1);
+			index++;
+		}
+		else index = 0;
+	}
+	return indices;
+}
+
+std::vector<Facet> parseFacets(Vertices vertices, Indices indices, size_t facetCount) {
+	std::vector<Facet> f;
+	f.resize(facetCount);
+	__int32 index = 0;
+	for (size_t i = 0; i < indices.size(); i+=3){
+		for (size_t j = 0; j < 3; j++) {
+			if (j == 3) f[index].normal = vertices[indices[i+j]].normal;
+			f[index].indices[j] = indices[i + j];
+		}
+		index++;
+	}
+	return f;
 }
 
 
@@ -38,6 +108,28 @@ void ExampleLayer::OnAttach(){
 
 	Console::SetLevel(ConsoleLevel::_INFO);
 
+
+	// -- Load Geometry--
+	GLsizeiptr vertexCount = 95674;
+	GLsizeiptr facetCount = 134079;
+	GLsizeiptr rayCount = 128;
+
+	std::vector<GLuint> indices_data(facetCount*4);//v0, v1, v2, v4 (v4 = -1) It's Triangle
+	std::vector<float> vertices_data(vertexCount*4); //xyz + temperature
+	std::vector<float> rays_data(rayCount * 3);//xyz
+	Vertices vertices;
+	Indices indices;
+	std::vector<Facet> facets;
+	std::vector<Ray> rayArray;
+
+	LoadBinaryFile<float>("assets/geometry/rayons.float3", rays_data);
+	LoadBinaryFile<float>("assets/geometry/vertices.float3", vertices_data);
+	LoadBinaryFile<GLuint>("assets/geometry/indices.int32", indices_data);
+
+	vertices = parseVerticies(vertices_data, vertexCount);
+	indices = parseIndices(indices_data, facetCount*3);
+	facets = parseFacets(vertices, indices, facetCount);
+	rayArray = parseRays(rays_data, 128);
 
 	// ---- Init Rendering ----
 	// Init OpenGL stuff
@@ -64,48 +156,35 @@ void ExampleLayer::OnAttach(){
 		"assets/shaders/model.vert.glsl",
 		"assets/shaders/model.frag.glsl"
 	);
+	//Set uniforms
 	modelShader->Use();
 	modelShader->SetUniform3f("lightPos", glm::vec3(2, 0, 3));
 	modelShader->SetUniform3f("lightColor", glm::vec3(1, 1, 1));
 	modelShader->SetUniform3f("viewPos", cameraController.GetCamera().GetPosition());
 	modelShader->SetFloat("shininess", 1.0f);
 
-	//Load models
+	// -- Load models --
 	axis = Primitive::CreateCoordSystem();
 	sphere = Primitive::CreateSphere(0.1, 40, 40);
-
-	model = Primitive::CreateRectangle(2, 1);
-	model->Translate(glm::vec3(0, 1, 0));
-	model->Rotate(glm::vec3(3.1415926 / 2.0, 0, 0));
-
+	model = CreateShared<Primitive>(vertices, indices);
 
 	// ---- Init Computing ----
 	rays = CreateShared<ParticleSystem>("rays", 128);
-	rays->SetPrimitive(Primitive::CreateSphere(0.01,4,4));
+	rays->SetPrimitive(Primitive::CreateLine(1,glm::vec3(1,0,0)));
 
-	//Data
+	// ---- GPU Data ----	
+	//Load to GPU
 	rayBuffer = CreateShared<SSBO>("RayBuffer");
-
-	std::vector<float> data;
-	data.resize(128 * 3); // allocate memory for an array 
-	LoadBinaryFile<float>("assets/geometry/rayons.float3", data);
-
-	std::vector<Ray> rayArray;
-	rayArray.resize(128);
-
-	int index = 0;
-	for (int i = 0; i < rayArray.size(); i++) {
-		rayArray[i].origin = glm::vec3(data[index], data[index + 1], data[index + 2]);
-		index += 3;
-	}
-
 	rayBuffer->Allocate<Ray>(rayArray);
 	rayBuffer->SetBindingPoint(1);
 
 	facetBuffer = CreateShared<SSBO>("FacetBuffer");
-	facetBuffer->Allocate<Facet>(1);
+	facetBuffer->Allocate<Facet>(facets);
 	facetBuffer->SetBindingPoint(2);
 
+	vertexBuffer = CreateShared<SSBO>("VertexBuffer");
+	vertexBuffer->Allocate<Vertex>(vertices);
+	vertexBuffer->SetBindingPoint(3);
 
 	//Programs
 	init = CreateShared<ComputeShader>("init");
@@ -113,8 +192,10 @@ void ExampleLayer::OnAttach(){
 	raytracing = CreateShared<ComputeShader>("raytracing");
 	raytracing->Compile("assets/shaders/raytracing.cs.glsl");
 
-
 	rays->AddStorageBuffer(rayBuffer);
+	rays->AddStorageBuffer(facetBuffer);
+	rays->AddStorageBuffer(vertexBuffer);
+
 	rays->AddComputeShader(init);
 	rays->AddComputeShader(raytracing);
 
@@ -141,7 +222,7 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	updateFPS(ts);
 	cameraController.OnUpdate(ts);
 
-	glClearColor(0.8f, 0.1f, 0.1f, 1.0f); // Specify the color of the background
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Specify the color of the background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);// Clean the back buffer and depth buffer
 
 	axis->Draw(axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
@@ -162,7 +243,7 @@ void ExampleLayer::OnImGuiRender()
 		if (FPS_sample > 50) FPS_sample = 0;
 	}
 
-	if (ImGui::ArrowButton("Run simulation", 1))
+	if (ImGui::ArrowButton("Run simulation", 1)) rays->Execute(init);
 
 	if (ImGui::DragFloat3("Camera position", &camera_translation.x, -100.0f, 100.0f)) {
 		cameraController.GetCamera().SetPosition(camera_translation);

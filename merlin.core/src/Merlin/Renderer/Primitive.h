@@ -46,6 +46,8 @@ namespace Merlin::Renderer {
 		static Shared<Primitive> CreateCube(float x, float y, float z);
 		static Shared<Primitive> CreateSphere(float r, int hres = 10, int vres = 10);
 
+		static Shared<Primitive> CreateFromQuad(std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode = GL_TRIANGLES);
+
 	private:
 		Scope<VAO> _vao;
 		std::vector<Vertex> _vertices;

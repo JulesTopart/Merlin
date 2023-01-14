@@ -76,7 +76,10 @@ namespace Merlin::Tensor {
 
 	void ShaderStorageBuffer::Attach(Shared<ShaderBase> sh){
 		int block_index = glGetProgramResourceIndex(sh->id(), GL_SHADER_STORAGE_BLOCK, _name.c_str());
-		glShaderStorageBlockBinding(sh->id(), block_index, _binding);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, _binding, _StorageID);
+		if (block_index == -1) Console::trace("SSBO") << "Block " << _name << " not found in shader '" << sh->name() <<  "'. Did you bind it properly ?" << Console::endl;
+		else {
+			glShaderStorageBlockBinding(sh->id(), block_index, _binding);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, _binding, _StorageID);
+		}
 	}
 }
