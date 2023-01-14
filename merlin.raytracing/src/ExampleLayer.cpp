@@ -199,7 +199,7 @@ void ExampleLayer::OnAttach(){
 	rays->AddComputeShader(init);
 	rays->AddComputeShader(raytracing);
 
-	//rays->Execute(init);
+	rays->Execute(init);
 
 }
 

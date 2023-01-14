@@ -57,4 +57,4 @@ void main() {
 		position = vec3( model * vec4((normal*length(_position) + offset), 1.0f) );
 	color = vec3(rays[gl_InstanceID].d);
 	gl_Position = view * vec4(position, 1.0f);
-}
+} 
