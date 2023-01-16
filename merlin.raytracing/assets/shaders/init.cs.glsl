@@ -6,12 +6,12 @@ layout (local_size_x = 16, local_size_y = 1, local_size_z = 1) in;
 struct Ray {
 	vec3 o; //Origin
 	vec3 d; //Direction
-	int hitID;
-	int bounce;
+	uint hitID;
+	uint bounce;
 };
 
 struct Facet {
-  vec3 vertex[4]; //quad 
+  uint indices[4]; //quad 
   vec3 normal;
   uint id;
 };
@@ -34,7 +34,6 @@ layout (std430, binding = 2) buffer FacetBuffer {
 layout (std430, binding = 3) buffer VertexBuffer {
   Vertex vertices[];
 };
-
 
 uniform vec3 origin; //TMRT source
 
