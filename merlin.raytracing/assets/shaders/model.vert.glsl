@@ -19,6 +19,7 @@ uniform mat4 model;
 void main() {
 	position = vec3(model * vec4(_position, 1.0f));
 	color = abs(normalize(_normal));
+	color = _color;
 
 	normal = _normal;
 

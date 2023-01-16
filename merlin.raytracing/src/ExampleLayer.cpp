@@ -53,6 +53,7 @@ Vertices parseVerticies(std::vector<float> data) {
 	int index = 0;
 	for (size_t i = 0; i < vertices.size(); i++) {
 		vertices[i].position = glm::vec3(data[index], data[index + 1], data[index + 2]);
+		vertices[i].color = data[index + 3] == 1.0f ? glm::vec3(0.2f, 0.2f, 1.0f) : glm::vec3(0.3f,0.3f,0.3f);
 		index += 4;
 	}
 	return vertices;
@@ -162,7 +163,7 @@ void ExampleLayer::OnAttach(){
 		"assets/shaders/axis.frag.glsl"
 	);
 
-	rayShader = std::make_shared<Shader>("rays");
+	rayShader = std::make_shared<Shader>("rayShader");
 	rayShader->Compile(
 		"assets/shaders/ray.vert.glsl",
 		"assets/shaders/ray.frag.glsl"
@@ -175,7 +176,7 @@ void ExampleLayer::OnAttach(){
 	);
 	//Set uniforms
 	modelShader->Use();
-	modelShader->SetUniform3f("lightPos", glm::vec3(2, 0, 3));
+	modelShader->SetUniform3f("lightPos", glm::vec3(-200, 0, 200));
 	modelShader->SetUniform3f("lightColor", glm::vec3(1, 1, 1));
 	modelShader->SetUniform3f("viewPos", cameraController.GetCamera().GetPosition());
 	modelShader->SetFloat("shininess", 1.0f);
@@ -219,10 +220,30 @@ void ExampleLayer::OnAttach(){
 	rays->AddComputeShader(raytracing);
 
 
-	rays->Translate(glm::vec3(30.5,30.5,1.5));
+	glm::vec3 TMRT_origin = glm::vec3(30.5, 30.5, 1.5);
 
+	init->Use();
+	//rays->Translate(TMRT_origin);
+	init->SetUniform3f("origin", TMRT_origin);
+
+	raytracing->Use();
+	raytracing->SetUniform3f("origin", TMRT_origin);
+	raytracing->SetUInt("size", facets.size());
 
 	rays->Execute(init);
+	rays->Execute(raytracing);
+	std::vector<Ray> result;
+	result.resize(128);
+
+	memcpy(result.data(), rayBuffer->Map(), result.size() * sizeof(Ray));
+
+
+	std::ofstream file("file.bin", std::ios::binary);
+	for (int i = 0; i < result.size(); i++) {
+		int num = result[i].hitID;
+		file.write((char*)&num, sizeof(num));
+	}
+	file.close();
 
 }
 
@@ -266,7 +287,7 @@ void ExampleLayer::OnImGuiRender()
 		if (FPS_sample > 50) FPS_sample = 0;
 	}
 
-	if (ImGui::ArrowButton("Run simulation", 1)) rays->Execute(init);
+	if (ImGui::ArrowButton("Run simulation", 1)) rays->Execute(raytracing);
 
 	if (ImGui::DragFloat3("Camera position", &camera_translation.x, -100.0f, 100.0f)) {
 		cameraController.GetCamera().SetPosition(camera_translation);

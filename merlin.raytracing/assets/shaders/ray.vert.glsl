@@ -6,6 +6,7 @@ struct Ray {
 	vec3 d; //Direction
 	int hitID;
 	int bounce;
+	float dist;
 };
 
 struct Facet {
@@ -52,12 +53,16 @@ void main() {
 	offset = vec3(rays[gl_InstanceID].o);
 	normal = rays[gl_InstanceID].d;
 	if(length(_position) == 0.0){
-		position = vec3( model * vec4((_position), 1.0f) );
+		position = vec3( vec4((_position), 1.0f) );
 		position += offset;
 	}else{
-		position = vec3( model * vec4((normal*length(_position)), 1.0f) );
+		if(rays[gl_InstanceID].hitID != uint(-1))
+			position = vec3( vec4((normal*rays[gl_InstanceID].dist), 1.0f) );
+		else
+			position = vec3( vec4((normal*length(_position)), 1.0f) );
+			
 		position += offset;
 	}
-	color = vec3(rays[gl_InstanceID].d);
+	color = rays[gl_InstanceID].hitID != uint(-1) ? vec3(0,1,0) : vec3(1,0,0);
 	gl_Position = view * vec4(position, 1.0f);
 } 

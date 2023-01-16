@@ -11,6 +11,7 @@ struct Ray {
 	alignas(16) glm::vec3 direction; //Direction
 	int hitID;
 	int bounce;
+	float dist;
 };
 
 struct Facet {

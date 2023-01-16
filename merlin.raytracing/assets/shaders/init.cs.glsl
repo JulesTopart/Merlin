@@ -8,6 +8,7 @@ struct Ray {
 	vec3 d; //Direction
 	uint hitID;
 	uint bounce;
+	float dist;
 };
 
 struct Facet {
@@ -41,8 +42,10 @@ void main() {
   uint index = gl_GlobalInvocationID.x;
 
   Ray r = rays[index];
+  r.o = origin + r.o;
   r.d = r.o - origin; //Compute Ray direction
   r.hitID = -1;
   r.bounce = 0;
+  r.dist = 0;
   rays[index] = r;
 }
