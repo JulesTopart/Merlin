@@ -11,7 +11,7 @@ struct Ray {
 };
 
 struct Facet {
-  vec3 vertex[3]; //triangle 
+  vec3 vertex[4]; //quad 
   vec3 normal;
   uint id;
 };

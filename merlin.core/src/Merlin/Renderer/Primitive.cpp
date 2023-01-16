@@ -101,6 +101,10 @@ namespace Merlin::Renderer {
 		_model = glm::rotate(_model, angle, v);
 	}
 
+	void Primitive::SetTransform(glm::mat4 t){
+		_model = t;
+	}
+
 	void Primitive::Draw(Shared<Shader> shader, glm::mat4 view){
 		shader->Use();
 		shader->SetMatrix4f("view", view); //Sync camera with GPU

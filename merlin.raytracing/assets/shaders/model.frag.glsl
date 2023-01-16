@@ -26,6 +26,6 @@ vec4 phong(){
 
 void main(){
 
-    o_Color = vec4(normal, 1.0f);
+    o_Color = vec4(color, 1.0f);
     //o_Color = phong();
 }

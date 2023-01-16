@@ -14,10 +14,9 @@ struct Ray {
 };
 
 struct Facet {
-	GLuint indices[3];
-	glm::vec3 normal;
-	int hitID;
-	int bounce;
+	GLuint indices[4];
+	alignas(16) glm::vec3 normal;
+	GLuint id;
 };
 
 

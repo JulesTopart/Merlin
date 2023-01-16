@@ -8,6 +8,7 @@ namespace Merlin::Tensor {
 	ParticleSystem::ParticleSystem(std::string name, GLsizeiptr maxCount) {
 		_geometry = CreateShared<Primitive>();
 		_particlesCount = maxCount;
+		_model = glm::mat4(1.0f);
 	}
 
 	ParticleSystem::~ParticleSystem() {}
@@ -66,8 +67,23 @@ namespace Merlin::Tensor {
 		for (Shared<SSBO> buffer : _buffers) {
 			buffer->Attach(shader);
 		}
-
+		_geometry->SetTransform(_model);
 		_geometry->DrawInstanced(shader, view, _particlesCount);
+	}
+
+
+	void ParticleSystem::Translate(glm::vec3 v) {
+		_model = glm::translate(_model, v);
+	}
+
+	void ParticleSystem::Rotate(glm::vec3 v) {
+		_model = glm::rotate(_model, v.x, glm::vec3(1, 0, 0));
+		_model = glm::rotate(_model, v.y, glm::vec3(0, 1, 0));
+		_model = glm::rotate(_model, v.z, glm::vec3(0, 0, 1));
+	}
+
+	void ParticleSystem::Rotate(float angle, glm::vec3 v) {
+		_model = glm::rotate(_model, angle, v);
 	}
 
 

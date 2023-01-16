@@ -12,17 +12,16 @@ using namespace Merlin::Renderer;
 
 template<typename T>
 void LoadBinaryFile(std::string path, std::vector<T>& data) {
-	std::ifstream binary(path, std::ios::binary | std::ios::ate);
-
+	std::ifstream binary(path, std::ios::binary | std::ios::in | std::ios::ate);
+	
 	if (!binary) {
 		Console::error("Application") << "Error opening file: " << path << Console::endl;
 		return;
 	}
-
 	auto size = binary.tellg();
 	binary.seekg(0, std::ios::beg);
-	data.resize(size);
-	binary.read((char*)data.data(), size);
+	data.resize(size/sizeof(T));
+	binary.read(reinterpret_cast<char*>(data.data()), size);
 	binary.close();
 }
 
@@ -48,53 +47,73 @@ glm::vec3 computeFacetNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
 	return glm::vec3(x, y, z);
 }
 
-Vertices parseVerticies(std::vector<float> data, int size) {
+Vertices parseVerticies(std::vector<float> data) {
 	Vertices vertices;
-	vertices.resize(size);
+	vertices.resize(data.size()/4);
 	int index = 0;
-	int vertexID = 0;
 	for (size_t i = 0; i < vertices.size(); i++) {
 		vertices[i].position = glm::vec3(data[index], data[index + 1], data[index + 2]);
-		if (vertexID == 2) {
-			vertices[i].normal = computeFacetNormal(vertices[i-2].position, vertices[i-1].position, vertices[i].position);
-			vertexID = 0;
-		}else vertexID++;
 		index += 4;
 	}
 	return vertices;
 }
 
-Indices parseIndices(std::vector<GLuint> data, int size) {
+Indices parseIndices(Vertices& vertices, std::vector<GLuint> data) {
 	Indices indices;
-	//indices.resize(size);
 	size_t index = 0;
 	for (size_t i = 0; i < data.size(); i++) {
 		if (index < 3) {
 			indices.push_back(data[i] - 1);
+			if (index == 2) vertices[indices[indices.size() - 1]].normal = computeFacetNormal(vertices[indices[indices.size() -3]].position, vertices[indices[indices.size() -2]].position, vertices[indices[indices.size()-1]].position);
+			if (index == 2) vertices[indices[indices.size() - 2]].normal = computeFacetNormal(vertices[indices[indices.size() -3]].position, vertices[indices[indices.size() -2]].position, vertices[indices[indices.size()-1]].position);
+			if (index == 2) vertices[indices[indices.size() - 3]].normal = computeFacetNormal(vertices[indices[indices.size() -3]].position, vertices[indices[indices.size() -2]].position, vertices[indices[indices.size()-1]].position);
 			index++;
+		} else{
+			if (data[i] != GLuint(-1)) { //Quad
+				indices.push_back(data[i - 3] - 1);
+				indices.push_back(data[i - 1] - 1);
+				indices.push_back(data[i] - 1);
+				vertices[indices[indices.size()-1]].normal = computeFacetNormal(vertices[indices[indices.size()-3]].position, vertices[indices[indices.size() - 2]].position, vertices[indices[indices.size()-1]].position);
+				vertices[indices[indices.size()-2]].normal = computeFacetNormal(vertices[indices[indices.size()-3]].position, vertices[indices[indices.size() - 2]].position, vertices[indices[indices.size()-1]].position);
+				vertices[indices[indices.size()-3]].normal = computeFacetNormal(vertices[indices[indices.size()-3]].position, vertices[indices[indices.size() - 2]].position, vertices[indices[indices.size()-1]].position);
+			}
+			index = 0;
 		}
-		else index = 0;
 	}
 	return indices;
 }
 
-std::vector<Facet> parseFacets(Vertices vertices, Indices indices, size_t facetCount) {
+std::vector<Facet> parseFacets(Vertices& vertices, std::vector<GLuint> data) {
 	std::vector<Facet> f;
-	f.resize(facetCount);
-	__int32 index = 0;
-	for (size_t i = 0; i < indices.size(); i+=3){
-		for (size_t j = 0; j < 3; j++) {
-			if (j == 3) f[index].normal = vertices[indices[i+j]].normal;
-			f[index].indices[j] = indices[i + j];
+	size_t index = 0;
+	GLuint fIndices[4];
+	for (size_t i = 0; i < data.size(); i++){
+		if (index < 3) {
+			fIndices[index] = (data[i] - 1);
+			index++;
 		}
-		index++;
+		else {
+			if (data[i] != GLuint(-1)) //Quad
+				fIndices[index] = (data[i] - 1);
+			else 
+				fIndices[index] = GLuint(-1);//Triangle
+			index = 0;
+			Facet fc;
+			fc.id = f.size();
+			fc.indices[0] = fIndices[0];
+			fc.indices[1] = fIndices[1];
+			fc.indices[2] = fIndices[2];
+			fc.indices[3] = fIndices[3];
+			fc.normal = vertices[fc.indices[2]].normal;
+			f.push_back(fc);
+		}
 	}
 	return f;
 }
 
 
 ExampleLayer::ExampleLayer() : cameraController(45.0f, 16.0f / 9.0f){
-	cameraController.GetCamera().SetPosition(glm::vec3(-2.0f, 0.0f, 0.0f));
+	cameraController.GetCamera().SetPosition(glm::vec3(30.5f, 30.5f, 1.5f));
 }
 
 ExampleLayer::~ExampleLayer(){
@@ -110,12 +129,10 @@ void ExampleLayer::OnAttach(){
 
 
 	// -- Load Geometry--
-	GLsizeiptr vertexCount = 95674;
-	GLsizeiptr facetCount = 134079;
 	GLsizeiptr rayCount = 128;
 
-	std::vector<GLuint> indices_data(facetCount*4);//v0, v1, v2, v4 (v4 = -1) It's Triangle
-	std::vector<float> vertices_data(vertexCount*4); //xyz + temperature
+	std::vector<GLuint> indices_data;//v0, v1, v2, v4 (v4 = -1) It's Triangle
+	std::vector<float> vertices_data; //xyz + temperature
 	std::vector<float> rays_data(rayCount * 3);//xyz
 	Vertices vertices;
 	Indices indices;
@@ -124,11 +141,11 @@ void ExampleLayer::OnAttach(){
 
 	LoadBinaryFile<float>("assets/geometry/rayons.float3", rays_data);
 	LoadBinaryFile<float>("assets/geometry/vertices.float3", vertices_data);
-	LoadBinaryFile<GLuint>("assets/geometry/indices.int32", indices_data);
+	LoadBinaryFile<GLuint>("assets/geometry/indices.uint", indices_data);
 
-	vertices = parseVerticies(vertices_data, vertexCount);
-	indices = parseIndices(indices_data, facetCount*3);
-	facets = parseFacets(vertices, indices, facetCount);
+	vertices = parseVerticies(vertices_data);
+	indices = parseIndices(vertices, indices_data);
+	facets = parseFacets(vertices, indices_data);
 	rayArray = parseRays(rays_data, 128);
 
 	// ---- Init Rendering ----
@@ -167,10 +184,12 @@ void ExampleLayer::OnAttach(){
 	axis = Primitive::CreateCoordSystem();
 	sphere = Primitive::CreateSphere(0.1, 40, 40);
 	model = CreateShared<Primitive>(vertices, indices);
+	//model->SetDrawMode(GL_LINES);
 
 	// ---- Init Computing ----
 	rays = CreateShared<ParticleSystem>("rays", 128);
 	rays->SetPrimitive(Primitive::CreateLine(1,glm::vec3(1,0,0)));
+	
 
 	// ---- GPU Data ----	
 	//Load to GPU
@@ -198,6 +217,10 @@ void ExampleLayer::OnAttach(){
 
 	rays->AddComputeShader(init);
 	rays->AddComputeShader(raytracing);
+
+
+	rays->Translate(glm::vec3(30.5,30.5,1.5));
+
 
 	rays->Execute(init);
 

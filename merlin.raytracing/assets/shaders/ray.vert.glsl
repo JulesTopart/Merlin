@@ -51,10 +51,13 @@ out vec2 texCoord;
 void main() {
 	offset = vec3(rays[gl_InstanceID].o);
 	normal = rays[gl_InstanceID].d;
-	if(length(_position) == 0.0)
-		position = vec3( model * vec4((_position) + offset, 1.0f) );
-	else
-		position = vec3( model * vec4((normal*length(_position) + offset), 1.0f) );
+	if(length(_position) == 0.0){
+		position = vec3( model * vec4((_position), 1.0f) );
+		position += offset;
+	}else{
+		position = vec3( model * vec4((normal*length(_position)), 1.0f) );
+		position += offset;
+	}
 	color = vec3(rays[gl_InstanceID].d);
 	gl_Position = view * vec4(position, 1.0f);
 } 

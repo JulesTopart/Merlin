@@ -47,6 +47,11 @@ namespace Merlin::Tensor {
 
 		inline const std::string name() const { return _name; }
 
+		//Transformation
+		void Translate(glm::vec3);
+		void Rotate(glm::vec3);
+		void Rotate(float angle, glm::vec3 v);
+
 
 	private:
 
@@ -55,6 +60,8 @@ namespace Merlin::Tensor {
 
 		//Geometry
 		Shared<Primitive> _geometry;
+		//Transformation
+		glm::mat4 _model;
 
 		//Buffers & Compute Shaders
 		std::vector<Shared<SSBO>> _buffers; //Buffer to store the particle

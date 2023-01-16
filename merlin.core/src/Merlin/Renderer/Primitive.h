@@ -27,6 +27,7 @@ namespace Merlin::Renderer {
 		void Translate(glm::vec3);
 		void Rotate(glm::vec3);
 		void Rotate(float angle, glm::vec3 v);
+		void SetTransform(glm::mat4 t);
 
 		inline void SetDrawMode(GLuint mode) { _drawMode = mode; }
 		inline GLuint GetDrawMode() const { return _drawMode; }

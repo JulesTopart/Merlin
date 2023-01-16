@@ -11,7 +11,7 @@ namespace Merlin::Scene {
 	class CameraController
 	{
 	public:
-		CameraController(float fov, float aspectRatio, float nearPlane = 0.01f, float farPlane = 100.0f);
+		CameraController(float fov, float aspectRatio, float nearPlane = 0.01f, float farPlane = 1000.0f);
 
 		void OnUpdate(Timestep ts);
 		void OnEvent(Event& e);

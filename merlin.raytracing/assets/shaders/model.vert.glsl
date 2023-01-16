@@ -18,7 +18,8 @@ uniform mat4 model;
 
 void main() {
 	position = vec3(model * vec4(_position, 1.0f));
-	color = _color;
+	color = abs(normalize(_normal));
+
 	normal = _normal;
 
 	gl_Position = view * vec4(position, 1.0f);
