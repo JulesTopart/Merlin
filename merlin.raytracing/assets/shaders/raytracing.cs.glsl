@@ -1,8 +1,10 @@
 #version 460
-layout (local_size_x = 16, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 #define MAX_BOUNCE 5
 #define INTERSECT_EPSILON 1e-6
+#define INTERSECT_MAX_DIST 1e6
+
 struct Ray {
     vec3 o; //Origin
     vec3 d; //Direction
@@ -53,7 +55,7 @@ bool IntersectTriangle(Ray ray, vec3 p0, vec3 p1, vec3 p2, out float hit)
     barycentricCoord.x = 1.0 - (barycentricCoord.z + barycentricCoord.y);
     hit   = dot( triangleNormal, e2 );
 
-    return  (hit < 10000.0) && (hit > INTERSECT_EPSILON) && all(greaterThanEqual(barycentricCoord, vec3(0.0)));
+    return  (hit < INTERSECT_MAX_DIST) && (hit > INTERSECT_EPSILON) && all(greaterThanEqual(barycentricCoord, vec3(0.0)));
 }
 
 

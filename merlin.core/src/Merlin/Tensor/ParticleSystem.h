@@ -38,8 +38,12 @@ namespace Merlin::Tensor {
 		void Execute(Shared<ComputeShader> step); //Execute compute shader once
 		void Draw(Shared<Shader> shader, glm::mat4 view); //Draw the mesh
 
+		
+
 		void AddComputeShader(Shared<ComputeShader>);
 		void AddStorageBuffer(Shared<SSBO>);
+
+		inline void SetThread(GLuint t) { _threadPattern = t; }
 
 		//Primitives
 		inline void SetPrimitive(Shared<Primitive> geometry) { _geometry = geometry; }
@@ -57,6 +61,7 @@ namespace Merlin::Tensor {
 
 		std::string _name;
 		GLsizeiptr _particlesCount;
+		GLuint _threadPattern = 16;
 
 		//Geometry
 		Shared<Primitive> _geometry;

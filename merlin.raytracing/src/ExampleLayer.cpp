@@ -1,4 +1,5 @@
 #include "ExampleLayer.h"
+#include "glfw/include/GLFW/glfw3.h"
 #include "Merlin/Core/Input.h"
 
 using namespace Merlin;
@@ -26,9 +27,9 @@ void LoadBinaryFile(std::string path, std::vector<T>& data) {
 	binary.close();
 }
 
-std::vector<Ray> parseRays(std::vector<float> data, int size) {
+std::vector<Ray> parseRays(std::vector<float> data) {
 	std::vector<Ray> rays;
-	rays.resize(size);
+	rays.resize(data.size()/3);
 	size_t index = 0;
 	for (size_t i = 0; i < rays.size(); i++) {
 		rays[i].origin = glm::vec3(data[index], data[index + 1], data[index + 2]);
@@ -135,24 +136,23 @@ void ExampleLayer::OnAttach(){
 
 
 	// -- Load Geometry--
-	GLsizeiptr rayCount = 128;
-
 	std::vector<GLuint> indices_data;//v0, v1, v2, v4 (v4 = -1) It's Triangle
 	std::vector<float> vertices_data; //xyz + temperature
-	std::vector<float> rays_data(rayCount * 3);//xyz
+	std::vector<float> rays_data;//xyz
 	Vertices vertices;
 	Indices indices;
 	std::vector<Facet> facets;
 	//std::vector<Ray> rayArray;//Now in the header
 
-	LoadBinaryFile<float>("assets/geometry/rayons.float3", rays_data);
+	//LoadBinaryFile<float>("assets/geometry/rayons.float3", rays_data);
+	LoadBinaryFile<float>("assets/geometry/rayons.12800.float3", rays_data);
 	LoadBinaryFile<float>("assets/geometry/vertices.float3", vertices_data);
 	LoadBinaryFile<GLuint>("assets/geometry/indices.uint", indices_data);
 
 	vertices = parseVerticies(vertices_data);
 	indices = parseIndices(vertices, indices_data);
 	facets = parseFacets(vertices, indices_data);
-	rayArray = parseRays(rays_data, 128);
+	rayArray = parseRays(rays_data);
 
 	// ---- Init Rendering ----
 	// Init OpenGL stuff
@@ -195,8 +195,11 @@ void ExampleLayer::OnAttach(){
 	model->SetDrawMode(GL_TRIANGLES);
 
 	// ---- Init Computing ----
-	rays = CreateShared<ParticleSystem>("rays", 128);
-	rays->SetPrimitive(Primitive::CreateLine(1,glm::vec3(1,0,0)));
+	rays = CreateShared<ParticleSystem>("rays", rayArray.size());
+	rays->SetThread(128);
+	Shared<Primitive> line = Primitive::CreateLine(1, glm::vec3(1, 0, 0));
+	//line->SetDrawMode(GL_POINTS);
+	rays->SetPrimitive(line);
 	
 
 	// ---- GPU Data ----	
@@ -230,8 +233,8 @@ void ExampleLayer::OnAttach(){
 	raytracing->Use();
 	raytracing->SetUniform3f("origin", TMRT_origin);
 	raytracing->SetUInt("size", facets.size());
-
 	rays->Execute(init);
+
 	//saveRays();
 
 
@@ -308,7 +311,7 @@ bool ExampleLayer::OnClick(MouseButtonPressedEvent& e) {
 		glm::vec3 ray_wor = (glm::inverse(cameraController.GetCamera().GetViewMatrix()) * ray_eye);
 		// don't forget to normalise the vector at some point
 		ray_wor = glm::normalize(ray_wor);
-		ray_wor = glm::vec3(ray_wor.x, ray_wor.z, ray_wor.y); //Dir
+		ray_wor = glm::vec3(ray_wor.x, ray_wor.y, ray_wor.z); //Dir
 		mouseCastShader->Use();
 		mouseCastShader->SetUniform3f("start", cameraController.GetCamera().GetPosition());
 		mouseCastShader->SetUniform3f("end", cameraController.GetCamera().GetPosition() + ray_wor * 100.0f);
@@ -347,7 +350,11 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 	if (ImGui::ArrowButton("Run simulation", 1)) {
+		Console::info("Raytracing") << "Starting..." << Console::endl;
+		double time = (double)glfwGetTime();
 		rays->Execute(raytracing);
+		double detla = (double)glfwGetTime() - time;
+		Console::success("Raytracing") << "Computation finished in " << detla << "s (" << detla*1000.0 << " ms)" << Console::endl;
 	}
 	if (ImGui::Button("Reset simulation")) {
 		rayBuffer->Allocate(rayArray);

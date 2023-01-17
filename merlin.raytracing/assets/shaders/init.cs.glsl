@@ -1,6 +1,6 @@
 #version 460
 
-layout (local_size_x = 16, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 #define MAX_BOUNCE 5
 struct Ray {
@@ -31,8 +31,8 @@ void main() {
   uint index = gl_GlobalInvocationID.x;
 
   Ray r = rays[index];
+  r.d = normalize(r.o); //Compute Ray direction
   r.o = origin + r.o;
-  r.d = normalize(r.o - origin); //Compute Ray direction
   r.e = r.o + 0.1*r.d;
   r.hitID = -1;
   r.bounce = 0;
