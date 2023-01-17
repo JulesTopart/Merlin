@@ -6,7 +6,7 @@ layout (location = 2) in vec3 _color;
 
 out vec3 position;
 out vec3 normal;
-out vec3 color;
+flat out vec3 color;
 
 uniform vec3 lightPos;
 uniform vec3 lightColor;
@@ -18,9 +18,7 @@ uniform mat4 model;
 
 void main() {
 	position = vec3(model * vec4(_position, 1.0f));
-	color = abs(normalize(_normal));
 	color = _color;
-
 	normal = _normal;
 
 	gl_Position = view * vec4(position, 1.0f);

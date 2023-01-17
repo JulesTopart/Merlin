@@ -12,7 +12,7 @@ namespace Merlin::Renderer {
 		VertexBuffer(std::vector<Vertex>& vertices);
 		~VertexBuffer();
 
-		void Bind();
+		void Bind(GLenum mode = GL_ARRAY_BUFFER);
 		void Unbind();
 
 	private:

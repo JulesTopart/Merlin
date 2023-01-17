@@ -117,6 +117,8 @@
     <None Include="assets\shaders\raytracing.cs.glsl" />
     <None Include="assets\shaders\ray.frag.glsl" />
     <None Include="assets\shaders\ray.vert.glsl" />
+    <None Include="assets\shaders\raycast.frag.glsl" />
+    <None Include="assets\shaders\raycast.vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,4 +1,5 @@
 #include "ExampleLayer.h"
+#include "Merlin/Core/Input.h"
 
 using namespace Merlin;
 using namespace Merlin::Utils;
@@ -94,19 +95,23 @@ std::vector<Facet> parseFacets(Vertices& vertices, std::vector<GLuint> data) {
 			index++;
 		}
 		else {
-			if (data[i] != GLuint(-1)) //Quad
-				fIndices[index] = (data[i] - 1);
-			else 
-				fIndices[index] = GLuint(-1);//Triangle
-			index = 0;
 			Facet fc;
 			fc.id = f.size();
-			fc.indices[0] = fIndices[0];
-			fc.indices[1] = fIndices[1];
-			fc.indices[2] = fIndices[2];
-			fc.indices[3] = fIndices[3];
-			fc.normal = vertices[fc.indices[2]].normal;
+			fc.p1 = vertices[fIndices[0]].position;
+			fc.p2 = vertices[fIndices[1]].position;
+			fc.p3 = vertices[fIndices[2]].position;
+			fc.normal = vertices[fIndices[0]].normal;
+			if (data[i] != GLuint(-1)) { //Quad
+				fIndices[index] = (data[i] - 1);
+				fc.p4 = vertices[fIndices[3]].position;
+			}
+			else {
+				fIndices[index] = GLuint(-1);//Triangle
+				fc.p4 = glm::vec3(-1.0);
+			}
 			f.push_back(fc);
+			index = 0;
+
 		}
 	}
 	return f;
@@ -138,7 +143,7 @@ void ExampleLayer::OnAttach(){
 	Vertices vertices;
 	Indices indices;
 	std::vector<Facet> facets;
-	std::vector<Ray> rayArray;
+	//std::vector<Ray> rayArray;//Now in the header
 
 	LoadBinaryFile<float>("assets/geometry/rayons.float3", rays_data);
 	LoadBinaryFile<float>("assets/geometry/vertices.float3", vertices_data);
@@ -169,23 +174,25 @@ void ExampleLayer::OnAttach(){
 		"assets/shaders/ray.frag.glsl"
 	);
 
+	mouseCastShader = std::make_shared<Shader>("raycastShader");
+	mouseCastShader->Compile(
+		"assets/shaders/raycast.vert.glsl",
+		"assets/shaders/raycast.frag.glsl"
+	);
+
 	modelShader = std::make_shared<Shader>("model");
 	modelShader->Compile(
 		"assets/shaders/model.vert.glsl",
 		"assets/shaders/model.frag.glsl"
 	);
-	//Set uniforms
-	modelShader->Use();
-	modelShader->SetUniform3f("lightPos", glm::vec3(-200, 0, 200));
-	modelShader->SetUniform3f("lightColor", glm::vec3(1, 1, 1));
-	modelShader->SetUniform3f("viewPos", cameraController.GetCamera().GetPosition());
-	modelShader->SetFloat("shininess", 1.0f);
+
 
 	// -- Load models --
 	axis = Primitive::CreateCoordSystem();
 	sphere = Primitive::CreateSphere(0.1, 40, 40);
 	model = CreateShared<Primitive>(vertices, indices);
-	//model->SetDrawMode(GL_LINES);
+	mouseRay = Primitive::CreateLine(1, glm::vec3(1, 0, 0));
+	model->SetDrawMode(GL_TRIANGLES);
 
 	// ---- Init Computing ----
 	rays = CreateShared<ParticleSystem>("rays", 128);
@@ -202,10 +209,6 @@ void ExampleLayer::OnAttach(){
 	facetBuffer->Allocate<Facet>(facets);
 	facetBuffer->SetBindingPoint(2);
 
-	vertexBuffer = CreateShared<SSBO>("VertexBuffer");
-	vertexBuffer->Allocate<Vertex>(vertices);
-	vertexBuffer->SetBindingPoint(3);
-
 	//Programs
 	init = CreateShared<ComputeShader>("init");
 	init->Compile("assets/shaders/init.cs.glsl");
@@ -214,13 +217,11 @@ void ExampleLayer::OnAttach(){
 
 	rays->AddStorageBuffer(rayBuffer);
 	rays->AddStorageBuffer(facetBuffer);
-	rays->AddStorageBuffer(vertexBuffer);
 
 	rays->AddComputeShader(init);
 	rays->AddComputeShader(raytracing);
 
-
-	glm::vec3 TMRT_origin = glm::vec3(30.5, 30.5, 1.5);
+	glm::vec3 TMRT_origin = glm::vec3(30.5, 10.5, 1.5);
 
 	init->Use();
 	//rays->Translate(TMRT_origin);
@@ -231,12 +232,31 @@ void ExampleLayer::OnAttach(){
 	raytracing->SetUInt("size", facets.size());
 
 	rays->Execute(init);
+	//saveRays();
+
+
+
+	//Set uniforms of rendering shaders
+	cameraController.GetCamera().SetPosition(TMRT_origin);
+
+	modelShader->Use();
+	modelShader->SetUniform3f("lightPos", glm::vec3(30,30,200));
+	modelShader->SetUniform3f("lightColor", glm::vec3(1, 0.8, 0.8));
+	modelShader->SetUniform3f("viewPos", cameraController.GetCamera().GetPosition());
+	modelShader->SetFloat("shininess", 1.0f);
+
+	mouseCastShader->Use();
+	mouseCastShader->SetUniform3f("start", glm::vec3(0));
+	mouseCastShader->SetUniform3f("end", glm::vec3(0));
+
+}
+
+void ExampleLayer::saveRays() {
 	rays->Execute(raytracing);
 	std::vector<Ray> result;
 	result.resize(128);
 
 	memcpy(result.data(), rayBuffer->Map(), result.size() * sizeof(Ray));
-
 
 	std::ofstream file("file.bin", std::ios::binary);
 	for (int i = 0; i < result.size(); i++) {
@@ -244,8 +264,9 @@ void ExampleLayer::OnAttach(){
 		file.write((char*)&num, sizeof(num));
 	}
 	file.close();
-
+	rays->Execute(init);
 }
+
 
 void ExampleLayer::OnDetach(){}
 
@@ -258,8 +279,45 @@ void ExampleLayer::updateFPS(Timestep ts) {
 	FPS_sample++;
 }
 
-void ExampleLayer::OnEvent(Event& event){
-	cameraController.OnEvent(event);
+void ExampleLayer::OnEvent(Event& e){
+	cameraController.OnEvent(e);
+
+
+	if (e.IsInCategory(EventCategory::EventCategoryMouse)) {
+		EventDispatcher dispatcher(e);
+		if (e.GetEventType() == EventType::MouseButtonPressed) {
+			dispatcher.Dispatch<MouseButtonPressedEvent>(GLCORE_BIND_EVENT_FN(ExampleLayer::OnClick));
+		}
+		if (e.GetEventType() == EventType::MouseButtonReleased) {
+			dispatcher.Dispatch<MouseButtonReleasedEvent>(GLCORE_BIND_EVENT_FN(ExampleLayer::OnRelease));
+		}
+	}
+}
+
+
+bool ExampleLayer::OnClick(MouseButtonPressedEvent& e) {
+	if (e.GetMouseButton() == MRL_MOUSE_BUTTON_LEFT) {//Left click
+		glm::vec2 mouse = glm::vec2(Input::GetMouseX(), Input::GetMouseX());
+		float x = (2.0f * mouse.x) / _width - 1.0f;
+		float y = 1.0f - (2.0f * mouse.y) / _height;
+		float z = 1.0f;
+		glm::vec3 ray_nds = glm::vec3(x, y, z);
+		glm::vec4 ray_clip = glm::vec4(ray_nds.x, ray_nds.y, -1.0, 1.0);
+		glm::vec4 ray_eye = glm::inverse(cameraController.GetCamera().GetProjectionMatrix()) * ray_clip;
+		ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0);
+		glm::vec3 ray_wor = (glm::inverse(cameraController.GetCamera().GetViewMatrix()) * ray_eye);
+		// don't forget to normalise the vector at some point
+		ray_wor = glm::normalize(ray_wor);
+		ray_wor = glm::vec3(ray_wor.x, ray_wor.z, ray_wor.y); //Dir
+		mouseCastShader->Use();
+		mouseCastShader->SetUniform3f("start", cameraController.GetCamera().GetPosition());
+		mouseCastShader->SetUniform3f("end", cameraController.GetCamera().GetPosition() + ray_wor * 100.0f);
+		return false;
+	}
+}
+
+bool ExampleLayer::OnRelease(MouseButtonReleasedEvent& e) {
+	return false;
 }
 
 void ExampleLayer::OnUpdate(Timestep ts){
@@ -270,9 +328,10 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);// Clean the back buffer and depth buffer
 
 	axis->Draw(axisShader, cameraController.GetCamera().GetViewProjectionMatrix());
-	model->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
+	if(_drawGeom) model->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
+	if(_drawRaycast) mouseRay->Draw(mouseCastShader, cameraController.GetCamera().GetViewProjectionMatrix());
 	//sphere->Draw(modelShader, cameraController.GetCamera().GetViewProjectionMatrix());
-	rays->Draw(rayShader, cameraController.GetCamera().GetViewProjectionMatrix());
+	if (_drawRays) rays->Draw(rayShader, cameraController.GetCamera().GetViewProjectionMatrix());
 }
 
 void ExampleLayer::OnImGuiRender()
@@ -287,7 +346,16 @@ void ExampleLayer::OnImGuiRender()
 		if (FPS_sample > 50) FPS_sample = 0;
 	}
 
-	if (ImGui::ArrowButton("Run simulation", 1)) rays->Execute(raytracing);
+	if (ImGui::ArrowButton("Run simulation", 1)) {
+		rays->Execute(raytracing);
+	}
+	if (ImGui::Button("Reset simulation")) {
+		rayBuffer->Allocate(rayArray);
+		rays->Execute(init);
+	}
+
+	ImGui::Checkbox("Draw Geometry", &_drawGeom);
+	ImGui::Checkbox("Draw Rays", &_drawRays);
 
 	if (ImGui::DragFloat3("Camera position", &camera_translation.x, -100.0f, 100.0f)) {
 		cameraController.GetCamera().SetPosition(camera_translation);

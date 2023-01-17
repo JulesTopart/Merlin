@@ -31,8 +31,8 @@ namespace Merlin::Renderer {
 		Console::trace("VertexBuffer") << "VertexBuffer " << m_RendererID << " deleted. " << Console::endl;
 	}
 
-	void VertexBuffer::Bind() {
-		glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
+	void VertexBuffer::Bind(GLenum mode) {
+		glBindBuffer(mode, m_RendererID);
 
 	}
 
