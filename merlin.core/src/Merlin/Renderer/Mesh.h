@@ -1,8 +1,8 @@
 #pragma once
-#include <glad/glad.h>
+#include "Merlin/Core/Core.h"
+
 #include "Shader.h"
 #include "Texture.h"
-
 #include "VertexArray.h"
 
 namespace Merlin::Renderer {

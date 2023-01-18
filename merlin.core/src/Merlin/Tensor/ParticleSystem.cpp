@@ -1,4 +1,5 @@
 #include "glpch.h"
+#include "GL.h"
 #include "ParticleSystem.h"
 #include "Merlin/Renderer/IndexBuffer.h"
 
@@ -57,9 +58,6 @@ namespace Merlin::Tensor {
 
 		// Use glMemoryBarrier to ensure that the compute shader has finished writing to the buffer object before the CPU reads from it.
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-		
-		
 	}
 
 	void ParticleSystem::Draw(Shared<Shader> shader, glm::mat4 view) {

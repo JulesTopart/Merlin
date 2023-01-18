@@ -1,4 +1,6 @@
 #pragma once
+#include "Merlin/Core/Core.h"
+
 #include "../Renderer/Mesh.h"
 
 using namespace Merlin::Renderer;

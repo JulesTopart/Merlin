@@ -1,7 +1,6 @@
 #pragma once
+#include "Merlin/Core/Core.h"
 
-#include <glm/glm.hpp>
-#include <glad/glad.h>
 #include <string>
 #include <memory>
 

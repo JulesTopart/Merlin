@@ -2,6 +2,7 @@
 #include "Texture.h"
 #include <stb_image.h>
 #include<filesystem>
+#include "Merlin/Core/Log.h"
 
 namespace Merlin::Renderer {
 

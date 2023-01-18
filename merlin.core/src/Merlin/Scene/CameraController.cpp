@@ -1,18 +1,16 @@
 #include "glpch.h"
 #include "CameraController.h"
-
+#include "Merlin/Core/Core.h"
 #include "Merlin/Core/Input.h"
 #include "Merlin/Core/KeyCodes.h"
 
 namespace Merlin::Scene {
 
-	CameraController::CameraController(float fov, float aspectRatio, float nearPlane, float farPlane)
-		: _AspectRatio(aspectRatio), _Camera(), _fov(fov), _CameraSpeed(1.0f), _nearPlane(nearPlane), _farPlane(farPlane)
-	{
-		_Camera.SetPerspective(fov,_AspectRatio, _nearPlane, _farPlane);
+	CameraController3D::CameraController3D(Shared<Camera> cam){
+		_Camera = cam;
 	}
 
-	void CameraController::OnUpdate(Timestep ts)
+	void CameraController3D::OnUpdate(Timestep ts)
 	{
 		if (Input::IsKeyPressed(MRL_KEY_A))
 		{
@@ -48,23 +46,22 @@ namespace Merlin::Scene {
 			_dR.x -= _CameraSpeed;
 
 		_dR *= ts * _CameraSpeed;
-		_Camera.Translate(_dU);
-		_Camera.Rotate(_dR);
+		_Camera->Translate(_dU);
+		_Camera->Rotate(_dR);
 
 		_dU = glm::vec3(0.0f);
 		_dR = glm::vec3(0.0f);
 	}
 
-	void CameraController::OnEvent(Event& e)
+	void CameraController3D::OnEvent(Event& e)
 	{
 		EventDispatcher dispatcher(e);
-		dispatcher.Dispatch<MouseScrolledEvent>(GLCORE_BIND_EVENT_FN(CameraController::OnMouseScrolled));
-		dispatcher.Dispatch<WindowResizeEvent>(GLCORE_BIND_EVENT_FN(CameraController::OnWindowResized));
-		dispatcher.Dispatch<MouseMovedEvent>(GLCORE_BIND_EVENT_FN(CameraController::OnMouseMoved));
+		dispatcher.Dispatch<MouseScrolledEvent>(MERLIN_BIND_EVENT_FN(CameraController3D::OnMouseScrolled));
+		dispatcher.Dispatch<MouseMovedEvent>(MERLIN_BIND_EVENT_FN(CameraController3D::OnMouseMoved));
 	}
 
 
-	bool CameraController::OnMouseMoved(MouseMovedEvent& e) {
+	bool CameraController3D::OnMouseMoved(MouseMovedEvent& e) {
 		glm::vec2 newMousePos = glm::vec2(e.GetX(), e.GetY());
 		
 
@@ -79,18 +76,61 @@ namespace Merlin::Scene {
 		return false;
 	}
 
-	bool CameraController::OnMouseScrolled(MouseScrolledEvent& e)
+	bool CameraController3D::OnMouseScrolled(MouseScrolledEvent& e)
 	{
 		_CameraSpeed += e.GetYOffset() * 0.25f * _CameraSpeed;
 		_CameraSpeed = std::max<float>(_CameraSpeed, 0.25f);
 		return false;
 	}
 
-	bool CameraController::OnWindowResized(WindowResizeEvent& e){
-		if(e.GetHeight() == 0 || e.GetWidth() == 0) return false;
-		_AspectRatio = (float)e.GetWidth() / (float)e.GetHeight();
-		_Camera.SetPerspective(_fov, _AspectRatio, _nearPlane, _farPlane);
+
+	CameraController2D::CameraController2D(Shared<Camera> cam){
+		_Camera = cam;
+	}
+
+	void CameraController2D::OnUpdate(Timestep ts)
+	{
+		if (Input::IsKeyPressed(MRL_KEY_A))
+			_dU.x -= _CameraSpeed * ts;
+		else if (Input::IsKeyPressed(MRL_KEY_D))
+			_dU.x += _CameraSpeed * ts;
+		if (Input::IsKeyPressed(MRL_KEY_W))
+			_dU.y -= _CameraSpeed * ts;
+		else if (Input::IsKeyPressed(MRL_KEY_S))
+			_dU.y += _CameraSpeed * ts;
+
+		_Camera->Translate(_dU);
+
+		_dU = glm::vec3(0.0f);
+	}
+
+	void CameraController2D::OnEvent(Event& e)
+	{
+		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<MouseScrolledEvent>(MERLIN_BIND_EVENT_FN(CameraController2D::OnMouseScrolled));
+		dispatcher.Dispatch<MouseMovedEvent>(MERLIN_BIND_EVENT_FN(CameraController2D::OnMouseMoved));
+	}
+
+	bool CameraController2D::OnMouseScrolled(MouseScrolledEvent& e)
+	{
+		_ZoomLevel += e.GetYOffset() * 0.25f * _ZoomLevel;
+		_ZoomLevel = std::min<float>(_ZoomLevel, 20.f);
+		_ZoomLevel = std::max<float>(_ZoomLevel, 0.1);
+		_Camera->setZoom(_ZoomLevel);
 		return false;
 	}
 
+	bool CameraController2D::OnMouseMoved(MouseMovedEvent& e) {
+		glm::vec2 newMousePos = glm::vec2(e.GetX(), e.GetY());
+
+		if (Input::IsMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
+			_deltaMousePos = _lastMousePos - newMousePos;
+
+			_dU.x = 3.0f * _deltaMousePos.x / _Camera->Width();
+			_dU.y = 3.0f *_deltaMousePos.y / _Camera->Height();
+		}
+
+		_lastMousePos = newMousePos;
+		return false;
+	}
 }

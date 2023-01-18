@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Merlin/Core/Core.h"
 #include "Merlin/Events/Event.h"
 

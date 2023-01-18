@@ -1,5 +1,5 @@
 #pragma once
-#include <glad/glad.h>
+#include "Merlin/Core/Core.h"
 
 namespace Merlin::Renderer {
     class RenderBuffer

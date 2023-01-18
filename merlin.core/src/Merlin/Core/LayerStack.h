@@ -1,6 +1,5 @@
 #pragma once
-
-#include "Core.h"
+#include "Merlin/Core/Core.h"
 #include "Layer.h"
 
 #include <vector>

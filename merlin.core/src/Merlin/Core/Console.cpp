@@ -37,14 +37,14 @@ namespace Merlin {
 	std::string Console::alignLeft(const int n, const std::string& x) { // converts x to string with spaces behind such that length is n if x is not longer than n
 		std::string s = x;
 		for (int i = 0u; i < n; i++) s += " ";
-		return s.substr(0, max(n, (int)x.length()));
+		return s.substr(0, std::max(n, (int)x.length()));
 	}
 
 	std::string Console::alignRight(const int n, const std::string& x) { // converts x to string with spaces in front such that length is n if x is not longer than n
 		std::string s = "";
 		for (int i = 0u; i < n; i++) s += " ";
 		s += x;
-		return s.substr((int)min((int)s.length() - (int)n, (int)n), s.length());
+		return s.substr((int)std::min((int)s.length() - (int)n, (int)n), s.length());
 	}
 
 	ConsoleStream Console::trace(std::string origin) {

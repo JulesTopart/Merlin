@@ -1,7 +1,7 @@
 #pragma once
-#include <vector>
-#include <glad/glad.h>
+#include "Merlin/Core/Core.h"
 
+#include <vector>
 #include "Texture.h"
 #include "RenderBuffer.h"
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <glad/glad.h>
+#include "Merlin/Core/Core.h"
 #include "Merlin/Renderer/ShaderBase.h"
 
 using namespace Merlin::Renderer;

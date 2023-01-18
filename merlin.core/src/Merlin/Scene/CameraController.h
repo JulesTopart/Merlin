@@ -1,4 +1,5 @@
 #pragma once
+#include "Merlin/Core/Core.h"
 
 #include "Camera.h"
 #include "Merlin/Core/Timestep.h"
@@ -8,31 +9,29 @@
 
 namespace Merlin::Scene {
 
-	class CameraController
-	{
+	class CameraController {
 	public:
-		CameraController(float fov, float aspectRatio, float nearPlane = 0.01f, float farPlane = 1000.0f);
+		virtual void OnUpdate(Timestep ts) {};
+		virtual void OnEvent(Event& e) {};
 
-		void OnUpdate(Timestep ts);
-		void OnEvent(Event& e);
-
-		Camera& GetCamera() { return _Camera; }
-		const Camera& GetCamera() const { return _Camera; }
-
+		Shared<Camera> GetCamera() const { return _Camera; }
 		float GetCameraSpeed() const { return _CameraSpeed; }
 		void SetCameraSpeed(float speed) { _CameraSpeed = speed; }
+
+	protected:
+		Shared<Camera> _Camera;
+		float _CameraSpeed = 1.0f;
+	};
+
+	class CameraController3D : public CameraController {
+	public:
+		CameraController3D(Shared<Camera> Camera);
+		virtual void OnUpdate(Timestep ts) override;
+		virtual void OnEvent(Event& e) override;
+
 	private:
 		bool OnMouseScrolled(MouseScrolledEvent& e);
 		bool OnMouseMoved(MouseMovedEvent& e);
-		bool OnWindowResized(WindowResizeEvent& e);
-	private:
-		float _AspectRatio,
-			 _fov,
-			 _CameraSpeed,
-			 _farPlane,
-			 _nearPlane;
-		
-		Camera _Camera;
 
 		glm::vec2 _lastMousePos = { 0.0f, 0.0f};
 		glm::vec2 _deltaMousePos = { 0.0f, 0.0f };
@@ -41,4 +40,19 @@ namespace Merlin::Scene {
 		glm::vec3 _dR = { 0.0f, 0.0f, 0.0f }; //In degrees, in the anti-clockwise direction, yaw, pitch, roll
 	};
 
+
+	class CameraController2D : public CameraController {
+	public:
+		CameraController2D(Shared<Camera> Camera);
+		virtual void OnUpdate(Timestep ts) override;
+		virtual void OnEvent(Event& e) override;
+
+	private:
+		bool OnMouseScrolled(MouseScrolledEvent& e);
+		bool OnMouseMoved(MouseMovedEvent& e);
+		float _ZoomLevel = 1.0f;
+		glm::vec2 _dU = { 0.0f, 0.0f };
+		glm::vec2 _lastMousePos = { 0.0f, 0.0f };
+		glm::vec2 _deltaMousePos = { 0.0f, 0.0f };
+	};
 }

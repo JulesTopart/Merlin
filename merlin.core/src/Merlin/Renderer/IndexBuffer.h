@@ -1,7 +1,7 @@
 #pragma once
-#include <vector>
+#include "Merlin/Core/Core.h"
 
-#include <glad/glad.h>
+#include <vector>
 
 namespace Merlin::Renderer {
 	class IndexBuffer {

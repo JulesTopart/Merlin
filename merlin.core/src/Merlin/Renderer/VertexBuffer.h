@@ -1,8 +1,7 @@
 #pragma once
-#include <vector>
-#include <glm/glm.hpp>
-#include <glad/glad.h>
+#include "Merlin/Core/Core.h"
 
+#include <vector>
 #include "Vertex.h"
 
 namespace Merlin::Renderer {

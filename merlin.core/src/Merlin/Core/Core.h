@@ -1,6 +1,7 @@
 // Mostly from Hazel
 #pragma once
-
+#include "GL.h"
+#include "Merlin/Core/Log.h"
 #include <memory>
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
@@ -15,7 +16,7 @@
 	#define GLCORE_ASSERT(x, s, m)
 #endif
 
-#define GLCORE_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
+#define MERLIN_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 #define BIT(x) (1 << x)
 
 

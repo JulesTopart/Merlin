@@ -1,7 +1,6 @@
 #pragma once
-
+#include "Merlin/Core/Core.h"
 #include "glpch.h"
-#include "Core.h"
 
 #define GLLOG() Console::LogGLError()
 #define GLDEBUG(x) Console::ClearGLError(); x; Console::CheckGLError(__FILENAME__, __LINE__);

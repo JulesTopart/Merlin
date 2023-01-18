@@ -1,7 +1,7 @@
 #pragma once
+#include "Merlin/Core/Core.h"
 
 #include "Merlin/Core/Layer.h"
-
 #include "Merlin/Events/ApplicationEvent.h"
 #include "Merlin/Events/KeyEvent.h"
 #include "Merlin/Events/MouseEvent.h"

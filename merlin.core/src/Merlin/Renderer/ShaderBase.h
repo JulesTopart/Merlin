@@ -1,6 +1,6 @@
 #pragma once
-#include <glm/glm.hpp>
-#include <glad/glad.h>
+#include "Merlin/Core/Core.h"
+
 #include <string>
 #include <memory>
 

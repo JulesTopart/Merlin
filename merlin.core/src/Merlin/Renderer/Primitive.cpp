@@ -3,38 +3,6 @@
 #include "IndexBuffer.h"
 
 namespace Merlin::Renderer {
-
-	/*
-	Primitive::Primitive(Primitive& cpy) {
-		if (cpy.HasIndices()) {
-			_drawMode = cpy._drawMode;
-
-			//Move vertices data
-			_vertices = cpy._vertices;
-			_indices = cpy._indices;
-
-			_model = cpy._model;
-			//Create VAO, VBO
-			_vao = CreateScope<VAO>();
-			_vao->Bind();
-			VBO vbo(_vertices);
-			EBO ebo(_indices);
-			_vao->AddBuffer(vbo, Vertex::GetLayout());
-			_vao->Unbind();
-		}else {
-			//Move vertices data
-			_vertices = cpy._vertices;
-			_model = cpy._model;
-			//Create VAO, VBO
-			_vao = CreateScope<VAO>();
-			_vao->Bind();
-			VBO vbo(_vertices);
-			_vao->AddBuffer(vbo, Vertex::GetLayout());
-			_vao->Unbind();
-		}
-	}*/
-
-
 	Primitive::Primitive() {
 		_drawMode = GL_POINTS;
 		_model = glm::mat4(1.0f);

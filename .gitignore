@@ -3,6 +3,8 @@
 
 bin/
 bin-int/
+include/
+lib/
 
 # User-specific files
 *.suo

@@ -4,13 +4,30 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+using namespace Merlin;
+
 namespace Merlin::Scene {
 
-	Camera::Camera()
-		: _ProjectionMatrix(glm::perspective(45.0f, 16.0f / 9.0f, 0.0001f, 100.f)), _ViewMatrix(1.0f)
+	Camera::Camera(float width, float height, Projection projection) :
+		_width(width), 
+		_height(height), 
+		_AspectRatio(float(width)/float(height)), 
+		_projection(projection),
+		_fov(45.0f),
+		_nearPlane(0.001f),
+		_farPlane(1000.f), 
+		_zoom(1.0f)
 	{
+		Reset();
+		ResetProjection();
+		_ViewMatrix = glm::mat4(1.0f);
 		_ViewProjectionMatrix = _ProjectionMatrix * _ViewMatrix;
 		RecalculateViewMatrix();
+	}
+
+	void Camera::OnEvent(Event& e) {
+		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<WindowResizeEvent>(MERLIN_BIND_EVENT_FN(Camera::OnWindowResized));
 	}
 
 	void Camera::Reset(){
@@ -23,6 +40,24 @@ namespace Merlin::Scene {
 		_Right = { 1.0f, 0.0f, 0.0f };
 		_Front = { 0.0f, 1.0f, 0.0f };
 		_Up = { 0.0f, 0.0f, 1.0f };
+	}
+
+	void Camera::ResetProjection(){
+		_AspectRatio = (float)_width / (float)_height;
+		if (_projection == Projection::Perspective)
+			_ProjectionMatrix = glm::perspective(_fov, _AspectRatio, _nearPlane, _farPlane);
+		//else if (_projection == Projection::Isometric)
+		//	_ProjectionMatrix = glm::mat4(1.0f);
+		else
+			_ProjectionMatrix = glm::ortho(-_AspectRatio *_zoom, _AspectRatio * _zoom, -_zoom, _zoom, _nearPlane, _farPlane);
+	}
+
+	void Camera::Translate(float dx, float dy) {
+		Translate(glm::vec2(dx, dy));
+	}
+
+	void Camera::Translate(glm::vec2 dU2D) {
+		Translate(glm::vec3(dU2D.y, dU2D.x, 0));
 	}
 
 	void Camera::Translate(float dx, float dy, float dz) {
@@ -51,17 +86,14 @@ namespace Merlin::Scene {
 		RecalculateViewMatrix();
 	}
 
+	bool Camera::OnWindowResized(WindowResizeEvent& e) {
+		if (e.GetHeight() == 0 || e.GetWidth() == 0) return false;
+		_height = e.GetHeight();
+		_width = e.GetWidth();
+		
+		ResetProjection();
 
-	void Camera::SetOrthographic(float aspectRatio, float nearPlane, float farPlane) {
-		_OrthoGraphic = true;
-		_ProjectionMatrix = glm::ortho(0.0f, aspectRatio, 0.0f, aspectRatio, nearPlane, farPlane);
-		_ViewProjectionMatrix = _ProjectionMatrix * _ViewMatrix;
-	}
-
-	void Camera::SetPerspective(float fov, float aspectRatio, float nearPlane, float farPlane) {
-		_OrthoGraphic = false;
-		_ProjectionMatrix = glm::perspective(fov, aspectRatio, nearPlane, farPlane);
-		_ViewProjectionMatrix = _ProjectionMatrix * _ViewMatrix;
+		return false;
 	}
 
 	void Camera::RecalculateViewMatrix() {

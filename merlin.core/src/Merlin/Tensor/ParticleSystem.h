@@ -1,4 +1,5 @@
 #pragma once
+#include "Merlin/Core/Core.h"
 
 #include "Merlin/Renderer/VertexArray.h"
 #include "Merlin/Tensor/ShaderStorageBuffer.h"

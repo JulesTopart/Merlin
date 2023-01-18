@@ -1,6 +1,6 @@
 #pragma once
+#include "Merlin/Core/Core.h"
 
-#include "Core.h"
 
 #include "Window.h"
 #include "LayerStack.h"
@@ -33,6 +33,7 @@ namespace Merlin {
 		inline static Application& Get() { return *s_Instance; }
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
+		bool OnWindowResized(WindowResizeEvent& e);
 	private:
 		std::unique_ptr<Window> m_Window;
 		ImGuiLayer* m_ImGuiLayer;

@@ -42,16 +42,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>..\bin\Debug-windows-x86_64\merlin.core\</OutDir>
-    <IntDir>..\bin-int\Debug-windows-x86_64\merlin.core\</IntDir>
+    <OutDir>$(SolutionDir)bin\Debug-windows-x86_64\merlin.core\</OutDir>
+    <IntDir>$(SolutionDir)bin-int\Debug-windows-x86_64\merlin.core\</IntDir>
     <TargetName>merlin.core</TargetName>
     <TargetExt>.lib</TargetExt>
+    <IncludePath>$(SolutionDir)merlin.core\vendor\assimp\include;$(SolutionDir)merlin.core\vendor\spdlog\include;$(SolutionDir)merlin.core\vendor\GLFW\include;$(SolutionDir)merlin.core\vendor\glad\include;$(SolutionDir)merlin.core\vendor\imgui;$(SolutionDir)merlin.core\vendor\glm;$(SolutionDir)merlin.core\vendor\stb_image;$(SolutionDir)merlin.core\vendor/tinygltf;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>..\bin\Release-windows-x86_64\merlin.core\</OutDir>
-    <IntDir>..\bin-int\Release-windows-x86_64\merlin.core\</IntDir>
+    <OutDir>$(SolutionDir)bin\Release-windows-x86_64\merlin.core\</OutDir>
+    <IntDir>$(SolutionDir)bin-int\Release-windows-x86_64\merlin.core\</IntDir>
     <TargetName>merlin.core</TargetName>
     <TargetExt>.lib</TargetExt>
+    <IncludePath>$(SolutionDir)merlin.core\vendor\assimp\include;$(SolutionDir)merlin.core\vendor\spdlog\include;$(SolutionDir)merlin.core\vendor\GLFW\include;$(SolutionDir)merlin.core\vendor\glad\include;$(SolutionDir)merlin.core\vendor\imgui;$(SolutionDir)merlin.core\vendor\glm;$(SolutionDir)merlin.core\vendor\stb_image;$(SolutionDir)merlin.core\vendor/tinygltf;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <VcpkgManifestInstall>false</VcpkgManifestInstall>
+    <VcpkgAutoLink>false</VcpkgAutoLink>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -59,7 +66,7 @@
       <PrecompiledHeaderFile>glpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLCORE_PLATFORM_WINDOWS;GLFW_INCLUDE_NONE;GLCORE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\assimp\include;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor/tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -81,7 +88,7 @@
       <PrecompiledHeaderFile>glpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLCORE_PLATFORM_WINDOWS;GLFW_INCLUDE_NONE;GLCORE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\assimp\include;vendor\spdlog\include;vendor\GLFW\include;vendor\Glad\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor/tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -101,6 +108,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\GL.h" />
     <ClInclude Include="src\Merlin\Util\DataStream.h" />
     <ClInclude Include="src\Merlin\Renderer\Primitive.h" />
     <ClInclude Include="src\Merlin\Tensor\ShaderStorageBuffer.h" />
@@ -186,6 +194,9 @@
     </ProjectReference>
     <ProjectReference Include="vendor\imgui\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendor\tinygltf\tinygltf.vcxproj">
+      <Project>{160b8a25-02d8-e430-2bf1-d2d8171d1abf}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

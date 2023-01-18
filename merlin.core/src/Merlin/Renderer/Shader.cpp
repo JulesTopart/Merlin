@@ -9,7 +9,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
-
+#include "Merlin/Core/Log.h"
 
 namespace Merlin::Renderer {
 	Shader::Shader(std::string n) : ShaderBase(n){}

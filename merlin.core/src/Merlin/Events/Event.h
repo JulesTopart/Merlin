@@ -1,10 +1,10 @@
 #pragma once
-
-#include "glpch.h"
-#include "../Core/Core.h"
+#include "Merlin/Core/Core.h"
 
 #include "../Core/KeyCodes.h"
 #include "../Core/MouseButtonCodes.h"
+
+#include "glpch.h"
 
 namespace Merlin {
 

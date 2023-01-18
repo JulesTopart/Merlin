@@ -1,4 +1,6 @@
 #pragma once
+#include "Merlin/Core/Core.h"
+
 #include <vector>
 #include <memory>
 #include <cstdint>

@@ -1,7 +1,5 @@
 #pragma once
-
-#include <glad/glad.h>
-#include <glm/glm.hpp>
+#include "Merlin/Core/Core.h"
 
 #include "../Renderer/ShaderBase.h"
 

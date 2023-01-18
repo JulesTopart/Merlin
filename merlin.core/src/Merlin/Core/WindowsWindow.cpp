@@ -4,10 +4,10 @@
 #include "Merlin/Events/ApplicationEvent.h"
 #include "Merlin/Events/MouseEvent.h"
 #include "Merlin/Events/KeyEvent.h"
+#include "Merlin/Core/Log.h"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
-
 namespace Merlin {
 	
 	static bool s_GLFWInitialized = false;

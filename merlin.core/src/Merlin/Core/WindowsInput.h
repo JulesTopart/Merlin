@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Merlin/Core/Core.h"
 #include "Merlin/Core/Input.h"
 
 namespace Merlin {
