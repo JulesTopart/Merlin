@@ -117,9 +117,6 @@
     <ProjectReference Include="..\..\merlin.core\vendor\imgui\ImGui.vcxproj">
       <Project>{c0ff640d-2c14-8dbe-f595-301e616989ef}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\merlin.core\vendor\tinygltf\tinygltf.vcxproj">
-      <Project>{160b8a25-02d8-e430-2bf1-d2d8171d1abf}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\merlin.core\merlin.core.vcxproj">
       <Project>{20200B5F-8CD5-8354-15CA-7D2B817E7A58}</Project>
     </ProjectReference>
