@@ -48,7 +48,7 @@
     <TargetName>merlin.example</TargetName>
     <TargetExt>.exe</TargetExt>
     <IncludePath>$(SolutionDir)merlin.core\vendor\assimp\include;$(SolutionDir)merlin.core\vendor\spdlog\include;$(SolutionDir)merlin.core\vendor\GLFW\include;$(SolutionDir)merlin.core\vendor\glad\include;$(SolutionDir)merlin.core\vendor\imgui;$(SolutionDir)merlin.core\vendor\glm;$(SolutionDir)merlin.core\vendor\stb_image;$(SolutionDir)merlin.core\vendor/tinygltf;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)bin\Release-windows-x86_64\merlin.core\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <LibraryPath>$(SolutionDir)bin\Debug-windows-x86_64\merlin.core\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
