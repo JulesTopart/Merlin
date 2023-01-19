@@ -46,14 +46,14 @@
     <IntDir>$(SolutionDir)bin-int\Debug-windows-x86_64\merlin.core\</IntDir>
     <TargetName>merlin.core</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)vendor\assimp\include;$(ProjectDir)vendor\spdlog\include;$(ProjectDir)vendor\GLFW\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\imgui;$(ProjectDir)vendor\glm;$(ProjectDir)vendor\tinygltf;$(ProjectDir)vendor\stb_image;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)vendor\assimp\include;$(ProjectDir)vendor\spdlog\include;$(ProjectDir)vendor\GLFW\include;$(ProjectDir)vendor\Glad\include;$(ProjectDir)vendor\imgui;$(ProjectDir)vendor\glm;$(ProjectDir)vendor\tinygltf;$(ProjectDir)vendor\stb_image;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\Release-windows-x86_64\merlin.core\</OutDir>
     <IntDir>$(SolutionDir)bin-int\Release-windows-x86_64\merlin.core\</IntDir>
     <TargetName>merlin.core</TargetName>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(ProjectDir)vendor\assimp\include;$(ProjectDir)vendor\spdlog\include;$(ProjectDir)vendor\GLFW\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\imgui;$(ProjectDir)vendor\glm;$(ProjectDir)vendor\tinygltf;$(ProjectDir)vendor\stb_image;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)vendor\assimp\include;$(ProjectDir)vendor\spdlog\include;$(ProjectDir)vendor\GLFW\include;$(ProjectDir)vendor\Glad\include;$(ProjectDir)vendor\imgui;$(ProjectDir)vendor\glm;$(ProjectDir)vendor\tinygltf;$(ProjectDir)vendor\stb_image;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>false</VcpkgEnabled>
