@@ -3,6 +3,7 @@
 
 bin/
 bin-int/
+merlin.experiments/
 
 # User-specific files
 *.suo
