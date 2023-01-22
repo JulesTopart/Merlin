@@ -67,11 +67,11 @@ void ExampleLayer::LoadShaders() {
 	//Shaders
 	axisShader = CreateShared<Shader>("axis", "assets/shaders/axis.vert.glsl", "assets/shaders/axis.frag.glsl");
 	legendShader = CreateShared<Shader>("legend", "assets/shaders/legend.vert.glsl", "assets/shaders/legend.frag.glsl");
-	meshShader = CreateShared<Shader>("mesh", "assets/shaders/mesh.vert.glsl", "assets/shaders/mesh.frag.glsl");
+	meshShader = CreateShared<Shader>("mesh", "assets/shaders/mesh.sph.vert.glsl", "assets/shaders/mesh.frag.glsl");
 
 	//Compute Shaders
-	init = CreateShared<ComputeShader>("init", "assets/shaders/heat.init.glsl");
-	physics = CreateShared<ComputeShader>("physics", "assets/shaders/heat.update.glsl");
+	init = CreateShared<ComputeShader>("init", "assets/shaders/heat.init.sph.glsl");
+	physics = CreateShared<ComputeShader>("physics", "assets/shaders/heat.update.sph.glsl");
 }
 
 void ExampleLayer::InitShaders() {
@@ -118,12 +118,14 @@ void ExampleLayer::CreateSolver() {
 	std::vector<Node> nodes;
 	for (size_t i(0); i < nodeCount; i++) {
 		Node buf;
-		buf.position = mesh->GetVertices()[i].position;
-		buf.temperature = 20.0f;
+		buf.U = mesh->GetVertices()[i].position;
+		buf.V = glm::vec3(0);
+		buf.T = 20.0f;
 		nodes.push_back(buf);
 	}
 
 	buffer->Allocate<Node>(nodes);
+	Console::info("Application") << "Node allocated using " << buffer->size() / 1000 << "Ko" << Console::endl;
 
 	solver = CreateShared<Solver>(nodeCount, 1);
 	solver->AddComputeShader(init);
@@ -169,12 +171,12 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	meshShader->Use();
 	meshShader->SetInt("mode", 1);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	mesh->Draw(meshShader, camera->GetViewProjectionMatrix());
+	if(drawWiredMesh) mesh->Draw(meshShader, camera->GetViewProjectionMatrix());
 
 	meshShader->Use();
 	meshShader->SetInt("mode", 0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	mesh->Draw(meshShader, camera->GetViewProjectionMatrix());
+	if(drawMesh) mesh->Draw(meshShader, camera->GetViewProjectionMatrix());
 	axis->Draw(axisShader, camera->GetViewProjectionMatrix());
 	legend->Draw(legendShader, camera->GetViewProjectionMatrix());
 
@@ -216,6 +218,9 @@ void ExampleLayer::OnImGuiRender()
 		if (ImGui::SmallButton("Pause simulation"))
 			paused = !paused;
 	}
+
+	ImGui::Checkbox("Draw Mesh", &drawMesh);
+	ImGui::Checkbox("Draw Wireframe", &drawWiredMesh);
 
 	if (ImGui::SmallButton("Reset simulation"))
 		solver->Execute(0); //init position using init compute shader
