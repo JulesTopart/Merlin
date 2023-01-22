@@ -7,7 +7,7 @@ namespace Merlin::Tensor{
 
 	class ComputeShader : public Renderer::ShaderBase {
 	public:
-		ComputeShader(std::string n);
+		ComputeShader(std::string n, const std::string file_path = "");
 		~ComputeShader();
 
 		void Delete() override;

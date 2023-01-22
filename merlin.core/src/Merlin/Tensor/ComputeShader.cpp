@@ -13,9 +13,10 @@
 
 namespace Merlin::Tensor {
 
-	ComputeShader::ComputeShader(std::string n) {
+	ComputeShader::ComputeShader(std::string n, const std::string cspath) {
 		_name = n;
 		_xWkgrp = _yWkgrp = _zWkgrp = 1;
+		if (cspath != "") Compile(cspath);
 	}
 
 	ComputeShader::~ComputeShader() {

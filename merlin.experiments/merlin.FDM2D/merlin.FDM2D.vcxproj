@@ -101,9 +101,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Solver.h" />
     <ClInclude Include="src\ExampleLayer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Solver.cpp" />
     <ClCompile Include="src\ExampleApp.cpp" />
     <ClCompile Include="src\ExampleLayer.cpp" />
   </ItemGroup>

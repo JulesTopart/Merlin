@@ -10,7 +10,10 @@ namespace Merlin::Renderer {
 
 	class Shader : public ShaderBase{
 	public:
-		Shader(std::string n);
+		Shader(	std::string n, 
+				const std::string vertex_file_path = "", 
+				const std::string fragment_file_path = "", 
+				const std::string geometry_file_path = "");
 		~Shader();
 
 		void Delete() override;

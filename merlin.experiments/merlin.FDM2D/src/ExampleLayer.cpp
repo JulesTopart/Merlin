@@ -9,103 +9,183 @@ using namespace Merlin::Renderer;
 
 ExampleLayer::ExampleLayer() {
 	Window* w = &Application::Get().GetWindow();
-	int height = w->GetHeight();
-	int width = w->GetWidth();
-	camera = CreateShared<Camera>(width, height, Projection::Perspective);
-	camera->SetPosition(glm::vec3(-2.0f, 0.0f, 1.0f));
-	cameraController = CreateShared<CameraController3D>(camera);
-}
+	_height = w->GetHeight();
+	_width = w->GetWidth();
+	camera = CreateShared<Camera>(_width, _height, Projection::Orthographic);
+	camera->SetPosition(glm::vec3(0.235, 0.135, 1.0f));
+	cameraController = CreateShared<CameraController2D>(camera);
 
-ExampleLayer::~ExampleLayer(){
-
-}
-
-void ExampleLayer::OnAttach(){
 	EnableGLDebugging();
-	Window* wd = &Application::Get().GetWindow();
-	_height = wd->GetHeight();
-	_width = wd->GetWidth();
-
 	Console::SetLevel(ConsoleLevel::_INFO);
 
-	// Init OpenGL stuff
+	// Init OpenGL settings
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
-
-	//Shaders
-	axisShader = std::make_shared<Shader>("axis");
-	axisShader->Compile(
-		"assets/shaders/axis.vert.glsl",
-		"assets/shaders/axis.frag.glsl"
-	);
-
-	modelShader = std::make_shared<Shader>("model");
-	modelShader->Compile(
-		"assets/shaders/model.vert.glsl",
-		"assets/shaders/model.frag.glsl"
-	);
-
-	particleShader = std::make_shared<Shader>("particle");
-	particleShader->Compile(
-		"assets/shaders/particle.vert.glsl",
-		"assets/shaders/particle.frag.glsl"
-	);
-	
-	//Compute Shaders
-	physics = std::make_shared<ComputeShader>("physics");
-	physics->Compile("assets/shaders/particle.update.glsl");
-
-	init = std::make_shared<ComputeShader>("init");
-	init->Compile("assets/shaders/particle.init.glsl");
-
-	//Load models
-	axis = ModelLoader::LoadAxis("axis");
-	model = ModelLoader::LoadPlane("plane");
-	model->translate(glm::vec3(0, 0, -0.1));
-
-	//Particle System settings
-	GLsizeiptr gridSize = 20;
-	GLsizeiptr partCount = gridSize * gridSize * gridSize;
-	float gridWidth = 2.0f;
-
-	//Create particle system
-	particleSystem = CreateShared<ParticleSystem>("ParticleSystem", partCount);
-
-	//Define the mesh for instancing (Here a cube)
-	Shared<Primitive> cube = Primitive::CreateSphere(1.0f, 20, 20);//Primitive::CreateCube(1.0f);
-	//cube->SetDrawMode(GL_LINES);
-	particleSystem->SetPrimitive(cube);
-
-	//Create the buffer
-	Shared<SSBO> buffer = CreateShared<SSBO>("ParticleBuffer");
-	buffer->SetBindingPoint(1);
-	buffer->Allocate<DefaultParticle>(partCount);
-	particleSystem->AddStorageBuffer(buffer);
-	particleSystem->AddComputeShader(physics);
-	
-	physics->Use();
-	physics->SetUInt("grid", gridSize);
-	physics->SetFloat("gridSpacing", gridWidth/float(gridSize));
-
-	init->Use();
-	init->SetUInt("grid", gridSize);
-	init->SetFloat("gridSpacing", gridWidth / float(gridSize));
-	particleSystem->Execute(init);
-
-	float smoothingRadius = 0.005f * 4;
-	particleShader->Use();
-	particleShader->SetFloat("radius", 0.5f * gridWidth / float(gridSize)); //Set particle radius
-	
 }
 
-void ExampleLayer::OnDetach(){}
+
+
+void ExampleLayer::CreateMesh() {
+	Vertices vs;
+	Vertex buf;
+	float space = domainWidth / float(sqNodeCount);
+	for (float y(0); y < sqNodeCount; y++) {
+		for (float x(0); x < sqNodeCount; x++) {
+			buf.position = glm::vec3(x*space, y * space, 0);
+			vs.push_back(buf);
+		}
+	}
+
+	Indices in;
+	for (int y(0); y < sqNodeCount - 1; y++) {		//y
+		for (int x(0); x < sqNodeCount - 1; x++) {	//x
+			for (int k(0); k < 4; k++) {
+				GLuint index = y * sqNodeCount + x; //First vertex of the quad
+				in.push_back(index); //0
+				in.push_back((y + 1) * sqNodeCount + x); //1
+				in.push_back((y + 1) * sqNodeCount + x + 1); //2
+				in.push_back(index + 1); //3
+			}
+		}
+	}
+
+	mesh = CreateShared<Primitive>(vs, in);
+	mesh->SetDrawMode(GL_QUADS);
+}
+
+void ExampleLayer::LoadModels() {
+	//Load models
+	axis = Primitive::CreateCoordSystem();
+	legend = Primitive::CreateRectangle(0.025, 0.5);
+	legend->Translate(glm::vec3(0.05f/2.0f + 0.6, 0.5f/2.0f, 0.0f));
+
+}
+
+void ExampleLayer::LoadShaders() {
+	//Shaders
+	axisShader = CreateShared<Shader>("axis", "assets/shaders/axis.vert.glsl", "assets/shaders/axis.frag.glsl");
+	legendShader = CreateShared<Shader>("legend", "assets/shaders/legend.vert.glsl", "assets/shaders/legend.frag.glsl");
+	meshShader = CreateShared<Shader>("mesh", "assets/shaders/mesh.vert.glsl", "assets/shaders/mesh.frag.glsl");
+
+	//Compute Shaders
+	init = CreateShared<ComputeShader>("init", "assets/shaders/heat.init.glsl");
+	physics = CreateShared<ComputeShader>("physics", "assets/shaders/heat.update.glsl");
+}
+
+void ExampleLayer::InitShaders() {
+	legendShader->Use();
+	legendShader->SetUInt("colorCount", colorCount);
+
+	meshShader->Use();
+	meshShader->SetFloat("scale", 10);
+	legendShader->SetUInt("colorCount", colorCount);
+
+	init->Use();
+	init->SetUInt("nodeCount", nodeCount);
+	init->SetUInt("sqNodeCount", sqNodeCount);
+
+	physics->Use();
+	physics->SetUInt("nodeCount", nodeCount);
+	physics->SetUInt("sqNodeCount", sqNodeCount);
+}
+
+
+void ExampleLayer::SetColorGradient() {
+	heatMap = CreateShared<SSBO>("ColorMapBuffer");
+	heatMap->SetBindingPoint(2);
+
+	std::vector<Color> colors;
+
+	colors.push_back({ glm::vec3(0, 0, 1), 0.0f  });     // Blue.
+	colors.push_back({ glm::vec3(0, 1, 1), 0.25f });     // Cyan.
+	colors.push_back({ glm::vec3(0, 1, 0), 0.5f  });     // Green.
+	colors.push_back({ glm::vec3(1, 1, 0), 0.75f });     // Yellow.
+	colors.push_back({ glm::vec3(1, 0, 0), 1.0f  });     // Red.
+
+	colorCount = colors.size();
+
+	heatMap->Allocate<Color>(colors);
+}
+
+
+void ExampleLayer::CreateSolver() {
+	//Create the buffer
+	buffer = CreateShared<SSBO>("NodeBuffer");
+	buffer->SetBindingPoint(1);
+
+	std::vector<Node> nodes;
+	for (size_t i(0); i < nodeCount; i++) {
+		Node buf;
+		buf.position = mesh->GetVertices()[i].position;
+		buf.temperature = 20.0f;
+		nodes.push_back(buf);
+	}
+
+	buffer->Allocate<Node>(nodes);
+
+	solver = CreateShared<Solver>(nodeCount, 1);
+	solver->AddComputeShader(init);
+	solver->AddComputeShader(physics);
+	solver->AddStorageBuffer(buffer);
+}
+
+void ExampleLayer::OnDetach() {}
+
+void ExampleLayer::OnAttach(){
+	sqNodeCount = 20;
+	nodeCount = sqNodeCount * sqNodeCount; //2D Grid
+	domainWidth = 0.05f;
+
+	CreateMesh();
+	LoadModels();
+	LoadShaders();
+	SetColorGradient();
+	InitShaders();
+	CreateSolver();
+
+	solver->Execute(0);
+}
+
+void ExampleLayer::OnUpdate(Timestep ts) {
+	cameraController->OnUpdate(ts);
+	updateFPS(ts);
+
+	// Specify the color of the background
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+
+	if(!paused)solver->Execute(1);
+	buffer->Bind();
+	buffer->Attach(meshShader);
+
+	heatMap->Bind();
+	heatMap->Attach(meshShader);
+	heatMap->Attach(legendShader);
+
+	meshShader->Use();
+	meshShader->SetInt("mode", 1);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	mesh->Draw(meshShader, camera->GetViewProjectionMatrix());
+
+	meshShader->Use();
+	meshShader->SetInt("mode", 0);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	mesh->Draw(meshShader, camera->GetViewProjectionMatrix());
+	axis->Draw(axisShader, camera->GetViewProjectionMatrix());
+	legend->Draw(legendShader, camera->GetViewProjectionMatrix());
+
+
+}
 
 void ExampleLayer::updateFPS(Timestep ts) {
 	if (FPS_sample == 0) {
 		FPS = ts;
-	}else {
+	}
+	else {
 		FPS += ts;
 	}
 	FPS_sample++;
@@ -114,41 +194,6 @@ void ExampleLayer::updateFPS(Timestep ts) {
 void ExampleLayer::OnEvent(Event& event) {
 	camera->OnEvent(event);
 	cameraController->OnEvent(event);
-}
-
-void ExampleLayer::OnUpdate(Timestep ts) {
-
-	cameraController->OnUpdate(ts);
-	updateFPS(ts);
-	// Specify the color of the background
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	// Clean the back buffer and depth buffer (clean the screen)
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-	modelShader->Use();
-	modelShader->SetUniform3f("lightPos", glm::vec3(0,0,0));
-	modelShader->SetUniform3f("lightColor", glm::vec3(0.3, 0.3, 0.3));
-	modelShader->SetUniform3f("viewPos", camera->GetPosition());
-	modelShader->SetFloat("shininess", 16.0f);
-	
-
-	particleShader->Use();
-	particleShader->SetUniform3f("lightPos", glm::vec3(0, 0, 0));
-	particleShader->SetUniform3f("lightColor", glm::vec3(0.3, 0.3, 0.3));
-	particleShader->SetUniform3f("viewPos", camera->GetPosition());
-	particleShader->SetFloat("shininess", 4.0f);
-
-	model->Draw(modelShader, camera->GetViewProjectionMatrix());
-	axis->Draw(axisShader, camera->GetViewProjectionMatrix());
-
-	physics->Use();
-	physics->SetFloat("speed", sim_speed);
-
-
-	if(!paused) particleSystem->Update(ts);
-	particleSystem->Draw(particleShader, camera->GetViewProjectionMatrix());
-
 }
 
 void ExampleLayer::OnImGuiRender()
@@ -173,7 +218,7 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 	if (ImGui::SmallButton("Reset simulation"))
-		particleSystem->Execute(init); //init position using init compute shader
+		solver->Execute(0); //init position using init compute shader
 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->SetPosition(model_matrix_translation);
@@ -183,7 +228,6 @@ void ExampleLayer::OnImGuiRender()
 	}
 	if (ImGui::SliderFloat("Simulation speed", &sim_speed, 0.0, 20.0f)) {
 	}
-
 
 	ImGui::End();
 }

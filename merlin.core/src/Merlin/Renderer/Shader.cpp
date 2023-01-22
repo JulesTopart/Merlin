@@ -12,7 +12,15 @@
 #include "Merlin/Core/Log.h"
 
 namespace Merlin::Renderer {
-	Shader::Shader(std::string n) : ShaderBase(n){}
+	Shader::Shader(std::string n, 
+		const std::string vpath,
+		const std::string fpath,
+		const std::string gpath) : ShaderBase(n){
+
+		if (vpath != "" && fpath != "") {
+			Compile(vpath, fpath, gpath);
+		}
+	}
 	Shader::~Shader() {
 		Delete();
 	}

@@ -40,7 +40,6 @@ namespace Merlin::Tensor {
 		void Draw(Shared<Shader> shader, glm::mat4 view); //Draw the mesh
 
 		
-
 		void AddComputeShader(Shared<ComputeShader>);
 		void AddStorageBuffer(Shared<SSBO>);
 

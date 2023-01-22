@@ -29,6 +29,7 @@ namespace Merlin::Tensor {
 		void Attach(Shared<ShaderBase> sh);
 
 		inline GLuint id() const { return _StorageID; }
+		inline GLuint size() const { return _size; }
 		inline GLuint binding() const { return _binding; }
 		inline std::string name() const { return _name; }
 
@@ -36,7 +37,7 @@ namespace Merlin::Tensor {
 
 	private:
 		std::string _name;
-		GLsizeiptr _size;
+		GLsizeiptr _size; //size in need in allocated memory (in bytes)
 		GLuint _StorageID;
 		GLuint _binding = 0;
 	};
