@@ -1,6 +1,6 @@
 #version 450
 
-layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
 struct Node {
     vec3 U;		//Position
@@ -46,21 +46,12 @@ uniform double dt;
 #define PI_FAC 0.454728408833987
 
 // Smoothing kernel function (Quntic kernel)
-float lapl_pse(vec2 pi, vec2 pj, float hi) {
-	float xi = pi.x;
-	float yi = pi.y;
-
-	float xj = pj.x;
-	float yj = pj.y;
-
-	float xij = xi-xj;
-	float yij = yi-yj;
-
-	float xx = sqrt(xij*xij + yij*yij);
+float lapl_pse(vec3 pi, vec3 pj, float hi) {
+	float r = length(pj - pi);
 
 	float h2 = hi*hi;
 	float h4 = h2*h2;
-	float w2_pse  = +4./(h4*M_PI)*exp(-xx*xx/(h2));
+	float w2_pse  = +4./(h4*M_PI)*exp(-r*r/(h2));
 
 	return w2_pse;
 }
@@ -118,22 +109,20 @@ void main() {
   ivec2 p = ivec2( index % sqNodeCount, index / sqNodeCount); //xy position in the nodes
 
   Node n = nodes[index];
-  float mass = 1.0;
+  float mass = 2700.0f * 6.25f * pow(10, -6);
   float Ti = n.T;
   float T_ti = 0.;
-  vec2 pi = n.U.xy;
+  vec3 pi = n.U;
   for (int j = 0; j < nodeCount; j++) {
-    vec2 pj   = nodes[j].U.xy;
+    vec3 pj   = nodes[j].U;
     float Tj = nodes[j].T;
     float rhoj = nodes[j].d;
     
     float w2_pse = lapl_pse(pi, pj, n.h);
-    
-    T_ti += (Tj-Ti)*w2_pse*mass/rhoj;
+    T_ti += (Tj-Ti)*w2_pse*(mass/rhoj);
   }
-  
   n.T_t = T_ti;
-  n.T += T_ti * 0.0000000001;
+  n.T += float(double((8.97*pow(10,-5)) * T_ti) * dt);
 
   if(p.y == 0){
 	n.T = 20.0;

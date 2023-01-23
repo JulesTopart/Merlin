@@ -75,6 +75,9 @@ private:
 	void InitShaders();
 	void CreateSolver();
 
+
+	void saveData();
+
 	GLsizei _width, _height;
 	
 	//Mesh rendering
@@ -101,6 +104,10 @@ private:
 	//Camera
 	Shared<Camera> camera;
 	Shared<CameraController> cameraController;
+
+	//Time
+	double t;
+	double dt;
 
 	//ui
 	bool drawWiredMesh = false;

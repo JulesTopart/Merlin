@@ -5,6 +5,7 @@ using namespace Merlin::Utils;
 using namespace Merlin::Renderer;
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 
 ExampleLayer::ExampleLayer() {
@@ -80,7 +81,7 @@ void ExampleLayer::InitShaders() {
 
 	meshShader->Use();
 	meshShader->SetFloat("scale", 10);
-	legendShader->SetUInt("colorCount", colorCount);
+	meshShader->SetUInt("colorCount", colorCount);
 
 	init->Use();
 	init->SetUInt("nodeCount", nodeCount);
@@ -89,6 +90,7 @@ void ExampleLayer::InitShaders() {
 	physics->Use();
 	physics->SetUInt("nodeCount", nodeCount);
 	physics->SetUInt("sqNodeCount", sqNodeCount);
+	physics->SetDouble("dt", dt);
 }
 
 
@@ -127,7 +129,7 @@ void ExampleLayer::CreateSolver() {
 	buffer->Allocate<Node>(nodes);
 	Console::info("Application") << "Node allocated using " << buffer->size() / 1000 << "Ko" << Console::endl;
 
-	solver = CreateShared<Solver>(nodeCount, 1);
+	solver = CreateShared<Solver>(nodeCount, 32);
 	solver->AddComputeShader(init);
 	solver->AddComputeShader(physics);
 	solver->AddStorageBuffer(buffer);
@@ -136,9 +138,11 @@ void ExampleLayer::CreateSolver() {
 void ExampleLayer::OnDetach() {}
 
 void ExampleLayer::OnAttach(){
-	sqNodeCount = 20;
+	sqNodeCount = 24;
 	nodeCount = sqNodeCount * sqNodeCount; //2D Grid
 	domainWidth = 0.05f;
+	dt = 0.01;
+	t = 0;
 
 	CreateMesh();
 	LoadModels();
@@ -160,7 +164,10 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 
-	if(!paused)solver->Execute(1);
+	if (!paused) {
+		solver->Execute(1);
+		t += dt;
+	}
 	buffer->Bind();
 	buffer->Attach(meshShader);
 
@@ -198,6 +205,21 @@ void ExampleLayer::OnEvent(Event& event) {
 	cameraController->OnEvent(event);
 }
 
+
+void ExampleLayer::saveData() {
+	std::vector<Node> result;
+	result.resize(nodeCount);
+
+	memcpy(result.data(), buffer->Map(), result.size() * sizeof(Node));
+
+	std::ofstream file("file.float", std::ios::binary);
+	for (int i = 0; i < result.size(); i++) {
+		float num = result[i].T;
+		file.write((char*)&num, sizeof(num));
+	}
+	file.close();
+}
+
 void ExampleLayer::OnImGuiRender()
 {
 	ImGui::Begin("Infos");
@@ -205,6 +227,7 @@ void ExampleLayer::OnImGuiRender()
 	model_matrix_translation = camera->GetPosition();
 	camera_speed = cameraController->GetCameraSpeed();
 
+	ImGui::LabelText("t=", std::to_string(t).c_str());
 	if (FPS_sample > 0) {
 		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS / FPS_sample)).c_str());
 		if (FPS_sample > 50) FPS_sample = 0;
@@ -222,8 +245,14 @@ void ExampleLayer::OnImGuiRender()
 	ImGui::Checkbox("Draw Mesh", &drawMesh);
 	ImGui::Checkbox("Draw Wireframe", &drawWiredMesh);
 
-	if (ImGui::SmallButton("Reset simulation"))
+	if (ImGui::SmallButton("Reset simulation")) {
 		solver->Execute(0); //init position using init compute shader
+		t = 0;
+	}	
+	
+	if (ImGui::SmallButton("Save simulation")) {
+		saveData();
+	}
 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->SetPosition(model_matrix_translation);

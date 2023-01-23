@@ -123,6 +123,19 @@
       <Project>{20200B5F-8CD5-8354-15CA-7D2B817E7A58}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\axis.frag.glsl" />
+    <None Include="assets\shaders\axis.vert.glsl" />
+    <None Include="assets\shaders\heat.init.glsl" />
+    <None Include="assets\shaders\heat.init.sph.glsl" />
+    <None Include="assets\shaders\heat.update.glsl" />
+    <None Include="assets\shaders\heat.update.sph.glsl" />
+    <None Include="assets\shaders\legend.frag.glsl" />
+    <None Include="assets\shaders\legend.vert.glsl" />
+    <None Include="assets\shaders\mesh.frag.glsl" />
+    <None Include="assets\shaders\mesh.sph.vert.glsl" />
+    <None Include="assets\shaders\mesh.vert.glsl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
