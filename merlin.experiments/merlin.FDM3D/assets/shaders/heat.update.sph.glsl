@@ -72,22 +72,30 @@ void main() {
 
 	if(length(hpos - n.U) < (0.05 * 2.5)/sqNodeCount){
 		n.enable = 1;
-		n.T = 200.0f / ((length(hpos - n.U)) / ((0.05 * 4)/sqNodeCount));
+		n.T = 200.0f;
 	}
 
 	if(n.enable == 0) return;
 	
+
+
 	float mass = 2700.0f * 6.25f * pow(10, -6);
 	float Ti = n.T;
 	float T_ti = 0.;
 	vec3 pi = n.U;
-	for (int j = 0; j < nodeCount; j++) {
-		vec3 pj   = nodes[j].U;
-		float Tj = nodes[j].T;
-		float rhoj = nodes[j].d;
+
+	for (int x = gridX - 1; x <= gridX + 1; x++) {
+		for (int y = gridY - 1; y <= gridY + 1; y++) {
+			for (int z = gridZ - 1; z <= gridZ + 1; z++) {	
+				uint j = (z * sqNodeCount * sqNodeCount) + (y * sqNodeCount) + x;
+				vec3 pj   = nodes[j].U;
+				float Tj = nodes[j].T;
+				float rhoj = nodes[j].d;
     
-		float w2_pse = lapl_pse(pi, pj, n.h);
-		T_ti += (Tj-Ti)*w2_pse*(mass/rhoj);
+				float w2_pse = lapl_pse(pi, pj, n.h);
+				T_ti += (Tj-Ti)*w2_pse*(mass/rhoj);
+			}
+		}
 	}
 	n.T_t = T_ti;
 	n.T += float(double((8.97*pow(10,-5)) * T_ti) * dt);

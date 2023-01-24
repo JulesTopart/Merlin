@@ -28,7 +28,7 @@ ExampleLayer::ExampleLayer() {
 
 
 void ExampleLayer::CreateMesh() {
-	voxels = Primitive::CreateCube(0.040/sqNodeCount);
+	voxels = Primitive::CreateSphere(0.040 / sqNodeCount /2, 5, 5);
 	voxels->Translate(glm::vec3(-0.475f, -0.475f, 0));
 }
 
@@ -91,10 +91,21 @@ void ExampleLayer::SetColorGradient() {
 }
 
 
+int hash(glm::vec3 p) {
+	int ix = p.x / (0.05 / 100.0);
+	int iy = p.y / (0.05 / 100.0);
+	int iz = p.z / (0.05 / 100.0);
+
+	return ix * 92837111 ^ iy * 689287499 ^ iz * 283923481;
+}
+
 void ExampleLayer::CreateSolver() {
 	//Create the buffer
 	buffer = CreateShared<SSBO>("NodeBuffer");
+	hashBuffer = CreateShared<SSBO>("HashBuffer");
+
 	buffer->SetBindingPoint(1);
+	hashBuffer->SetBindingPoint(2);
 
 	float space = domainWidth / float(sqNodeCount);
 	Node buf;
@@ -117,6 +128,17 @@ void ExampleLayer::CreateSolver() {
 	buffer->Allocate<Node>(nodes);
 	Console::info("Application") << "Node allocated using " << buffer->size() / 1000 << "Ko" << Console::endl;
 
+	std::vector<std::pair<int, int>> hashlist;
+	for (int i(0); i < nodes.size(); i++) {
+		//Compute spatial hash
+		hashlist.push_back(std::make_pair(hash(nodes[i].U), i));
+	}
+	std::sort(hashlist.begin(), hashlist.end()); //Sort list
+
+
+
+
+
 	solver = CreateShared<Solver>(nodeCount, 32);
 	solver->AddComputeShader(init);
 	solver->AddComputeShader(physics);
@@ -127,9 +149,10 @@ void ExampleLayer::OnDetach() {}
 
 void ExampleLayer::OnAttach(){
 	sqNodeCount = 50;
+
 	nodeCount = sqNodeCount * sqNodeCount * sqNodeCount; //3D Grid
 	domainWidth = 0.05f;
-	dt = 0.0001;
+	dt = 0.00005;
 	t = 0;
 
 	speed = (domainWidth) / sqNodeCount;
@@ -156,23 +179,24 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 
 	if (!paused) {
 		solver->Execute(1);
+		physics->Use();
 		physics->SetDouble("dt", dt);
 		physics->SetUniform3f("hpos", u);
 		t += float(dt);
 
 		u += v;
-		if (u.x >= domainWidth || u.x<= 0) {
+		if (u.x + speed >= domainWidth || u.x<= 0) {
 			v.x = 0;
 			v.y = speed;
 		}
 
-		if (u.y > ((line + 1) * 3) * (domainWidth/sqNodeCount)) {
+		if (u.y + speed > ((line + 1) * 2) * (domainWidth/sqNodeCount)) {
 			line++;
 			v.x = ((line % 2 == 0) ? speed : -speed);
 			v.y = 0;
 		}
 
-		if (u.y >= domainWidth) {
+		if (u.y + speed >= domainWidth) {
 			line = 0;
 			u.y = 0;
 			v.y = 0;

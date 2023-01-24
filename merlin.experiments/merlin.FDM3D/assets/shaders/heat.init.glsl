@@ -13,6 +13,7 @@ layout (std430, binding = 1) buffer NodeBuffer {
 uniform uint nodeCount;
 uniform uint sqNodeCount;
 
+
 void main() {
   uint index = gl_GlobalInvocationID.x;
   // Calculate the indices for each dimension using div and mod

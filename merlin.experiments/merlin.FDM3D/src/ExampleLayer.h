@@ -99,6 +99,7 @@ private:
 	Shared<ComputeShader> init;
 
 	Shared<SSBO> buffer;
+	Shared<SSBO> hashBuffer;
 	Shared<Solver> solver;
 	int nodeCount, sqNodeCount;
 	float domainWidth;
