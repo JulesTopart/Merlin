@@ -41,7 +41,7 @@ layout (std430, binding = 1) buffer NodeBuffer {
   Node nodes[];
 };
 
-layout (std430, binding = 2) buffer ColorMapBuffer {
+layout (std430, binding = 3) buffer ColorMapBuffer {
   Color colors[];
 };
 

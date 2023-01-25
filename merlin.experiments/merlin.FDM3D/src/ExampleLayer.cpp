@@ -28,7 +28,8 @@ ExampleLayer::ExampleLayer() {
 
 
 void ExampleLayer::CreateMesh() {
-	voxels = Primitive::CreateSphere(0.040 / sqNodeCount /2, 5, 5);
+	//voxels = Primitive::CreateSphere(0.040 / sqNodeCount /2, 5, 5);
+	voxels = Primitive::CreateCube(0.050 / sqNodeCount /2);
 	voxels->Translate(glm::vec3(-0.475f, -0.475f, 0));
 }
 
@@ -63,6 +64,7 @@ void ExampleLayer::InitShaders() {
 	physics->Use();
 	physics->SetUInt("nodeCount", nodeCount);
 	physics->SetUInt("sqNodeCount", sqNodeCount);
+	physics->SetUInt("sqBinCount", hashResolution);
 	physics->SetDouble("dt", dt);
 
 	modelShader->Use();
@@ -74,27 +76,26 @@ void ExampleLayer::InitShaders() {
 
 
 void ExampleLayer::SetColorGradient() {
-	heatMap = CreateShared<SSBO>("ColorMapBuffer");
-	heatMap->SetBindingPoint(2);
+
 
 	std::vector<Color> colors;
-
 	colors.push_back({ glm::vec3(0, 0, 1), 0.0f  });     // Blue.
 	colors.push_back({ glm::vec3(0, 1, 1), 0.25f });     // Cyan.
 	colors.push_back({ glm::vec3(0, 1, 0), 0.5f  });     // Green.
 	colors.push_back({ glm::vec3(1, 1, 0), 0.75f });     // Yellow.
 	colors.push_back({ glm::vec3(1, 0, 0), 1.0f  });     // Red.
-
 	colorCount = colors.size();
 
+	heatMap = CreateShared<SSBO>("ColorMapBuffer");
+	heatMap->SetBindingPoint(3);
 	heatMap->Allocate<Color>(colors);
 }
 
 
-int hash(glm::vec3 p) {
-	int ix = p.x / (0.05 / 100.0);
-	int iy = p.y / (0.05 / 100.0);
-	int iz = p.z / (0.05 / 100.0);
+int hash(glm::vec3 p, int res) {
+	int ix = p.x / (0.05 / float(res));
+	int iy = p.y / (0.05 / float(res));
+	int iz = p.z / (0.05 / float(res));
 
 	return ix * 92837111 ^ iy * 689287499 ^ iz * 283923481;
 }
@@ -102,54 +103,76 @@ int hash(glm::vec3 p) {
 void ExampleLayer::CreateSolver() {
 	//Create the buffer
 	buffer = CreateShared<SSBO>("NodeBuffer");
-	hashBuffer = CreateShared<SSBO>("HashBuffer");
+	binBuffer = CreateShared<SSBO>("BinBuffer");
 
 	buffer->SetBindingPoint(1);
-	hashBuffer->SetBindingPoint(2);
+	binBuffer->SetBindingPoint(2);
 
-	float space = domainWidth / float(sqNodeCount);
-	Node buf;
 	std::vector<Node> nodes;
-	for (size_t i(0); i < sqNodeCount; i++) {
-		for (size_t j(0); j < sqNodeCount; j++) {
-			for (size_t k(0); k < sqNodeCount; k++) {
-				buf.U = glm::vec3(space * float(i), space * float(j), space * float(k));
-				buf.V = glm::vec3(0);
-				buf.T = 20.0f;
-				buf.enable = 0;
-				nodes.push_back(buf);
+	{
+		Node buf;
+		float space = domainWidth / float(sqNodeCount);
+		for (size_t i(0); i < sqNodeCount; i++) {
+			for (size_t j(0); j < sqNodeCount; j++) {
+				for (size_t k(0); k < sqNodeCount; k++) {
+					buf.U = glm::vec3(space * float(i), space * float(j), space * float(k));
+					buf.V = glm::vec3(0);
+					buf.T = 20.0f;
+					buf.enable = 0;
+					nodes.push_back(buf);
+				}
 			}
+			Console::printProgress(float(float(i) / float(sqNodeCount)));
 		}
-		Console::printProgress(float(float(i) / float(sqNodeCount)));
+		Console::printProgress(1.0f);
+		Console::print() << Console::endl;
 	}
-	Console::printProgress(1.0f);
-	Console::print() << Console::endl;
 
+	
+	std::vector<std::pair<int, int>> hashlist;
+	{
+		for (int i(0); i < nodes.size(); i++) {
+			//Compute spatial hash
+			hashlist.push_back(std::make_pair(hash(nodes[i].U, hashResolution), i));
+		}
+		std::sort(hashlist.begin(), hashlist.end()); //Sort list
+	}
+
+	std::vector<Bin> bins;
+	std::vector<Node> sorted_nodes;
+	{
+		int hash = 0;
+		for (int i(0); i < hashlist.size(); i++) {
+			if (hash != hashlist[i].first) {
+				if (bins.size() > 0)bins[bins.size() - 1].end = i - 1;
+				bins.emplace_back();
+				bins[bins.size() - 1].start = i;
+				hash = hashlist[i].first;
+			}
+			sorted_nodes.push_back(nodes[hashlist[i].second]);
+		};
+	}
+	
 	buffer->Allocate<Node>(nodes);
 	Console::info("Application") << "Node allocated using " << buffer->size() / 1000 << "Ko" << Console::endl;
 
-	std::vector<std::pair<int, int>> hashlist;
-	for (int i(0); i < nodes.size(); i++) {
-		//Compute spatial hash
-		hashlist.push_back(std::make_pair(hash(nodes[i].U), i));
-	}
-	std::sort(hashlist.begin(), hashlist.end()); //Sort list
+	binBuffer->Allocate<Bin>(bins);
+	Console::info("Application") << "Bins allocated using " << binBuffer->size() / 1000 << "Ko" << Console::endl;
 
+	physics->PrintLimits();
 
-
-
-
-	solver = CreateShared<Solver>(nodeCount, 32);
+	solver = CreateShared<Solver>(nodeCount, 128);
 	solver->AddComputeShader(init);
 	solver->AddComputeShader(physics);
 	solver->AddStorageBuffer(buffer);
+	solver->AddStorageBuffer(binBuffer);
 }
 
 void ExampleLayer::OnDetach() {}
 
 void ExampleLayer::OnAttach(){
-	sqNodeCount = 50;
-
+	sqNodeCount = 32;
+	hashResolution = 10;
 	nodeCount = sqNodeCount * sqNodeCount * sqNodeCount; //3D Grid
 	domainWidth = 0.05f;
 	dt = 0.00005;
@@ -166,7 +189,7 @@ void ExampleLayer::OnAttach(){
 	InitShaders();
 	CreateSolver();
 
-	solver->Execute(0);
+	solver->Execute(init, std::vector<Shared<SSBO>>(1, buffer));
 }
 
 void ExampleLayer::OnUpdate(Timestep ts) {
@@ -178,7 +201,7 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (!paused) {
-		solver->Execute(1);
+		solver->Execute(physics);
 		physics->Use();
 		physics->SetDouble("dt", dt);
 		physics->SetUniform3f("hpos", u);

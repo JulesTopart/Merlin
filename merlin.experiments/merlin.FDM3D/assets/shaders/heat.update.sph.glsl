@@ -1,6 +1,5 @@
 #version 450
-
-layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 struct Node {
     vec3 U;		//Position
@@ -34,12 +33,22 @@ struct Node {
 	float enable;			//particle is deactivated
 };
 
+struct Bin {
+	int start;
+	int end;
+};
+
 layout (std430, binding = 1) buffer NodeBuffer {
   Node nodes[];
 };
 
+layout (std430, binding = 2) buffer BinBuffer {
+  Bin bins[];
+};
+
 uniform uint nodeCount;
 uniform uint sqNodeCount;
+uniform uint sqBinCount;
 uniform double dt;
 uniform vec3 hpos;
 
@@ -76,24 +85,34 @@ void main() {
 	}
 
 	if(n.enable == 0) return;
-	
-
 
 	float mass = 2700.0f * 6.25f * pow(10, -6);
 	float Ti = n.T;
 	float T_ti = 0.;
 	vec3 pi = n.U;
 
+	int gridX = int(n.U.x / float(sqBinCount));
+	int gridY = int(n.U.y / float(sqBinCount));
+	int gridZ = int(n.U.z / float(sqBinCount));
+
+	
+
 	for (int x = gridX - 1; x <= gridX + 1; x++) {
 		for (int y = gridY - 1; y <= gridY + 1; y++) {
 			for (int z = gridZ - 1; z <= gridZ + 1; z++) {	
-				uint j = (z * sqNodeCount * sqNodeCount) + (y * sqNodeCount) + x;
-				vec3 pj   = nodes[j].U;
-				float Tj = nodes[j].T;
-				float rhoj = nodes[j].d;
+				uint hashIndex = (x * sqBinCount * sqBinCount) + (y * sqBinCount) + x;
+				if(hashIndex < 0) continue;
+				if(hashIndex > sqBinCount*sqBinCount*sqBinCount) continue;
+
+				for(int i = bins[hashIndex].start; i <= bins[hashIndex].end; i++){
+					int j = i;
+					vec3 pj   = nodes[j].U;
+					float Tj = nodes[j].T;
+					float rhoj = nodes[j].d;
     
-				float w2_pse = lapl_pse(pi, pj, n.h);
-				T_ti += (Tj-Ti)*w2_pse*(mass/rhoj);
+					float w2_pse = lapl_pse(pi, pj, n.h);
+					T_ti += (Tj-Ti)*w2_pse*(mass/rhoj);
+				}
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 #version 450
-layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 struct Node {
     vec3 U;		//Position
@@ -49,7 +49,6 @@ void main() {
   n.h = 0.05/30.0f;	//Smoothing radius
   n.d = 2700.0;	//Density
   n.T = 20.0;	//Temperature
-
 
   ivec3 c = ivec3(index / (sqNodeCount * sqNodeCount), (index % (sqNodeCount * sqNodeCount)) / sqNodeCount, index % sqNodeCount);
 

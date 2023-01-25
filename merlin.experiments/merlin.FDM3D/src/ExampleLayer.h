@@ -14,6 +14,10 @@ struct Node {
 };
 */
 
+struct Bin {
+	int start;
+	int end;
+};
 
 struct Node {
 	alignas(16) glm::vec3 U;		//Position
@@ -77,6 +81,7 @@ private:
 
 	GLsizei _width, _height;
 
+	//Moving heat source
 	glm::vec3 u;
 	glm::vec3 v;
 	float speed;
@@ -91,6 +96,7 @@ private:
 
 	Shared<Primitive> bed;
 
+	//Heat Map
 	Shared<SSBO> heatMap;
 	int colorCount;
 
@@ -99,11 +105,11 @@ private:
 	Shared<ComputeShader> init;
 
 	Shared<SSBO> buffer;
-	Shared<SSBO> hashBuffer;
+	Shared<SSBO> binBuffer;
 	Shared<Solver> solver;
-	int nodeCount, sqNodeCount;
+	GLsizeiptr nodeCount, sqNodeCount;
 	float domainWidth;
-
+	int hashResolution;
 	//Camera
 	Shared<Camera> camera;
 	Shared<CameraController> cameraController;
