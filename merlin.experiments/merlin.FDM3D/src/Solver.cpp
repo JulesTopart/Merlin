@@ -13,7 +13,7 @@ void Solver::AddStorageBuffer(Shared<SSBO> buffer) {
 void Solver::Execute(Shared<ComputeShader> shader, std::vector<Shared<SSBO>> buffers) {
 
 	for(Shared<SSBO> buffer : buffers) {
-		buffer->Attach(shader);
+		//buffer->Attach(shader);
 		buffer->Bind();
 	}
 
@@ -22,14 +22,14 @@ void Solver::Execute(Shared<ComputeShader> shader, std::vector<Shared<SSBO>> buf
 	shader->Dispatch(_instances / _threadPattern, 1, 1);
 
 	// Use glMemoryBarrier to ensure that the compute shader has finished writing to the buffer object before the CPU reads from it.
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	
 }
 
 void Solver::Execute(Shared<ComputeShader> shader) {
 
 	for (Shared<SSBO> buffer : _buffers) {
-		buffer->Attach(shader);
+		//buffer->Attach(shader);
 		buffer->Bind();
 	}
 
@@ -38,7 +38,7 @@ void Solver::Execute(Shared<ComputeShader> shader) {
 	shader->Dispatch(_instances / _threadPattern, 1, 1);
 
 	// Use glMemoryBarrier to ensure that the compute shader has finished writing to the buffer object before the CPU reads from it.
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 }
 
@@ -47,7 +47,7 @@ void Solver::Execute() {
 	for (Shared<ComputeShader> shader : _shaders) {
 		for (Shared<SSBO> buffer : _buffers) {
 			buffer->Bind();
-			buffer->Attach(shader);
+			//buffer->Attach(shader);
 		}
 
 		shader->Use();
@@ -55,7 +55,7 @@ void Solver::Execute() {
 		shader->Dispatch(_instances / _threadPattern, 1, 1);
 
 		// Use glMemoryBarrier to ensure that the compute shader has finished writing to the buffer object before the CPU reads from it.
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
 }

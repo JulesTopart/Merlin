@@ -3,7 +3,7 @@
 
 #include <vector>
 
-namespace Merlin::Renderer {
+namespace Merlin::Memory {
 
 	class VertexBufferLayout;
 

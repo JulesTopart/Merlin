@@ -23,10 +23,10 @@ struct Node {
 	alignas(16) glm::vec3 U;		//Position
 	alignas(16) glm::vec3 V;		//Velocity
 
-	float h;	//Smoothing radius
-	float d;	//Density
-	float p;	//Pressure
-	float T;	//Temperature
+	GLfloat h;	//Smoothing radius
+	GLfloat d;	//Density
+	GLfloat p;	//Pressure
+	GLfloat T;	//Temperature
 
 	alignas(16) glm::vec4 S;		//stress [Sxx, Sxy, Syy, Szz]
 	alignas(16) glm::vec4 R;		//artificial Stress [Rxx, Rxy, Ryy, -]
@@ -35,25 +35,26 @@ struct Node {
 	alignas(16) glm::vec4 V_d;	//dV(u)/du ? spatial derivative
 
 	//plastic strain and strain rate
-	float eps_pl;
-	float eps_pl_dot;
+	GLfloat eps_pl;
+	GLfloat eps_pl_dot;
 
 	//Time derivatives
 	alignas(16) glm::vec3 U_t;	//dU(t)/dt
 	alignas(16) glm::vec3 V_t;	//dV(t)/dt
 
-	float d_t;	//dd(t)/dt
+	GLfloat d_t;	//dd(t)/dt
 	alignas(16) glm::vec4  S_t;	//dS(t)/dt
-	float T_t;	//dT(t)/dt
+	GLfloat T_t;	//dT(t)/dt
 
 	//Boundary condition
-	float fix;				//particle is fixed in space
-	float enable;			//particle is deactivated
+	GLint fix;				//particle is fixed in space
+	GLint enable;			//particle is deactivated
+	GLuint index;
 };
 
 struct Color {
 	alignas(16) glm::vec3 color;
-	float value;
+	GLfloat value;
 };
 
 
@@ -69,6 +70,7 @@ public:
 	virtual void OnImGuiRender() override;
 
 	void updateFPS(Merlin::Timestep ts);
+	void simulate();
 
 private:
 

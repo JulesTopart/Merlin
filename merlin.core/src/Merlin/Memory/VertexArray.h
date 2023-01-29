@@ -1,10 +1,9 @@
 #pragma once
 #include "Merlin/Core/Core.h"
-
-#include "VertexBuffer.h"
+#include "Merlin/Memory/VertexBuffer.h"
 #include <vector>
 
-namespace Merlin::Renderer {
+namespace Merlin::Memory {
 
     class VertexArray {
     public:
@@ -16,7 +15,7 @@ namespace Merlin::Renderer {
 
         void AddBuffer(VertexBuffer& vb, const VertexBufferLayout& layout);
     private:
-        GLuint m_RendererID;
+        GLuint ArrayID;
     };
 
     typedef VertexArray VAO;

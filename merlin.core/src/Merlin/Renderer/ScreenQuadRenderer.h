@@ -1,8 +1,10 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 
-#include "Texture.h"
-#include "VertexArray.h"
+#include "Merlin/Renderer/Texture.h"
+#include "Merlin/Memory/VertexArray.h"
+
+using namespace Merlin::Memory;
 
 namespace Merlin::Renderer {
 	class ScreenQuadRenderer {
@@ -11,7 +13,7 @@ namespace Merlin::Renderer {
 		ScreenQuadRenderer();
 
 		// Render the screen quad
-		void Draw(const std::shared_ptr<Texture>& tex);
+		void Draw(const Shared<Texture>& tex);
 
 		inline std::shared_ptr<VAO> GetVAO(){ return vao; }
 		inline std::shared_ptr<Shader> GetShader() { return shader; }

@@ -2,10 +2,12 @@
 #include "Merlin/Core/Core.h"
 
 #include <vector>
-#include "Texture.h"
-#include "RenderBuffer.h"
+#include "Merlin/Renderer/Texture.h"
+#include "Merlin/Memory/RenderBuffer.h"
 
-namespace Merlin::Renderer {
+using namespace Merlin::Renderer;
+
+namespace Merlin::Memory {
 
     class FrameBuffer{
     public:

@@ -1,5 +1,5 @@
 #version 450
-layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
 struct Node {
     vec3 U;		//Position
@@ -29,8 +29,10 @@ struct Node {
 	float T_t;	//dT(t)/dt
 
 	//Boundary condition
-	float fix;				//particle is fixed in space
-	float enable;			//particle is deactivated
+	int fix;				//particle is fixed in space
+	int enable;			//particle is deactivated
+
+	uint index;
 };
 
 struct Bin {
@@ -56,7 +58,6 @@ uniform vec3 hpos;
 #define PI_FAC 0.454728408833987
 
 // Smoothing kernel function (Quntic kernel)
-// Smoothing kernel function (Quntic kernel)
 float lapl_pse(vec3 pi, vec3 pj, float hi) {
 	float r = length(pj - pi);
 
@@ -75,53 +76,71 @@ float getTemp(ivec2 p, ivec2 offset){
 
 void main() {
 	uint index = gl_GlobalInvocationID.x;
-	ivec3 p = ivec3(index / (sqNodeCount * sqNodeCount), (index % (sqNodeCount * sqNodeCount)) / sqNodeCount, index % sqNodeCount);
-
 	Node n = nodes[index];
+	uint unsortedIndex = n.index; 
+	ivec3 p = ivec3(unsortedIndex / (sqNodeCount * sqNodeCount), (unsortedIndex % (sqNodeCount * sqNodeCount)) / sqNodeCount, unsortedIndex % sqNodeCount);
 
 	if(length(hpos - n.U) < (0.05 * 2.5)/sqNodeCount){
-		n.enable = 1;
-		n.T = 200.0f;
+		//n.enable = 1;
+		//n.T = 200.0f;
 	}
 
-	if(n.enable == 0) return;
+	//if(n.enable == 0) return;
 
 	float mass = 2700.0f * 6.25f * pow(10, -6);
 	float Ti = n.T;
 	float T_ti = 0.;
 	vec3 pi = n.U;
 
-	int gridX = int(n.U.x / float(sqBinCount));
-	int gridY = int(n.U.y / float(sqBinCount));
-	int gridZ = int(n.U.z / float(sqBinCount));
+	float gridX = int(n.U.x / ((0.05 / float(sqBinCount))));
+	float gridY = int(n.U.y / ((0.05 / float(sqBinCount))));
+	float gridZ = int(n.U.z / ((0.05 / float(sqBinCount))));
 
-	
+	float hashIndex = ((gridZ * sqBinCount * sqBinCount) + (gridY * sqBinCount) + gridX)/(sqBinCount*sqBinCount*sqBinCount) * 200.0;
+	n.T=hashIndex;
+	/*
+	for (int z = gridZ ; z <= gridZ + 1; z++) {
+		for (int y = gridY; y <= gridY + 1; y++) {
+			for (int x = gridX; x <= gridX + 1; x++) {	
 
-	for (int x = gridX - 1; x <= gridX + 1; x++) {
-		for (int y = gridY - 1; y <= gridY + 1; y++) {
-			for (int z = gridZ - 1; z <= gridZ + 1; z++) {	
-				uint hashIndex = (x * sqBinCount * sqBinCount) + (y * sqBinCount) + x;
-				if(hashIndex < 0) continue;
-				if(hashIndex > sqBinCount*sqBinCount*sqBinCount) continue;
+				//if(x < 0 || y < 0 || z < 0) continue;
+				//if(x > sqBinCount || y > sqBinCount || z > sqBinCount) continue;
+
+				uint hashIndex = (z * sqBinCount * sqBinCount) + (y * sqBinCount) + x;
 
 				for(int i = bins[hashIndex].start; i <= bins[hashIndex].end; i++){
 					int j = i;
 					vec3 pj   = nodes[j].U;
 					float Tj = nodes[j].T;
 					float rhoj = nodes[j].d;
-    
+					
+					
 					float w2_pse = lapl_pse(pi, pj, n.h);
 					T_ti += (Tj-Ti)*w2_pse*(mass/rhoj);
 				}
+
 			}
 		}
 	}
+	T_ti += 10000;
 	n.T_t = T_ti;
 	n.T += float(double((8.97*pow(10,-5)) * T_ti) * dt);
-
+	
 	if(p.z == 0){
 		n.T = 60.0;
 	}
+	*/
+	//if(gridX == sqBinCount/2 && gridY == sqBinCount/2 && gridZ == 0) n.T = 200;
+
+	/* Debug Grid
+	ivec3 pos = ivec3((hpos/0.05f)*sqBinCount);
+
+	if(gridX == pos.x && gridY == pos.y && gridZ == pos.z) n.T = 200;
+	else if(gridX == pos.x + 1 && gridY == pos.y && gridZ == pos.z) n.T = 100;
+	else if(gridX == pos.x && gridY == pos.y + 1 && gridZ == pos.z) n.T = 100;
+	else if(gridX == pos.x && gridY == pos.y && gridZ == pos.z + 1) n.T = 100;
+	else n.T = 0;
+	*/
 
 	nodes[index] = n;
 }

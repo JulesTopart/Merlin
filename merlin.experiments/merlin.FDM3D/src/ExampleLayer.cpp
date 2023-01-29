@@ -29,7 +29,7 @@ ExampleLayer::ExampleLayer() {
 
 void ExampleLayer::CreateMesh() {
 	//voxels = Primitive::CreateSphere(0.040 / sqNodeCount /2, 5, 5);
-	voxels = Primitive::CreateCube(0.050 / sqNodeCount /2);
+	voxels = Primitive::CreateCube(0.050 * 0.8 / sqNodeCount);
 	voxels->Translate(glm::vec3(-0.475f, -0.475f, 0));
 }
 
@@ -87,7 +87,7 @@ void ExampleLayer::SetColorGradient() {
 	colorCount = colors.size();
 
 	heatMap = CreateShared<SSBO>("ColorMapBuffer");
-	heatMap->SetBindingPoint(3);
+	heatMap->SetBindingPoint(0);
 	heatMap->Allocate<Color>(colors);
 }
 
@@ -103,13 +103,11 @@ int hash(glm::vec3 p, int res) {
 void ExampleLayer::CreateSolver() {
 	//Create the buffer
 	buffer = CreateShared<SSBO>("NodeBuffer");
-	binBuffer = CreateShared<SSBO>("BinBuffer");
-
 	buffer->SetBindingPoint(1);
-	binBuffer->SetBindingPoint(2);
 
 	std::vector<Node> nodes;
 	{
+		Console::print() << "Generating nodes..." << Console::endl;
 		Node buf;
 		float space = domainWidth / float(sqNodeCount);
 		for (size_t i(0); i < sqNodeCount; i++) {
@@ -118,29 +116,34 @@ void ExampleLayer::CreateSolver() {
 					buf.U = glm::vec3(space * float(i), space * float(j), space * float(k));
 					buf.V = glm::vec3(0);
 					buf.T = 20.0f;
-					buf.enable = 0;
+					buf.enable = 1;
+					buf.index = i * sqNodeCount * sqNodeCount + j * sqNodeCount + k;
 					nodes.push_back(buf);
 				}
 			}
-			Console::printProgress(float(float(i) / float(sqNodeCount)));
+			if (i % (nodeCount / 100) == 0) Console::printProgress(float(float(i) / float(nodeCount)));
 		}
 		Console::printProgress(1.0f);
 		Console::print() << Console::endl;
 	}
-
 	
 	std::vector<std::pair<int, int>> hashlist;
 	{
+		Console::print() << "Generating hash..." << Console::endl;
 		for (int i(0); i < nodes.size(); i++) {
 			//Compute spatial hash
 			hashlist.push_back(std::make_pair(hash(nodes[i].U, hashResolution), i));
+			if (i % (nodes.size() / 100) == 0) Console::printProgress(float(float(i) / float(nodes.size())));
 		}
+		Console::printProgress(1.0f);
+		Console::print() << Console::endl;
 		std::sort(hashlist.begin(), hashlist.end()); //Sort list
 	}
 
 	std::vector<Bin> bins;
 	std::vector<Node> sorted_nodes;
 	{
+		Console::print() << "Sorting nodes..." << Console::endl;
 		int hash = 0;
 		for (int i(0); i < hashlist.size(); i++) {
 			if (hash != hashlist[i].first) {
@@ -150,18 +153,24 @@ void ExampleLayer::CreateSolver() {
 				hash = hashlist[i].first;
 			}
 			sorted_nodes.push_back(nodes[hashlist[i].second]);
+			if (i % (hashlist.size() / 100) == 0) Console::printProgress(float(float(i) / float(hashlist.size())));
 		};
+		Console::printProgress(1.0f);
+		Console::print() << Console::endl;
 	}
-	
-	buffer->Allocate<Node>(nodes);
-	Console::info("Application") << "Node allocated using " << buffer->size() / 1000 << "Ko" << Console::endl;
 
+
+	buffer->Allocate<Node>(sorted_nodes);
+	Console::info("Application") << "Node allocated using " << long(buffer->size() / 1000) << "Ko" << Console::endl;
+
+	binBuffer = CreateShared<SSBO>("BinBuffer");
+	binBuffer->SetBindingPoint(2);
 	binBuffer->Allocate<Bin>(bins);
-	Console::info("Application") << "Bins allocated using " << binBuffer->size() / 1000 << "Ko" << Console::endl;
+	Console::info("Application") << "Bins allocated using " << long(binBuffer->size() / 1000) << "Ko" << Console::endl;
 
 	physics->PrintLimits();
 
-	solver = CreateShared<Solver>(nodeCount, 128);
+	solver = CreateShared<Solver>(nodeCount, 32);
 	solver->AddComputeShader(init);
 	solver->AddComputeShader(physics);
 	solver->AddStorageBuffer(buffer);
@@ -171,11 +180,11 @@ void ExampleLayer::CreateSolver() {
 void ExampleLayer::OnDetach() {}
 
 void ExampleLayer::OnAttach(){
-	sqNodeCount = 32;
-	hashResolution = 10;
+	sqNodeCount = 64;
+	hashResolution = 16;
 	nodeCount = sqNodeCount * sqNodeCount * sqNodeCount; //3D Grid
 	domainWidth = 0.05f;
-	dt = 0.00005;
+	dt = 0.005;
 	t = 0;
 
 	speed = (domainWidth) / sqNodeCount;
@@ -189,7 +198,7 @@ void ExampleLayer::OnAttach(){
 	InitShaders();
 	CreateSolver();
 
-	solver->Execute(init, std::vector<Shared<SSBO>>(1, buffer));
+	solver->Execute(init);
 }
 
 void ExampleLayer::OnUpdate(Timestep ts) {
@@ -200,20 +209,33 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	simulate();
+	if(!paused)solver->Execute(physics);
+
+	axis->Draw(axisShader, camera->GetViewProjectionMatrix());
+	bed->Draw(modelShader, camera->GetViewProjectionMatrix());
+	//glDisable(GL_DEPTH_TEST);
+	if(drawMesh) voxels->DrawInstanced(voxelShader, camera->GetViewProjectionMatrix(), nodeCount);
+	//glEnable(GL_DEPTH_TEST);
+
+
+}
+
+void ExampleLayer::simulate(){
+
 	if (!paused) {
-		solver->Execute(physics);
 		physics->Use();
 		physics->SetDouble("dt", dt);
 		physics->SetUniform3f("hpos", u);
 		t += float(dt);
 
 		u += v;
-		if (u.x + speed >= domainWidth || u.x<= 0) {
+		if (u.x + speed >= domainWidth || u.x <= 0) {
 			v.x = 0;
 			v.y = speed;
 		}
 
-		if (u.y + speed > ((line + 1) * 2) * (domainWidth/sqNodeCount)) {
+		if (u.y + speed > ((line + 1) * 2) * (domainWidth / sqNodeCount)) {
 			line++;
 			v.x = ((line % 2 == 0) ? speed : -speed);
 			v.y = 0;
@@ -221,23 +243,16 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 
 		if (u.y + speed >= domainWidth) {
 			line = 0;
-			u.y = 0;
+
 			v.y = 0;
 			u.x = 0;
+			u.y = 0;
+			v = glm::vec3(speed, 0, 0);
 			u += glm::vec3(0, 0, (domainWidth / sqNodeCount));
 		}
 
+
 	}
-
-	buffer->Bind();
-	buffer->Attach(voxelShader);
-
-	heatMap->Bind();
-	heatMap->Attach(voxelShader);
-
-	if(drawMesh) voxels->DrawInstanced(voxelShader, camera->GetViewProjectionMatrix(), nodeCount);
-	axis->Draw(axisShader, camera->GetViewProjectionMatrix());
-	bed->Draw(modelShader, camera->GetViewProjectionMatrix());
 
 }
 
@@ -286,8 +301,10 @@ void ExampleLayer::OnImGuiRender()
 	ImGui::Checkbox("Draw Wireframe", &drawWiredMesh);
 
 	if (ImGui::SmallButton("Reset simulation")) {
-		solver->Execute(0); //init position using init compute shader
+		solver->Execute(init); //init position using init compute shader
 		t = 0;
+		u = glm::vec3(0, 0, 0);
+		v = glm::vec3(speed, 0, 0);
 	}
 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {

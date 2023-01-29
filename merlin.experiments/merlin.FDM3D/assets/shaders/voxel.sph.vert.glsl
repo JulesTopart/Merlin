@@ -28,8 +28,10 @@ struct Node {
 	float T_t;	//dT(t)/dt
 
 	//Boundary condition
-	float fix;				//particle is fixed in space
-	float enable;			//particle is deactivated
+	int fix;				//particle is fixed in space
+	int enable;			//particle is deactivated
+
+	uint index;
 };
 
 struct Color {
@@ -37,12 +39,13 @@ struct Color {
     float value;
 };
 
-layout (std430, binding = 1) buffer NodeBuffer {
-  Node nodes[];
+
+layout (std430, binding = 0) buffer ColorMapBuffer {
+  Color colors[];
 };
 
-layout (std430, binding = 3) buffer ColorMapBuffer {
-  Color colors[];
+layout (std430, binding = 1) buffer NodeBuffer {
+  Node nodes[];
 };
 
 layout (location = 0) in vec3 _position;
@@ -54,7 +57,6 @@ out vec3 position;
 out vec3 offset;
 out vec3 normal;
 out vec3 color;
-//out flat vec3 color;
 out vec2 texCoord;
 out float opacity;
 
@@ -90,7 +92,7 @@ vec3 heatMap(const double value){
 void main() {
 	position = vec3(model * vec4((_position + nodes[gl_InstanceID].U)*scale, 1.0f));
 	if(nodes[gl_InstanceID].enable == 1) color = heatMap(nodes[gl_InstanceID].T); //Divide by max temperature for color mapping
-	if(nodes[gl_InstanceID].enable == 0) color = vec3(1); //Divide by max temperature for color mapping
+	if(nodes[gl_InstanceID].enable == 0) color = vec3(1);
 	normal = _normal;
 	opacity = ((nodes[gl_InstanceID].T*nodes[gl_InstanceID].T)/(90.0f*90.0f));
 	if(nodes[gl_InstanceID].enable == 0) opacity = 0.0f;

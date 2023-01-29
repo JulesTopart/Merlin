@@ -1,5 +1,5 @@
 #version 450
-layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
 struct Node {
     vec3 U;		//Position
@@ -29,8 +29,10 @@ struct Node {
 	float T_t;	//dT(t)/dt
 
 	//Boundary condition
-	float fix;				//particle is fixed in space
-	float enable;			//particle is deactivated
+	int fix;				//particle is fixed in space
+	int enable;			//particle is deactivated
+
+	uint index;
 };
 
 layout (std430, binding = 1) buffer NodeBuffer {
@@ -46,17 +48,19 @@ void main() {
   
   Node n = nodes[index];
 
-  n.h = 0.05/30.0f;	//Smoothing radius
+  uint unsortedIndex = n.index; 
+
+  n.h = 0.05/10.0f;	//Smoothing radius
   n.d = 2700.0;	//Density
   n.T = 20.0;	//Temperature
 
-  ivec3 c = ivec3(index / (sqNodeCount * sqNodeCount), (index % (sqNodeCount * sqNodeCount)) / sqNodeCount, index % sqNodeCount);
+  ivec3 c = ivec3(unsortedIndex / (sqNodeCount * sqNodeCount), (unsortedIndex % (sqNodeCount * sqNodeCount)) / sqNodeCount, unsortedIndex % sqNodeCount);
 
   if(c.z == 0){
-	n.T = 20.0;
+	n.T = 60.0;
   }
   if(c.z == sqNodeCount-1){
-	n.T = 60.0;
+	n.T = 20.0;
   }
 
   nodes[index] = n;

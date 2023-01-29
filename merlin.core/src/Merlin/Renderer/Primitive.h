@@ -2,8 +2,10 @@
 #include "Merlin/Core/Core.h"
 
 #include <vector>
-#include "VertexArray.h"
-#include "Shader.h"
+#include "Merlin/Memory/VertexArray.h"
+#include "Merlin/Renderer/Shader.h"
+
+using namespace Merlin::Memory;
 
 namespace Merlin::Renderer {
 

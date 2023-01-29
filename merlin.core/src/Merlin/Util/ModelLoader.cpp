@@ -1,15 +1,8 @@
 #include "glpch.h"
 #include "ModelLoader.h"
+#include "Merlin/Core/Core.h"
 
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <vector>
-#include <memory>
-
-#include <tiny_gltf.h>
-
-#include "../Renderer/Vertex.h"
+#include "Merlin/Memory/Vertex.h"
 
 namespace Merlin::Utils {
 

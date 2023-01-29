@@ -1,13 +1,14 @@
 #include "glpch.h"
 #include "ScreenQuadRenderer.h"
 
+using namespace Merlin::Memory;
 
 namespace Merlin::Renderer {
 	ScreenQuadRenderer::ScreenQuadRenderer() {
 		
-		vao = std::make_shared<VAO>();
+		vao = CreateShared<VAO>();
 
-		shader = std::make_shared<Shader>("screen");
+		shader = CreateShared<Shader>("screen");
 		shader->Compile(
 			"assets/shaders/screen.quad.vert.glsl",
 			"assets/shaders/screen.quad.frag.glsl"

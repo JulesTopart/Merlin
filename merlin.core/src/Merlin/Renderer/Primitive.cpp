@@ -1,6 +1,6 @@
 #include "glpch.h"
 #include "Primitive.h"
-#include "IndexBuffer.h"
+#include "Merlin/Memory/IndexBuffer.h"
 
 namespace Merlin::Renderer {
 	Primitive::Primitive() {
