@@ -54,10 +54,12 @@ void main() {
   n.d = 2700.0;	//Density
   n.T = 20.0;	//Temperature
 
-  ivec3 c = ivec3(unsortedIndex / (sqNodeCount * sqNodeCount), (unsortedIndex % (sqNodeCount * sqNodeCount)) / sqNodeCount, unsortedIndex % sqNodeCount);
+  ivec3 c = ivec3(	(unsortedIndex % (sqNodeCount * sqNodeCount)) / sqNodeCount,
+					unsortedIndex % sqNodeCount, 
+					unsortedIndex / (sqNodeCount * sqNodeCount));
 
   if(c.z == 0){
-	n.T = 60.0;
+	n.T = 200.0;
   }
   if(c.z == sqNodeCount-1){
 	n.T = 20.0;

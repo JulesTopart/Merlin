@@ -96,5 +96,6 @@ void main() {
 	normal = _normal;
 	opacity = ((nodes[gl_InstanceID].T*nodes[gl_InstanceID].T)/(90.0f*90.0f));
 	if(nodes[gl_InstanceID].enable == 0) opacity = 0.0f;
+
 	gl_Position = view * vec4(position, 1.0f);
 }

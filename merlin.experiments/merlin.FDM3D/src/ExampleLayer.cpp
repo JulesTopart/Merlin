@@ -28,7 +28,7 @@ ExampleLayer::ExampleLayer() {
 
 
 void ExampleLayer::CreateMesh() {
-	//voxels = Primitive::CreateSphere(0.040 / sqNodeCount /2, 5, 5);
+	//voxels = Primitive::CreateSphere(0.040 / sqNodeCount /2, 8, 8);
 	voxels = Primitive::CreateCube(0.050 * 0.8 / sqNodeCount);
 	voxels->Translate(glm::vec3(-0.475f, -0.475f, 0));
 }
@@ -92,12 +92,13 @@ void ExampleLayer::SetColorGradient() {
 }
 
 
-int hash(glm::vec3 p, int res) {
-	int ix = p.x / (0.05 / float(res));
-	int iy = p.y / (0.05 / float(res));
-	int iz = p.z / (0.05 / float(res));
+GLsizeiptr hash(glm::vec3 p, int res) {
+	GLsizeiptr ix = (p.x / 0.05f) * float(res);
+	GLsizeiptr iy = (p.y / 0.05f) * float(res);
+	GLsizeiptr iz = (p.z / 0.05f) * float(res);
 
-	return ix * 92837111 ^ iy * 689287499 ^ iz * 283923481;
+	//return ix * 92837111 ^ iy * 689287499 ^ iz * 283923481;
+	return ix + iy * res + iz * res * res;
 }
 
 void ExampleLayer::CreateSolver() {
@@ -110,27 +111,27 @@ void ExampleLayer::CreateSolver() {
 		Console::print() << "Generating nodes..." << Console::endl;
 		Node buf;
 		float space = domainWidth / float(sqNodeCount);
-		for (size_t i(0); i < sqNodeCount; i++) {
+		for (size_t k(0); k < sqNodeCount; k++) {
 			for (size_t j(0); j < sqNodeCount; j++) {
-				for (size_t k(0); k < sqNodeCount; k++) {
+				for (size_t i(0); i < sqNodeCount; i++) {
 					buf.U = glm::vec3(space * float(i), space * float(j), space * float(k));
 					buf.V = glm::vec3(0);
 					buf.T = 20.0f;
-					buf.enable = 1;
-					buf.index = i * sqNodeCount * sqNodeCount + j * sqNodeCount + k;
+					buf.enable = 0;
+					buf.index = k * sqNodeCount * sqNodeCount + j * sqNodeCount + i;
 					nodes.push_back(buf);
 				}
 			}
-			if (i % (nodeCount / 100) == 0) Console::printProgress(float(float(i) / float(nodeCount)));
+			if (k % (nodeCount / 100) == 0) Console::printProgress(float(float(k) / float(nodeCount)));
 		}
 		Console::printProgress(1.0f);
 		Console::print() << Console::endl;
 	}
 	
-	std::vector<std::pair<int, int>> hashlist;
+	std::vector<std::pair<GLsizeiptr, GLsizeiptr>> hashlist;
 	{
 		Console::print() << "Generating hash..." << Console::endl;
-		for (int i(0); i < nodes.size(); i++) {
+		for (GLsizeiptr i(0); i < nodes.size(); i++) {
 			//Compute spatial hash
 			hashlist.push_back(std::make_pair(hash(nodes[i].U, hashResolution), i));
 			if (i % (nodes.size() / 100) == 0) Console::printProgress(float(float(i) / float(nodes.size())));
@@ -144,17 +145,20 @@ void ExampleLayer::CreateSolver() {
 	std::vector<Node> sorted_nodes;
 	{
 		Console::print() << "Sorting nodes..." << Console::endl;
-		int hash = 0;
-		for (int i(0); i < hashlist.size(); i++) {
+		GLsizeiptr hash = -1;
+		for (GLsizeiptr i(0); i < hashlist.size(); i++) {
 			if (hash != hashlist[i].first) {
-				if (bins.size() > 0)bins[bins.size() - 1].end = i - 1;
+				if (bins.size() > 0) bins[bins.size() - 1].end = i - 1;
 				bins.emplace_back();
 				bins[bins.size() - 1].start = i;
 				hash = hashlist[i].first;
 			}
 			sorted_nodes.push_back(nodes[hashlist[i].second]);
+
 			if (i % (hashlist.size() / 100) == 0) Console::printProgress(float(float(i) / float(hashlist.size())));
 		};
+		bins[bins.size() - 1].end = hashlist.size() - 1;
+
 		Console::printProgress(1.0f);
 		Console::print() << Console::endl;
 	}
@@ -170,7 +174,7 @@ void ExampleLayer::CreateSolver() {
 
 	physics->PrintLimits();
 
-	solver = CreateShared<Solver>(nodeCount, 32);
+	solver = CreateShared<Solver>(nodeCount, 256);
 	solver->AddComputeShader(init);
 	solver->AddComputeShader(physics);
 	solver->AddStorageBuffer(buffer);
@@ -180,14 +184,14 @@ void ExampleLayer::CreateSolver() {
 void ExampleLayer::OnDetach() {}
 
 void ExampleLayer::OnAttach(){
-	sqNodeCount = 64;
-	hashResolution = 16;
+	sqNodeCount = 256;
+	hashResolution = 220;
 	nodeCount = sqNodeCount * sqNodeCount * sqNodeCount; //3D Grid
 	domainWidth = 0.05f;
-	dt = 0.005;
+	dt = 0.001;
 	t = 0;
 
-	speed = (domainWidth) / sqNodeCount;
+	speed = 5*(domainWidth) / sqNodeCount;
 	u = glm::vec3(0, 0, 0);
 	v = glm::vec3(speed, 0, 0);
 

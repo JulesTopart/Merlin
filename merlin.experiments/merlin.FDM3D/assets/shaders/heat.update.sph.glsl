@@ -77,12 +77,15 @@ float getTemp(ivec2 p, ivec2 offset){
 void main() {
 	uint index = gl_GlobalInvocationID.x;
 	Node n = nodes[index];
-	uint unsortedIndex = n.index; 
-	ivec3 p = ivec3(unsortedIndex / (sqNodeCount * sqNodeCount), (unsortedIndex % (sqNodeCount * sqNodeCount)) / sqNodeCount, unsortedIndex % sqNodeCount);
 
-	if(length(hpos - n.U) < (0.05 * 2.5)/sqNodeCount){
-		//n.enable = 1;
-		//n.T = 200.0f;
+	uint unsortedIndex = n.index; 
+	ivec3 p = ivec3((unsortedIndex % (sqNodeCount * sqNodeCount)) / sqNodeCount,
+					 unsortedIndex % sqNodeCount, 
+					 unsortedIndex / (sqNodeCount * sqNodeCount));
+
+	if(length(hpos - n.U) < (0.05 * 6)/sqNodeCount){
+		n.enable = 1;
+		n.T = 200.0f;
 	}
 
 	//if(n.enable == 0) return;
@@ -92,19 +95,16 @@ void main() {
 	float T_ti = 0.;
 	vec3 pi = n.U;
 
-	float gridX = int(n.U.x / ((0.05 / float(sqBinCount))));
-	float gridY = int(n.U.y / ((0.05 / float(sqBinCount))));
-	float gridZ = int(n.U.z / ((0.05 / float(sqBinCount))));
+	uint gridX = uint(float(n.U.x / 0.05) * sqBinCount );
+	uint gridY = uint(float(n.U.y / 0.05) * sqBinCount );
+	uint gridZ = uint(float(n.U.z / 0.05) * sqBinCount );
 
-	float hashIndex = ((gridZ * sqBinCount * sqBinCount) + (gridY * sqBinCount) + gridX)/(sqBinCount*sqBinCount*sqBinCount) * 200.0;
-	n.T=hashIndex;
-	/*
-	for (int z = gridZ ; z <= gridZ + 1; z++) {
-		for (int y = gridY; y <= gridY + 1; y++) {
-			for (int x = gridX; x <= gridX + 1; x++) {	
+	for (uint z = gridZ - (gridZ > 0 ? 1 : 0); z <= gridZ + 1; z++) {
+		for (uint y = gridY - (gridY > 0 ? 1 : 0); y <= gridY + 1; y++) {
+			for (int x = int(gridX) - (gridX > 0 ? 1 : 0); x <= gridX + 1; x++) {	
 
-				//if(x < 0 || y < 0 || z < 0) continue;
-				//if(x > sqBinCount || y > sqBinCount || z > sqBinCount) continue;
+				if(x < 0 || y < 0 || z < 0) continue;
+				if(x > sqBinCount || y > sqBinCount || z > sqBinCount) continue;
 
 				uint hashIndex = (z * sqBinCount * sqBinCount) + (y * sqBinCount) + x;
 
@@ -122,14 +122,18 @@ void main() {
 			}
 		}
 	}
-	T_ti += 10000;
+
 	n.T_t = T_ti;
 	n.T += float(double((8.97*pow(10,-5)) * T_ti) * dt);
 	
 	if(p.z == 0){
 		n.T = 60.0;
 	}
-	*/
+
+	if(p.z == sqNodeCount - 1 || p.y == sqNodeCount - 1 || p.x == sqNodeCount - 1 || p.y == 0 || p.x == 0){
+		n.T = 20.0;
+	}
+	
 	//if(gridX == sqBinCount/2 && gridY == sqBinCount/2 && gridZ == 0) n.T = 200;
 
 	/* Debug Grid
