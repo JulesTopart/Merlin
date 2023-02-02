@@ -1,8 +1,6 @@
 #include "glpch.h"
 #include "Mesh.h"
-#include "GL.h"
-#include "IndexBuffer.h"
-#include "Merlin/Core/Log.h"
+#include "Merlin/Memory/IndexBuffer.h"
 
 namespace Merlin::Renderer {
 	Mesh::Mesh(std::string n) {

@@ -1,9 +1,11 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 
-#include "Shader.h"
-#include "Texture.h"
-#include "VertexArray.h"
+#include "Merlin/Renderer/Shader.h"
+#include "Merlin/Renderer/Texture.h"
+#include "Merlin/Memory/VertexArray.h"
+
+using namespace Merlin::Memory;
 
 namespace Merlin::Renderer {
 

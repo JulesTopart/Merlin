@@ -1,8 +1,8 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 
-#include "Merlin/Renderer/VertexArray.h"
-#include "Merlin/Tensor/ShaderStorageBuffer.h"
+#include "Merlin/Memory/VertexArray.h"
+#include "Merlin/Memory/ShaderStorageBuffer.h"
 #include "Merlin/Renderer/Shader.h"
 #include "Merlin/Renderer/Texture.h"
 #include "Merlin/Tensor/ComputeShader.h"
@@ -40,7 +40,6 @@ namespace Merlin::Tensor {
 		void Draw(Shared<Shader> shader, glm::mat4 view); //Draw the mesh
 
 		
-
 		void AddComputeShader(Shared<ComputeShader>);
 		void AddStorageBuffer(Shared<SSBO>);
 

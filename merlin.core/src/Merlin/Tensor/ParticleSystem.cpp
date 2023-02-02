@@ -1,7 +1,7 @@
 #include "glpch.h"
 #include "GL.h"
 #include "ParticleSystem.h"
-#include "Merlin/Renderer/IndexBuffer.h"
+#include "Merlin/Memory/IndexBuffer.h"
 
 
 namespace Merlin::Tensor {

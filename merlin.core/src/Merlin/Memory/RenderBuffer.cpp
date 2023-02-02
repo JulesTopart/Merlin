@@ -1,7 +1,7 @@
 #include "glpch.h"
 #include "RenderBuffer.h"
 
-namespace Merlin::Renderer {
+namespace Merlin::Memory {
 	RenderBuffer::RenderBuffer(int samples) : _samples(samples){
 
 		// Generate a new renderbuffer object

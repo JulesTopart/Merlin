@@ -11,6 +11,8 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <fstream>
+#include <vector>
 
 #ifdef GLCORE_PLATFORM_WINDOWS
 	#include <Windows.h>

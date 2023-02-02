@@ -1,19 +1,14 @@
 #pragma once
 #include "Merlin/Core/Core.h"
+#include "Merlin/Memory/BufferObject.h"
 
 #include <vector>
 
-namespace Merlin::Renderer {
-	class IndexBuffer {
+namespace Merlin::Memory {
+	class IndexBuffer : public BufferObject{
 	public:
 		IndexBuffer(std::vector<GLuint>& indices);
 		~IndexBuffer();
-
-		void Bind();
-		void Unbind();
-
-	private:
-		unsigned int m_RendererID;
 	};
 
 	typedef IndexBuffer EBO;

@@ -13,9 +13,10 @@
 
 namespace Merlin::Tensor {
 
-	ComputeShader::ComputeShader(std::string n) {
+	ComputeShader::ComputeShader(std::string n, const std::string cspath) {
 		_name = n;
 		_xWkgrp = _yWkgrp = _zWkgrp = 1;
+		if (cspath != "") Compile(cspath);
 	}
 
 	ComputeShader::~ComputeShader() {
@@ -60,12 +61,10 @@ namespace Merlin::Tensor {
 	}
 
 	void ComputeShader::Dispatch(GLuint x, GLuint y, GLuint z) {
-		//glDispatchCompute(ceil(_width/8), ceil(_height/4), 1);
-
 		_xWkgrp = x;
 		_yWkgrp = y;
 		_zWkgrp = z;
-		Console::trace("ComputeShader") << "Dispatch: " << _xWkgrp << "x" << _yWkgrp << "x" << _zWkgrp << Console::endl;
+		Console::trace("ComputeShader") << "Dispatch: " << int(_xWkgrp) << "x" << int(_yWkgrp) << "x" << int(_zWkgrp) << Console::endl;
 		glDispatchCompute(_xWkgrp, _yWkgrp, _zWkgrp);
 	}
 

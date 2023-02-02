@@ -4,19 +4,19 @@
 #include "../Core/Console.h"
 #include <glad/glad.h>
 
-namespace Merlin::Renderer {
+namespace Merlin::Memory {
 	VertexArray::VertexArray() {
-		glCreateVertexArrays(1, &m_RendererID);
-		Console::trace("VertexArray") << "VertexArray " << m_RendererID << " created. " << Console::endl;
+		glCreateVertexArrays(1, &ArrayID);
+		Console::trace("VertexArray") << "VertexArray " << ArrayID << " created. " << Console::endl;
 	}
 
 	VertexArray::~VertexArray() {
-		glDeleteVertexArrays(1, &m_RendererID);
-		Console::trace("VertexArray") << "VertexArray " << m_RendererID << " deleted. " << Console::endl;
+		glDeleteVertexArrays(1, &ArrayID);
+		Console::trace("VertexArray") << "VertexArray " << ArrayID << " deleted. " << Console::endl;
 	}
 
 	void VertexArray::Bind() {
-		glBindVertexArray(m_RendererID);
+		glBindVertexArray(ArrayID);
 	}
 
 	void VertexArray::Unbind() {

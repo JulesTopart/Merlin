@@ -4,6 +4,7 @@
 #include "../Renderer/Mesh.h"
 
 using namespace Merlin::Renderer;
+using namespace Merlin::Memory;
 
 namespace Merlin::Utils{
 

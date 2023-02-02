@@ -1,15 +1,8 @@
 #include "glpch.h"
 #include "ModelLoader.h"
+#include "Merlin/Core/Core.h"
 
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <vector>
-#include <memory>
-
-#include <tiny_gltf.h>
-
-#include "../Renderer/Vertex.h"
+#include "Merlin/Memory/Vertex.h"
 
 namespace Merlin::Utils {
 
@@ -277,6 +270,9 @@ namespace Merlin::Utils {
             file.read((char*)&v3.position.y, sizeof(v3.position.y));
             file.read((char*)&v3.position.z, sizeof(v3.position.z));
 
+            v1.position /= 1000.0f;
+            v2.position /= 1000.0f;
+            v3.position /= 1000.0f;
             v1.normal = glm::vec3(normal[0], normal[1], normal[2]); //by convention we store the facet normal in the first vertex
 
             // Add the vertices to the vertex vector and update the indices

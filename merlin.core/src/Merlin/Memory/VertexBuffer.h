@@ -1,21 +1,17 @@
 #pragma once
 #include "Merlin/Core/Core.h"
+#include "Merlin/Memory/BufferObject.h"
+#include "Merlin/Memory/Vertex.h"
 
 #include <vector>
-#include "Vertex.h"
 
-namespace Merlin::Renderer {
 
-	class VertexBuffer {
+namespace Merlin::Memory {
+
+	class VertexBuffer : public BufferObject{
 	public:
 		VertexBuffer(std::vector<Vertex>& vertices);
 		~VertexBuffer();
-
-		void Bind(GLenum mode = GL_ARRAY_BUFFER);
-		void Unbind();
-
-	private:
-		unsigned int m_RendererID;
 	};
 
 	typedef VertexBuffer VBO;
