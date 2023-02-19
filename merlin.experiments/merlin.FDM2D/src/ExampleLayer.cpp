@@ -127,7 +127,7 @@ void ExampleLayer::CreateSolver() {
 	}
 
 	buffer->Allocate<Node>(nodes);
-	Console::info("Application") << "Node allocated using " << buffer->size() / 1000 << "Ko" << Console::endl;
+	Console::info("Application") << "Node allocated using " << long(buffer->size() / 1000) << "Ko" << Console::endl;
 
 	solver = CreateShared<Solver>(nodeCount, 32);
 	solver->AddComputeShader(init);

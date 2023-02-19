@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{401646BF-C220-4BE6-A9C3-6482D697714A}</ProjectGuid>
+    <ProjectGuid>{4B8C8705-DE45-4DAA-B825-BAC7C0DDA4A4}</ProjectGuid>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>merlin.FDM3D</RootNamespace>
+    <RootNamespace>merlin.isosurface</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>merlin.FDM3D</ProjectName>
+    <ProjectName>merlin.isosurface</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -43,18 +43,18 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\Debug-windows-x86_64\merlin.FDM3D\</OutDir>
-    <IntDir>$(SolutionDir)bin-int\Debug-windows-x86_64\merlin.FDM3D\</IntDir>
-    <TargetName>merlin.FDM3D</TargetName>
+    <OutDir>$(SolutionDir)bin\Debug-windows-x86_64\merlin.isosurface\</OutDir>
+    <IntDir>$(SolutionDir)bin-int\Debug-windows-x86_64\merlin.isosurface\</IntDir>
+    <TargetName>merlin.isosurface</TargetName>
     <TargetExt>.exe</TargetExt>
     <IncludePath>$(SolutionDir)merlin.core\vendor\assimp\include;$(SolutionDir)merlin.core\vendor\spdlog\include;$(SolutionDir)merlin.core\vendor\GLFW\include;$(SolutionDir)merlin.core\vendor\glad\include;$(SolutionDir)merlin.core\vendor\imgui;$(SolutionDir)merlin.core\vendor\glm;$(SolutionDir)merlin.core\vendor\stb_image;$(SolutionDir)merlin.core\vendor/tinygltf;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(SolutionDir)bin\Debug-windows-x86_64\merlin.core\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\Release-windows-x86_64\merlin.FDM3D\</OutDir>
-    <IntDir>$(SolutionDir)bin-int\Release-windows-x86_64\merlin.FDM3D\</IntDir>
-    <TargetName>merlin.FDM3D</TargetName>
+    <OutDir>$(SolutionDir)bin\Release-windows-x86_64\merlin.isosurface\</OutDir>
+    <IntDir>$(SolutionDir)bin-int\Release-windows-x86_64\merlin.isosurface\</IntDir>
+    <TargetName>merlin.isosurface</TargetName>
     <TargetExt>.exe</TargetExt>
     <IncludePath>$(SolutionDir)merlin.core\vendor\assimp\include;$(SolutionDir)merlin.core\vendor\spdlog\include;$(SolutionDir)merlin.core\vendor\GLFW\include;$(SolutionDir)merlin.core\vendor\glad\include;$(SolutionDir)merlin.core\vendor\imgui;$(SolutionDir)merlin.core\vendor\glm;$(SolutionDir)merlin.core\vendor\stb_image;$(SolutionDir)merlin.core\vendor/tinygltf;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(SolutionDir)bin\Release-windows-x86_64\merlin.core\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
@@ -124,14 +124,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\tensor\noise.glsl" />
     <None Include="assets\shaders\axis.frag.glsl" />
     <None Include="assets\shaders\axis.vert.glsl" />
-    <None Include="assets\physics\heat.init.glsl" />
-    <None Include="assets\shaders\heat.update.glsl" />
-    <None Include="assets\physics\heat.update.glsl" />
-    <None Include="assets\shaders\model.frag.glsl" />
-    <None Include="assets\shaders\model.vert.glsl" />
+    <None Include="assets\shaders\heat.init.glsl" />
+    <None Include="assets\shaders\heat.init.sph.glsl" />
+    <None Include="assets\tensor\isosurface.glsl" />
+    <None Include="assets\shaders\heat.update.sph.glsl" />
     <None Include="assets\shaders\voxel.frag.glsl" />
+    <None Include="assets\shaders\voxel.sph.vert.glsl" />
     <None Include="assets\shaders\voxel.vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

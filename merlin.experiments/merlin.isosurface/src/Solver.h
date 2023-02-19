@@ -11,11 +11,12 @@ using namespace Merlin::Tensor;
 
 class Solver{
 public:
-	Solver(GLuint instances, GLuint thread = 16);
+	Solver(GLsizeiptr instances, GLuint thread = 16);
 	~Solver(){};
 
 	void Execute(); //Execute all compute shader
-	void Execute(int i); //Execute compute shader i once
+	void Execute(Shared<ComputeShader> shader); //Execute compute shader i once
+	void Execute(Shared<ComputeShader> shader, std::vector<Shared<SSBO>> buffers); //Execute compute shader i once
 
 	void AddComputeShader(Shared<ComputeShader>);
 	void AddStorageBuffer(Shared<SSBO>);
@@ -24,7 +25,8 @@ public:
 
 private:
 
-	GLuint _instances, _threadPattern = 16;
+	GLsizeiptr _instances;
+	GLuint _threadPattern = 16;
 	//Buffers & Compute Shaders
 	std::vector<Shared<SSBO>> _buffers; //Buffer to store the particle
 	std::vector<Shared<ComputeShader>> _shaders; //Shader to compute the particle position

@@ -74,7 +74,7 @@ namespace Merlin {
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);	
 			WindowCloseEvent event;
 			data.EventCallback(event);
 		});

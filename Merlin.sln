@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.32407.337
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{53E47842-3FC8-3998-A828-34EB942B241A}"
 EndProject
@@ -41,6 +41,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.FDM2D", "merlin.experiments\merlin.FDM2D\merlin.FDM2D.vcxproj", "{8CF0153D-CB85-4BC4-A28F-0301E154FFC3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.FDM3D", "merlin.experiments\merlin.FDM3D\merlin.FDM3D.vcxproj", "{401646BF-C220-4BE6-A9C3-6482D697714A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.isosurface", "merlin.experiments\merlin.isosurface\merlin.isosurface.vcxproj", "{4B8C8705-DE45-4DAA-B825-BAC7C0DDA4A4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -104,6 +106,14 @@ Global
 		{401646BF-C220-4BE6-A9C3-6482D697714A}.Release|x64.ActiveCfg = Release|x64
 		{401646BF-C220-4BE6-A9C3-6482D697714A}.Release|x64.Build.0 = Release|x64
 		{401646BF-C220-4BE6-A9C3-6482D697714A}.Release|x86.ActiveCfg = Release|x64
+		{4B8C8705-DE45-4DAA-B825-BAC7C0DDA4A4}.Debug|x64.ActiveCfg = Debug|x64
+		{4B8C8705-DE45-4DAA-B825-BAC7C0DDA4A4}.Debug|x64.Build.0 = Debug|x64
+		{4B8C8705-DE45-4DAA-B825-BAC7C0DDA4A4}.Debug|x86.ActiveCfg = Debug|x64
+		{4B8C8705-DE45-4DAA-B825-BAC7C0DDA4A4}.Debug|x86.Build.0 = Debug|x64
+		{4B8C8705-DE45-4DAA-B825-BAC7C0DDA4A4}.Release|x64.ActiveCfg = Release|x64
+		{4B8C8705-DE45-4DAA-B825-BAC7C0DDA4A4}.Release|x64.Build.0 = Release|x64
+		{4B8C8705-DE45-4DAA-B825-BAC7C0DDA4A4}.Release|x86.ActiveCfg = Release|x64
+		{4B8C8705-DE45-4DAA-B825-BAC7C0DDA4A4}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -117,6 +127,7 @@ Global
 		{6C484867-32C9-4676-81E6-A87030921AE7} = {D1D60AC2-73CD-450E-870C-D9D66BA549C1}
 		{8CF0153D-CB85-4BC4-A28F-0301E154FFC3} = {EDF6DC09-5DC7-4487-8731-3E5EC75C32B0}
 		{401646BF-C220-4BE6-A9C3-6482D697714A} = {EDF6DC09-5DC7-4487-8731-3E5EC75C32B0}
+		{4B8C8705-DE45-4DAA-B825-BAC7C0DDA4A4} = {EDF6DC09-5DC7-4487-8731-3E5EC75C32B0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08CE0857-BD26-4581-B676-934B26490A92}
