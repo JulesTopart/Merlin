@@ -124,6 +124,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\shaders\isosurface.frag.glsl" />
+    <None Include="assets\shaders\isosurface.vert.glsl" />
     <None Include="assets\tensor\noise.glsl" />
     <None Include="assets\shaders\axis.frag.glsl" />
     <None Include="assets\shaders\axis.vert.glsl" />

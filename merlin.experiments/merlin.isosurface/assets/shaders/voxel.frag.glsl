@@ -11,5 +11,5 @@ out vec4 FragColor;
 
 void main() {
   if(opacity < 0.1) discard;
-  FragColor = vec4(color, 1.0f);
+  FragColor = vec4(color, opacity);
 }

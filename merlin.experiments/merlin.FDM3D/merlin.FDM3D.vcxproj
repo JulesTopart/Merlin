@@ -133,6 +133,7 @@
     <None Include="assets\shaders\model.vert.glsl" />
     <None Include="assets\shaders\voxel.frag.glsl" />
     <None Include="assets\shaders\voxel.vert.glsl" />
+    <None Include="assets\physics\viscoelastic.update.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

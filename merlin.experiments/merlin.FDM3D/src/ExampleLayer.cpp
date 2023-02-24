@@ -213,7 +213,7 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	simulate();
+	//simulate();
 	if(!paused)solver->Execute(physics);
 
 	axis->Draw(axisShader, camera->GetViewProjectionMatrix());
@@ -252,7 +252,7 @@ void ExampleLayer::simulate(){
 			u.x = 0;
 			u.y = 0;
 			v = glm::vec3(speed, 0, 0);
-			u += glm::vec3(0, 0, (domainWidth / sqNodeCount));
+			u += glm::vec3(0, 0, (domainWidth / sqNodeCount)*10.0);
 		}
 
 

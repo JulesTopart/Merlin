@@ -34,6 +34,7 @@ uniform int mode;
 void main() {
 	position = vec3(model * vec4((_position + nodes[gl_InstanceID].U)*scale, 1.0f));
 	if(nodes[gl_InstanceID].enable == 1) color = normalize(position);
+	//if(nodes[gl_InstanceID].enable == 1) color = vec3(0.6);
 	if(nodes[gl_InstanceID].enable == 0) color = vec3(0.1);
 
 	opacity = nodes[gl_InstanceID].enable == 1 ? nodes[gl_InstanceID].V.x/2.0 : 0.0;

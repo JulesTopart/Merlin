@@ -16,6 +16,14 @@ struct Node {
 	GLuint index;
 };
 
+struct IsoVertex {
+	glm::vec3 position;//Position
+	float scale;
+	glm::vec3 normal;//Velocity
+	float size;
+};
+
+
 class ExampleLayer : public Merlin::Layer{
 public:
 	ExampleLayer();
@@ -40,25 +48,23 @@ private:
 
 	GLsizei _width, _height;
 
-	//Moving heat source
-	glm::vec3 u;
-	glm::vec3 v;
-	float speed;
-	int line = 0;
-
 	//Mesh rendering
 	Shared<Shader> axisShader;
 	Shared<Shader> voxelShader;
+	Shared<Shader> isoSurfaceShader;
 	Shared<Primitive> axis;
 	Shared<Primitive> voxels;
+	Shared<Primitive> isoSurface;
 
 	//Computing
 	Shared<ComputeShader> physics;
+	Shared<ComputeShader> isosurfaceGen;
 
 	Shared<SSBO> buffer;
+	Shared<SSBO> isobuffer;
 	Shared<Solver> solver;
 
-	GLsizeiptr nodeCount, sqNodeCount;
+	GLsizeiptr nodeCount, sqNodeCount, isoSurfaceResolution;
 	float domainWidth;
 	//Camera
 	Shared<Camera> camera;

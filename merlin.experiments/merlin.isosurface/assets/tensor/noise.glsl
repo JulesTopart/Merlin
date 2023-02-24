@@ -108,10 +108,10 @@ float sampleBunny(vec3 uvs)
 
 float getDensity(vec3 cubePos)
 {
-    float density = sampleBunny(cubePos);
+    float density = 1.0; //sampleBunny(cubePos);
     //return density; //disable noise
     if (density == 0.0) return 0.0; // makes things a tad bit faster
-    vec3 noiseUV = cubePos*12.0;
+    vec3 noiseUV = cubePos;
     noiseUV += iTime*3.0 * vec3(1.0,0.0,0.0);
     density = density * max(0.0, 1.25*erosionStrength*linearRandFBM(noiseUV)*4.0-2.0); // more complex FBM noise
     return density;
@@ -121,16 +121,16 @@ float getDensity(vec3 cubePos)
 void main(){
     //Get the actual node coordinate
     uint index = gl_GlobalInvocationID.x;
-    vec3 uv = 0.015 * vec3(	(index % (64 * 64)) / 64,
-				index % 64, 
-				index / (64 * 64));
+    vec3 uv = 0.015 * vec3(	(index % (32 * 32)) / 32,
+				index % 32, 
+				index / (32 * 32));
 
     vec3 col = uv;
     int w = 1;
 
     nodes[index].V.x = getDensity(uv);
-    if(nodes[index].V.x < 0.1) w = 0;
+    //if(nodes[index].V.x < 0.1) w = 0;
 
-    nodes[index].enable = w;
+    nodes[index].enable = (w>0.0) ? 1 : 0;
     
 }

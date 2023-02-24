@@ -12,15 +12,20 @@ ExampleLayer::ExampleLayer() {
 	_height = w->GetHeight();
 	_width = w->GetWidth();
 	camera = CreateShared<Camera>(_width, _height, Projection::Perspective);
-	camera->SetPosition(glm::vec3(-2.0f, 0.0f, 1.0f));
+	camera->SetPosition(glm::vec3(-2.0f, 0.0f, 0.6f));
+	camera->Rotate(glm::vec3(0,0,-1.55));
 	cameraController = CreateShared<CameraController3D>(camera);
 
 	EnableGLDebugging();
 	Console::SetLevel(ConsoleLevel::_INFO);
 
 	// Init OpenGL settings
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glEnable(GL_BLEND);
+
+	if (true) { //enable transparency
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+	}
+
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
 }
@@ -42,9 +47,10 @@ void ExampleLayer::LoadShaders() {
 	//Shaders
 	axisShader = CreateShared<Shader>("axis", "assets/shaders/axis.vert.glsl", "assets/shaders/axis.frag.glsl");
 	voxelShader = CreateShared<Shader>("voxel", "assets/shaders/voxel.vert.glsl", "assets/shaders/voxel.frag.glsl");
-
+	isoSurfaceShader = CreateShared<Shader>("isosurface", "assets/shaders/isosurface.vert.glsl", "assets/shaders/isosurface.frag.glsl");
 	//Compute Shaders
 	physics = CreateShared<ComputeShader>("physics", "assets/tensor/noise.glsl");
+	isosurfaceGen = CreateShared<ComputeShader>("isosurface", "assets/tensor/isosurface.glsl");
 }
 
 void ExampleLayer::InitShaders() {
@@ -57,6 +63,12 @@ void ExampleLayer::InitShaders() {
 	physics->SetUInt("sqNodeCount", sqNodeCount);
 	physics->SetDouble("dt", dt);
 
+	
+	isosurfaceGen->Use();
+
+	isosurfaceGen->SetUInt("chunk_size", isoSurfaceResolution);
+	isosurfaceGen->SetUInt("chunk_size2", isoSurfaceResolution * isoSurfaceResolution);
+	
 }
 
 
@@ -90,26 +102,40 @@ void ExampleLayer::CreateSolver() {
 	buffer->Allocate<Node>(nodes);
 	Console::info("Application") << "Node allocated using " << long(buffer->size() / 1000) << "Ko" << Console::endl;
 
-	physics->PrintLimits();
 
+	isobuffer = CreateShared<SSBO>("GeomBuffer");
+	isobuffer->SetBindingPoint(2);
+
+
+	GLsizei isoVertexCount = pow((isoSurfaceResolution * 15), 3); //Worst case 15 vertex per voxel in 3D
+
+	std::vector<IsoVertex> isoVertices;
+	isoVertices.resize(isoVertexCount);
+	isobuffer->Allocate<IsoVertex>(isoVertices);
+
+	std::vector<Vertex> vertices;
+	vertices.resize(isoVertexCount);
+	isoSurface = CreateShared<Primitive>(vertices);
+	isoSurface->Translate(glm::vec3(-0.475f, -0.475f, 0));
+	
+
+	physics->PrintLimits();
 	solver = CreateShared<Solver>(nodeCount, 64);
 	solver->AddComputeShader(physics);
 	solver->AddStorageBuffer(buffer);
+	solver->AddStorageBuffer(isobuffer);
 
 }
 
 void ExampleLayer::OnDetach() {}
 
 void ExampleLayer::OnAttach(){
-	sqNodeCount = 64;
+	sqNodeCount = 32;
+	isoSurfaceResolution = 32;
 	nodeCount = sqNodeCount * sqNodeCount * sqNodeCount; //3D Grid
 	domainWidth = 0.05f;
 	dt = 0.003;
 	t = 0;
-
-	speed = 5*(domainWidth) / sqNodeCount;
-	u = glm::vec3(0, 0, 0);
-	v = glm::vec3(speed, 0, 0);
 
 	CreateMesh();
 	LoadModels();
@@ -126,14 +152,19 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	simulate();
-	if(!paused)solver->Execute(physics);
 
 	glLineWidth(5);
 	axis->Draw(axisShader, camera->GetViewProjectionMatrix());
 	glLineWidth(1);
 
+	simulate();
+	if (!paused) {
+		solver->Execute(physics);
+	}
+
 	if (drawMesh) voxels->DrawInstanced(voxelShader, camera->GetViewProjectionMatrix(), nodeCount);
+	else isoSurface->Draw(isoSurfaceShader, camera->GetViewProjectionMatrix());
+
 }
 
 void ExampleLayer::simulate(){
@@ -181,8 +212,13 @@ void ExampleLayer::OnImGuiRender()
 			paused = !paused;
 	}
 	else {
-		if (ImGui::SmallButton("Pause simulation"))
+		if (ImGui::SmallButton("Pause simulation")) {
 			paused = !paused;
+			solver->SetThread(1);
+			solver->Execute(isosurfaceGen);
+			solver->SetThread(64);
+		}
+
 	}
 
 	
