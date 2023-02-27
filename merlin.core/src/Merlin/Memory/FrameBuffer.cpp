@@ -103,7 +103,7 @@ namespace Merlin::Memory {
         
         // Create Framebuffer Texture
         std::shared_ptr<Texture> tex;
-        tex = std::make_shared<Texture>(samples);
+        tex = std::make_shared<Texture>();
         tex->Bind();
         tex->Allocate(_width, _height, GL_RGB);
 
