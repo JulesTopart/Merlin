@@ -18,10 +18,10 @@ namespace Merlin::Renderer {
 
 		for (size_t i = 0; i < textures.size(); i++) {
 			std::string num;
-			if (textures[i]->type() == Texture::Type::DIFFUSE) {
+			if (textures[i]->type() == TextureType::DIFFUSE) {
 				num = std::to_string(numDiffuse++);
 			}
-			else if (textures[i]->type() == Texture::Type::SPECULAR) {
+			else if (textures[i]->type() == TextureType::SPECULAR) {
 				num = std::to_string(numSpecular++);
 			}
 			else {
@@ -30,6 +30,7 @@ namespace Merlin::Renderer {
 			textures[i]->SetUnit(i);
 			textures[i]->SyncTextureUnit(shader, (textures[i]->typeToString() + num));
 			textures[i]->Bind();
+
 		}
 
 		shader->SetMatrix4f("view", view); //Sync camera with GPU
@@ -41,7 +42,7 @@ namespace Merlin::Renderer {
 		vao.Unbind();
 	}
 
-	Mesh& Mesh::LoadTexture(std::string path, Texture::Type t, GLuint format) {
+	Mesh& Mesh::LoadTexture(std::string path, TextureType t, GLuint format) {
 
 		std::shared_ptr<Texture> tex = std::make_shared<Texture>();
 		tex->LoadFromFile(path, t, format);

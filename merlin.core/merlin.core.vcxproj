@@ -152,6 +152,8 @@
     <ClInclude Include="src\Merlin\Core\WindowsWindow.h" />
     <ClInclude Include="src\glpch.h" />
     <ClInclude Include="src\Merlin\Renderer\Texture.h" />
+    <ClInclude Include="src\Merlin\Renderer\TextureMultisampled.h" />
+    <ClInclude Include="src\Merlin\Renderer\TextureCubeMap.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Merlin\Memory\BufferObject.cpp" />
@@ -187,6 +189,8 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Merlin\Renderer\Texture.cpp" />
+    <ClCompile Include="src\Merlin\Renderer\TextureMultisampled.cpp" />
+    <ClCompile Include="src\Merlin\Renderer\TextureCubeMap.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
