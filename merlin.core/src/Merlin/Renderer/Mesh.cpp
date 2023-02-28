@@ -45,6 +45,7 @@ namespace Merlin::Renderer {
 	Mesh& Mesh::LoadTexture(std::string path, TextureType t, GLuint format) {
 
 		std::shared_ptr<Texture> tex = std::make_shared<Texture>();
+		tex->Bind();
 		tex->LoadFromFile(path, t, format);
 		textures.push_back(tex);
 

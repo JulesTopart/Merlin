@@ -25,5 +25,5 @@ void main(){
     vec3 reflectDir = reflect(-lightDir, n);
     float specular = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
     //o_Color = vec4((ambient + diffuse + specular) * color, 1.0f) * texture(diffuse0, texCoord);
-    o_Color = texture(diffuse0, texCoord);
+    o_Color = texture(diffuse0, texCoord) + vec4(vec3(texCoord, 1.0),1.0);
 }

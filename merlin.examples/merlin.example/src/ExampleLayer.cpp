@@ -26,8 +26,8 @@ void ExampleLayer::OnAttach(){
 	Console::SetLevel(ConsoleLevel::_INFO);
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
 
 	axisShader = std::make_shared<Shader>("axis");
@@ -47,6 +47,7 @@ void ExampleLayer::OnAttach(){
 	axis = ModelLoader::LoadAxis("axis");
 	//model = ModelLoader::LoadCube("cube");
 	model = ModelLoader::LoadPlane("plane");
+	model->LoadTexture("assets/textures/wall.jpg");
 	model->translate(glm::vec3(0, 0, -1));
 	model->LoadTexture("assets/textures/wall.jpg");
 
