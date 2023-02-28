@@ -300,33 +300,30 @@ namespace Merlin::Utils {
             // Failed to open the file
             return false;
         }
-
+        int index = 0;
         // Read the file line by line
         std::string line;
         while (std::getline(file, line)) {
             std::istringstream line_stream(line);
             std::string keyword;
             line_stream >> keyword;
+            float normal[3];
+
 
             if (keyword == "facet") {
                 // Read the normal vector
                 std::string normal_keyword;
                 line_stream >> normal_keyword;
-                float normal[3];
                 line_stream >> normal[0] >> normal[1] >> normal[2];
 
+            }else if (keyword == "vertex") {
                 // Read the three vertices
-                Vertex v1, v2, v3;
-                std::string vertex_keyword;
-                line_stream >> vertex_keyword;
-                line_stream >> v1.position.x >> v1.position.y >> v1.position.z;
-                line_stream >> vertex_keyword;
-                line_stream >> v2.position.x >> v2.position.y >> v2.position.z;
-                line_stream >> vertex_keyword;
-                line_stream >> v3.position.x >> v3.position.y >> v3.position.z;
+                Vertex v;
+                line_stream >> v.position.x >> v.position.y >> v.position.z;
 
                 // Set the normal and color for each vertex
-                v1.normal = glm::vec3(normal[0], normal[1], normal[2]); //By convention, store the normal in the first vertex
+                v.normal = glm::vec3(normal[0], normal[1], normal[2]); //By convention, store the normal in the first vertex
+                vertices.push_back(v); indices.push_back(index++);
             }
         }
     }
