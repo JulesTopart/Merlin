@@ -48,6 +48,7 @@ void ExampleLayer::OnAttach(){
 	//model = ModelLoader::LoadCube("cube");
 	model = ModelLoader::LoadPlane("plane");
 	model->translate(glm::vec3(0, 0, -1));
+	model->LoadTexture("assets/textures/wall.jpg");
 
 }
 
@@ -64,11 +65,11 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	
 	cameraController->OnUpdate(ts);
 
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	modelShader->Use();
-	modelShader->SetUniform3f("lightPos", glm::vec3(0,0,3));
+	modelShader->SetUniform3f("lightPos", glm::vec3(0,2,3));
 	modelShader->SetUniform3f("lightColor", glm::vec3(1, 1, 1));
 	modelShader->SetUniform3f("viewPos", camera->GetPosition());
 	modelShader->SetFloat("shininess", 1.0f);
