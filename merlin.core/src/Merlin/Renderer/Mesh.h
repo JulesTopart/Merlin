@@ -14,7 +14,7 @@ namespace Merlin::Renderer {
 		Mesh(std::string name);
 		~Mesh();
 
-		void Draw(std::shared_ptr<Shader> shader, glm::mat4 view); //Draw the mesh
+		void Draw(const Shader& shader, glm::mat4 view) const; //Draw call
 
 		Mesh& LinkShader(std::string shaderName, std::shared_ptr<Shader>& shader);
 		std::string GetLinkedShaderName() const;

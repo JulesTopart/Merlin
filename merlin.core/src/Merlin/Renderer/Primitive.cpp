@@ -75,8 +75,8 @@ namespace Merlin::Renderer {
 
 	void Primitive::Draw(Shared<Shader> shader, glm::mat4 view){
 		shader->Use();
-		shader->SetMatrix4f("view", view); //Sync camera with GPU
-		shader->SetMatrix4f("model", _model); //Sync camera with GPU
+		shader->SetMat4("view", view); //Sync camera with GPU
+		shader->SetMat4("model", _model); //Sync camera with GPU
 
 		_vao->Bind();
 		if (_indices.size() > 0) glDrawElements(_drawMode, _indices.size(), GL_UNSIGNED_INT, nullptr); //Draw elements using EBO
@@ -86,8 +86,8 @@ namespace Merlin::Renderer {
 
 	void Primitive::DrawInstanced(Shared<Shader> shader, glm::mat4 view, GLsizeiptr instances) {
 		shader->Use();
-		shader->SetMatrix4f("view", view); //Sync camera with GPU
-		shader->SetMatrix4f("model", _model); //Sync camera with GPU
+		shader->SetMat4("view", view); //Sync camera with GPU
+		shader->SetMat4("model", _model); //Sync camera with GPU
 
 		_vao->Bind();
 		if (_indices.size() > 0) glDrawElementsInstanced(_drawMode, _indices.size(), GL_UNSIGNED_INT, nullptr, instances); //Draw elements using EBO

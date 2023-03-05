@@ -44,11 +44,16 @@ void ExampleLayer::OnAttach(){
 		"assets/shaders/model.frag.glsl"
 	);
 	
-	axis = ModelLoader::LoadAxis("axis");
-	//model = ModelLoader::LoadCube("cube");
-	model = ModelLoader::LoadPlane("plane");
-	model->LoadTexture("assets/textures/wall.jpg");
-	model->translate(glm::vec3(0, 0, -1));
+	axis = ModelLoader::LoadAxis();
+	model = ModelLoader::LoadCube();
+	//model = ModelLoader::LoadPlane("plane");
+	//model->LoadTexture("assets/textures/wall.jpg");
+	//model->mesh().translate(glm::vec3(0, 0, -1));
+
+	scene.SetCamera(camera);
+	Shared<ModelObject> obj = CreateShared<ModelObject>(model);
+	obj->SetName("model");
+	scene.SpawnObject(obj);
 
 }
 
@@ -68,15 +73,24 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	
 	modelShader->Use();
-	modelShader->SetUniform3f("lightPos", glm::vec3(0,0,3));
-	modelShader->SetUniform3f("lightColor", glm::vec3(1, 1, 1));
-	modelShader->SetUniform3f("viewPos", camera->GetPosition());
-	modelShader->SetFloat("shininess", 1.0f);
+	modelShader->SetVec3("light.position", glm::vec3(0,3,3));
+	modelShader->SetVec3("light.direction", glm::vec3(0,0.2,-1));
+	modelShader->SetFloat("light.constant_attenuation", 0.1);
+	modelShader->SetFloat("light.linear_attenuation", 0.1);
+	modelShader->SetFloat("light.quadratic_attenuation", 0.1);
 
-	model->Draw(modelShader, camera->GetViewProjectionMatrix());
-	axis->Draw(axisShader, camera->GetViewProjectionMatrix());
+	modelShader->SetVec3("light.ambient", glm::vec3(0, 0, -1));
+	modelShader->SetVec3("light.diffuse", glm::vec3(0, 0, -1));
+	modelShader->SetVec3("light.specular", glm::vec3(0, 0, -1));
 
+	modelShader->SetFloat("light.inner_cutoff", 0.1);
+	modelShader->SetFloat("light.outer_cutoff", 0.1);
+	modelShader->SetFloat("type", 1); // 0 = directional, 1 = point, 2 = spot
+
+	axis->Draw(*axisShader, camera->GetViewProjectionMatrix());
+	scene.Draw(*modelShader);
 }
 
 void ExampleLayer::OnImGuiRender()
@@ -88,4 +102,45 @@ void ExampleLayer::OnImGuiRender()
 		camera->SetPosition(model_matrix_translation);
 	}
 	ImGui::End();
+
+
+	
+	// Define a recursive lambda function to traverse the scene graph
+	std::function<void(const std::vector<Shared<SceneNode>>&)> traverseNodes = [&](const std::vector<Shared<SceneNode>>& nodes)
+	{
+		for (auto& node : nodes)
+		{
+			bool node_open = ImGui::TreeNode(node->name().c_str());
+			if (node_open)
+			{
+				// Draw the node's object
+				if (node->hasObject())
+				{
+					auto mesh = std::dynamic_pointer_cast<SceneObject>(node->object());
+					if (mesh != nullptr)
+					{
+						ImGui::Text(mesh->name().c_str());
+						ImGui::SameLine();
+						if (ImGui::Button("Edit"))
+						{
+							// Open a window to edit the mesh
+						}
+					}
+				}
+
+				// Draw the node's children
+				traverseNodes(node->children());
+
+				ImGui::TreePop();
+			}
+		}
+	};
+
+	// Draw the scene graph starting from the root node
+	ImGui::Begin("Scene Graph");
+	traverseNodes(scene.nodes().children());
+	ImGui::End();
+	
+
+
 }

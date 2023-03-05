@@ -19,11 +19,14 @@ private:
 	Shared<Shader> modelShader;
 	Shared<Shader> axisShader;
 
-	Shared<Mesh> axis;
-	Shared<Mesh> model;
+	Shared<Model> axis;
+	Shared<Model> floor;
+	Shared<Model> model;
 
 	Shared<Camera> camera;
 	Shared<CameraController> cameraController;
+
+	SceneManager scene;
 
 	glm::vec3 model_matrix_translation = { 0.8f, 0.2f, 0.3f};
 };

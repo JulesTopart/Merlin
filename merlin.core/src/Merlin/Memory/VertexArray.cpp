@@ -15,11 +15,11 @@ namespace Merlin::Memory {
 		Console::trace("VertexArray") << "VertexArray " << ArrayID << " deleted. " << Console::endl;
 	}
 
-	void VertexArray::Bind() {
+	void VertexArray::Bind() const{
 		glBindVertexArray(ArrayID);
 	}
 
-	void VertexArray::Unbind() {
+	void VertexArray::Unbind() const{
 		glBindVertexArray(0);
 	}
 

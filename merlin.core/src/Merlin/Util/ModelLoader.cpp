@@ -1,13 +1,14 @@
 #include "glpch.h"
 #include "ModelLoader.h"
 #include "Merlin/Core/Core.h"
-
+#include "Merlin/Scene/Model.h"
 #include "Merlin/Memory/Vertex.h"
+
+using namespace Merlin::Scene;
 
 namespace Merlin::Utils {
 
-
-    std::shared_ptr<Mesh> ModelLoader::LoadCube(std::string name) {
+    Shared<Model> ModelLoader::LoadCube() {
 
         std::vector<Vertex> vertices = {
             //   Coordinates
@@ -45,11 +46,13 @@ namespace Merlin::Utils {
         std::shared_ptr<Mesh> cube = std::make_shared<Mesh>("Cube");
         cube->LoadVertex(vertices, indices);
         cube->SetDrawMode(GL_TRIANGLES);
-        return cube;
+
+        Shared<Model> mdl = CreateShared<Model>(cube);
+        return mdl;
     }
 
 
-    std::shared_ptr<Mesh> ModelLoader::LoadPlane(std::string name) {
+    Shared<Model> ModelLoader::LoadPlane() {
         
         //Plane
         std::vector<Vertex> vertices = {
@@ -68,10 +71,12 @@ namespace Merlin::Utils {
         std::shared_ptr<Mesh> plane = std::make_shared<Mesh>("Plane");
         plane->LoadVertex(vertices, indices);
         plane->SetDrawMode(GL_TRIANGLES);
-        return plane;
+
+        Shared<Model> mdl = CreateShared<Model>(plane);
+        return mdl;
     }
 
-    std::shared_ptr<Mesh> ModelLoader::LoadAxis(std::string name) {
+    Shared<Model> ModelLoader::LoadAxis() {
         //Axis
         std::vector<Vertex> vertices = {
             Vertex{ glm::vec3(0.2f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
@@ -85,11 +90,13 @@ namespace Merlin::Utils {
         std::shared_ptr<Mesh> axis = std::make_shared<Mesh>("Axis");
         axis->LoadVertex(vertices);
         axis->SetDrawMode(GL_LINES);
-        return axis;
+
+        Shared<Model> mdl = CreateShared<Model>(axis);
+        return mdl;
     }
 
 	// Load a model from the specified file and return a pointer to a new Mesh object
-    std::shared_ptr<Mesh> ModelLoader::LoadModel(const std::string& file_path) {
+    Shared<Model> ModelLoader::LoadModel(const std::string& file_path) {
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
 
@@ -100,7 +107,9 @@ namespace Merlin::Utils {
         // Create a Mesh object using the parsed vertex and index data
         auto mesh = std::make_shared<Mesh>(GetFileName(file_path));
         mesh->LoadVertex(vertices, indices);
-        return mesh;
+
+        Shared<Model> mdl = CreateShared<Model>(mesh);
+        return mdl;
 	}
 
 

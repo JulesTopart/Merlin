@@ -20,7 +20,7 @@ namespace Merlin::Renderer {
 		void Unbind();
 
 		void SetUnit(GLuint unit);
-		void SyncTextureUnit(std::shared_ptr<Shader> shader, const std::string uniform);
+		void SyncTextureUnit(const Shader& shader, const std::string uniform);
 
 		virtual void Allocate(int width, int height, GLenum format = GL_RGBA) = 0;
 		virtual void Resize(GLsizei width, GLsizei height) = 0;

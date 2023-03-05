@@ -1,45 +1,44 @@
 #pragma once
-#include <map>
+#include <vector>
 
-#include "Merlin/Renderer/Mesh.h"
+#include "Merlin/Scene/SceneNode.h"
+#include "Merlin/Scene/Model.h"
+#include "Merlin/Scene/Light.h"
 #include "Camera.h"
 
 using namespace Merlin::Renderer;
 
 namespace Merlin::Scene {
 
-	/*
 	class SceneManager {
-		std::vector<std::shared_ptr<Mesh>> meshes;
-		std::vector<std::shared_ptr<Shader>> shaders;
-
-		std::shared_ptr<Camera> camera;
+		SceneNode _root;
+		Shared<Camera> _camera;
 
 	public:
-		SceneManager() {};
+		SceneManager() : _root("Scene") {};
 		~SceneManager() {};
 
-		void Draw();
+		void Draw(Shader& shader);
 		void DrawObject(std::string name, Shader& shader);
-		void SpawnObject(std::shared_ptr<Mesh>);
+		void SpawnObject(Shared<SceneObject>);
 		void RemoveObject(std::string name);
 		void ClearObjects();
 
+		void SetCamera(Shared<Camera> camera);
+		Camera& camera();
+
+		const SceneNode& nodes();
 
 		// Enumerate all objects in the scene
-		void EnumerateObjects(std::function<void(std::shared_ptr<Mesh>)> callback);
+		void EnumerateObjects(std::function<void(Shared<SceneObject>)> callback);
 
-		std::shared_ptr<Mesh> GetObjectByName(std::string name);
+		Shared<SceneObject> GetObjectByName(std::string name);
 
 		void SpawnCube(std::string name);
 		void SpawnAxis(std::string name);
 
-		std::shared_ptr<Shader> CreateShader(std::string name);
-		std::shared_ptr<Shader> GetShaderByName(std::string name);
-		void RemoveShader(std::string name);
-
-		Camera& GetCamera();
+		
 
 	};
-	*/
+	
 }

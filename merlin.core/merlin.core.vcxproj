@@ -108,6 +108,11 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Merlin\Scene\SceneObject.h" />
+    <ClInclude Include="src\Merlin\Scene\SceneNode.h" />
+    <ClInclude Include="src\Merlin\Scene\Light.h" />
+    <ClInclude Include="src\Merlin\Scene\Model.h" />
+    <ClInclude Include="src\Merlin\Scene\Material.h" />
     <ClInclude Include="src\GL.h" />
     <ClInclude Include="src\Merlin\Memory\BufferObject.h" />
     <ClInclude Include="src\Merlin\Memory\UniformBuffer.h" />
@@ -156,6 +161,11 @@
     <ClInclude Include="src\Merlin\Renderer\TextureCubeMap.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Merlin\Scene\SceneObject.cpp" />
+    <ClCompile Include="src\Merlin\Scene\SceneNode.cpp" />
+    <ClCompile Include="src\Merlin\Scene\Light.cpp" />
+    <ClCompile Include="src\Merlin\Scene\Model.cpp" />
+    <ClCompile Include="src\Merlin\Scene\Material.cpp" />
     <ClCompile Include="src\Merlin\Memory\BufferObject.cpp" />
     <ClCompile Include="src\Merlin\Memory\UniformBuffer.cpp" />
     <ClCompile Include="src\Merlin\Util\DataStream.cpp" />

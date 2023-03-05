@@ -1,8 +1,9 @@
 #pragma once
 #include "Merlin/Core/Core.h"
-
+#include "Merlin/Scene/Model.h"
 #include "../Renderer/Mesh.h"
 
+using namespace Merlin::Scene;
 using namespace Merlin::Renderer;
 using namespace Merlin::Memory;
 
@@ -11,10 +12,10 @@ namespace Merlin::Utils{
 	class ModelLoader {
 	public:
 		// Load a model from the specified file and return a pointer to a new Mesh object
-		static std::shared_ptr<Mesh> LoadModel(const std::string& filepath);
-		static std::shared_ptr<Mesh> LoadPlane(std::string name);
-		static std::shared_ptr<Mesh> LoadAxis(std::string name);
-		static std::shared_ptr<Mesh> LoadCube(std::string name);
+		static Shared<Model> LoadModel(const std::string& filepath);
+		static Shared<Model> LoadPlane();
+		static Shared<Model> LoadAxis();
+		static Shared<Model> LoadCube();
 
 	private:
 

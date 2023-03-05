@@ -4,25 +4,39 @@ using namespace Merlin::Renderer;
 
 namespace Merlin::Scene {
 
+	void SceneManager::Draw(Shader& shader) {
+		std::function<void(const Shared<SceneObject>&)> drawNode = [&](const Shared<SceneObject>& object) {
+			object->Draw(shader,_camera->GetViewProjectionMatrix());
+		};
 
-	/*
-	void SceneManager::Draw() {
-		for (const auto& mesh : meshes){
-			Shader& shader = GetShaderByName(mesh.second->GetLinkedShaderName());
-			mesh.second->Draw(shader, camera->GetViewMatrix());
-		}
+		EnumerateObjects(drawNode);
+	}
+
+	const SceneNode& SceneManager::nodes() {
+		return _root;
+	}
+
+	void SceneManager::SetCamera(Shared<Camera> camera) {
+		_camera = camera;
+	}
+
+	Camera& SceneManager::camera() {
+		return *_camera;
 	}
 
 	void SceneManager::DrawObject(std::string name, Shader& shader) {
-	
+		auto obj = GetObjectByName(name);
+		if (obj != nullptr) obj->Draw(shader, _camera->GetViewProjectionMatrix());
 	}
 
-	void SceneManager::SpawnObject(std::shared_ptr<Mesh>) {
-	
+	void SceneManager::SpawnObject(Shared<SceneObject> obj) {
+		Shared<SceneNode> node = CreateShared<SceneNode>(obj->name());
+		node->SetObject(obj);
+		_root.AddChild(node);
 	}
 
 	void SceneManager::RemoveObject(std::string name) {
-	
+		
 	}
 
 	void SceneManager::ClearObjects() {
@@ -30,41 +44,64 @@ namespace Merlin::Scene {
 	}
 
 	
-	// Enumerate all objects in the scene
-	void SceneManager::EnumerateObjects(std::function<void(std::shared_ptr<Mesh>)> callback) {
-		for (const auto& pair : meshes) {
-			callback(pair.second);
-		}
+	void SceneManager::EnumerateObjects(std::function<void(Shared<SceneObject>)> callback)
+	{
+		// Define a recursive lambda function to traverse the scene graph
+		std::function<void(const std::vector<Shared<SceneNode>>&)> traverseNodes = [&](const std::vector<Shared<SceneNode>>& nodes)
+		{
+			for (auto& node : nodes){
+				if (node->hasObject())
+				{
+					auto model = std::dynamic_pointer_cast<SceneObject>(node->object());
+					if (model != nullptr)
+					{
+						callback(model);
+					}
+				}
+
+				traverseNodes(node->children());
+			}
+		};
+
+		// Traverse the scene graph starting from the root node
+		traverseNodes(_root.children());
 	}
 
-	std::shared_ptr<Mesh> SceneManager::GetObjectByName(std::string name) {
-		return meshes.at(name);
+	Shared<SceneObject> SceneManager::GetObjectByName(std::string name) {
+		// Define a recursive lambda function to traverse the scene graph
+		std::function<Shared<SceneNode>(const std::vector<Shared<SceneNode>>&, const std::string&)> traverseNodes =
+			[&](const std::vector<Shared<SceneNode>>& nodes, const std::string& name) -> Shared<SceneNode>
+		{
+			for (auto& node : nodes)
+			{
+				if (node->name() == name)
+				{
+					return node;
+				}
+
+				auto result = traverseNodes(node->children(), name);
+				if (result)
+				{
+					return result;
+				}
+			}
+
+			return nullptr;
+		};
+
+		// Traverse the scene graph starting from the root node
+		auto result =  traverseNodes(_root.children(), name);
+		if(result == nullptr){
+			Console::info("SceneManager") << "Node " << name << " not found" << Console::endl;
+		}
+		else {
+			if (result->hasObject()) return result->object();
+			else {
+				Console::info("SceneManager") << "Node " << name << " not found" << Console::endl;
+				return nullptr;
+			}
+		}
 	}
 
 	
-
-	std::shared_ptr<Shader> SceneManager::CreateShader(std::string name) {
-		std::shared_ptr<Shader> shader = std::make_shared<Shader>(name);
-		shaders[name] = shader;
-	}
-
-	std::shared_ptr<Shader> SceneManager::GetShaderByName(std::string name) {
-		if (shaders.count(name) > 0) {
-			return shaders[name];
-		}
-		else {
-			Console::error("SceneManager") << name << " not found" << Console::endl;
-		}
-	}
-
-	void SceneManager::RemoveShader(std::string name) {
-		if (shaders.count(name) > 0) {
-			shaders.erase(name);
-		}
-		else {
-			Console::error("SceneManager") << name << " not found" << Console::endl;
-		}
-	}
-
-	*/
 }

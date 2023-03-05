@@ -1,0 +1,56 @@
+#pragma once
+#include "Merlin/Core/Core.h"
+#include "Merlin/Scene/Model.h"
+#include "Merlin/Scene/Light.h"
+
+namespace Merlin::Scene {
+
+    class SceneObject {
+    public:
+        virtual ~SceneObject() {}
+
+        virtual void Draw(const Shader& shader, const glm::mat4 view) const = 0;
+
+        const std::string& name() const {
+            return name_;
+        }
+
+        inline void SetName(std::string n) { name_ = n; };
+
+    protected:
+        std::string name_;
+    };
+
+
+    class ModelObject : public SceneObject {
+    public:
+        ModelObject(const Shared<Model>& model) : model_(model) {}
+
+        void Draw(const Shader& shader, const glm::mat4 view) const override {
+            model_->Draw(shader, view);
+        }
+
+        const Model& model() const {
+            return *model_;
+        }
+
+    private:
+        Shared<Model> model_;
+    };
+
+    class LightObject : public SceneObject {
+    public:
+        LightObject(const Shared<Light>& light) : light_(light) {}
+
+        void Draw(const Shader& shader, const glm::mat4 view) const override {
+            // Draw light sprite
+        }
+
+        const Light& light() const {
+            return *light_;
+        }
+
+    private:
+        Shared<Light> light_;
+    };
+}

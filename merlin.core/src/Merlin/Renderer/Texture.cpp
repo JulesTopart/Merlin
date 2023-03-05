@@ -41,8 +41,8 @@ namespace Merlin::Renderer {
 	}
 
 
-	void TextureBase::SyncTextureUnit(std::shared_ptr<Shader> shader, const std::string uniform) {
-		GLuint textureUnit = shader->GetUniformLocation(uniform.c_str());
+	void TextureBase::SyncTextureUnit(const Shader& shader, const std::string uniform) {
+		GLuint textureUnit = shader.GetUniformLocation(uniform.c_str());
 		glUniform1i(textureUnit, _unit);
 	}
 
