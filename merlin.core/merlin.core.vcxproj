@@ -108,6 +108,9 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Merlin\Renderer\DeferredRenderer.h" />
+    <ClInclude Include="src\Merlin\Renderer\RayTracingRenderer.h" />
+    <ClInclude Include="src\Merlin\Renderer\Renderer.h" />
     <ClInclude Include="src\Merlin\Scene\SceneObject.h" />
     <ClInclude Include="src\Merlin\Scene\SceneNode.h" />
     <ClInclude Include="src\Merlin\Scene\Light.h" />
@@ -146,7 +149,7 @@
     <ClInclude Include="src\Merlin\Events\MouseEvent.h" />
     <ClInclude Include="src\Merlin\UI\ImGuiLayer.h" />
     <ClInclude Include="src\Merlin\Memory\IndexBuffer.h" />
-    <ClInclude Include="src\Merlin\Scene\SceneManager.h" />
+    <ClInclude Include="src\Merlin\Scene\Scene.h" />
     <ClInclude Include="src\Merlin\Renderer\Shader.h" />
     <ClInclude Include="src\Merlin\Memory\VertexArray.h" />
     <ClInclude Include="src\Merlin\Memory\VertexBuffer.h" />
@@ -161,6 +164,9 @@
     <ClInclude Include="src\Merlin\Renderer\TextureCubeMap.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Merlin\Renderer\DeferredRenderer.cpp" />
+    <ClCompile Include="src\Merlin\Renderer\RayTracingRenderer.cpp" />
+    <ClCompile Include="src\Merlin\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Merlin\Scene\SceneObject.cpp" />
     <ClCompile Include="src\Merlin\Scene\SceneNode.cpp" />
     <ClCompile Include="src\Merlin\Scene\Light.cpp" />
@@ -186,7 +192,7 @@
     <ClCompile Include="src\Merlin\UI\ImGuiBuild.cpp" />
     <ClCompile Include="src\Merlin\UI\ImGuiLayer.cpp" />
     <ClCompile Include="src\Merlin\Memory\IndexBuffer.cpp" />
-    <ClCompile Include="src\Merlin\Scene\SceneManager.cpp" />
+    <ClCompile Include="src\Merlin\Scene\Scene.cpp" />
     <ClCompile Include="src\Merlin\Renderer\Shader.cpp" />
     <ClCompile Include="src\Merlin\Memory\VertexArray.cpp" />
     <ClCompile Include="src\Merlin\Memory\VertexBuffer.cpp" />

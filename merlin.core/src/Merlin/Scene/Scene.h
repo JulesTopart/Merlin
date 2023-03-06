@@ -6,17 +6,15 @@
 #include "Merlin/Scene/Light.h"
 #include "Camera.h"
 
-using namespace Merlin::Renderer;
+namespace Merlin::Renderer {
 
-namespace Merlin::Scene {
-
-	class SceneManager {
+	class Scene {
 		SceneNode _root;
 		Shared<Camera> _camera;
 
 	public:
-		SceneManager() : _root("Scene") {};
-		~SceneManager() {};
+		Scene() : _root("Scene") {};
+		~Scene() {};
 
 		void Draw(Shader& shader);
 		void DrawObject(std::string name, Shader& shader);

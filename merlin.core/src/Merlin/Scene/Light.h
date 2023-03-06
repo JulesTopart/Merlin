@@ -2,7 +2,7 @@
 #include "Merlin/Core/Core.h"
 #include <glm/glm.hpp>
 
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 
     enum class LightType {
         Directional,

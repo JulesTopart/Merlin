@@ -2,7 +2,7 @@
 #include "Merlin/Core/Core.h"
 #include "Merlin/Scene/SceneObject.h"
 
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 	class SceneNode {
 	public:
 		SceneNode(const std::string& name);

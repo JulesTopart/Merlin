@@ -6,7 +6,7 @@
 
 using namespace Merlin;
 
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 
 	enum class Projection {
 		Orthographic, 
@@ -16,6 +16,7 @@ namespace Merlin::Scene {
 
 	class Camera{
 	public:
+		Camera();
 		Camera(float width, float height, Projection = Projection::Perspective );
 
 		//Event

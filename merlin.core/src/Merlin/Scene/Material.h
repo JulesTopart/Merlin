@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 
     class Material {
     public:

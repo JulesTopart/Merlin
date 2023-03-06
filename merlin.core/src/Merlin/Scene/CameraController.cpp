@@ -4,7 +4,7 @@
 #include "Merlin/Core/Input.h"
 #include "Merlin/Core/KeyCodes.h"
 
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 
 	CameraController3D::CameraController3D(Shared<Camera> cam){
 		_Camera = cam;

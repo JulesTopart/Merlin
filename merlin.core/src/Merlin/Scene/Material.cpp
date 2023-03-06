@@ -2,7 +2,7 @@
 #include "Material.h"
 #include <glm/glm.hpp>
 
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 
 	GLuint Material::nextID = 0;
 

@@ -7,7 +7,7 @@
 #include "Merlin/Events/ApplicationEvent.h"
 #include "Merlin/Events/MouseEvent.h"
 
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 
 	class CameraController {
 	public:

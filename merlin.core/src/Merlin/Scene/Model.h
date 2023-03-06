@@ -4,9 +4,8 @@
 #include "Merlin/Scene/Material.h"
 #include "Merlin/Scene/Camera.h"
 
-using namespace Merlin::Renderer;
 
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 
     class Model {
     public:

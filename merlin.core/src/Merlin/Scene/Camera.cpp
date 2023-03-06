@@ -4,9 +4,24 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-using namespace Merlin;
+namespace Merlin::Renderer {
 
-namespace Merlin::Scene {
+	Camera::Camera() :
+		_width(1080),
+		_height(720),
+		_AspectRatio(float(_width) / float(_height)),
+		_projection(Projection::Perspective),
+		_fov(45.0f),
+		_nearPlane(0.001f),
+		_farPlane(1000.f),
+		_zoom(1.0f)
+	{
+		Reset();
+		ResetProjection();
+		_ViewMatrix = glm::mat4(1.0f);
+		_ViewProjectionMatrix = _ProjectionMatrix * _ViewMatrix;
+		RecalculateViewMatrix();
+	}
 
 	Camera::Camera(float width, float height, Projection projection) :
 		_width(width), 

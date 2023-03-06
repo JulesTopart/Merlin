@@ -55,6 +55,43 @@ void ExampleLayer::OnAttach(){
 	obj->SetName("model");
 	scene.SpawnObject(obj);
 
+
+
+
+
+
+
+
+	// Create a renderer object
+	Renderer renderer;
+
+	// Create a camera object and set its position and orientation
+	Camera camera;
+	camera.setPosition(Vector3(0, 0, -5));
+	camera.setOrientation(Quaternion::fromAxisAngle(Vector3(0, 1, 0), 0.0f));
+
+	// Create a mesh object from a file
+	Mesh mesh = Mesh::loadFromFile("models/teapot.obj");
+
+	// Create a material object
+	Material material;
+	material.setShader(Shader::loadFromFile("shaders/basic.vert", "shaders/basic.frag"));
+	material.setTexture(Texture::loadFromFile("textures/teapot.png"));
+
+	// Create a scene object and add the mesh and material to it
+	Scene scene;
+	scene.addMesh(mesh);
+	scene.addMaterial(material);
+
+	// Set the camera and scene for the renderer
+	renderer.setCamera(camera);
+	renderer.setScene(scene);
+
+	// Render the scene
+	renderer.render();
+
+
+
 }
 
 void ExampleLayer::OnDetach(){

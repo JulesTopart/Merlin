@@ -3,7 +3,7 @@
 #include "Merlin/Scene/Model.h"
 #include "Merlin/Scene/Light.h"
 
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 
     class SceneObject {
     public:

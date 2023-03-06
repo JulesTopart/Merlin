@@ -1,9 +1,7 @@
 #include "glpch.h"
 #include "Model.h"
 
-using namespace Merlin::Renderer;
-
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 
     Shared<Material> Model::defaultMaterial = nullptr;
 

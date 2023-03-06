@@ -16,12 +16,12 @@
 #include "Merlin/Renderer/Mesh.h"
 #include "Merlin/Renderer/Primitive.h"
 #include "Merlin/Renderer/ScreenQuadRenderer.h"
-
+#include "Merlin/Scene/Scene.h"
 #include "Merlin/Scene/Camera.h"
 #include "Merlin/Scene/CameraController.h"
+
 #include "Merlin/Events/Event.h"
 #include "Merlin/Events/ApplicationEvent.h"
-#include "Merlin/Scene/SceneManager.h"
 
 #include "Merlin/Tensor/ComputeShader.h"
 #include "Merlin/Tensor/ParticleSystem.h"

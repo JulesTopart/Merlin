@@ -1,7 +1,7 @@
 #include "glpch.h"
 #include "SceneNode.h"
 
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 
 	SceneNode::SceneNode(const std::string& name) : name_(name)  {}
 

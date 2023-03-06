@@ -1,10 +1,9 @@
 #include "glpch.h"
-#include "SceneManager.h"
-using namespace Merlin::Renderer;
+#include "Scene.h"
 
-namespace Merlin::Scene {
+namespace Merlin::Renderer {
 
-	void SceneManager::Draw(Shader& shader) {
+	void Scene::Draw(Shader& shader) {
 		std::function<void(const Shared<SceneObject>&)> drawNode = [&](const Shared<SceneObject>& object) {
 			object->Draw(shader,_camera->GetViewProjectionMatrix());
 		};
@@ -12,39 +11,39 @@ namespace Merlin::Scene {
 		EnumerateObjects(drawNode);
 	}
 
-	const SceneNode& SceneManager::nodes() {
+	const SceneNode& Scene::nodes() {
 		return _root;
 	}
 
-	void SceneManager::SetCamera(Shared<Camera> camera) {
+	void Scene::SetCamera(Shared<Camera> camera) {
 		_camera = camera;
 	}
 
-	Camera& SceneManager::camera() {
+	Camera& Scene::camera() {
 		return *_camera;
 	}
 
-	void SceneManager::DrawObject(std::string name, Shader& shader) {
+	void Scene::DrawObject(std::string name, Shader& shader) {
 		auto obj = GetObjectByName(name);
 		if (obj != nullptr) obj->Draw(shader, _camera->GetViewProjectionMatrix());
 	}
 
-	void SceneManager::SpawnObject(Shared<SceneObject> obj) {
+	void Scene::SpawnObject(Shared<SceneObject> obj) {
 		Shared<SceneNode> node = CreateShared<SceneNode>(obj->name());
 		node->SetObject(obj);
 		_root.AddChild(node);
 	}
 
-	void SceneManager::RemoveObject(std::string name) {
+	void Scene::RemoveObject(std::string name) {
 		
 	}
 
-	void SceneManager::ClearObjects() {
+	void Scene::ClearObjects() {
 	
 	}
 
 	
-	void SceneManager::EnumerateObjects(std::function<void(Shared<SceneObject>)> callback)
+	void Scene::EnumerateObjects(std::function<void(Shared<SceneObject>)> callback)
 	{
 		// Define a recursive lambda function to traverse the scene graph
 		std::function<void(const std::vector<Shared<SceneNode>>&)> traverseNodes = [&](const std::vector<Shared<SceneNode>>& nodes)
@@ -67,7 +66,7 @@ namespace Merlin::Scene {
 		traverseNodes(_root.children());
 	}
 
-	Shared<SceneObject> SceneManager::GetObjectByName(std::string name) {
+	Shared<SceneObject> Scene::GetObjectByName(std::string name) {
 		// Define a recursive lambda function to traverse the scene graph
 		std::function<Shared<SceneNode>(const std::vector<Shared<SceneNode>>&, const std::string&)> traverseNodes =
 			[&](const std::vector<Shared<SceneNode>>& nodes, const std::string& name) -> Shared<SceneNode>
