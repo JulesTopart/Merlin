@@ -3,16 +3,8 @@
 
 namespace Merlin::Renderer {
 
-	void Scene::Draw(Shader& shader) {
-		std::function<void(const Shared<SceneObject>&)> drawNode = [&](const Shared<SceneObject>& object) {
-			object->Draw(shader,_camera->GetViewProjectionMatrix());
-		};
-
-		EnumerateObjects(drawNode);
-	}
-
 	const SceneNode& Scene::nodes() {
-		return _root;
+		return _rootNode;
 	}
 
 	void Scene::SetCamera(Shared<Camera> camera) {

@@ -16,19 +16,14 @@ ExampleLayer::ExampleLayer(){
 	cameraController = CreateShared<CameraController3D>(camera);
 }
 
-ExampleLayer::~ExampleLayer(){
-
-}
+ExampleLayer::~ExampleLayer(){}
 
 void ExampleLayer::OnAttach(){
 	EnableGLDebugging();
 
 	Console::SetLevel(ConsoleLevel::_INFO);
 
-	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_MULTISAMPLE);
+
 
 	axisShader = std::make_shared<Shader>("axis");
 

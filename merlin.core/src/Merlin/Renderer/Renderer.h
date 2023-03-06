@@ -1,6 +1,6 @@
 #pragma once
-#include "Merlin/Renderer/Scene.h"
-#include "Merlin/Renderer/Camera.h"
+#include "Merlin/Scene/Scene.h"
+#include "Merlin/Scene/Camera.h"
 
 
 namespace Merlin::Renderer {
@@ -9,14 +9,20 @@ namespace Merlin::Renderer {
 		Renderer();
 		~Renderer();
 
-		void SetCamera(const Camera& camera);
-		void SetScene(const Scene& scene);
+		void SetCamera(const Shared<Camera>& camera);
+		void SetScene(const Shared<Scene>& scene);
 
+		void Initialize();
 		void Render();
+
+		void EnableTransparency();
+		void EnableMultisampling();
+		void DisableTransparency();
+		void DisableMultisampling();
 
 
 	private:
-		Camera _camera;
-		Scene _scene;
+		Shared<Camera> _camera;
+		Shared<Scene> _scene;
 	};
 }
