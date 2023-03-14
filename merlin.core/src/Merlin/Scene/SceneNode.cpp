@@ -13,6 +13,15 @@ namespace Merlin::Renderer {
 		object_ = object;
 	}
 
+	void SceneNode::RemoveChild(const Shared<SceneNode>& child) {
+		for (auto it = children_.begin(); it != children_.end(); ++it) {
+			if (*it == child) {
+				children_.erase(it);
+				break;
+			}
+		}
+	}
+
 	const std::string& SceneNode::name() const {
 		return name_;
 	}

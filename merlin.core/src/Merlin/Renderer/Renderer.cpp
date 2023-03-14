@@ -54,7 +54,7 @@ namespace Merlin::Renderer {
 		glm::mat4 view = _camera->GetViewProjectionMatrix();
 
 		// Draw the meshes in the scene
-		for (const auto& mesh : scene.getMeshes()) {
+		for (const auto& mesh : _scene->getMeshes()) {
 			// Get the material for this mesh
 			const Material& material = scene.getMaterial(mesh.materialIndex);
 

@@ -9,14 +9,15 @@
 namespace Merlin::Renderer {
 
 	class Scene {
-		SceneNode _rootNode;
+		Shared<SceneNode> _rootNode = nullptr;
+		Shared<SceneNode> _currentNode = nullptr;
+		Shared<Camera> _camera = nullptr;
 
-		Shared<Camera> _camera;
 		std::vector<Shared<Model>> _models;
 		std::vector<Shared<Material>> _material;
 
 	public:
-		Scene() : _rootNode("Scene") {};
+		Scene() {};
 		~Scene() {};
 
 		void ClearObjects();

@@ -8,6 +8,7 @@ namespace Merlin::Renderer {
 		SceneNode(const std::string& name);
 		void AddChild(const Shared<SceneNode>& child);
 		void SetObject(const Shared<SceneObject>& object);
+		void RemoveChild(const Shared<SceneNode>& child);
 
 		bool hasObject() const;
 		bool hasParent() const;

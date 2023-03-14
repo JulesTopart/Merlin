@@ -4,7 +4,7 @@
 namespace Merlin::Renderer {
 
 	const SceneNode& Scene::nodes() {
-		return _rootNode;
+		return *_rootNode;
 	}
 
 	void Scene::SetCamera(Shared<Camera> camera) {
@@ -15,26 +15,40 @@ namespace Merlin::Renderer {
 		return *_camera;
 	}
 
-	void Scene::DrawObject(std::string name, Shader& shader) {
-		auto obj = GetObjectByName(name);
-		if (obj != nullptr) obj->Draw(shader, _camera->GetViewProjectionMatrix());
-	}
-
 	void Scene::SpawnObject(Shared<SceneObject> obj) {
 		Shared<SceneNode> node = CreateShared<SceneNode>(obj->name());
 		node->SetObject(obj);
-		_root.AddChild(node);
+		_currentNode->AddChild(node);
 	}
 
-	void Scene::RemoveObject(std::string name) {
-		
+	void RemoveObject(Shared<SceneNode> toremove) {
+		for (int i = 0; toremove->parent()->children().size(); i++) {
+			if (toremove->parent()->children()[i] == toremove){
+				toremove->parent()->RemoveChild(toremove->parent()->children()[i]);
+			}
+		}
+	}
+
+	void SpawnCube(std::string name) {
+
+	}
+
+	void SpawnAxis(std::string name) {
+
+	}
+
+	void SpawnModel(Shared<Model>, std::string name) {
+
+	}
+
+	void SpawnLight(Shared<Light>, std::string name) {
+
 	}
 
 	void Scene::ClearObjects() {
-	
+		
 	}
 
-	
 	void Scene::EnumerateObjects(std::function<void(Shared<SceneObject>)> callback)
 	{
 		// Define a recursive lambda function to traverse the scene graph
@@ -55,7 +69,7 @@ namespace Merlin::Renderer {
 		};
 
 		// Traverse the scene graph starting from the root node
-		traverseNodes(_root.children());
+		traverseNodes(_rootNode->children());
 	}
 
 	Shared<SceneObject> Scene::GetObjectByName(std::string name) {
@@ -81,7 +95,7 @@ namespace Merlin::Renderer {
 		};
 
 		// Traverse the scene graph starting from the root node
-		auto result =  traverseNodes(_root.children(), name);
+		auto result =  traverseNodes(_rootNode->children(), name);
 		if(result == nullptr){
 			Console::info("SceneManager") << "Node " << name << " not found" << Console::endl;
 		}
