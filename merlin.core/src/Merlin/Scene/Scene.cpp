@@ -1,5 +1,6 @@
 #include "glpch.h"
 #include "Scene.h"
+#include "Merlin/Util/ModelLoader.h"
 
 namespace Merlin::Renderer {
 
@@ -29,19 +30,22 @@ namespace Merlin::Renderer {
 		}
 	}
 
-	void SpawnCube(std::string name) {
+	void Scene::SpawnCube(std::string name) {
+		//Shared<Model> mdl = Utils::ModelLoader::LoadCube();
+		//dl->SetMaterial(Material::DefaultMaterial);
+
+		//_models.push_back(mdl);
+	}
+
+	void Scene::SpawnAxis(std::string name) {
 
 	}
 
-	void SpawnAxis(std::string name) {
-
+	void Scene::SpawnModel(Shared<Model> mdl, std::string name) {
+		
 	}
 
-	void SpawnModel(Shared<Model>, std::string name) {
-
-	}
-
-	void SpawnLight(Shared<Light>, std::string name) {
+	void Scene::SpawnLight(Shared<Light>, std::string name) {
 
 	}
 

@@ -12,7 +12,7 @@ namespace Merlin::Renderer {
 		Shared<SceneNode> _rootNode = nullptr;
 		Shared<SceneNode> _currentNode = nullptr;
 		Shared<Camera> _camera = nullptr;
-
+		
 		std::vector<Shared<Model>> _models;
 		std::vector<Shared<Material>> _material;
 

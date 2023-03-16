@@ -3,7 +3,9 @@
 
 namespace Merlin::Renderer {
 
-	SceneNode::SceneNode(const std::string& name) : name_(name)  {}
+	SceneNode::SceneNode(const std::string& name) : name_(name)  {
+		ID = nextID++;
+	}
 
 	void SceneNode::AddChild(const Shared<SceneNode>& child) {
 		children_.push_back(child);

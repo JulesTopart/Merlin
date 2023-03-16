@@ -51,5 +51,5 @@ namespace Merlin::Renderer {
     const glm::vec3& Material::ambient() const { return ambient_; }
     const glm::vec3& Material::diffuse() const { return diffuse_; }
     const glm::vec3& Material::specular() const { return specular_; }
-    float Material::shininess() const { return shininess_; }
+    const float Material::shininess() const { return shininess_; }
 }

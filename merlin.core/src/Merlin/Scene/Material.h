@@ -1,6 +1,7 @@
 #pragma once
 #include "Merlin/Core/Core.h"
-
+#include "Merlin/Scene/Material.h"
+#include "Merlin/Scene/Model.h"
 #include <glm/glm.hpp>
 
 namespace Merlin::Renderer {
@@ -12,7 +13,7 @@ namespace Merlin::Renderer {
         const glm::vec3& ambient() const;
         const glm::vec3& diffuse() const;
         const glm::vec3& specular() const;
-        float shininess() const;
+        const float shininess() const;
 
         Shader& shader();
         Texture& texture();
@@ -23,8 +24,9 @@ namespace Merlin::Renderer {
         void SetSpecular(const glm::vec3& specular);
         void SetShininess(const float& shininess);
 
-        void SetShader(const Shared<Shader>&);
-        void SetTexture(const Shared<Texture>&);
+        void SetShader(const Shared<Shader>& shader);
+        void SetTexture(const Shared<Texture>& tex);
+
         Shared<Shader> GetShader();
         Shared<Texture> GetTexture();
 

@@ -53,9 +53,9 @@ void ExampleLayer::OnAttach(){
 	);
 	
 	//Load models
-	axis = ModelLoader::LoadAxis("axis");
-	model = ModelLoader::LoadPlane("plane");
-	model->translate(glm::vec3(0, 0, -1));
+	axis = ModelLoader::LoadAxis();
+	model = ModelLoader::LoadPlane();
+	//model->mesh().translate(glm::vec3(0, 0, -1));
 
 
 	// Create MSAA Frame Buffer Object
@@ -99,13 +99,13 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	glEnable(GL_DEPTH_TEST);
 
 	modelShader->Use();
-	modelShader->SetUniform3f("lightPos", glm::vec3(0,0,3));
-	modelShader->SetUniform3f("lightColor", glm::vec3(1, 1, 1));
-	modelShader->SetUniform3f("viewPos", camera->GetPosition());
+	modelShader->SetVec3("lightPos", glm::vec3(0,0,3));
+	modelShader->SetVec3("lightColor", glm::vec3(1, 1, 1));
+	modelShader->SetVec3("viewPos", camera->GetPosition());
 	modelShader->SetFloat("shininess", 1.0f);
 
-	model->Draw(modelShader, camera->GetViewProjectionMatrix());
-	axis->Draw(axisShader, camera->GetViewProjectionMatrix());
+	model->Draw(*modelShader, camera->GetViewProjectionMatrix());
+	axis->Draw(*axisShader, camera->GetViewProjectionMatrix());
 
 	msaa_fbo->Bind(GL_READ_FRAMEBUFFER);
 	fbo->Bind(GL_DRAW_FRAMEBUFFER);

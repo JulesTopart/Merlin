@@ -3,7 +3,6 @@
 #include "Merlin/Scene/Model.h"
 #include "../Renderer/Mesh.h"
 
-using namespace Merlin::Scene;
 using namespace Merlin::Renderer;
 using namespace Merlin::Memory;
 

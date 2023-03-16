@@ -3,7 +3,6 @@
 #include <Merlin.h>
 
 using namespace Merlin::Renderer;
-using namespace Merlin::Scene;
 
 class ExampleLayer : public Merlin::Layer
 {
@@ -21,8 +20,8 @@ private:
 	
 	std::shared_ptr<Shader> modelShader;
 	std::shared_ptr<Shader> axisShader;
-	std::shared_ptr<Mesh> axis;
-	std::shared_ptr<Mesh> model;
+	std::shared_ptr<Model> axis;
+	std::shared_ptr<Model> model;
 
 	std::shared_ptr<FBO> msaa_fbo;
 	std::shared_ptr<FBO> fbo;
