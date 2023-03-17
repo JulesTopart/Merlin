@@ -1,9 +1,9 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 #include "Merlin/Scene/Model.h"
-#include "../Renderer/Mesh.h"
+#include "Merlin/Graphics/Mesh.h"
 
-using namespace Merlin::Renderer;
+using namespace Merlin::Graphics;
 using namespace Merlin::Memory;
 
 namespace Merlin::Utils{

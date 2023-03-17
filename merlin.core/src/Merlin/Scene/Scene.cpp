@@ -2,10 +2,10 @@
 #include "Scene.h"
 #include "Merlin/Util/ModelLoader.h"
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 
-	const SceneNode& Scene::nodes() {
-		return *_rootNode;
+	const Shared<SceneNode>& Scene::nodes() {
+		return _rootNode;
 	}
 
 	void Scene::SetCamera(Shared<Camera> camera) {
@@ -31,26 +31,38 @@ namespace Merlin::Renderer {
 	}
 
 	void Scene::SpawnCube(std::string name) {
-		//Shared<Model> mdl = Utils::ModelLoader::LoadCube();
-		//dl->SetMaterial(Material::DefaultMaterial);
-
-		//_models.push_back(mdl);
+		Shared<Model> axis = Utils::ModelLoader::LoadCube();
+		SpawnModel(axis, "Cube");
 	}
 
 	void Scene::SpawnAxis(std::string name) {
+		Shared<Model> axis = Utils::ModelLoader::LoadAxis();
+		SpawnModel(axis, "CoordinateSystem");
 
 	}
 
 	void Scene::SpawnModel(Shared<Model> mdl, std::string name) {
-		
+		Shared<SceneNode> sn = CreateShared<SceneNode>(name);
+		Shared<ModelObject> so = CreateShared<ModelObject>(mdl);
+		sn->SetObject(so);
+		_currentNode->AddChild(sn);
 	}
 
-	void Scene::SpawnLight(Shared<Light>, std::string name) {
+	void Scene::SpawnLight(Shared<Light> light, std::string name) {
+		Shared<SceneNode> sn = CreateShared<SceneNode>(name);
+		Shared<LightObject> so = CreateShared<LightObject>(light);
+		sn->SetObject(so);
+		_currentNode->AddChild(sn);
+	}
 
+	const std::vector<Shared<Model>>& Scene::GetModels() {
+		return _models;
 	}
 
 	void Scene::ClearObjects() {
-		
+		_rootNode->Clear();
+		_models.clear();
+		_lights.clear();
 	}
 
 	void Scene::EnumerateObjects(std::function<void(Shared<SceneObject>)> callback)

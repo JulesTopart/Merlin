@@ -2,7 +2,7 @@
 
 using namespace Merlin;
 using namespace Merlin::Utils;
-using namespace Merlin::Renderer;
+using namespace Merlin::Graphics;
 
 #include <iostream>
 #include <iomanip>
@@ -20,78 +20,23 @@ ExampleLayer::~ExampleLayer(){}
 
 void ExampleLayer::OnAttach(){
 	EnableGLDebugging();
-
 	Console::SetLevel(ConsoleLevel::_INFO);
 
+	scene = CreateShared<Scene>();
 
+	Shared<Material> material = CreateShared<Material>();
+	//material.SetShader(CreateShared<Shader>("assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl"));
+	//material.SetTexture(TextureLoader::loadTexture("textures/teapot.png"));
+	Shared<Model> model = ModelLoader::LoadModel("./assets/models/owl.stl");
 
-	axisShader = std::make_shared<Shader>("axis");
-
-	axisShader->Compile(
-		"assets/shaders/axis.vert.glsl",
-		"assets/shaders/axis.frag.glsl"
-	);
-
-	modelShader = std::make_shared<Shader>("model");
-
-	modelShader->Compile(
-		"assets/shaders/model.vert.glsl",
-		"assets/shaders/model.frag.glsl"
-	);
-	
-	axis = ModelLoader::LoadAxis();
-	model = ModelLoader::LoadCube();
-	//model = ModelLoader::LoadPlane("plane");
-	//model->LoadTexture("assets/textures/wall.jpg");
-	//model->mesh().translate(glm::vec3(0, 0, -1));
-
-	scene.SetCamera(camera);
-	Shared<ModelObject> obj = CreateShared<ModelObject>(model);
-	obj->SetName("model");
-	scene.SpawnObject(obj);
-
-
-
-
-
-
-
-
-	// Create a renderer object
-	Renderer renderer;
-
-	// Create a camera object and set its position and orientation
-	Camera camera;
-	camera.setPosition(Vector3(0, 0, -5));
-	camera.setOrientation(Quaternion::fromAxisAngle(Vector3(0, 1, 0), 0.0f));
-
-	// Create a mesh object from a file
-	Mesh mesh = Mesh::loadFromFile("models/teapot.obj");
-
-	// Create a material object
-	Material material;
-	material.setShader(Shader::loadFromFile("shaders/basic.vert", "shaders/basic.frag"));
-	material.setTexture(Texture::loadFromFile("textures/teapot.png"));
-
-	// Create a scene object and add the mesh and material to it
-	Scene scene;
-	scene.addMesh(mesh);
-	scene.addMaterial(material);
+	scene->SetCamera(camera);
+	scene->SpawnModel(model, "Owl");
 
 	// Set the camera and scene for the renderer
-	renderer.setCamera(camera);
-	renderer.setScene(scene);
-
-	// Render the scene
-	renderer.render();
-
-
-
+	renderer.Initialize();;
 }
 
-void ExampleLayer::OnDetach(){
-	model.reset();
-}
+void ExampleLayer::OnDetach(){}
 
 void ExampleLayer::OnEvent(Event& event){
 	camera->OnEvent(event);
@@ -102,27 +47,8 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	
 	cameraController->OnUpdate(ts);
 
-	glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	
-	modelShader->Use();
-	modelShader->SetVec3("light.position", glm::vec3(0,3,3));
-	modelShader->SetVec3("light.direction", glm::vec3(0,0.2,-1));
-	modelShader->SetFloat("light.constant_attenuation", 0.1);
-	modelShader->SetFloat("light.linear_attenuation", 0.1);
-	modelShader->SetFloat("light.quadratic_attenuation", 0.1);
-
-	modelShader->SetVec3("light.ambient", glm::vec3(0, 0, -1));
-	modelShader->SetVec3("light.diffuse", glm::vec3(0, 0, -1));
-	modelShader->SetVec3("light.specular", glm::vec3(0, 0, -1));
-
-	modelShader->SetFloat("light.inner_cutoff", 0.1);
-	modelShader->SetFloat("light.outer_cutoff", 0.1);
-	modelShader->SetFloat("type", 1); // 0 = directional, 1 = point, 2 = spot
-
-	axis->Draw(*axisShader, camera->GetViewProjectionMatrix());
-	scene.Draw(*modelShader);
+	// Render the scene
+	renderer.Render(scene, camera);
 }
 
 void ExampleLayer::OnImGuiRender()
@@ -170,7 +96,7 @@ void ExampleLayer::OnImGuiRender()
 
 	// Draw the scene graph starting from the root node
 	ImGui::Begin("Scene Graph");
-	traverseNodes(scene.nodes().children());
+	traverseNodes(scene->nodes()->children());
 	ImGui::End();
 	
 

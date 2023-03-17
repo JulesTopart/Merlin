@@ -3,7 +3,7 @@
 #include <stb_image.h>
 #include <filesystem>
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 	TextureMultisampled::TextureMultisampled(int samples) : _samples(samples){
 		_Target = GL_TEXTURE_2D_MULTISAMPLE;
 	}

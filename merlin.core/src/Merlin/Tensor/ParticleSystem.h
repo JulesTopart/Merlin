@@ -3,17 +3,17 @@
 
 #include "Merlin/Memory/VertexArray.h"
 #include "Merlin/Memory/ShaderStorageBuffer.h"
-#include "Merlin/Renderer/Shader.h"
-#include "Merlin/Renderer/Texture.h"
+#include "Merlin/Graphics/Shader.h"
+#include "Merlin/Graphics/Texture.h"
 #include "Merlin/Tensor/ComputeShader.h"
 #include "Merlin/Core/Timestep.h"
-#include "Merlin/Renderer/Primitive.h"
+#include "Merlin/Graphics/Mesh.h"
 
 #include "glm/gtc/random.hpp"
 
 namespace Merlin::Tensor {
 
-	using namespace Merlin::Renderer;
+	using namespace Merlin::Graphics;
 
 
 	//Refer to Uniform block layout alignement: https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL
@@ -45,9 +45,9 @@ namespace Merlin::Tensor {
 
 		inline void SetThread(GLuint t) { _threadPattern = t; }
 
-		//Primitives
-		inline void SetPrimitive(Shared<Primitive> geometry) { _geometry = geometry; }
-		inline Shared<Primitive> GetPrimitive() const { return _geometry; }
+		//Meshs
+		inline void SetMesh(Shared<Mesh> geometry) { _geometry = geometry; }
+		inline Shared<Mesh> GetMesh() const { return _geometry; }
 
 		inline const std::string name() const { return _name; }
 
@@ -64,7 +64,7 @@ namespace Merlin::Tensor {
 		GLuint _threadPattern = 16;
 
 		//Geometry
-		Shared<Primitive> _geometry;
+		Shared<Mesh> _geometry;
 		//Transformation
 		glm::mat4 _model;
 

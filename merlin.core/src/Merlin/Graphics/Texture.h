@@ -3,7 +3,7 @@
 
 #include "Shader.h"
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 
 	enum class TextureType {
 		SPECULAR, DIFFUSE, DEPTH, NORMAL, HEIGHT, ENVIRONMENT, LIGHT, SHADOW

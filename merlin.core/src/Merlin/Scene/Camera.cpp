@@ -4,7 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 
 	Camera::Camera() :
 		_width(1080),

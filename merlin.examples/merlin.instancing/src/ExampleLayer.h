@@ -2,7 +2,7 @@
 
 #include <Merlin.h>
 
-using namespace Merlin::Renderer;
+using namespace Merlin::Graphics;
 using namespace Merlin::Tensor;
 using namespace Merlin::Scene;
 

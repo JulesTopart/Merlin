@@ -2,7 +2,7 @@
 
 using namespace Merlin;
 using namespace Merlin::Utils;
-using namespace Merlin::Renderer;
+using namespace Merlin::Graphics;
 
 #include <iostream>
 #include <iomanip>
@@ -61,8 +61,8 @@ void ExampleLayer::OnAttach(){
 	init->Compile("assets/shaders/particle.init.glsl");
 
 	//Load models
-	axis = ModelLoader::LoadAxis("axis");
-	model = ModelLoader::LoadPlane("plane");
+	axis = ModelLoader::LoadAxis();
+	model = ModelLoader::LoadPlane();
 	model->translate(glm::vec3(0, 0, -0.1));
 
 	//Particle System settings
@@ -74,9 +74,9 @@ void ExampleLayer::OnAttach(){
 	particleSystem = CreateShared<ParticleSystem>("ParticleSystem", partCount);
 
 	//Define the mesh for instancing (Here a cube)
-	Shared<Primitive> cube = Primitive::CreateSphere(1.0f, 20, 20);//Primitive::CreateCube(1.0f);
+	Shared<Mesh> cube = CreateSphere(1.0f, 20, 20);//Mesh::CreateCube(1.0f);
 	//cube->SetDrawMode(GL_LINES);
-	particleSystem->SetPrimitive(cube);
+	particleSystem->SetMesh(cube);
 
 	//Create the buffer
 	Shared<SSBO> buffer = CreateShared<SSBO>("ParticleBuffer");
@@ -127,20 +127,20 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 
 
 	modelShader->Use();
-	modelShader->SetUniform3f("lightPos", glm::vec3(0,0,0));
-	modelShader->SetUniform3f("lightColor", glm::vec3(0.3, 0.3, 0.3));
-	modelShader->SetUniform3f("viewPos", camera->GetPosition());
+	modelShader->SetVec3("lightPos", glm::vec3(0,0,0));
+	modelShader->SetVec3("lightColor", glm::vec3(0.3, 0.3, 0.3));
+	modelShader->SetVec3("viewPos", camera->GetPosition());
 	modelShader->SetFloat("shininess", 16.0f);
 	
 
 	particleShader->Use();
-	particleShader->SetUniform3f("lightPos", glm::vec3(0, 0, 0));
-	particleShader->SetUniform3f("lightColor", glm::vec3(0.3, 0.3, 0.3));
-	particleShader->SetUniform3f("viewPos", camera->GetPosition());
+	particleShader->SetVec3("lightPos", glm::vec3(0, 0, 0));
+	particleShader->SetVec3("lightColor", glm::vec3(0.3, 0.3, 0.3));
+	particleShader->SetVec3("viewPos", camera->GetPosition());
 	particleShader->SetFloat("shininess", 4.0f);
 
-	model->Draw(modelShader, camera->GetViewProjectionMatrix());
-	axis->Draw(axisShader, camera->GetViewProjectionMatrix());
+	model->Draw(*modelShader, camera->GetViewProjectionMatrix());
+	axis->Draw(*axisShader, camera->GetViewProjectionMatrix());
 
 	physics->Use();
 	physics->SetFloat("speed", sim_speed);

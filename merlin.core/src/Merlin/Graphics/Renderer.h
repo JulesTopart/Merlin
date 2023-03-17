@@ -3,26 +3,19 @@
 #include "Merlin/Scene/Camera.h"
 
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 	class Renderer{
 	public:
 		Renderer();
 		~Renderer();
 
-		void SetCamera(const Shared<Camera>& camera);
-		void SetScene(const Shared<Scene>& scene);
-
 		void Initialize();
-		void Render();
+		void Render(const Shared<Scene>& scene, const Shared<Camera>& camera);
 
 		void EnableTransparency();
 		void EnableMultisampling();
 		void DisableTransparency();
 		void DisableMultisampling();
 
-
-	private:
-		Shared<Camera> _camera;
-		Shared<Scene> _scene;
 	};
 }

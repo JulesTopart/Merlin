@@ -4,8 +4,6 @@
 #include "Merlin/Scene/Model.h"
 #include "Merlin/Memory/Vertex.h"
 
-using namespace Merlin::Scene;
-
 namespace Merlin::Utils {
 
     Shared<Model> ModelLoader::LoadCube() {
@@ -43,8 +41,7 @@ namespace Merlin::Utils {
             6, 2, 3
         };
 
-        std::shared_ptr<Mesh> cube = std::make_shared<Mesh>("Cube");
-        cube->LoadVertex(vertices, indices);
+        std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(vertices, indices);
         cube->SetDrawMode(GL_TRIANGLES);
 
         Shared<Model> mdl = CreateShared<Model>(cube);
@@ -67,9 +64,8 @@ namespace Merlin::Utils {
             0, 1, 2,
             0, 2, 3
         };
-
-        std::shared_ptr<Mesh> plane = std::make_shared<Mesh>("Plane");
-        plane->LoadVertex(vertices, indices);
+        
+        std::shared_ptr<Mesh> plane = std::make_shared<Mesh>(vertices,indices);
         plane->SetDrawMode(GL_TRIANGLES);
 
         Shared<Model> mdl = CreateShared<Model>(plane);
@@ -87,8 +83,7 @@ namespace Merlin::Utils {
             Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}
         };
 
-        std::shared_ptr<Mesh> axis = std::make_shared<Mesh>("Axis");
-        axis->LoadVertex(vertices);
+        std::shared_ptr<Mesh> axis = std::make_shared<Mesh>(vertices);
         axis->SetDrawMode(GL_LINES);
 
         Shared<Model> mdl = CreateShared<Model>(axis);
@@ -105,8 +100,7 @@ namespace Merlin::Utils {
         }
 
         // Create a Mesh object using the parsed vertex and index data
-        auto mesh = std::make_shared<Mesh>(GetFileName(file_path));
-        mesh->LoadVertex(vertices, indices);
+        auto mesh = std::make_shared<Mesh>(vertices, indices);
 
         Shared<Model> mdl = CreateShared<Model>(mesh);
         return mdl;

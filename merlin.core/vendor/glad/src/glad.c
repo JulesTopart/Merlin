@@ -681,7 +681,7 @@ PFNGLPOLYGONMODEPROC glad_glPolygonMode = NULL;
 PFNGLPOLYGONOFFSETPROC glad_glPolygonOffset = NULL;
 PFNGLPOLYGONOFFSETCLAMPPROC glad_glPolygonOffsetClamp = NULL;
 PFNGLPOPDEBUGGROUPPROC glad_glPopDebugGroup = NULL;
-PFNGLPRIMITIVERESTARTINDEXPROC glad_glPrimitiveRestartIndex = NULL;
+PFNGLMeshRESTARTINDEXPROC glad_glMeshRestartIndex = NULL;
 PFNGLPROGRAMBINARYPROC glad_glProgramBinary = NULL;
 PFNGLPROGRAMPARAMETERIPROC glad_glProgramParameteri = NULL;
 PFNGLPROGRAMUNIFORM1DPROC glad_glProgramUniform1d = NULL;
@@ -1303,7 +1303,7 @@ static void load_GL_VERSION_3_1(GLADloadproc load) {
 	glad_glDrawArraysInstanced = (PFNGLDRAWARRAYSINSTANCEDPROC)load("glDrawArraysInstanced");
 	glad_glDrawElementsInstanced = (PFNGLDRAWELEMENTSINSTANCEDPROC)load("glDrawElementsInstanced");
 	glad_glTexBuffer = (PFNGLTEXBUFFERPROC)load("glTexBuffer");
-	glad_glPrimitiveRestartIndex = (PFNGLPRIMITIVERESTARTINDEXPROC)load("glPrimitiveRestartIndex");
+	glad_glMeshRestartIndex = (PFNGLMeshRESTARTINDEXPROC)load("glMeshRestartIndex");
 	glad_glCopyBufferSubData = (PFNGLCOPYBUFFERSUBDATAPROC)load("glCopyBufferSubData");
 	glad_glGetUniformIndices = (PFNGLGETUNIFORMINDICESPROC)load("glGetUniformIndices");
 	glad_glGetActiveUniformsiv = (PFNGLGETACTIVEUNIFORMSIVPROC)load("glGetActiveUniformsiv");

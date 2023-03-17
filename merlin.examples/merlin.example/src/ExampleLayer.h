@@ -1,8 +1,7 @@
 #pragma once
 
 #include <Merlin.h>
-using namespace Merlin::Scene;
-using namespace Merlin::Renderer;
+using namespace Merlin::Graphics;
 
 class ExampleLayer : public Merlin::Layer
 {
@@ -16,17 +15,12 @@ public:
 	virtual void OnUpdate(Merlin::Timestep ts) override;
 	virtual void OnImGuiRender() override;
 private:
-	Shared<Shader> modelShader;
-	Shared<Shader> axisShader;
-
-	Shared<Model> axis;
-	Shared<Model> floor;
-	Shared<Model> model;
 
 	Shared<Camera> camera;
 	Shared<CameraController> cameraController;
 
-	SceneManager scene;
+	Shared<Scene> scene;
+	Renderer renderer;
 
 	glm::vec3 model_matrix_translation = { 0.8f, 0.2f, 0.3f};
 };

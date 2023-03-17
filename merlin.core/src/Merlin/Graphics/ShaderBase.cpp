@@ -9,7 +9,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 
 	ShaderBase::ShaderBase(std::string name) {
 		_name = name;

@@ -3,7 +3,7 @@
 
 using namespace Merlin::Memory;
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 	ScreenQuadRenderer::ScreenQuadRenderer() {
 		
 		vao = CreateShared<VAO>();

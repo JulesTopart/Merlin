@@ -3,7 +3,7 @@
 
 namespace Merlin::Memory {
 
-	using namespace Renderer;
+	using namespace Graphics;
 
 
 	void ShaderStorageBuffer::copy(Shared<ShaderStorageBuffer> origin, Shared<ShaderStorageBuffer> target, GLsizeiptr size) {

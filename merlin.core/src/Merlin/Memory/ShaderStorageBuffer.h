@@ -1,9 +1,9 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 #include "Merlin/Memory/BufferObject.h"
-#include "Merlin/Renderer/ShaderBase.h"
+#include "Merlin/Graphics/ShaderBase.h"
 
-using namespace Merlin::Renderer;
+using namespace Merlin::Graphics;
 
 namespace Merlin::Memory {
 	class ShaderStorageBuffer : public BufferObject{

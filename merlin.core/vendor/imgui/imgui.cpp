@@ -531,7 +531,7 @@ CODE
                          ImDrawList: 'commands' becomes 'CmdBuffer', 'vtx_buffer' becomes 'VtxBuffer', 'IdxBuffer' is new.
                          ImDrawCmd:  'vtx_count' becomes 'ElemCount', 'clip_rect' becomes 'ClipRect', 'user_callback' becomes 'UserCallback', 'texture_id' becomes 'TextureId'.
                      - each ImDrawList now contains both a vertex buffer and an index buffer. For each command, render ElemCount/3 triangles using indices from the index buffer.
-                     - if you REALLY cannot render indexed primitives, you can call the draw_data->DeIndexAllBuffers() method to de-index the buffers. This is slow and a waste of CPU/GPU. Prefer using indexed rendering!
+                     - if you REALLY cannot render indexed Meshs, you can call the draw_data->DeIndexAllBuffers() method to de-index the buffers. This is slow and a waste of CPU/GPU. Prefer using indexed rendering!
                      - refer to code in the examples/ folder or ask on the GitHub if you are unsure of how to upgrade. please upgrade!
  - 2015/07/10 (1.43) - changed SameLine() parameters from int to float.
  - 2015/07/02 (1.42) - renamed SetScrollPosHere() to SetScrollFromCursorPos(). Kept inline redirection function (will obsolete).
@@ -7776,7 +7776,7 @@ bool ImGui::IsRectVisible(const ImVec2& rect_min, const ImVec2& rect_max)
     return window->ClipRect.Overlaps(ImRect(rect_min, rect_max));
 }
 
-// Lock horizontal starting position + capture group bounding box into one "item" (so you can use IsItemHovered() or layout primitives such as SameLine() on whole group, etc.)
+// Lock horizontal starting position + capture group bounding box into one "item" (so you can use IsItemHovered() or layout Meshs such as SameLine() on whole group, etc.)
 void ImGui::BeginGroup()
 {
     ImGuiContext& g = *GImGui;
@@ -12484,7 +12484,7 @@ static void ImGui::DockNodeUpdate(ImGuiDockNode* node)
             node->LastFocusedNodeID = g.NavWindow->RootWindowDockStop->DockNode->ID;
 
     // We need to draw a background at the root level if requested by ImGuiDockNodeFlags_PassthruCentralNode, but we will only know the correct pos/size after
-    // processing the resizing splitters. So we are using the DrawList channel splitting facility to submit drawing primitives out of order!
+    // processing the resizing splitters. So we are using the DrawList channel splitting facility to submit drawing Meshs out of order!
     const bool render_dockspace_bg = node->IsRootNode() && host_window && (node_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0;
     if (render_dockspace_bg)
     {

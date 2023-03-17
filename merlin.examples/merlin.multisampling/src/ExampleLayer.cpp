@@ -2,7 +2,7 @@
 
 using namespace Merlin;
 using namespace Merlin::Utils;
-using namespace Merlin::Renderer;
+using namespace Merlin::Graphics;
 
 #include <iostream>
 #include <iomanip>

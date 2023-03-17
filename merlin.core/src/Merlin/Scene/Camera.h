@@ -1,12 +1,12 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 
-#include "../Renderer/Shader.h"
+#include "Merlin/Graphics/Shader.h"
 #include "Merlin/Events/ApplicationEvent.h"
 
 using namespace Merlin;
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 
 	enum class Projection {
 		Orthographic, 

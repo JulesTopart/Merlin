@@ -2,10 +2,10 @@
 #include "Merlin/Core/Core.h"
 
 #include <vector>
-#include "Merlin/Renderer/Texture.h"
+#include "Merlin/Graphics/Texture.h"
 #include "Merlin/Memory/RenderBuffer.h"
 
-using namespace Merlin::Renderer;
+using namespace Merlin::Graphics;
 
 namespace Merlin::Memory {
 

@@ -3,7 +3,7 @@
 #include "Merlin/Scene/Model.h"
 #include "Merlin/Scene/Light.h"
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 
     class SceneObject {
     public:
@@ -27,7 +27,7 @@ namespace Merlin::Renderer {
         ModelObject(const Shared<Model>& model) : model_(model) {}
 
         void Draw(const Shader& shader, const glm::mat4 view) const override {
-            model_->Draw(shader, view);
+            model_->Draw(view);
         }
 
         const Model& model() const {
@@ -52,5 +52,21 @@ namespace Merlin::Renderer {
 
     private:
         Shared<Light> light_;
+    };
+
+    class MaterialObject : public SceneObject {
+    public:
+        MaterialObject(const Shared<Material>& mat) : material_(mat) {}
+
+        void Draw(const Shader& shader, const glm::mat4 view) const override {
+            // Draw light sprite
+        }
+
+        const Material& material() const {
+            return *material_;
+        }
+
+    private:
+        Shared<Material> material_;
     };
 }

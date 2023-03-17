@@ -1,9 +1,9 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 
-#include "Merlin/Renderer/Texture.h"
+#include "Merlin/Graphics/Texture.h"
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 
 	class TextureMultisampled : public Texture{
 	public:

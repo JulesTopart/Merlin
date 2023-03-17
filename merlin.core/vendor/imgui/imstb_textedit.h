@@ -80,7 +80,7 @@
 //   separately).
 //
 //   To compile in this mode, you must define STB_TEXTEDIT_CHARTYPE to a
-//   primitive type that defines a single character (e.g. char, wchar_t, etc).
+//   Mesh type that defines a single character (e.g. char, wchar_t, etc).
 //
 //   To save space or increase undo-ability, you can optionally define the
 //   following things that are used by the undo system:

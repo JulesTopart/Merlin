@@ -7,7 +7,7 @@
 namespace Merlin::Tensor {
 
 	ParticleSystem::ParticleSystem(std::string name, GLsizeiptr maxCount) {
-		_geometry = CreateShared<Primitive>();
+		_geometry = CreateShared<Mesh>();
 		_particlesCount = maxCount;
 		_model = glm::mat4(1.0f);
 	}
@@ -65,8 +65,9 @@ namespace Merlin::Tensor {
 		for (Shared<SSBO> buffer : _buffers) {
 			buffer->Attach(shader);
 		}
-		_geometry->SetTransform(_model);
-		_geometry->DrawInstanced(shader, view, _particlesCount);
+
+		Console::error("ParticleSystem") << "Draw function not implemented yet" << Console::endl;
+		_geometry->DrawInstanced(_particlesCount);
 	}
 
 

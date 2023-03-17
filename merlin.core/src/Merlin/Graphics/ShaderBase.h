@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 	class ShaderBase {
 	public:
 		ShaderBase(std::string name = "default");

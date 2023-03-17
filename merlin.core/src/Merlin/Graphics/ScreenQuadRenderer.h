@@ -1,12 +1,12 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 
-#include "Merlin/Renderer/Texture.h"
+#include "Merlin/Graphics/Texture.h"
 #include "Merlin/Memory/VertexArray.h"
 
 using namespace Merlin::Memory;
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 	class ScreenQuadRenderer {
 	public:
 		// Constructor

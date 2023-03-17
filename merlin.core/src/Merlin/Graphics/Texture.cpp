@@ -4,7 +4,7 @@
 #include <filesystem>
 #include "Merlin/Core/Log.h"
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 
 	TextureBase::TextureBase() : _format(GL_RGB) {
 		//Set the target based on the number of samples

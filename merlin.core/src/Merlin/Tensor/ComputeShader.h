@@ -1,11 +1,10 @@
 #pragma once
 #include "Merlin/Core/Core.h"
-
-#include "../Renderer/ShaderBase.h"
+#include "Merlin/Graphics/ShaderBase.h"
 
 namespace Merlin::Tensor{
 
-	class ComputeShader : public Renderer::ShaderBase {
+	class ComputeShader : public Graphics::ShaderBase {
 	public:
 		ComputeShader(std::string n, const std::string file_path = "");
 		~ComputeShader();

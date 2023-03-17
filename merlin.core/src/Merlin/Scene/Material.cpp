@@ -1,10 +1,10 @@
 #include "glpch.h"
-#include "Material.h"
-#include "Merlin/Renderer/Texture.h"
-#include "Merlin/Renderer/Shader.h"
+#include "Merlin/Scene/Material.h"
+#include "Merlin/Graphics/Texture.h"
+#include "Merlin/Graphics/Shader.h"
 #include <glm/glm.hpp>
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
 
 	GLuint Material::nextID = 0;
 
@@ -28,26 +28,39 @@ namespace Merlin::Renderer {
     void Material::SetShininess(const float& shininess) { shininess_ = shininess; }
 
 
+    void Material::LoadShader(std::string vertexPath, std::string fragPath, std::string geomPath) {
+        Shared<Shader> sh = CreateShared<Shader>(vertexPath.substr(0, vertexPath.find(".vert")));
+        sh->Compile(vertexPath, fragPath, geomPath);
+    }
+
     void Material::SetShader(const Shared<Shader>& shader) {
         if(shader != nullptr)
             _shader = shader;
     }
 
-    void Material::SetTexture(const Shared<Texture>& tex) {
-        if (tex != nullptr)
-            _texture = tex;
+
+    void Material::LoadTexture(std::string path, TextureType t, GLuint format) {
+        Shared<Texture> tex = CreateShared<Texture>();
+        tex->Bind();
+        tex->LoadFromFile(path, t, format);
+        AddTexture(tex);
     }
 
-    Shared<Shader> Material::GetShader() {
+
+    void Material::AddTexture(const Shared<Texture>& tex) {
+        if (tex != nullptr)
+            _textures.push_back(tex);
+    }
+
+    const Shared<Shader>& Material::GetShader() const {
         return _shader;
     }
 
-    Shared<Texture> Material::GetTexture() {
-        return _texture;
+    const Shared<Texture>& Material::GetTexture(int index) const {
+        if(index > 0 && index < _textures.size())
+            return _textures[index];
     }
 
-    Shader& Material::shader() { return *_shader; }
-    Texture& Material::texture() { return *_texture; }
     const glm::vec3& Material::ambient() const { return ambient_; }
     const glm::vec3& Material::diffuse() const { return diffuse_; }
     const glm::vec3& Material::specular() const { return specular_; }

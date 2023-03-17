@@ -1,7 +1,9 @@
 #include "glpch.h"
 #include "SceneNode.h"
 
-namespace Merlin::Renderer {
+namespace Merlin::Graphics {
+
+	int SceneNode::nextID = 0;
 
 	SceneNode::SceneNode(const std::string& name) : name_(name)  {
 		ID = nextID++;
@@ -22,6 +24,10 @@ namespace Merlin::Renderer {
 				break;
 			}
 		}
+	}
+
+	void SceneNode::Clear() {
+		children_.clear();
 	}
 
 	const std::string& SceneNode::name() const {
