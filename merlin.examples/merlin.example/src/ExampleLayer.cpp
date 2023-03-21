@@ -20,14 +20,16 @@ ExampleLayer::~ExampleLayer(){}
 
 void ExampleLayer::OnAttach(){
 	EnableGLDebugging();
-	Console::SetLevel(ConsoleLevel::_INFO);
+	Console::SetLevel(ConsoleLevel::_TRACE);
 
 	scene = CreateShared<Scene>();
 
 	Shared<Material> material = CreateShared<Material>();
-	//material.SetShader(CreateShared<Shader>("assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl"));
+	material->SetShader(CreateShared<Shader>("model","assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl", ""));
 	//material.SetTexture(TextureLoader::loadTexture("textures/teapot.png"));
-	Shared<Model> model = ModelLoader::LoadModel("./assets/models/owl.stl");
+	//Shared<Model> model = ModelLoader::LoadModel("./assets/models/owl.stl");
+	Shared<Model> model = ModelLoader::LoadCube();
+	model->SetMaterial(material);
 
 	scene->SetCamera(camera);
 	scene->SpawnModel(model, "Owl");
@@ -48,6 +50,7 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	cameraController->OnUpdate(ts);
 
 	// Render the scene
+
 	renderer.Render(scene, camera);
 }
 

@@ -10,11 +10,6 @@ out vec3 normal;
 out vec3 color;
 out vec2 texCoord;
 
-uniform vec3 lightPos;
-uniform vec3 lightColor;
-uniform vec3 viewPos;
-uniform float shininess;
-
 uniform mat4 view;
 uniform mat4 model;
 

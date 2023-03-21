@@ -18,7 +18,7 @@ namespace Merlin::Graphics {
 		std::vector<Shared<Material>> _material;
 
 	public:
-		Scene() {};
+		Scene();
 		~Scene() {};
 
 		void ClearObjects();

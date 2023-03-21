@@ -35,5 +35,8 @@ namespace Merlin::Graphics {
 		GLuint fragmentShaderID = 0;
 		GLuint geometryShaderID = 0;
 
+		std::string VertexShaderSrc;
+		std::string FragmentShaderSrc;
+		std::string GeomShaderSrc;
 	};
 }

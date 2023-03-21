@@ -290,6 +290,7 @@ namespace Merlin::Utils {
             // Read the attribute byte count (not used)
             char attr_byte_count;
             file.read(&attr_byte_count, 1);
+            Console::printProgress(100.0f * float(i) / float(num_triangles));
         }
 
         return true;
@@ -297,12 +298,20 @@ namespace Merlin::Utils {
 
     // Parse an STL file and extract the data
     bool ModelLoader::ParseSTL_ASCII(const std::string& file_path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
-        // Open the file in text mode
-        std::ifstream file(file_path);
+        // Open the file in binary mode
+        std::ifstream file(file_path, std::ios::in | std::ios::binary);
         if (!file) {
             // Failed to open the file
             return false;
         }
+
+        // Reserve space for vertices and indices if you can estimate their size
+        // (use a reasonable default value otherwise)
+        vertices.reserve(1024);
+        indices.reserve(1024);
+
+        Console::info("Model loader") << "Loading ascii model..." << Console::endl;
+
         int index = 0;
         // Read the file line by line
         std::string line;
@@ -310,25 +319,28 @@ namespace Merlin::Utils {
             std::istringstream line_stream(line);
             std::string keyword;
             line_stream >> keyword;
-            float normal[3];
+            float normal[3] = { 0, 0, 0 };
 
-
-            if (keyword == "facet") {
+            // Use a faster string comparison method
+            if (keyword[0] == 'f') { // facet
                 // Read the normal vector
                 std::string normal_keyword;
                 line_stream >> normal_keyword;
                 line_stream >> normal[0] >> normal[1] >> normal[2];
-
-            }else if (keyword == "vertex") {
+            }
+            else if (keyword[0] == 'v') { // vertex
                 // Read the three vertices
                 Vertex v;
                 line_stream >> v.position.x >> v.position.y >> v.position.z;
 
                 // Set the normal and color for each vertex
-                v.normal = glm::vec3(normal[0], normal[1], normal[2]); //By convention, store the normal in the first vertex
-                vertices.push_back(v); indices.push_back(index++);
+                v.normal = glm::vec3(normal[0], normal[1], normal[2]); // By convention, store the normal in the first vertex
+                vertices.push_back(v);
+                indices.push_back(index++);
             }
         }
+
+        return true;
     }
 	
 

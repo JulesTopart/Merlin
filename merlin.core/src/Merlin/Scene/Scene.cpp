@@ -4,6 +4,13 @@
 
 namespace Merlin::Graphics {
 
+
+	Scene::Scene() {
+		_rootNode = CreateShared<SceneNode>("scene");
+		_currentNode = _rootNode;
+	}
+
+
 	const Shared<SceneNode>& Scene::nodes() {
 		return _rootNode;
 	}
@@ -46,6 +53,7 @@ namespace Merlin::Graphics {
 		Shared<ModelObject> so = CreateShared<ModelObject>(mdl);
 		sn->SetObject(so);
 		_currentNode->AddChild(sn);
+		_models.push_back(mdl);
 	}
 
 	void Scene::SpawnLight(Shared<Light> light, std::string name) {

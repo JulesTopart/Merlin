@@ -67,9 +67,7 @@ namespace Merlin::Graphics {
 							const std::string& geometry_file_path) {
 		_compiled = true;
 
-		std::string VertexShaderSrc;
-		std::string FragmentShaderSrc;
-		std::string GeomShaderSrc;
+		
 
 
 		// Read vertexFile and fragmentFile and store the strings
@@ -125,8 +123,11 @@ namespace Merlin::Graphics {
 			LOG_ERROR("Shader") << "Shader program failed." << Console::endl;
 			_compiled = false;
 		}
+
+		if (Result == GL_FALSE) Console::error("Shader") << "Shader " << id() << " not linked" << Console::endl;
 		else LOG_OK("Shader") << "Shader program successfully created." << Console::endl;
 
+		
 		glDetachShader(id(), vertexShaderID);
 		glDetachShader(id(), fragmentShaderID);
 
@@ -137,7 +138,7 @@ namespace Merlin::Graphics {
 		glDeleteShader(fragmentShaderID);
 		if (geometry_file_path != "")
 			glDeleteShader(geometryShaderID);
-
+		
 	}
 
 
