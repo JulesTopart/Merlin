@@ -14,7 +14,7 @@ namespace Merlin::Graphics {
 		Shader(std::string n,
 			const std::string vpath,
 			const std::string fpath,
-			const std::string gpath);
+			const std::string gpath = "");
 
 		~Shader();
 

@@ -62,53 +62,49 @@ namespace Merlin::Graphics {
 		else LOG_OK("Shader") << name << " shader compilation sucessful." << Console::endl;
 	}
 
-	void Shader::Compile(	const std::string& vertex_file_path,
-							const std::string& fragment_file_path,
-							const std::string& geometry_file_path) {
+
+
+	
+	void Shader::Compile(const std::string& vertex_file_path,
+		const std::string& fragment_file_path,
+		const std::string& geometry_file_path) {
 		_compiled = true;
-
-		
-
 
 		// Read vertexFile and fragmentFile and store the strings
 		LOG_INFO() << "Importing shader source... : " << vertex_file_path << Console::endl;
 		VertexShaderSrc = ReadSrc(vertex_file_path);
-		 
+
 		LOG_INFO() << "Importing shader source... : " << fragment_file_path << Console::endl;
 		FragmentShaderSrc = ReadSrc(fragment_file_path);
 
 		if (geometry_file_path != "") {
 			LOG_INFO() << "Importing shader source... : " << geometry_file_path << Console::endl;
-			FragmentShaderSrc = ReadSrc(geometry_file_path);
+			GeomShaderSrc = ReadSrc(geometry_file_path);
 		}
 
 		LOG_TRACE() << "Creating shaders... : " << Console::endl;
 		vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 		fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-		if (geometry_file_path != "") 
+		if (geometry_file_path != "")
 			geometryShaderID = glCreateShader(GL_GEOMETRY_SHADER);
 
 
 		// Compile Vertex Shader
 		CompileShader("Vertex", VertexShaderSrc, vertexShaderID);
-		CompileShader("Fragment", FragmentShaderSrc, vertexShaderID);
+		CompileShader("Fragment", FragmentShaderSrc, fragmentShaderID);
 		if (geometry_file_path != "")
-			CompileShader("Vertex", GeomShaderSrc, vertexShaderID);
-
-		
+			CompileShader("Vertex", GeomShaderSrc, geometryShaderID);
 
 		SetID(glCreateProgram());
-		
+
 		LOG_INFO("Shader") << "Creating program n " << id() << "..." << Console::endl;
 
 		glAttachShader(id(), vertexShaderID);
 		glAttachShader(id(), fragmentShaderID);
-		if (geometry_file_path != "") 
+		if (geometry_file_path != "")
 			glAttachShader(id(), geometryShaderID);
 
 		glLinkProgram(id());
-
-
 
 		// Check the program
 		GLint Result = GL_FALSE;
@@ -127,7 +123,7 @@ namespace Merlin::Graphics {
 		if (Result == GL_FALSE) Console::error("Shader") << "Shader " << id() << " not linked" << Console::endl;
 		else LOG_OK("Shader") << "Shader program successfully created." << Console::endl;
 
-		
+
 		glDetachShader(id(), vertexShaderID);
 		glDetachShader(id(), fragmentShaderID);
 
@@ -138,10 +134,11 @@ namespace Merlin::Graphics {
 		glDeleteShader(fragmentShaderID);
 		if (geometry_file_path != "")
 			glDeleteShader(geometryShaderID);
-		
+
 	}
+	
 
-
+	
 
 	void Shader::CompileFromSrc(const std::string& VertexShaderSrc,
 								const std::string& FragmentShaderSrc,

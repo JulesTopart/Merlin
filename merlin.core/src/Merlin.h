@@ -29,3 +29,4 @@
 
 #include "Merlin/Util/OpenGLDebug.h"
 #include "Merlin/Util/ModelLoader.h"
+#include "Merlin/Util/Primitives.h"

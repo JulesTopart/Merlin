@@ -2,6 +2,7 @@
 #include "Merlin/Core/Core.h"
 #include "Merlin/Scene/Model.h"
 #include "Merlin/Graphics/Mesh.h"
+#include "Primitives.h"
 
 using namespace Merlin::Graphics;
 using namespace Merlin::Memory;
@@ -12,9 +13,7 @@ namespace Merlin::Utils{
 	public:
 		// Load a model from the specified file and return a pointer to a new Mesh object
 		static Shared<Model> LoadModel(const std::string& filepath);
-		static Shared<Model> LoadPlane();
 		static Shared<Model> LoadAxis();
-		static Shared<Model> LoadCube();
 
 	private:
 

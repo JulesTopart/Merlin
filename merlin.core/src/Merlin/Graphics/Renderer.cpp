@@ -36,16 +36,16 @@ namespace Merlin::Graphics {
 
 	}
 
-	void Renderer::Render(const Shared<Scene>& scene, const Shared<Camera>& camera) {
+	void Renderer::Render(const Shared<Scene>& scene, const Camera& camera) {
 		glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Update the view matrix based on the camera position and orientation
-		glm::mat4 view = camera->GetViewProjectionMatrix();
+		glm::mat4 view = camera.GetViewProjectionMatrix();
 
 		// Draw the meshes in the scene
 		for (const auto& model : scene->GetModels()) {
-			model->Draw(view);
+			model->Draw(camera);
 		}
 	}
 }

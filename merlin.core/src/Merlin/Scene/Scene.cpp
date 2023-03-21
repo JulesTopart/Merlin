@@ -38,14 +38,13 @@ namespace Merlin::Graphics {
 	}
 
 	void Scene::SpawnCube(std::string name) {
-		Shared<Model> axis = Utils::ModelLoader::LoadCube();
+		Shared<Model> axis = Model::Create(Utils::Primitives::CreateCube(1));
 		SpawnModel(axis, "Cube");
 	}
 
 	void Scene::SpawnAxis(std::string name) {
-		Shared<Model> axis = Utils::ModelLoader::LoadAxis();
+		Shared<Model> axis = Model::Create(Utils::Primitives::CreateCoordSystem());
 		SpawnModel(axis, "CoordinateSystem");
-
 	}
 
 	void Scene::SpawnModel(Shared<Model> mdl, std::string name) {

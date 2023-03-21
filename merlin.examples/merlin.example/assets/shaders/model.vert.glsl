@@ -10,6 +10,7 @@ out vec3 normal;
 out vec3 color;
 out vec2 texCoord;
 
+uniform vec3 viewPos;
 uniform mat4 view;
 uniform mat4 model;
 

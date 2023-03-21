@@ -9,7 +9,7 @@ namespace Merlin::Graphics {
     public:
         virtual ~SceneObject() {}
 
-        virtual void Draw(const Shader& shader, const glm::mat4 view) const = 0;
+        virtual void Draw(const Shader& shader, const Camera& camera) const = 0;
 
         const std::string& name() const {
             return name_;
@@ -26,8 +26,8 @@ namespace Merlin::Graphics {
     public:
         ModelObject(const Shared<Model>& model) : model_(model) {}
 
-        void Draw(const Shader& shader, const glm::mat4 view) const override {
-            model_->Draw(view);
+        void Draw(const Shader& shader, const Camera& camera) const override {
+            model_->Draw(camera);
         }
 
         const Model& model() const {
@@ -42,7 +42,7 @@ namespace Merlin::Graphics {
     public:
         LightObject(const Shared<Light>& light) : light_(light) {}
 
-        void Draw(const Shader& shader, const glm::mat4 view) const override {
+        void Draw(const Shader& shader, const Camera& camera) const override {
             // Draw light sprite
         }
 
@@ -58,7 +58,7 @@ namespace Merlin::Graphics {
     public:
         MaterialObject(const Shared<Material>& mat) : material_(mat) {}
 
-        void Draw(const Shader& shader, const glm::mat4 view) const override {
+        void Draw(const Shader& shader, const Camera& camera) const override {
             // Draw light sprite
         }
 

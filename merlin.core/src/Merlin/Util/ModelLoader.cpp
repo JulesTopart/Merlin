@@ -6,72 +6,6 @@
 
 namespace Merlin::Utils {
 
-    Shared<Model> ModelLoader::LoadCube() {
-
-        std::vector<Vertex> vertices = {
-            //   Coordinates
-             Vertex{ glm::vec3(-1.0f, -1.0f,  1.0f)},   //        7--------6
-             Vertex{ glm::vec3( 1.0f, -1.0f,  1.0f)},   //       /|       /|
-             Vertex{ glm::vec3( 1.0f, -1.0f, -1.0f)},   //      4--------5 |
-             Vertex{ glm::vec3(-1.0f, -1.0f, -1.0f)},   //      | |      | |
-             Vertex{ glm::vec3(-1.0f,  1.0f,  1.0f)},   //      | 3------|-2
-             Vertex{ glm::vec3( 1.0f,  1.0f,  1.0f)},   //      |/       |/
-             Vertex{ glm::vec3( 1.0f,  1.0f, -1.0f)},   //      0--------1
-             Vertex{ glm::vec3(-1.0f,  1.0f, -1.0f)}
-        };
-
-        std::vector<GLuint> indices = {
-            // Right
-            1, 2, 6,
-            6, 5, 1,
-            // Left
-            0, 4, 7,
-            7, 3, 0,
-            // Top
-            4, 5, 6,
-            6, 7, 4,
-            // Bottom
-            0, 3, 2,
-            2, 1, 0,
-            // Back
-            0, 1, 5,
-            5, 4, 0,
-            // Front
-            3, 7, 6,
-            6, 2, 3
-        };
-
-        std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(vertices, indices);
-        cube->SetDrawMode(GL_TRIANGLES);
-
-        Shared<Model> mdl = CreateShared<Model>(cube);
-        return mdl;
-    }
-
-
-    Shared<Model> ModelLoader::LoadPlane() {
-        
-        //Plane
-        std::vector<Vertex> vertices = {
-            //             COORDINATES          /             NORMAL         /          COLOR          /        	TexCoord       /
-            Vertex{ glm::vec3(-1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
-            Vertex{ glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
-            Vertex{ glm::vec3( 1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
-            Vertex{ glm::vec3( 1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)}
-        };
-
-        std::vector<GLuint> indices = {
-            0, 1, 2,
-            0, 2, 3
-        };
-        
-        std::shared_ptr<Mesh> plane = std::make_shared<Mesh>(vertices,indices);
-        plane->SetDrawMode(GL_TRIANGLES);
-
-        Shared<Model> mdl = CreateShared<Model>(plane);
-        return mdl;
-    }
-
     Shared<Model> ModelLoader::LoadAxis() {
         //Axis
         std::vector<Vertex> vertices = {
@@ -313,30 +247,35 @@ namespace Merlin::Utils {
         Console::info("Model loader") << "Loading ascii model..." << Console::endl;
 
         int index = 0;
+        int VertexCount = 0;
         // Read the file line by line
         std::string line;
+        float normal[3] = { 0, 0, 0 };
         while (std::getline(file, line)) {
             std::istringstream line_stream(line);
             std::string keyword;
             line_stream >> keyword;
-            float normal[3] = { 0, 0, 0 };
-
+            
             // Use a faster string comparison method
             if (keyword[0] == 'f') { // facet
                 // Read the normal vector
                 std::string normal_keyword;
                 line_stream >> normal_keyword;
                 line_stream >> normal[0] >> normal[1] >> normal[2];
+                VertexCount = 0;
             }
             else if (keyword[0] == 'v') { // vertex
                 // Read the three vertices
                 Vertex v;
                 line_stream >> v.position.x >> v.position.y >> v.position.z;
 
+
                 // Set the normal and color for each vertex
-                v.normal = glm::vec3(normal[0], normal[1], normal[2]); // By convention, store the normal in the first vertex
+                if (VertexCount == 0) v.normal = glm::vec3(normal[0], normal[1], normal[2]); // By convention, store the normal in the first vertex
+                else v.normal = glm::vec3(0);
                 vertices.push_back(v);
                 indices.push_back(index++);
+                VertexCount++;
             }
         }
 

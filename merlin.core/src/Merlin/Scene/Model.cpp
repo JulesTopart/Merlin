@@ -5,6 +5,17 @@ namespace Merlin::Graphics {
 
     Shared<Material> Model::defaultMaterial = nullptr;
 
+    const Shared<Model>& Model::Create(const Shared<Mesh>& mesh) {
+        Shared<Model> mdl = CreateShared<Model>(mesh);
+        return mdl;
+    }
+
+    const Shared<Model>& Model::Create(const Shared<Mesh>& mesh, const Shared<Material>& material) {
+        Shared<Model> mdl = CreateShared<Model>(mesh, material);
+        return mdl;
+    }
+
+
     Model::Model(const Shared<Mesh>& mesh)
         : _mesh(mesh) {
         /*
@@ -83,7 +94,7 @@ namespace Merlin::Graphics {
         _transform = glm::mat4(1.0f);
     }
 
-    void Model::SetMaterial(Shared<Material> material) {
+    void Model::SetMaterial(const Shared<Material>& material) {
         _material = material;
     }
 
@@ -106,11 +117,12 @@ namespace Merlin::Graphics {
     }
 
 
-    void Model::Draw(glm::mat4 view) const {
+    void Model::Draw(const Camera& camera) const {
         Shared<Shader> sh = _material->GetShader();
             
         sh->Use();
-        sh->SetMat4("view", view); //Sync camera with GPU
+        sh->SetVec3("viewPos", camera.GetPosition()); //Sync camera with GPU
+        sh->SetMat4("view", camera.GetViewProjectionMatrix()); //Sync camera with GPU
         sh->SetMat4("model", _transform); //Sync camera with GPU
 
         /*

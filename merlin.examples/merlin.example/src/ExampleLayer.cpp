@@ -20,22 +20,21 @@ ExampleLayer::~ExampleLayer(){}
 
 void ExampleLayer::OnAttach(){
 	EnableGLDebugging();
-	Console::SetLevel(ConsoleLevel::_TRACE);
+	Console::SetLevel(ConsoleLevel::_INFO);
 
 	scene = CreateShared<Scene>();
-
 	Shared<Material> material = CreateShared<Material>();
-	material->SetShader(CreateShared<Shader>("model","assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl", ""));
+	material->SetShader(CreateShared<Shader>("model","assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl"));
 	//material.SetTexture(TextureLoader::loadTexture("textures/teapot.png"));
-	//Shared<Model> model = ModelLoader::LoadModel("./assets/models/owl.stl");
-	Shared<Model> model = ModelLoader::LoadCube();
-	model->SetMaterial(material);
+	//model = ModelLoader::LoadModel("./assets/models/owl.stl");
+	model = Model::Create(Primitives::CreateCube(1), material);
 
 	scene->SetCamera(camera);
 	scene->SpawnModel(model, "Owl");
+	
 
 	// Set the camera and scene for the renderer
-	renderer.Initialize();;
+	renderer.Initialize();
 }
 
 void ExampleLayer::OnDetach(){}
@@ -50,8 +49,8 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	cameraController->OnUpdate(ts);
 
 	// Render the scene
+	renderer.Render(scene, *camera);
 
-	renderer.Render(scene, camera);
 }
 
 void ExampleLayer::OnImGuiRender()
@@ -65,7 +64,7 @@ void ExampleLayer::OnImGuiRender()
 	ImGui::End();
 
 
-	
+	/*
 	// Define a recursive lambda function to traverse the scene graph
 	std::function<void(const std::vector<Shared<SceneNode>>&)> traverseNodes = [&](const std::vector<Shared<SceneNode>>& nodes)
 	{
@@ -101,7 +100,7 @@ void ExampleLayer::OnImGuiRender()
 	ImGui::Begin("Scene Graph");
 	traverseNodes(scene->nodes()->children());
 	ImGui::End();
-	
+	*/
 
 
 }
