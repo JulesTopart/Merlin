@@ -5,96 +5,27 @@ namespace Merlin::Graphics {
 
     Shared<Material> Model::defaultMaterial = nullptr;
 
-    const Shared<Model>& Model::Create(const Shared<Mesh>& mesh) {
-        Shared<Model> mdl = CreateShared<Model>(mesh);
-        return mdl;
+    Shared<Model> Model::Create(Shared<Mesh> mesh) {
+        return std::make_shared<Model>(mesh);
     }
 
-    const Shared<Model>& Model::Create(const Shared<Mesh>& mesh, const Shared<Material>& material) {
-        Shared<Model> mdl = CreateShared<Model>(mesh, material);
-        return mdl;
+    Shared<Model> Model::Create(Shared<Mesh> mesh, Shared<Material> material) {
+        return std::make_shared<Model>(mesh, material);
     }
 
-
-    Model::Model(const Shared<Mesh>& mesh)
+    Model::Model(Shared<Mesh> mesh)
         : _mesh(mesh) {
-        /*
-        if (defaultMaterial == nullptr) {
-            defaultMaterial = CreateShared<Material>();
-            defaultMaterial->SetProperty(glm::vec3(0.5), glm::vec3(0.8), glm::vec3(1), 0.3);
-            Shared<Shader> defaultShader = CreateShared<Shader>("default");
-
-            std::string vertexShader =
-                "#version 330 core \n \
-                layout(location = 0) in vec3 _position;\n \
-                layout(location = 1) in vec3 _normal;\n \
-                out vec3 position;\n \
-                out vec3 normal;\n \
-                uniform mat4 view;\n \
-                uniform mat4 model;\n \
-                void main() {\n \
-                    position = vec3(model * vec4(_position, 1.0f));\n \
-                    normal = _normal;\n \
-                    gl_Position = view * vec4(position, 1.0f);\n \
-                }";
-
-            std::string fragmentShader =
-                "#version 430 core\n \
-                layout(location = 0) out vec4 o_Color;\n \
-                in vec3 normal;\n \
-                void main() {\n \
-                    o_Color = vec4(vec3(0.5f) + max(dot(normalize(normal), normalize(vec3(1, 1, -2))), 0.0), 1.0f);\n \
-                }";
-
-           
-            defaultShader->CompileFromSrc(vertexShader, fragmentShader);
-
-            defaultMaterial->SetShader(defaultShader);
-        }
-        */
         _material = defaultMaterial;
         _transform = glm::mat4(1.0f);
     }
 
-    Model::Model(const Shared<Mesh>& mesh, const Shared<Material>& mat)
+    Model::Model(Shared<Mesh> mesh, Shared<Material> mat)
         : _mesh(mesh) {
-        if (defaultMaterial == nullptr) {
-            defaultMaterial = CreateShared<Material>();
-            defaultMaterial->SetProperty(glm::vec3(0.5), glm::vec3(0.8), glm::vec3(1), 0.3);
-            Shared<Shader> defaultShader = CreateShared<Shader>("default");
-
-            std::string vertexShader =
-                "#version 330 core \
-                layout(location = 0) in vec3 _position; \
-                layout(location = 1) in vec3 _normal; \
-                out vec3 position; \
-                out vec3 normal; \
-                uniform mat4 view; \
-                uniform mat4 model; \
-                void main() { \
-                    position = vec3(model * vec4(_position, 1.0f)); \
-                    normal = _normal; \
-                    gl_Position = view * vec4(position, 1.0f); \
-                }";
-
-            std::string fragmentShader =
-                "#version 430 core \
-                layout(location = 0) out vec4 o_Color; \
-                in vec3 normal; \
-                void main() { \
-                    o_Color = vec4(vec3(0.5f) + max(dot(normalize(normal), normalize(vec3(1, 1, -2))), 0.0), 1.0f);\
-                }";
-
-
-            defaultShader->CompileFromSrc(vertexShader, fragmentShader);
-
-            defaultMaterial->SetShader(defaultShader);
-        }
         _material = mat;
         _transform = glm::mat4(1.0f);
     }
 
-    void Model::SetMaterial(const Shared<Material>& material) {
+    void Model::SetMaterial(Shared<Material> material) {
         _material = material;
     }
 

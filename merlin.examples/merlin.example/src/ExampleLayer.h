@@ -19,9 +19,6 @@ private:
 	Shared<Camera> camera;
 	Shared<CameraController> cameraController;
 
-	Shared<Shader> modelShader;
-	Shared<Model> model;
-
 	Shared<Scene> scene;
 	Renderer renderer;
 

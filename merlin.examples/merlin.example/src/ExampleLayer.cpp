@@ -22,17 +22,23 @@ void ExampleLayer::OnAttach(){
 	EnableGLDebugging();
 	Console::SetLevel(ConsoleLevel::_INFO);
 
+	Shared<Model> model = nullptr;
+	Shared<Material> material = nullptr;
+
 	scene = CreateShared<Scene>();
-	Shared<Material> material = CreateShared<Material>();
+	material = CreateShared<Material>();
+
 	material->SetShader(CreateShared<Shader>("model","assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl"));
 	//material.SetTexture(TextureLoader::loadTexture("textures/teapot.png"));
 	//model = ModelLoader::LoadModel("./assets/models/owl.stl");
-	model = Model::Create(Primitives::CreateCube(1), material);
+
+	Shared<Mesh> mesh = Primitives::CreateSphere(1, 35, 35);
+
+	model = Model::Create(mesh, material);
 
 	scene->SetCamera(camera);
 	scene->SpawnModel(model, "Owl");
 	
-
 	// Set the camera and scene for the renderer
 	renderer.Initialize();
 }
