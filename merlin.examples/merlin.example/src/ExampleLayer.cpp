@@ -2,6 +2,7 @@
 
 using namespace Merlin;
 using namespace Merlin::Utils;
+using namespace Merlin::Memory;
 using namespace Merlin::Graphics;
 
 #include <iostream>
@@ -24,21 +25,30 @@ void ExampleLayer::OnAttach(){
 
 	Shared<Model> model = nullptr;
 	Shared<Material> material = nullptr;
+	//Shared<Texture> texture = CreateShared<Texture>();
 
-	scene = CreateShared<Scene>();
-	material = CreateShared<Material>();
-
-	material->SetShader(CreateShared<Shader>("model","assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl"));
-	//material.SetTexture(TextureLoader::loadTexture("textures/teapot.png"));
-	//model = ModelLoader::LoadModel("./assets/models/owl.stl");
-
-	Shared<Mesh> mesh = Primitives::CreateSphere(1, 35, 35);
-
-	model = Model::Create(mesh, material);
-
-	scene->SetCamera(camera);
-	scene->SpawnModel(model, "Owl");
+	// Load model data in a background thread
+	model = ModelLoader::LoadModel("./assets/models/arrow_body.stl");
 	
+	//texture->LoadFromFile("./assets/textures/wall.jpg", TextureType::DIFFUSE, GL_RGB);
+
+	material = CreateShared<Material>();
+	material->SetShader(CreateShared<Shader>("model", "assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl"));
+	material->SetAmbient(glm::vec3(0.2f, 0.3f, 0.4f));
+	material->SetDiffuse(glm::vec3(0.4f, 0.4f, 0.4f));
+	material->SetSpecular(glm::vec3(0.2f, 0.2f, 0.2f));
+	material->SetShininess(0.4f);
+	//material->AddTexture(texture);
+
+	model->SetMaterial(material);
+	model->Translate(glm::vec3(2, 0, 0));
+
+	scene.SetCamera(camera);
+
+	scene.SpawnModel(model, "Model");
+	scene.SpawnModel(Model::Create(Primitives::CreateSphere(1, 35, 35), material), "Sphere");
+	//scene.SpawnModel(model, "bed");
+
 	// Set the camera and scene for the renderer
 	renderer.Initialize();
 }
@@ -70,7 +80,7 @@ void ExampleLayer::OnImGuiRender()
 	ImGui::End();
 
 
-	/*
+	
 	// Define a recursive lambda function to traverse the scene graph
 	std::function<void(const std::vector<Shared<SceneNode>>&)> traverseNodes = [&](const std::vector<Shared<SceneNode>>& nodes)
 	{
@@ -104,9 +114,9 @@ void ExampleLayer::OnImGuiRender()
 
 	// Draw the scene graph starting from the root node
 	ImGui::Begin("Scene Graph");
-	traverseNodes(scene->nodes()->children());
+	traverseNodes(scene.nodes()->children());
 	ImGui::End();
-	*/
+	
 
 
 }

@@ -4,7 +4,7 @@
 #include "Merlin/Memory/VertexArray.h"
 #include "Merlin/Memory/ShaderStorageBuffer.h"
 #include "Merlin/Graphics/Shader.h"
-#include "Merlin/Graphics/Texture.h"
+#include "Merlin/Memory/Texture.h"
 #include "Merlin/Tensor/ComputeShader.h"
 #include "Merlin/Core/Timestep.h"
 #include "Merlin/Graphics/Mesh.h"

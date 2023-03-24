@@ -2,7 +2,7 @@
 #include "Merlin/Core/Core.h"
 
 #include <vector>
-#include "Merlin/Graphics/Texture.h"
+#include "Merlin/Memory/Texture.h"
 #include "Merlin/Memory/RenderBuffer.h"
 
 using namespace Merlin::Graphics;

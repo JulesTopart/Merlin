@@ -47,6 +47,7 @@
     <TargetName>merlin.core</TargetName>
     <TargetExt>.lib</TargetExt>
     <IncludePath>$(ProjectDir)vendor\assimp\include;$(ProjectDir)vendor\spdlog\include;$(ProjectDir)vendor\GLFW\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\imgui;$(ProjectDir)vendor\glm;$(ProjectDir)vendor\tinygltf;$(ProjectDir)vendor\stb_image;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\Release-windows-x86_64\merlin.core\</OutDir>
@@ -54,6 +55,7 @@
     <TargetName>merlin.core</TargetName>
     <TargetExt>.lib</TargetExt>
     <IncludePath>$(ProjectDir)vendor\assimp\include;$(ProjectDir)vendor\spdlog\include;$(ProjectDir)vendor\GLFW\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\imgui;$(ProjectDir)vendor\glm;$(ProjectDir)vendor\tinygltf;$(ProjectDir)vendor\stb_image;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>false</VcpkgEnabled>
@@ -159,9 +161,10 @@
     <ClInclude Include="src\Merlin\Core\WindowsInput.h" />
     <ClInclude Include="src\Merlin\Core\WindowsWindow.h" />
     <ClInclude Include="src\glpch.h" />
-    <ClInclude Include="src\Merlin\Graphics\Texture.h" />
-    <ClInclude Include="src\Merlin\Graphics\TextureMultisampled.h" />
-    <ClInclude Include="src\Merlin\Graphics\TextureCubeMap.h" />
+    <ClInclude Include="src\Merlin\Memory\Texture.h" />
+    <ClInclude Include="src\Merlin\Memory\TextureMultisampled.h" />
+    <ClInclude Include="src\Merlin\Memory\TextureCubeMap.h" />
+    <ClInclude Include="src\Merlin\Util\TextureLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Merlin\Util\Primitives.cpp" />
@@ -204,9 +207,10 @@
     <ClCompile Include="src\glpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Merlin\Graphics\Texture.cpp" />
-    <ClCompile Include="src\Merlin\Graphics\TextureMultisampled.cpp" />
-    <ClCompile Include="src\Merlin\Graphics\TextureCubeMap.cpp" />
+    <ClCompile Include="src\Merlin\Memory\Texture.cpp" />
+    <ClCompile Include="src\Merlin\Memory\TextureMultisampled.cpp" />
+    <ClCompile Include="src\Merlin\Memory\TextureCubeMap.cpp" />
+    <ClCompile Include="src\Merlin\Util\TextureLoader.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -11,6 +11,7 @@
 #include "Merlin/Memory/VertexArray.h"
 #include "Merlin/Memory/FrameBuffer.h"
 #include "Merlin/Memory/RenderBuffer.h"
+#include "Merlin/Memory/Texture.h"
 
 #include "Merlin/Graphics/Renderer.h"
 #include "Merlin/Graphics/Shader.h"

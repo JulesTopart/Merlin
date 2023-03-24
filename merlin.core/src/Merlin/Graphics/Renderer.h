@@ -10,7 +10,7 @@ namespace Merlin::Graphics {
 		~Renderer();
 
 		void Initialize();
-		void Render(const Shared<Scene>& scene, const Camera& camera);
+		void Render(const Scene& scene, const Camera& camera);
 
 		void EnableTransparency();
 		void EnableMultisampling();

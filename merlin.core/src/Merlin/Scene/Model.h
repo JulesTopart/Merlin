@@ -4,6 +4,7 @@
 #include "Merlin/Scene/Material.h"
 #include "Merlin/Scene/Camera.h"
 
+#include <glm/gtx/matrix_decompose.hpp>
 
 namespace Merlin::Graphics {
 
@@ -26,6 +27,26 @@ namespace Merlin::Graphics {
         void SetTransform(glm::mat4 t);
 
         inline Shared<Mesh> Model::GetMesh() const { return _mesh; }
+
+        inline glm::vec3& position() {
+            glm::vec3 scale;
+            glm::quat rotation;
+            glm::vec3 translation;
+            glm::vec3 skew;
+            glm::vec4 perspective;
+            glm::decompose(_transform, scale, rotation, translation, skew, perspective);
+            return translation;
+        }
+
+        inline glm::quat& rotation() {
+            glm::vec3 scale;
+            glm::quat rotation;
+            glm::vec3 translation;
+            glm::vec3 skew;
+            glm::vec4 perspective;
+            glm::decompose(_transform, scale, rotation, translation, skew, perspective);
+            return rotation;
+        }
 
         inline glm::mat4& transform() { return _transform; }
         inline const Mesh& Model::mesh() const { return *_mesh; }

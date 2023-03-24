@@ -1,6 +1,6 @@
 #pragma once
 #include "Merlin/Core/Core.h"
-#include "Merlin/Graphics/Texture.h"
+#include "Merlin/Memory/Texture.h"
 #include "Merlin/Graphics/Shader.h"
 #include "Merlin/Graphics/Mesh.h"
 #include <glm/glm.hpp>
@@ -24,13 +24,13 @@ namespace Merlin::Graphics {
 
         
         void LoadShader(std::string vertexPath, std::string fragPath, std::string geomPath = "");
-        void SetShader(const Shared<Shader>& shader);
+        void SetShader(Shared<Shader> shader);
 
         void LoadTexture(std::string path, TextureType t = TextureType::DIFFUSE, GLuint format = GL_RGB);
-        void AddTexture(const Shared<Texture>& tex);
+        void AddTexture(Shared<Texture> tex);
 
-        const Shared<Shader>& GetShader() const;
-        const Shared<Texture>& GetTexture(int index) const;
+        Shared<Shader> GetShader() const;
+        Shared<Texture> GetTexture(int index = 0) const;
         inline const int GetTextureCount() const { return _textures.size(); };
 
     private:

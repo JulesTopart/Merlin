@@ -56,11 +56,10 @@ namespace Merlin::Graphics {
         sh->SetMat4("view", camera.GetViewProjectionMatrix()); //Sync camera with GPU
         sh->SetMat4("model", _transform); //Sync camera with GPU
 
-        /*
-        _material->GetShader()->SetVec3("material.ambient", _material->ambient());
-        _material->GetShader()->SetVec3("material.diffuse", _material->diffuse());
-        _material->GetShader()->SetVec3("material.specular", _material->specular());
-        _material->GetShader()->SetFloat("material.shininess", _material->shininess());
+        sh->SetVec3("ambient", _material->ambient());
+        sh->SetVec3("diffuse", _material->diffuse());
+        sh->SetVec3("specular", _material->specular());
+        sh->SetFloat("shininess", _material->shininess());
         
         //manage camera,transform, textures
 
@@ -83,7 +82,7 @@ namespace Merlin::Graphics {
             tex->SyncTextureUnit(*_material->GetShader(), (tex->typeToString() + num));
             tex->Bind();
         }
-        */
+        
 
 
         _mesh->Draw();

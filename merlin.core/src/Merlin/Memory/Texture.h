@@ -1,9 +1,10 @@
 #pragma once
 #include "Merlin/Core/Core.h"
+#include "Merlin/Graphics/Shader.h"
 
-#include "Shader.h"
+using namespace Merlin::Graphics;
 
-namespace Merlin::Graphics {
+namespace Merlin::Memory {
 
 	enum class TextureType {
 		SPECULAR, DIFFUSE, DEPTH, NORMAL, HEIGHT, ENVIRONMENT, LIGHT, SHADOW

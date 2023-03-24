@@ -62,7 +62,7 @@ namespace Merlin::Graphics {
 		_currentNode->AddChild(sn);
 	}
 
-	const std::vector<Shared<Model>>& Scene::GetModels() {
+	const std::vector<Shared<Model>>& Scene::GetModels() const {
 		return _models;
 	}
 

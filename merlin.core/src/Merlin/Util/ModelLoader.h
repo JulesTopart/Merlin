@@ -4,6 +4,9 @@
 #include "Merlin/Graphics/Mesh.h"
 #include "Primitives.h"
 
+#include <thread>
+#include <future>
+
 using namespace Merlin::Graphics;
 using namespace Merlin::Memory;
 
@@ -13,9 +16,14 @@ namespace Merlin::Utils{
 	public:
 		// Load a model from the specified file and return a pointer to a new Mesh object
 		static Shared<Model> LoadModel(const std::string& filepath);
-		static Shared<Model> LoadAxis();
+		static std::future<Shared<Model>> ModelLoader::LoadModelAsync(const std::string& file_path);
 
 	private:
+
+		struct Facet {
+			glm::vec3 vA, vB, vC;
+			glm::vec3 normal;
+		};
 
 		enum class FileType {
 			OBJ,

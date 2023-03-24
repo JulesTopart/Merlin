@@ -32,11 +32,9 @@ namespace Merlin::Graphics {
 	void Renderer::Initialize() {
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
-
-
 	}
 
-	void Renderer::Render(const Shared<Scene>& scene, const Camera& camera) {
+	void Renderer::Render(const Scene& scene, const Camera& camera) {
 		glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -44,7 +42,7 @@ namespace Merlin::Graphics {
 		glm::mat4 view = camera.GetViewProjectionMatrix();
 
 		// Draw the meshes in the scene
-		for (const auto& model : scene->GetModels()) {
+		for (const auto& model : scene.GetModels()) {
 			model->Draw(camera);
 		}
 	}

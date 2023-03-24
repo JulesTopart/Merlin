@@ -1,7 +1,7 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 
-#include "Merlin/Graphics/Texture.h"
+#include "Merlin/Memory/Texture.h"
 #include "Merlin/Memory/VertexArray.h"
 
 using namespace Merlin::Memory;

@@ -128,12 +128,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\shaders\axis.frag.glsl" />
-    <None Include="assets\shaders\axis.vert.glsl" />
     <None Include="assets\shaders\model.frag.glsl" />
     <None Include="assets\shaders\model.vert.glsl" />
-    <None Include="assets\shaders\test.frag.glsl" />
-    <None Include="assets\shaders\test.vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

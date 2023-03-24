@@ -35,7 +35,7 @@ namespace Merlin::Graphics {
 	//TODO : Bind the shaders automatically before setting uniforms.
 	GLuint ShaderBase::GetUniformLocation(const char* uniform) const{
 		GLuint uniLoc = glGetUniformLocation(ProgramID, uniform);
-		if (uniLoc == -1) LOG_TRACE("Shader") << "(" << _name << ") Invalid Uniform name : " << uniform << ", (or wrong binded shader)" << Console::endl;
+		if (uniLoc == -1) LOG_INFO("Shader") << "(" << _name << ") Invalid Uniform name : " << uniform << ", (or wrong binded shader)" << Console::endl;
 		return uniLoc;
 	}
 

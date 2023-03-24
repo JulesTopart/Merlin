@@ -12,7 +12,7 @@ namespace Merlin::Graphics {
 		Shared<SceneNode> _rootNode = nullptr;
 		Shared<SceneNode> _currentNode = nullptr;
 		Shared<Camera> _camera = nullptr;
-		
+
 		std::vector<Shared<Model>> _models;
 		std::vector<Shared<Light>> _lights;
 		std::vector<Shared<Material>> _material;
@@ -23,7 +23,7 @@ namespace Merlin::Graphics {
 
 		void ClearObjects();
 		void SpawnObject(Shared<SceneObject>);
-		
+
 		void SpawnCube(std::string name);
 		void SpawnAxis(std::string name);
 		void SpawnModel(Shared<Model>, std::string name);
@@ -33,7 +33,7 @@ namespace Merlin::Graphics {
 		Camera& camera();
 
 		const Shared<SceneNode>& nodes();
-		const std::vector<Shared<Model>>& GetModels();
+		const std::vector<Shared<Model>>& GetModels() const;
 
 		// Enumerate all objects in the scene
 		void EnumerateObjects(std::function<void(Shared<SceneObject>)> callback);
@@ -42,8 +42,8 @@ namespace Merlin::Graphics {
 
 
 
-		
 
+		inline static Shared<Scene> Create() { return CreateShared<Scene>(); };
 	};
 	
 }

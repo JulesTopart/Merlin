@@ -2,32 +2,15 @@
 #include "ModelLoader.h"
 #include "Merlin/Core/Core.h"
 #include "Merlin/Scene/Model.h"
+#include "Merlin/Memory/IndexBuffer.h"
 #include "Merlin/Memory/Vertex.h"
 
 namespace Merlin::Utils {
 
-    Shared<Model> ModelLoader::LoadAxis() {
-        //Axis
-        std::vector<Vertex> vertices = {
-            Vertex{ glm::vec3(0.2f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
-            Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
-            Vertex{ glm::vec3(0.0f, 0.2f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
-            Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
-            Vertex{ glm::vec3(0.0f, 0.0f, 0.2f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
-            Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}
-        };
-
-        std::shared_ptr<Mesh> axis = std::make_shared<Mesh>(vertices);
-        axis->SetDrawMode(GL_LINES);
-
-        Shared<Model> mdl = CreateShared<Model>(axis);
-        return mdl;
-    }
-
 	// Load a model from the specified file and return a pointer to a new Mesh object
     Shared<Model> ModelLoader::LoadModel(const std::string& file_path) {
-        std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
+        Vertices vertices;
+        Indices indices;
 
         if (!ParseFile(file_path, vertices, indices)) {
             throw std::runtime_error("Unknown file type: " + file_path);
@@ -36,10 +19,28 @@ namespace Merlin::Utils {
         // Create a Mesh object using the parsed vertex and index data
         auto mesh = std::make_shared<Mesh>(vertices, indices);
 
-        Shared<Model> mdl = CreateShared<Model>(mesh);
-        return mdl;
+        return Model::Create(mesh);
 	}
 
+    // Load a model from the specified file and return a pointer to a new Mesh object
+    std::future<Shared<Model>> ModelLoader::LoadModelAsync(const std::string& file_path) {
+
+        // Load model data in a background thread
+        auto future = std::async(std::launch::async, [file_path]() {
+            Vertices vertices;
+        Indices indices;
+
+        if (!ParseFile(file_path, vertices, indices)) {
+            throw std::runtime_error("Unknown file type: " + file_path);
+        }
+
+        // Create a Mesh object using the parsed vertex and index data
+        Shared<Mesh> mesh = CreateShared<Mesh>(vertices, indices);
+        return Model::Create(mesh);
+
+            });
+        return future;
+    }
 
     Vertex ModelLoader::ParseVertex(const std::string& vertexString, const ModelData& objData) {
         // Use a stringstream to parse the vertex data
@@ -69,7 +70,7 @@ namespace Merlin::Utils {
     }
 
 	// Parse an OBJ file and extract the data
-	bool ModelLoader::ParseOBJ(const std::string& file_path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
+	bool ModelLoader::ParseOBJ(const std::string& file_path, Vertices& vertices, Indices& indices) {
         // Open the OBJ file
         std::ifstream infile(file_path);
         if (!infile) {
@@ -138,7 +139,7 @@ namespace Merlin::Utils {
         return true;
 	}
 
-    bool ModelLoader::ParseSTL(const std::string& filepath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
+    bool ModelLoader::ParseSTL(const std::string& filepath, Vertices& vertices, Indices& indices) {
         // Open the file for reading
         std::ifstream file(filepath, std::ios::binary);
 
@@ -167,9 +168,19 @@ namespace Merlin::Utils {
         }
     }
 
+    glm::vec3 computeFacetNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
+        // Uses p2 as a new origin for p1,p3
+        auto u = p2 - p1;
+        auto v = p3 - p1;
+
+        auto x = u.y * v.z - u.z * v.y;
+        auto y = u.z * v.x - u.x * v.z;
+        auto z = u.x * v.y - u.y * v.x;
+        return glm::normalize(glm::vec3(x, y, z));
+    }
 
 	// Parse an STL file and extract the data
-	bool ModelLoader::ParseSTL_BINARY(const std::string& file_path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
+	bool ModelLoader::ParseSTL_BINARY(const std::string& file_path, Vertices& vertices, Indices& indices) {
         // Open the file in binary mode
         std::ifstream file(file_path, std::ios::binary);
         if (!file) {
@@ -178,8 +189,8 @@ namespace Merlin::Utils {
         }
 
         // Read the header of the STL file
-        char header[80];
-        file.read(header, 80);
+        uint8_t header[80];
+        file.read((char*)&header, 80);
 
         // Read the number of triangles in the file
         uint32_t num_triangles;
@@ -189,102 +200,172 @@ namespace Merlin::Utils {
         vertices.reserve(num_triangles * 3);
         indices.reserve(num_triangles * 3);
 
+        Console::info("ModelLoader") << "Loading Binary model..." << Console::endl;
+
         // Read the triangle data
         for (uint32_t i = 0; i < num_triangles; ++i) {
             // Read the normal vector
-            float normal[3];
-            file.read((char*)normal, sizeof(normal));
+            float bn[3] = {0,0,0};
+            file.read((char*)bn, sizeof(bn));
 
             // Read the three vertices
-            Vertex v1, v2, v3;
-            file.read((char*)&v1.position.x, sizeof(v1.position.x));
-            file.read((char*)&v1.position.y, sizeof(v1.position.y));
-            file.read((char*)&v1.position.z, sizeof(v1.position.z));
-            file.read((char*)&v2.position.x, sizeof(v2.position.x));
-            file.read((char*)&v2.position.y, sizeof(v2.position.y));
-            file.read((char*)&v2.position.z, sizeof(v2.position.z));
-            file.read((char*)&v3.position.x, sizeof(v3.position.x));
-            file.read((char*)&v3.position.y, sizeof(v3.position.y));
-            file.read((char*)&v3.position.z, sizeof(v3.position.z));
+            float bv[9] = { 0,0,0 , 0,0,0, 0,0,0};
+            file.read((char*)&bv, sizeof(bv));
 
-            v1.position /= 1000.0f;
-            v2.position /= 1000.0f;
-            v3.position /= 1000.0f;
-            v1.normal = glm::vec3(normal[0], normal[1], normal[2]); //by convention we store the facet normal in the first vertex
+            glm::vec3 v1, v2, v3;
+            v1 = glm::vec3(bv[0], bv[1], bv[2]);
+            v2 = glm::vec3(bv[3], bv[4], bv[5]);
+            v3 = glm::vec3(bv[6], bv[7], bv[8]);
+
+            glm::vec3 normal = computeFacetNormal(v1, v2, v3);
+
+            Vertex vA, vB, vC;
+            vA.position = v1;
+            vB.position = v2; 
+            vC.position = v3;
+            vA.normal = normal;
+            vB.normal = normal;
+            vC.normal = normal;
 
             // Add the vertices to the vertex vector and update the indices
             unsigned int index = vertices.size();
-            vertices.push_back(v1);
-            vertices.push_back(v2);
-            vertices.push_back(v3);
+            vertices.push_back(vA);
+            vertices.push_back(vB);
+            vertices.push_back(vC);
             indices.push_back(index);
             indices.push_back(index + 1);
             indices.push_back(index + 2);
 
             // Read the attribute byte count (not used)
-            char attr_byte_count;
-            file.read(&attr_byte_count, 1);
-            Console::printProgress(100.0f * float(i) / float(num_triangles));
+            int attr_byte_count;
+            file.read((char*)&attr_byte_count, 2);
         }
 
+        /*
+        int i = 0;
+        for (Vertex v : vertices) {
+            int j = 0;
+            for (Vertex c : vertices) {
+                if (v.position == c.position) {
+                    indices[j] = i;
+                }
+                j++;
+            }
+            i++;
+            Console::printProgress(float(i) / float(indices.size()));
+        }
+
+
+        Vertices output = vertices;
+        i = 0;
+        for (GLuint i : indices) {
+            int k = 0;
+            glm::vec3 normal(0);
+            for (GLuint j : indices) {
+                if (j == i) {
+                    normal += vertices[j].normal;
+                    k++;
+                }
+            }
+            normal /= float(k);
+            Vertex buf;
+            buf.position = vertices[i].position;
+            buf.normal = normal;
+            output.push_back(buf);
+            Console::printProgress(float(i) / float(indices.size()));
+        }
+
+        vertices = output;
+        */
         return true;
 	}
 
     // Parse an STL file and extract the data
-    bool ModelLoader::ParseSTL_ASCII(const std::string& file_path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
+    bool ModelLoader::ParseSTL_ASCII(const std::string& file_path, Vertices& vertices, Indices& indices) {
         // Open the file in binary mode
         std::ifstream file(file_path, std::ios::in | std::ios::binary);
-        if (!file) {
-            // Failed to open the file
-            return false;
-        }
-
+        if (!file) return false;
+       
         // Reserve space for vertices and indices if you can estimate their size
-        // (use a reasonable default value otherwise)
         vertices.reserve(1024);
         indices.reserve(1024);
 
+        std::vector<Facet> facets;
+        facets.reserve(1024);
+
         Console::info("Model loader") << "Loading ascii model..." << Console::endl;
 
-        int index = 0;
-        int VertexCount = 0;
+
         // Read the file line by line
-        std::string line;
-        float normal[3] = { 0, 0, 0 };
+        std::string line; 
+        Facet facetBuffer;
+
+        float normal[3];
+
+        int index = 0;
         while (std::getline(file, line)) {
             std::istringstream line_stream(line);
             std::string keyword;
             line_stream >> keyword;
-            
-            // Use a faster string comparison method
+
             if (keyword[0] == 'f') { // facet
                 // Read the normal vector
                 std::string normal_keyword;
                 line_stream >> normal_keyword;
                 line_stream >> normal[0] >> normal[1] >> normal[2];
-                VertexCount = 0;
+                
             }
             else if (keyword[0] == 'v') { // vertex
-                // Read the three vertices
                 Vertex v;
                 line_stream >> v.position.x >> v.position.y >> v.position.z;
-
-
-                // Set the normal and color for each vertex
-                if (VertexCount == 0) v.normal = glm::vec3(normal[0], normal[1], normal[2]); // By convention, store the normal in the first vertex
-                else v.normal = glm::vec3(0);
+                v.normal = glm::vec3(normal[0], normal[1], normal[2]);
                 vertices.push_back(v);
                 indices.push_back(index++);
-                VertexCount++;
+   
             }
         }
+
+        int i = 0;
+        for (Vertex v : vertices) {
+            int j = 0;
+            for (Vertex c : vertices) {
+                if (v.position == c.position) {
+                    indices[j] = i;
+                }
+                j++;
+            }
+            i++;
+            Console::printProgress(float(i) / float(indices.size()));
+        }
+
+
+        Vertices output = vertices;
+        i = 0;
+        for (GLuint i : indices) {
+            int k = 0;
+            glm::vec3 normal(0);
+            for (GLuint j : indices) {
+                if (j == i) {
+                    normal += vertices[j].normal;
+                    k++;
+                }
+            }
+            normal /= float(k);
+            Vertex buf;
+            buf.position = vertices[i].position;
+            buf.normal = normal;
+            output.push_back(buf);
+            Console::printProgress(float(i) / float(indices.size()));
+        }
+
+        vertices = output;
 
         return true;
     }
 	
 
 	// Parse a any file and extract the data
-	bool ModelLoader::ParseFile(const std::string& file_path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
+	bool ModelLoader::ParseFile(const std::string& file_path, Vertices& vertices, Indices& indices) {
 		FileType file_type = GetFileType(file_path);
 		switch (file_type) {
 		case FileType::OBJ:

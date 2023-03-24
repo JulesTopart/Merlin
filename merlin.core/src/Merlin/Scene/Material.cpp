@@ -1,6 +1,6 @@
 #include "glpch.h"
 #include "Merlin/Scene/Material.h"
-#include "Merlin/Graphics/Texture.h"
+#include "Merlin/Memory/Texture.h"
 #include "Merlin/Graphics/Shader.h"
 #include <glm/glm.hpp>
 
@@ -33,7 +33,7 @@ namespace Merlin::Graphics {
         sh->Compile(vertexPath, fragPath, geomPath);
     }
 
-    void Material::SetShader(const Shared<Shader>& shader) {
+    void Material::SetShader(Shared<Shader> shader) {
         if(shader != nullptr)
             _shader = shader;
     }
@@ -47,18 +47,19 @@ namespace Merlin::Graphics {
     }
 
 
-    void Material::AddTexture(const Shared<Texture>& tex) {
+    void Material::AddTexture(Shared<Texture> tex) {
         if (tex != nullptr)
             _textures.push_back(tex);
     }
 
-    const Shared<Shader>& Material::GetShader() const {
+    Shared<Shader> Material::GetShader() const {
         return _shader;
     }
 
-    const Shared<Texture>& Material::GetTexture(int index) const {
-        if(index > 0 && index < _textures.size())
+    Shared<Texture> Material::GetTexture(int index) const {
+        if (index >= 0 && index < _textures.size() && _textures.size() != 0)
             return _textures[index];
+        else Console::error("Material") << "No texture loaded" << Console::endl;
     }
 
     const glm::vec3& Material::ambient() const { return ambient_; }
