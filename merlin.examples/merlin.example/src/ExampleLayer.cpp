@@ -22,14 +22,15 @@ ExampleLayer::~ExampleLayer(){}
 void ExampleLayer::OnAttach(){
 	EnableGLDebugging();
 	Console::SetLevel(ConsoleLevel::_INFO);
+	// Set the camera and scene for the renderer
+	renderer.Initialize();
 
 	Shared<Model> model = nullptr;
 	Shared<Material> material = nullptr;
+
 	//Shared<Texture> texture = CreateShared<Texture>();
 
-	// Load model data in a background thread
 	model = ModelLoader::LoadModel("./assets/models/arrow_body.stl");
-	
 	//texture->LoadFromFile("./assets/textures/wall.jpg", TextureType::DIFFUSE, GL_RGB);
 
 	material = CreateShared<Material>();
@@ -39,18 +40,12 @@ void ExampleLayer::OnAttach(){
 	material->SetSpecular(glm::vec3(0.2f, 0.2f, 0.2f));
 	material->SetShininess(0.4f);
 	//material->AddTexture(texture);
-
 	model->SetMaterial(material);
-	model->Translate(glm::vec3(2, 0, 0));
 
 	scene.SetCamera(camera);
-
 	scene.SpawnModel(model, "Model");
-	scene.SpawnModel(Model::Create(Primitives::CreateSphere(1, 35, 35), material), "Sphere");
-	//scene.SpawnModel(model, "bed");
 
-	// Set the camera and scene for the renderer
-	renderer.Initialize();
+
 }
 
 void ExampleLayer::OnDetach(){}

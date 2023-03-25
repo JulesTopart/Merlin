@@ -179,6 +179,15 @@ namespace Merlin::Utils {
         return glm::normalize(glm::vec3(x, y, z));
     }
 
+    float angleBetween( glm::vec3 a, glm::vec3 b) {
+        glm::vec3 da = glm::normalize(a);
+        glm::vec3 db = glm::normalize(b);
+
+        if (da == db) return 0.0;
+
+        return glm::acos(glm::dot(da, db));
+    }
+
 	// Parse an STL file and extract the data
 	bool ModelLoader::ParseSTL_BINARY(const std::string& file_path, Vertices& vertices, Indices& indices) {
         // Open the file in binary mode
@@ -241,7 +250,7 @@ namespace Merlin::Utils {
             file.read((char*)&attr_byte_count, 2);
         }
 
-        /*
+        
         int i = 0;
         for (Vertex v : vertices) {
             int j = 0;
@@ -270,13 +279,16 @@ namespace Merlin::Utils {
             normal /= float(k);
             Vertex buf;
             buf.position = vertices[i].position;
-            buf.normal = normal;
+            float angle = angleBetween(vertices[i].normal, normal);
+
+            if (angle < (3.1415926 / 4)) buf.normal = normal;
+            else buf.normal = vertices[i].normal;
             output.push_back(buf);
             Console::printProgress(float(i) / float(indices.size()));
         }
 
         vertices = output;
-        */
+        
         return true;
 	}
 
@@ -353,7 +365,10 @@ namespace Merlin::Utils {
             normal /= float(k);
             Vertex buf;
             buf.position = vertices[i].position;
-            buf.normal = normal;
+            float angle = angleBetween(vertices[i].normal, normal);
+
+            if (angle     < (3.1415926 / 4)) buf.normal = normal;
+            else buf.normal = vertices[i].normal;
             output.push_back(buf);
             Console::printProgress(float(i) / float(indices.size()));
         }

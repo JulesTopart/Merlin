@@ -130,6 +130,9 @@
   <ItemGroup>
     <None Include="assets\shaders\model.frag.glsl" />
     <None Include="assets\shaders\model.vert.glsl" />
+    <None Include="assets\shaders\normal.geom.glsl" />
+    <None Include="assets\shaders\normal.vert.glsl" />
+    <None Include="assets\shaders\normal.frag.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
