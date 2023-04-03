@@ -22,30 +22,18 @@ ExampleLayer::~ExampleLayer(){}
 void ExampleLayer::OnAttach(){
 	EnableGLDebugging();
 	Console::SetLevel(ConsoleLevel::_INFO);
-	// Set the camera and scene for the renderer
+
 	renderer.Initialize();
 
-	Shared<Model> model = nullptr;
-	Shared<Material> material = nullptr;
+	// Load the model and create a SceneNode from a GLTF file using Assimp
+	Shared<Shader> sh = Shader::Create("assets/shaders/default.vert.glsl", "assets/shaders/default.frag.glsl");
+	ShaderLibrary::Add("default", sh);
+	//scene.nodes()->AddChild(ModelLoader::LoadModel("assets/models/mando/scene.gltf"));
 
-	//Shared<Texture> texture = CreateShared<Texture>();
-
-	model = ModelLoader::LoadModel("./assets/models/arrow_body.stl");
-	//texture->LoadFromFile("./assets/textures/wall.jpg", TextureType::DIFFUSE, GL_RGB);
-
-	material = CreateShared<Material>();
-	material->SetShader(CreateShared<Shader>("model", "assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl"));
-	material->SetAmbient(glm::vec3(0.2f, 0.3f, 0.4f));
-	material->SetDiffuse(glm::vec3(0.4f, 0.4f, 0.4f));
-	material->SetSpecular(glm::vec3(0.2f, 0.2f, 0.2f));
-	material->SetShininess(0.4f);
-	//material->AddTexture(texture);
-	model->SetMaterial(material);
-
+	Shared<ModelNode> mdl = CreateShared<ModelNode>("cone", ModelLoader::LoadModel("assets/models/cube.stl"));
+	scene.nodes()->AddChild(mdl);
+	// Add the model to the scene
 	scene.SetCamera(camera);
-	scene.SpawnModel(model, "Model");
-
-
 }
 
 void ExampleLayer::OnDetach(){}
@@ -77,27 +65,24 @@ void ExampleLayer::OnImGuiRender()
 
 	
 	// Define a recursive lambda function to traverse the scene graph
-	std::function<void(const std::vector<Shared<SceneNode>>&)> traverseNodes = [&](const std::vector<Shared<SceneNode>>& nodes)
+	std::function<void(const std::list<Shared<SceneNode>>&)> traverseNodes = [&](const std::list<Shared<SceneNode>>& nodes)
 	{
 		for (auto& node : nodes)
 		{
 			bool node_open = ImGui::TreeNode(node->name().c_str());
 			if (node_open)
 			{
-				// Draw the node's object
-				if (node->hasObject())
+				
+				if (node != nullptr)
 				{
-					auto mesh = std::dynamic_pointer_cast<SceneObject>(node->object());
-					if (mesh != nullptr)
+					ImGui::Text(node->name().c_str());
+					ImGui::SameLine();
+					if (ImGui::Button("Edit"))
 					{
-						ImGui::Text(mesh->name().c_str());
-						ImGui::SameLine();
-						if (ImGui::Button("Edit"))
-						{
-							// Open a window to edit the mesh
-						}
+						// Open a window to edit the mesh
 					}
 				}
+				
 
 				// Draw the node's children
 				traverseNodes(node->children());

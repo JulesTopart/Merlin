@@ -133,6 +133,8 @@
     <None Include="assets\shaders\normal.geom.glsl" />
     <None Include="assets\shaders\normal.vert.glsl" />
     <None Include="assets\shaders\normal.frag.glsl" />
+    <None Include="assets\shaders\default.frag.glsl" />
+    <None Include="assets\shaders\default.vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

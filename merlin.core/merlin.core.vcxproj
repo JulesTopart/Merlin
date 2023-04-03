@@ -114,7 +114,6 @@
     <ClInclude Include="src\Merlin\Graphics\DeferredRenderer.h" />
     <ClInclude Include="src\Merlin\Graphics\RayTracer.h" />
     <ClInclude Include="src\Merlin\Graphics\Renderer.h" />
-    <ClInclude Include="src\Merlin\Scene\SceneObject.h" />
     <ClInclude Include="src\Merlin\Scene\SceneNode.h" />
     <ClInclude Include="src\Merlin\Scene\Light.h" />
     <ClInclude Include="src\Merlin\Scene\Model.h" />
@@ -165,13 +164,13 @@
     <ClInclude Include="src\Merlin\Memory\TextureMultisampled.h" />
     <ClInclude Include="src\Merlin\Memory\TextureCubeMap.h" />
     <ClInclude Include="src\Merlin\Util\TextureLoader.h" />
+    <ClInclude Include="src\Merlin\Util\Util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Merlin\Util\Primitives.cpp" />
     <ClCompile Include="src\Merlin\Graphics\DeferredRenderer.cpp" />
     <ClCompile Include="src\Merlin\Graphics\RayTracer.cpp" />
     <ClCompile Include="src\Merlin\Graphics\Renderer.cpp" />
-    <ClCompile Include="src\Merlin\Scene\SceneObject.cpp" />
     <ClCompile Include="src\Merlin\Scene\SceneNode.cpp" />
     <ClCompile Include="src\Merlin\Scene\Light.cpp" />
     <ClCompile Include="src\Merlin\Scene\Model.cpp" />
@@ -211,6 +210,7 @@
     <ClCompile Include="src\Merlin\Memory\TextureMultisampled.cpp" />
     <ClCompile Include="src\Merlin\Memory\TextureCubeMap.cpp" />
     <ClCompile Include="src\Merlin\Util\TextureLoader.cpp" />
+    <ClCompile Include="src\Merlin\Util\Util.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>

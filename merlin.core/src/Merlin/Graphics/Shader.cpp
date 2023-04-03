@@ -1,6 +1,8 @@
 #include "glpch.h"
 #include "Shader.h"
 
+#include "Merlin/Util/Util.h"
+
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -12,6 +14,13 @@
 #include "Merlin/Core/Log.h"
 
 namespace Merlin::Graphics {
+
+	Shared<Shader> Shader::Create(const std::string& vertex_file_path,
+		const std::string& fragment_file_path,
+		const std::string& geometry_file_path) {
+		return CreateShared<Shader>(Utils::GetFileName(vertex_file_path), vertex_file_path, fragment_file_path, geometry_file_path);
+	}
+
 	Shader::Shader(std::string n) : ShaderBase(n) {}
 
 	Shader::Shader(std::string n,
@@ -199,6 +208,40 @@ namespace Merlin::Graphics {
 		if (GeomShaderSrc != "")
 			glDeleteShader(geometryShaderID);
 
+	}
+
+
+
+	std::unordered_map<std::string, std::shared_ptr<Shader>> ShaderLibrary::m_Shaders;
+
+	void ShaderLibrary::Add(const std::string& name, const std::shared_ptr<Shader>& shader)
+	{
+		GLCORE_ASSERT(!Exists(name), "ShaderLibrary", "Shader already exists!");
+		m_Shaders[name] = shader;
+	}
+
+	void ShaderLibrary::Add(const std::shared_ptr<Shader>& shader)
+	{
+		auto& name = shader->name();
+		Add(name, shader);
+	}
+
+	std::shared_ptr<Shader> ShaderLibrary::Load(const std::string& name)
+	{
+		auto shader = CreateShared<Shader>(name);
+		Add(shader);
+		return shader;
+	}
+
+	std::shared_ptr<Shader> ShaderLibrary::Get(const std::string& name)
+	{
+		GLCORE_ASSERT(Exists(name), "ShaderLibrary", "Shader not found!");
+		return m_Shaders[name];
+	}
+
+	bool ShaderLibrary::Exists(const std::string& name)
+	{
+		return m_Shaders.find(name) != m_Shaders.end();
 	}
 
 }

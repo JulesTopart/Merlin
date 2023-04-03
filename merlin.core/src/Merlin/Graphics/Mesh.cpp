@@ -64,5 +64,100 @@ namespace Merlin::Graphics {
 		_vao->Unbind();
 	}
 
+	void Mesh::RecalculateNormals(){
+		// Initialize all normals to zero
+		for (auto& vertex : _vertices) {
+			vertex.normal = glm::vec3(0);
+		}
+
+		// Calculate the face normal for each triangle and accumulate the normals for each vertex
+		Console::info("Mesh") << "Recomputing Mesh normals.." << Console::endl;
+		for (size_t i = 0; i < _indices.size(); i += 3) {
+			GLuint i0 = _indices[i];
+			GLuint i1 = _indices[i + 1];
+			GLuint i2 = _indices[i + 2];
+
+			glm::vec3 v0 = _vertices[i0].position;
+			glm::vec3 v1 = _vertices[i1].position;
+			glm::vec3 v2 = _vertices[i2].position;
+
+			glm::vec3 edge1 = v1 - v0;
+			glm::vec3 edge2 = v2 - v0;
+
+			glm::vec3 faceNormal = glm::normalize(glm::cross(edge1, edge2));
+
+			_vertices[i0].normal += faceNormal;
+			_vertices[i1].normal += faceNormal;
+			_vertices[i2].normal += faceNormal;
+			Console::printProgress(float(i) / float(_indices.size()));
+		}
+
+		// Normalize the accumulated normals
+		for (auto& vertex : _vertices) {
+			vertex.normal = glm::normalize(vertex.normal);
+		}
+
+		//Update VAO, VBO
+		_vao.reset();
+		_vao = CreateScope<VAO>();
+		_vao->Bind();
+		VBO vbo(_vertices);
+		EBO ebo(_indices);
+		_vao->AddBuffer(vbo, Vertex::GetLayout());
+		_vao->Unbind();
+	}
+
+	void Mesh::RecalculateIndices(){
+
+		Console::info("Mesh") << "Recomputing Mesh indices.." << Console::endl;
+		int i = 0;
+		for (Vertex v : _vertices) {
+			int j = 0;
+			for (Vertex c : _vertices) {
+				if (v.position == c.position) {
+					_indices[j] = i;
+				}
+				j++;
+			}
+			i++;
+			Console::printProgress(float(i) / float(_indices.size()));
+		}
+
+		//Update VAO, VBO
+		_vao.reset();
+		_vao = CreateScope<VAO>();
+		_vao->Bind();
+		VBO vbo(_vertices);
+		EBO ebo(_indices);
+		_vao->AddBuffer(vbo, Vertex::GetLayout());
+		_vao->Unbind();
+
+	}
+
+
+	void Mesh::RemoveUnusedVertices() {
+
+		Console::info("Mesh") << "Removing unused vertices.." << Console::endl;
+		int i = 0;
+		Vertices newVertices;
+
+		newVertices.reserve(*std::max_element(_indices.begin(), _indices.end()));
+
+		for (size_t i = 0; i < _indices.size(); i++) {
+			newVertices.push_back(_vertices[i]);
+		}
+
+		_vertices = newVertices;
+		//Update VAO, VBO
+		_vao.reset();
+		_vao = CreateScope<VAO>();
+		_vao->Bind();
+		VBO vbo(_vertices);
+		EBO ebo(_indices);
+		_vao->AddBuffer(vbo, Vertex::GetLayout());
+		_vao->Unbind();
+
+	}
+
 	
 }

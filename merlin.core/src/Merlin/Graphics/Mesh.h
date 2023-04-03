@@ -20,6 +20,10 @@ namespace Merlin::Graphics {
 		void Draw();
 		void DrawInstanced(GLsizeiptr instanced);
 
+		void RecalculateNormals();
+		void RecalculateIndices();
+		void RemoveUnusedVertices();
+
 		inline void SetDrawMode(GLuint mode) { _drawMode = mode; }
 		inline GLuint GetDrawMode() const { return _drawMode; }
 

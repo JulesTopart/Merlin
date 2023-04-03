@@ -5,6 +5,9 @@
 #include "Merlin/Memory/IndexBuffer.h"
 #include "Merlin/Memory/Vertex.h"
 
+#include <tiny_gltf.h>
+
+
 namespace Merlin::Utils {
 
 	// Load a model from the specified file and return a pointer to a new Mesh object
@@ -17,12 +20,55 @@ namespace Merlin::Utils {
         }
 
         // Create a Mesh object using the parsed vertex and index data
-        auto mesh = std::make_shared<Mesh>(vertices, indices);
+        auto mesh = CreateShared<Mesh>(vertices, indices);
+        mesh->RecalculateIndices();
+        //mesh->RemoveUnusedVertices();
+        //mesh->RecalculateNormals();   
+        auto material = CreateShared<Material>();
 
-        return Model::Create(mesh);
+        material->SetProperty(glm::vec3(0.2, 0.2, 0.2), glm::vec3(0.3, 0.3, 0.3), glm::vec3(0.3, 0.3, 0.3), 64);
+        material->SetShader(std::dynamic_pointer_cast<Shader>(ShaderLibrary::Get("default")));
+
+        return Model::Create(mesh, material);
 	}
 
+
     // Load a model from the specified file and return a pointer to a new Mesh object
+    /*
+    Shared<SceneNode> ModelLoader::LoadScene(const std::string& file_path) {
+
+        if (Utils::GetFileType(file_path) != FileType::GLTF) {
+            Console::error("ModelLoader") << "Cannot open " << file_path << " , LoadScene only support GLTF files" << Console::endl;
+            return nullptr;
+        }
+
+        tinygltf::Model model;
+
+        tinygltf::TinyGLTF loader;
+        std::string err;
+        std::string warn;
+
+        bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, file_path);
+
+        if (!ret) {
+            Console::error("Failed to load GLTF file");
+            return nullptr;
+        }
+
+        // You may need to implement functions to process the model's nodes, meshes, materials, textures, etc.
+        // For now, let's assume there are functions ProcessNode, ProcessMesh, ProcessMaterial, ProcessTexture, etc.
+
+        auto root = std::make_shared<SceneNode>("Root");
+
+        // Iterate over the nodes in the GLTF model and create the corresponding SceneNodes
+        for (const auto& gltfNode : model.nodes) {
+            auto sceneNode = ProcessNode(gltfNode, model);
+            root->AddChild(sceneNode);
+        }
+    }*/
+
+    // Load a model from the specified file and return a pointer to a new Mesh object
+    /*
     std::future<Shared<Model>> ModelLoader::LoadModelAsync(const std::string& file_path) {
 
         // Load model data in a background thread
@@ -41,7 +87,7 @@ namespace Merlin::Utils {
             });
         return future;
     }
-
+    */
     Vertex ModelLoader::ParseVertex(const std::string& vertexString, const ModelData& objData) {
         // Use a stringstream to parse the vertex data
         std::stringstream ss(vertexString);
@@ -250,45 +296,6 @@ namespace Merlin::Utils {
             file.read((char*)&attr_byte_count, 2);
         }
 
-        
-        int i = 0;
-        for (Vertex v : vertices) {
-            int j = 0;
-            for (Vertex c : vertices) {
-                if (v.position == c.position) {
-                    indices[j] = i;
-                }
-                j++;
-            }
-            i++;
-            Console::printProgress(float(i) / float(indices.size()));
-        }
-
-
-        Vertices output = vertices;
-        i = 0;
-        for (GLuint i : indices) {
-            int k = 0;
-            glm::vec3 normal(0);
-            for (GLuint j : indices) {
-                if (j == i) {
-                    normal += vertices[j].normal;
-                    k++;
-                }
-            }
-            normal /= float(k);
-            Vertex buf;
-            buf.position = vertices[i].position;
-            float angle = angleBetween(vertices[i].normal, normal);
-
-            if (angle < (3.1415926 / 4)) buf.normal = normal;
-            else buf.normal = vertices[i].normal;
-            output.push_back(buf);
-            Console::printProgress(float(i) / float(indices.size()));
-        }
-
-        vertices = output;
-        
         return true;
 	}
 
@@ -312,7 +319,7 @@ namespace Merlin::Utils {
         std::string line; 
         Facet facetBuffer;
 
-        float normal[3];
+        float normal[3] = {0,0,0};
 
         int index = 0;
         while (std::getline(file, line)) {
@@ -337,43 +344,7 @@ namespace Merlin::Utils {
             }
         }
 
-        int i = 0;
-        for (Vertex v : vertices) {
-            int j = 0;
-            for (Vertex c : vertices) {
-                if (v.position == c.position) {
-                    indices[j] = i;
-                }
-                j++;
-            }
-            i++;
-            Console::printProgress(float(i) / float(indices.size()));
-        }
 
-
-        Vertices output = vertices;
-        i = 0;
-        for (GLuint i : indices) {
-            int k = 0;
-            glm::vec3 normal(0);
-            for (GLuint j : indices) {
-                if (j == i) {
-                    normal += vertices[j].normal;
-                    k++;
-                }
-            }
-            normal /= float(k);
-            Vertex buf;
-            buf.position = vertices[i].position;
-            float angle = angleBetween(vertices[i].normal, normal);
-
-            if (angle     < (3.1415926 / 4)) buf.normal = normal;
-            else buf.normal = vertices[i].normal;
-            output.push_back(buf);
-            Console::printProgress(float(i) / float(indices.size()));
-        }
-
-        vertices = output;
 
         return true;
     }
@@ -387,50 +358,15 @@ namespace Merlin::Utils {
 			return ParseOBJ(file_path, vertices, indices);
 		case FileType::STL:
 			return ParseSTL(file_path, vertices, indices);
+        case FileType::GLTF:
+            //return ParseGLTF(file_path, vertices, indices);
+            return false;
 		default:
 			// Unknown file type
 			return false;
 		}
 	}
 
-	ModelLoader::FileType ModelLoader::GetFileType(const std::string& file_path) {
-		std::string extension = GetFileExtension(file_path);
-		if (extension == "obj") {
-			return FileType::OBJ;
-		}
-		else if (extension == "stl") {
-			return FileType::STL;
-        }
-        else if (extension == "geom") {
-            return FileType::GEOM;
-        }
-		else {
-			// Unknown file type
-			return FileType::UNKNOWN;
-		}
-	}
 
-	std::string ModelLoader::GetFileExtension(const std::string& filepath) {
-		size_t pos = filepath.find_last_of(".");
-		if (pos == std::string::npos) {
-			// No extension found
-			return "";
-		}
-		return filepath.substr(pos + 1);
-	}
-
-    std::string ModelLoader::GetFileName(const std::string& filepath)
-    {
-        // Find the last occurrence of the directory separator character
-        std::size_t pos = filepath.find_last_of("\\/");
-
-        // If the separator was not found, return the entire filepath
-        if (pos == std::string::npos) {
-            return filepath;
-        }
-
-        // Return the part of the filepath after the separator
-        return filepath.substr(pos + 1);
-    }
 
 }

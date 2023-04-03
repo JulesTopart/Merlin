@@ -42,8 +42,6 @@ namespace Merlin::Graphics {
 		glm::mat4 view = camera.GetViewProjectionMatrix();
 
 		// Draw the meshes in the scene
-		for (const auto& model : scene.GetModels()) {
-			model->Draw(camera);
-		}
+		scene.Draw(camera);
 	}
 }

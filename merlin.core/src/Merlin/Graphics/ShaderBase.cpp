@@ -99,38 +99,12 @@ namespace Merlin::Graphics {
 		return "error";
 	}
 
+	/*
 	std::shared_ptr<ShaderBase> ShaderBase::Create(const std::string& name) {
 		return std::make_shared<ShaderBase>(name);
 	}
-	
-	void ShaderLibrary::Add(const std::string& name, const std::shared_ptr<ShaderBase>& shader)
-	{
-		GLCORE_ASSERT(!Exists(name), "ShaderLibrary", "Shader already exists!");
-		m_Shaders[name] = shader;
-	}
+	*/
 
-	void ShaderLibrary::Add(const std::shared_ptr<ShaderBase>& shader)
-	{
-		auto& name = shader->name();
-		Add(name, shader);
-	}
 
-	std::shared_ptr<ShaderBase> ShaderLibrary::Load(const std::string& name)
-	{
-		auto shader = ShaderBase::Create(name);
-		Add(shader);
-		return shader;
-	}
-
-	std::shared_ptr<ShaderBase> ShaderLibrary::Get(const std::string& name)
-	{
-		GLCORE_ASSERT(Exists(name), "ShaderLibrary", "Shader not found!");
-		return m_Shaders[name];
-	}
-
-	bool ShaderLibrary::Exists(const std::string& name) const
-	{
-		return m_Shaders.find(name) != m_Shaders.end();
-	}
 }
 

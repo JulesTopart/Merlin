@@ -5,6 +5,7 @@
 #include <memory>
 
 namespace Merlin::Graphics {
+
 	class ShaderBase {
 	public:
 		ShaderBase(std::string name = "default");
@@ -31,7 +32,7 @@ namespace Merlin::Graphics {
 		inline const std::string name() const { return _name; }
 		inline const bool compiled() { return _compiled; }
 
-		static std::shared_ptr<ShaderBase> Create(const std::string& name);
+		//static std::shared_ptr<ShaderBase> Create(const std::string& name);
 		static std::string ReadSrc(const std::string filename);
 
 	protected:
@@ -43,16 +44,5 @@ namespace Merlin::Graphics {
 		GLuint ProgramID = 0;
 	};
 
-	class ShaderLibrary
-	{
-	public:
-		void Add(const std::string& name, const std::shared_ptr<ShaderBase>& shader);
-		void Add(const std::shared_ptr<ShaderBase>& shader);
-		std::shared_ptr<ShaderBase> Load(const std::string& filepath);
-		std::shared_ptr<ShaderBase> Get(const std::string& name);
 
-		bool Exists(const std::string& name) const;
-	private:
-		std::unordered_map<std::string, std::shared_ptr<ShaderBase>> m_Shaders;
-	};
 }

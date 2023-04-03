@@ -5,59 +5,96 @@ namespace Merlin::Graphics {
 
 	int SceneNode::nextID = 0;
 
-	SceneNode::SceneNode(const std::string& name) : name_(name)  {
-		ID = nextID++;
+	SceneNode::SceneNode(const std::string& name, SceneNodeType type) : _name(name), _type(type) {
+		_ID = nextID++;
 	}
 
-	void SceneNode::AddChild(const Shared<SceneNode>& child) {
-		children_.push_back(child);
+	void SceneNode::AddChild(Shared<SceneNode> child) {
+		if (child != nullptr)
+			_children.push_back(child);
+		else Console::warn("SceneNode") << "Empty node child ignored" << Console::endl;
 	}
-
-	void SceneNode::SetObject(const Shared<SceneObject>& object) {
-		object_ = object;
-	}
-
-	void SceneNode::RemoveChild(const Shared<SceneNode>& child) {
-		for (auto it = children_.begin(); it != children_.end(); ++it) {
-			if (*it == child) {
-				children_.erase(it);
-				break;
-			}
+	void SceneNode::RemoveChild(Shared<SceneNode> child) {
+		for (const auto& c : _children) {
+			if(c == child) _children.remove(child);
 		}
 	}
 
-	void SceneNode::Clear() {
-		children_.clear();
-	}
-
-	const std::string& SceneNode::name() const {
-		return name_;
-	}
-
-	bool SceneNode::hasObject() const {
-		return object_ != nullptr;
-	}
-
 	bool SceneNode::hasParent() const {
-		return parent_ != nullptr;
+		return _parent != nullptr;
 	}
 
 	bool SceneNode::hasChildren() const {
-		return children_.size() > 0;
+		return _children.size();
 	}
 
-	const Shared<SceneObject>& SceneNode::object() const {
-		return object_;
+	std::string SceneNode::name() const {
+		return _name;
 	}
 
-	const std::vector<Shared<SceneNode>>& SceneNode::children() const {
-		return children_;
+	SceneNodeType SceneNode::type() const {
+		return _type;
 	}
 
-	Shared<SceneNode> SceneNode::parent() const {
-		return parent_;
+	std::list<Shared<SceneNode>>& SceneNode::children() {
+		return _children;
 	}
 
+	Shared<SceneNode> SceneNode::parent() {
+		return _parent;
+	}
+
+
+
+
+
+
+
+	TransformNode::TransformNode(const std::string& name)
+		: SceneNode(name, SceneNodeType::TRANSFORM),
+		position_(glm::vec3(0.0f)),
+		rotation_(glm::quat(1.0f, 0.0f, 0.0f, 0.0f)),
+		scale_(glm::vec3(1.0f)) {}
+
+	void TransformNode::SetPosition(const glm::vec3& position) {
+		position_ = position;
+	}
+
+	void TransformNode::SetRotation(const glm::quat& rotation) {
+		rotation_ = rotation;
+	}
+
+	void TransformNode::SetScale(const glm::vec3& scale) {
+		scale_ = scale;
+	}
+
+	glm::vec3 TransformNode::GetPosition() const {
+		return position_;
+	}
+
+	glm::quat TransformNode::GetRotation() const {
+		return rotation_;
+	}
+
+	glm::vec3 TransformNode::GetScale() const {
+		return scale_;
+	}
+
+	glm::mat4 TransformNode::GetModelMatrix() const {
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, position_);
+		model *= glm::mat4_cast(rotation_);
+		model = glm::scale(model, scale_);
+		return model;
+	}
+
+	void TransformNode::Draw(const Camera& camera) const {
+		// TransformNode itself doesn't have any drawable components.
+		// Just propagate the draw call to its children.
+		for (const auto& child : _children) {
+			child->Draw(camera);
+		}
+	}
 
 
 

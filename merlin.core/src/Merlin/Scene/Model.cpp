@@ -3,36 +3,10 @@
 
 namespace Merlin::Graphics {
 
-    Shared<Material> Model::defaultMaterial = nullptr;
-
-    Shared<Model> Model::Create(Shared<Mesh> mesh) {
-        return std::make_shared<Model>(mesh);
-    }
-
-    Shared<Model> Model::Create(Shared<Mesh> mesh, Shared<Material> material) {
-        return std::make_shared<Model>(mesh, material);
-    }
-
-    Model::Model(Shared<Mesh> mesh)
-        : _mesh(mesh) {
-        _material = defaultMaterial;
-        _transform = glm::mat4(1.0f);
-    }
-
-    Model::Model(Shared<Mesh> mesh, Shared<Material> mat)
-        : _mesh(mesh) {
-        _material = mat;
-        _transform = glm::mat4(1.0f);
-    }
-
-    void Model::SetMaterial(Shared<Material> material) {
-        _material = material;
-    }
-
     void Model::Translate(glm::vec3 v) {
-       _transform = glm::translate(_transform, v);
+        _transform = glm::translate(_transform, v);
     }
-    
+
     void Model::Rotate(glm::vec3 v) {
         _transform = glm::rotate(_transform, v.x, glm::vec3(1, 0, 0));
         _transform = glm::rotate(_transform, v.y, glm::vec3(0, 1, 0));
@@ -47,10 +21,53 @@ namespace Merlin::Graphics {
         _transform = t;
     }
 
+    glm::vec3& Model::position() {
+        glm::vec3 scale;
+        glm::quat rotation;
+        glm::vec3 translation;
+        glm::vec3 skew;
+        glm::vec4 perspective;
+        glm::decompose(_transform, scale, rotation, translation, skew, perspective);
+        return translation;
+    }
+
+    glm::quat& Model::rotation() {
+        glm::vec3 scale;
+        glm::quat rotation;
+        glm::vec3 translation;
+        glm::vec3 skew;
+        glm::vec4 perspective;
+        glm::decompose(_transform, scale, rotation, translation, skew, perspective);
+        return rotation;
+    }
+
+    glm::mat4& Model::transform() { return _transform; }
+
+    Model::Model(Shared<Mesh> mesh) : _mesh(mesh) {
+        _material = nullptr;
+        _transform = glm::mat4(1.0f);
+    }
+
+    Model::Model(Shared<Mesh> mesh, Shared<Material> material) : _mesh(mesh), _material(material){
+        _transform = glm::mat4(1.0f);
+        
+    }
+
+    void Model::SetMaterial(Shared<Material> material) {
+        _material = material;
+    }
+
+    Shared<Model> Model::Create(Shared<Mesh> mesh) {
+        return std::make_shared<Model>(mesh);
+    }
+
+    Shared<Model> Model::Create(Shared<Mesh> mesh, Shared<Material> material) {
+        return std::make_shared<Model>(mesh, material);
+    }
 
     void Model::Draw(const Camera& camera) const {
         Shared<Shader> sh = _material->GetShader();
-            
+
         sh->Use();
         sh->SetVec3("viewPos", camera.GetPosition()); //Sync camera with GPU
         sh->SetMat4("view", camera.GetViewProjectionMatrix()); //Sync camera with GPU
@@ -60,7 +77,7 @@ namespace Merlin::Graphics {
         sh->SetVec3("diffuse", _material->diffuse());
         sh->SetVec3("specular", _material->specular());
         sh->SetFloat("shininess", _material->shininess());
-        
+
         //manage camera,transform, textures
 
         unsigned int numDiffuse = 0;
@@ -82,10 +99,12 @@ namespace Merlin::Graphics {
             tex->SyncTextureUnit(*_material->GetShader(), (tex->typeToString() + num));
             tex->Bind();
         }
-        
+
 
 
         _mesh->Draw();
     }
+
+
 
 }
