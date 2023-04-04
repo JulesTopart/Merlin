@@ -5,6 +5,7 @@
 namespace Merlin::Graphics {
 
 	Renderer::Renderer() {
+		backgroundColor = glm::vec4(0.2f, 0.3f, 0.4f, 1.0f);
 
 	}
 
@@ -34,14 +35,63 @@ namespace Merlin::Graphics {
 		glEnable(GL_MULTISAMPLE);
 	}
 
-	void Renderer::Render(const Scene& scene, const Camera& camera) {
-		glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	void Renderer::Render(const Model& model, const Camera& camera) {
 		// Update the view matrix based on the camera position and orientation
 		glm::mat4 view = camera.GetViewProjectionMatrix();
+		std::vector<std::string> shadersNames;
 
-		// Draw the meshes in the scene
-		scene.Draw(camera);
+		for (int index = 0; index < model.meshes().size(); index++) {
+			shadersNames.push_back()
+		}
 	}
+
+	void Render(const Model& model, const Camera& camera) {
+
+	}
+
+	void Render(const Mesh& mesh, const Camera& camera) {
+
+	}
+
+
+	const Material& Renderer::GetMaterial(std::string n) {
+		return *_materialLibrary.Get(n);
+	}
+
+	const Shader& Renderer::GetShader(std::string n) {
+		return *_shaderLibrary.Get(n);
+	}
+
+	void Renderer::LoadShader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geomShaderPath = "") {
+		Shared<Shader> shader = CreateShared<Shader>(vertexShaderPath, fragmentShaderPath, geomShaderPath);
+		_shaderLibrary.Add(shader);
+	}
+
+	void Renderer::CreateMaterial(MaterialProperty matProps){
+		std::string name = "material";
+		std::stringstream ss;
+		ss << name << _materialLibrary.size();
+		Shared<Material> mat = CreateShared<Material>(ss.str());
+		_materialLibrary.Add(mat);
+	}
+
+	void Renderer::AddMaterial(Shared<Material> material) {
+		_materialLibrary.Add(material);
+	}
+
+	void Renderer::AddShader(Shared<Shader> shader) {
+		_shaderLibrary.Add(shader);
+	}
+
+	void Renderer::Clear() {
+		glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+
+	void Renderer::SetBackgroundColor(float r, float g, float b, float a) {
+		backgroundColor = glm::vec4(r, g, b, a);
+	}
+
+
+
 }

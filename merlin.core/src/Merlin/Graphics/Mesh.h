@@ -1,14 +1,13 @@
 #pragma once
 #include "Merlin/Core/Core.h"
-
-#include <vector>
 #include "Merlin/Memory/VertexArray.h"
+#include "Merlin/Graphics/RenderableObject.h"
 
 using namespace Merlin::Memory;
 
 namespace Merlin::Graphics {
 
-	class Mesh {
+	class Mesh : public RenderableObject {
 	public:
 		Mesh();
 		Mesh(std::vector<Vertex>& vertices, GLuint mode = GL_TRIANGLES);
@@ -17,12 +16,13 @@ namespace Merlin::Graphics {
 		void Bind();
 		void Unbind();
 
-		void Draw();
-		void DrawInstanced(GLsizeiptr instanced);
+		void Draw() override;
+		void DrawInstanced(GLsizeiptr instanced) override;
 
 		void RecalculateNormals();
 		void RecalculateIndices();
 		void RemoveUnusedVertices();
+		void UpdateVAO();
 
 		inline void SetDrawMode(GLuint mode) { _drawMode = mode; }
 		inline GLuint GetDrawMode() const { return _drawMode; }
@@ -30,7 +30,6 @@ namespace Merlin::Graphics {
 		inline bool HasIndices() const { return _indices.size() > 0; }
 		inline std::vector<Vertex>& GetVertices() { return _vertices;  }
 		inline std::vector<GLuint>& GetIndices() { return _indices; }
-
 
 
 	private:

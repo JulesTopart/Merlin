@@ -5,12 +5,7 @@
 #include <glm/glm.hpp>
 
 namespace Merlin::Graphics {
-
-	GLuint Material::nextID = 0;
-
-    Material::Material(){
-        ID = nextID++;
-    }
+    Material::Material(std::string name) : _name(name){}
 
     void Material::SetProperty(const glm::vec3& ambient, const glm::vec3& diffuse, const glm::vec3& specular, float shininess) {
         SetAmbient(ambient);
@@ -19,25 +14,17 @@ namespace Merlin::Graphics {
         SetShininess(shininess);
     }
 
-    void Material::SetAmbient(const glm::vec3& ambient) { ambient_ = ambient;}
-
-    void Material::SetDiffuse(const glm::vec3& diffuse) { diffuse_ = diffuse; }
-
-    void Material::SetSpecular(const glm::vec3& specular) { specular_ = specular; }
-
-    void Material::SetShininess(const float& shininess) { shininess_ = shininess; }
-
-
-    void Material::LoadShader(std::string vertexPath, std::string fragPath, std::string geomPath) {
-        Shared<Shader> sh = CreateShared<Shader>(vertexPath.substr(0, vertexPath.find(".vert")));
-        sh->Compile(vertexPath, fragPath, geomPath);
+    void Material::SetProperty(const MaterialProperty& props) {
+        _props = props;
     }
 
-    void Material::SetShader(Shared<Shader> shader) {
-        if(shader != nullptr)
-            _shader = shader;
-    }
+    void Material::SetAmbient(const glm::vec3& ambient) { _props.ambient_ = ambient;}
 
+    void Material::SetDiffuse(const glm::vec3& diffuse) { _props.diffuse_ = diffuse; }
+
+    void Material::SetSpecular(const glm::vec3& specular) { _props.specular_ = specular; }
+
+    void Material::SetShininess(const float& shininess) { _props.shininess_ = shininess; }
 
     void Material::LoadTexture(std::string path, TextureType t, GLuint format) {
         Shared<Texture> tex = CreateShared<Texture>();
@@ -46,14 +33,9 @@ namespace Merlin::Graphics {
         AddTexture(tex);
     }
 
-
     void Material::AddTexture(Shared<Texture> tex) {
         if (tex != nullptr)
             _textures.push_back(tex);
-    }
-
-    Shared<Shader> Material::GetShader() const {
-        return _shader;
     }
 
     Shared<Texture> Material::GetTexture(int index) const {
@@ -62,8 +44,31 @@ namespace Merlin::Graphics {
         else Console::error("Material") << "No texture loaded" << Console::endl;
     }
 
-    const glm::vec3& Material::ambient() const { return ambient_; }
-    const glm::vec3& Material::diffuse() const { return diffuse_; }
-    const glm::vec3& Material::specular() const { return specular_; }
-    const float Material::shininess() const { return shininess_; }
+
+    void MaterialLibrary::Add(Shared<Material> mat){
+        if (Exists(mat->name())) Console::error("MaterialLibrary") << "Shader already exists!" << Console::endl;
+        else Console::trace("MaterialLibrary") << "Added " << mat->name() << " to the library" << Console::endl;
+        _materials[mat->name()] = mat;
+    }
+
+    MaterialLibrary::MaterialLibrary(){
+        Shared<Material> defaultMaterial = CreateShared<Material>("default");
+        defaultMaterial->SetProperty(glm::vec3(0.2, 0.2, 0.2), glm::vec3(0.2, 0.2, 0.2), glm::vec3(0.2, 0.2, 0.2), 0);
+        Add(defaultMaterial);
+    }
+
+    Shared<Material> MaterialLibrary::Get(const std::string& name){
+        if (!Exists(name)) { 
+            Console::error("MaterialLibrary") << "Material " << name << " not found ! Using default material instead." << Console::endl;
+            return Get("default");
+        }
+        return _materials[name];
+    }
+
+    bool MaterialLibrary::Exists(const std::string& name)
+    {
+        return _materials.find(name) != _materials.end();
+    }
+
+
 }

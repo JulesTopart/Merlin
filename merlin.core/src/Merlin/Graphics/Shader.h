@@ -47,13 +47,15 @@ namespace Merlin::Graphics {
 
 	class ShaderLibrary {
 	public:
-		static void Add(const std::string& name, const std::shared_ptr<Shader>& shader);
-		static void Add(const std::shared_ptr<Shader>& shader);
-		static std::shared_ptr<Shader> Load(const std::string& filepath);
-		static std::shared_ptr<Shader> Get(const std::string& name);
+		ShaderLibrary();
 
-		static bool Exists(const std::string& name);
+		void Add(const std::string& name, Shared<Shader> shader);
+		void Add(Shared<Shader> shader);
+		Shared<Shader> Load(const std::string& filepath);
+		std::shared_ptr<Shader> Get(const std::string& name);
+
+		bool Exists(const std::string& name);
 	private:
-		static std::unordered_map<std::string, std::shared_ptr<Shader>> m_Shaders;
+		std::unordered_map<std::string, Shared<Shader>> _shaders;
 	};
 }

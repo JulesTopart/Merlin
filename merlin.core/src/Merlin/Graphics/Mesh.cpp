@@ -123,6 +123,9 @@ namespace Merlin::Graphics {
 			Console::printProgress(float(i) / float(_indices.size()));
 		}
 
+	}
+
+	void Mesh::UpdateVAO() {
 		//Update VAO, VBO
 		_vao.reset();
 		_vao = CreateScope<VAO>();
@@ -131,7 +134,6 @@ namespace Merlin::Graphics {
 		EBO ebo(_indices);
 		_vao->AddBuffer(vbo, Vertex::GetLayout());
 		_vao->Unbind();
-
 	}
 
 
@@ -146,17 +148,6 @@ namespace Merlin::Graphics {
 		for (size_t i = 0; i < _indices.size(); i++) {
 			newVertices.push_back(_vertices[i]);
 		}
-
-		_vertices = newVertices;
-		//Update VAO, VBO
-		_vao.reset();
-		_vao = CreateScope<VAO>();
-		_vao->Bind();
-		VBO vbo(_vertices);
-		EBO ebo(_indices);
-		_vao->AddBuffer(vbo, Vertex::GetLayout());
-		_vao->Unbind();
-
 	}
 
 	

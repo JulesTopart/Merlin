@@ -69,4 +69,5 @@ namespace Merlin::Memory {
 		GLuint _minFilter, _magFilter, _wrapS, _wrapT;
 	};
 
+
 }

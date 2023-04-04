@@ -1,4 +1,4 @@
-// Mostly from Hazel
+
 #pragma once
 #include "GL.h"
 #include "Merlin/Core/Log.h"

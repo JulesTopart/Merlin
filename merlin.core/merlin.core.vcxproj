@@ -110,6 +110,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Merlin\Graphics\RenderableObject.h" />
     <ClInclude Include="src\Merlin\Util\Primitives.h" />
     <ClInclude Include="src\Merlin\Graphics\DeferredRenderer.h" />
     <ClInclude Include="src\Merlin\Graphics\RayTracer.h" />
@@ -167,6 +168,7 @@
     <ClInclude Include="src\Merlin\Util\Util.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Merlin\Graphics\RenderableObject.cpp" />
     <ClCompile Include="src\Merlin\Util\Primitives.cpp" />
     <ClCompile Include="src\Merlin\Graphics\DeferredRenderer.cpp" />
     <ClCompile Include="src\Merlin\Graphics\RayTracer.cpp" />

@@ -3,89 +3,56 @@
 
 namespace Merlin::Graphics {
 
-    void Model::Translate(glm::vec3 v) {
-        _transform = glm::translate(_transform, v);
-    }
 
-    void Model::Rotate(glm::vec3 v) {
-        _transform = glm::rotate(_transform, v.x, glm::vec3(1, 0, 0));
-        _transform = glm::rotate(_transform, v.y, glm::vec3(0, 1, 0));
-        _transform = glm::rotate(_transform, v.z, glm::vec3(0, 0, 1));
-    }
-
-    void Model::Rotate(float angle, glm::vec3 v) {
-        _transform = glm::rotate(_transform, angle, v);
-    }
-
-    void Model::SetTransform(glm::mat4 t) {
-        _transform = t;
-    }
-
-    glm::vec3& Model::position() {
-        glm::vec3 scale;
-        glm::quat rotation;
-        glm::vec3 translation;
-        glm::vec3 skew;
-        glm::vec4 perspective;
-        glm::decompose(_transform, scale, rotation, translation, skew, perspective);
-        return translation;
-    }
-
-    glm::quat& Model::rotation() {
-        glm::vec3 scale;
-        glm::quat rotation;
-        glm::vec3 translation;
-        glm::vec3 skew;
-        glm::vec4 perspective;
-        glm::decompose(_transform, scale, rotation, translation, skew, perspective);
-        return rotation;
-    }
-
-    glm::mat4& Model::transform() { return _transform; }
-
-    Model::Model(Shared<Mesh> mesh) : _mesh(mesh) {
-        _material = nullptr;
+    Model::Model(const std::string& name) : _name(name){
         _transform = glm::mat4(1.0f);
     }
 
-    Model::Model(Shared<Mesh> mesh, Shared<Material> material) : _mesh(mesh), _material(material){
+    Model::Model(const std::string& name, const Shared<Mesh>& mesh) {
+        _meshes.push_back(mesh);
         _transform = glm::mat4(1.0f);
+    }
+
+    Model::Model(const std::string& name, const std::vector<Shared<Mesh>>& meshes, const std::vector<glm::mat4> transforms) {
+        _meshes = meshes;
+        _meshTransform = transforms;
+        _transform = glm::mat4(1.0f);
+    }
+
+
+    void AddMesh(const Shared<Mesh>& mesh, glm::mat4 meshTransform) {
+
+    }
+
+
+
+
+
+
+    void Model::Draw(const Renderer& renderer,  const Camera& camera, const Shader& shader) const {
+        shader.Use();
+        shader.SetVec3("viewPos", camera.GetPosition()); //Sync camera with GPU
+        shader.SetMat4("view", camera.GetViewProjectionMatrix()); //Sync camera with GPU
+        for (int index = 0; index < _meshes.size(); index++) {
+            renderer.Get
+            shader.SetMat4("model", _transform); //Sync model matrix with GPU
+            shader.SetVec3("ambient", material.ambient());
+            shader.SetVec3("diffuse", material.diffuse());
+            shader.SetVec3("specular", material.specular());
+            shader.SetFloat("shininess", material.shininess());
+        }
         
-    }
 
-    void Model::SetMaterial(Shared<Material> material) {
-        _material = material;
-    }
 
-    Shared<Model> Model::Create(Shared<Mesh> mesh) {
-        return std::make_shared<Model>(mesh);
-    }
-
-    Shared<Model> Model::Create(Shared<Mesh> mesh, Shared<Material> material) {
-        return std::make_shared<Model>(mesh, material);
-    }
-
-    void Model::Draw(const Camera& camera) const {
-        Shared<Shader> sh = _material->GetShader();
-
-        sh->Use();
-        sh->SetVec3("viewPos", camera.GetPosition()); //Sync camera with GPU
-        sh->SetMat4("view", camera.GetViewProjectionMatrix()); //Sync camera with GPU
-        sh->SetMat4("model", _transform); //Sync camera with GPU
-
-        sh->SetVec3("ambient", _material->ambient());
-        sh->SetVec3("diffuse", _material->diffuse());
-        sh->SetVec3("specular", _material->specular());
-        sh->SetFloat("shininess", _material->shininess());
 
         //manage camera,transform, textures
 
         unsigned int numDiffuse = 0;
         unsigned int numSpecular = 0;
 
-        for (size_t i = 0; i < _material->GetTextureCount(); i++) {
+        for(size_t i = 0; i < material.GetTextureCount(); i++) {
             std::string num;
-            Shared<Texture> tex = _material->GetTexture(i);
+            Shared<Texture> tex = material.GetTexture(i);
             if (tex->type() == TextureType::DIFFUSE) {
                 num = std::to_string(numDiffuse++);
             }
@@ -96,13 +63,13 @@ namespace Merlin::Graphics {
                 Console::error() << "Invalid texture type" << Console::endl;
             }
             tex->SetUnit(i);
-            tex->SyncTextureUnit(*_material->GetShader(), (tex->typeToString() + num));
+            tex->SyncTextureUnit(shader, (tex->typeToString() + num));
             tex->Bind();
         }
 
 
 
-        _mesh->Draw();
+        _meshes->Draw();
     }
 
 

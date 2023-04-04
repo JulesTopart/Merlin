@@ -27,7 +27,7 @@ void ExampleLayer::OnAttach(){
 
 	// Load the model and create a SceneNode from a GLTF file using Assimp
 	Shared<Shader> sh = Shader::Create("assets/shaders/default.vert.glsl", "assets/shaders/default.frag.glsl");
-	ShaderLibrary::Add("default", sh);
+	//ShaderLibrary::Add("default", sh);
 	//scene.nodes()->AddChild(ModelLoader::LoadModel("assets/models/mando/scene.gltf"));
 
 	Shared<ModelNode> mdl = CreateShared<ModelNode>("cone", ModelLoader::LoadModel("assets/models/cube.stl"));

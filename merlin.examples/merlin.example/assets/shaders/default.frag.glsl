@@ -33,3 +33,5 @@ void main(){
     FragColor = vec4(_ambient + _diffuse + _specular, 1.0f);
     //FragColor = vec4( abs(normal), 1.0f);
 }
+
+

@@ -145,9 +145,7 @@ namespace Merlin::Graphics {
 			glDeleteShader(geometryShaderID);
 
 	}
-	
 
-	
 
 	void Shader::CompileFromSrc(const std::string& VertexShaderSrc,
 								const std::string& FragmentShaderSrc,
@@ -167,8 +165,6 @@ namespace Merlin::Graphics {
 		if (GeomShaderSrc != "")
 			CompileShader("Vertex", GeomShaderSrc, vertexShaderID);
 
-
-
 		SetID(glCreateProgram());
 
 		LOG_INFO("Shader") << "Creating program n " << id() << "..." << Console::endl;
@@ -179,7 +175,6 @@ namespace Merlin::Graphics {
 			glAttachShader(id(), geometryShaderID);
 
 		glLinkProgram(id());
-
 
 
 		// Check the program
@@ -210,38 +205,86 @@ namespace Merlin::Graphics {
 
 	}
 
+	ShaderLibrary::ShaderLibrary(){
 
+		Shared<Shader> defaultShader = CreateShared<Shader>("default");
 
-	std::unordered_map<std::string, std::shared_ptr<Shader>> ShaderLibrary::m_Shaders;
+		std::string vertexSrc =
+			"#version 330 core\n"
+			"layout(location = 0) in vec3 _position;\n"
+			"layout(location = 1) in vec3 _normal;\n"
+			"layout(location = 2) in vec3 _color;\n"
+			"layout(location = 3) in vec2 _texCoord;\n"
+			"out vec3 position;\n"
+			"out vec3 normal;\n"
+			"out vec3 color;\n"
+			"out vec2 texCoord;\n"
+			"uniform vec3 viewPos;\n"
+			"uniform mat4 view;\n"
+			"uniform mat4 model;\n"
+			"void main() {\n"
+			"position = vec3(model * vec4(_position, 1.0f));\n"
+			"color = _color;\n"
+			"normal = _normal;\n"
+			"texCoord = _texCoord;\n"
+			"gl_Position = view * vec4(position, 1.0f);\n"
+			"}";
 
-	void ShaderLibrary::Add(const std::string& name, const std::shared_ptr<Shader>& shader)
-	{
-		GLCORE_ASSERT(!Exists(name), "ShaderLibrary", "Shader already exists!");
-		m_Shaders[name] = shader;
+		std::string fragmentSrc =
+			"#version 330 core\n"
+			"in vec3 position;\n"
+			"in vec3 normal;\n"
+			"in vec3 color;\n"
+			"in vec2 texCoord;\n"
+			"uniform vec3 viewPos;\n"
+			"uniform vec3 ambient;\n"
+			"uniform vec3 diffuse;\n"
+			"uniform vec3 specular;\n"
+			"uniform float shininess;\n"
+			"out vec4 FragColor;\n"
+			"void main() {\n"
+			"vec3 lightPos = vec3(1, 100, 400);\n"
+			"vec3 n = normalize(normal);\n"
+			"vec3 lightDir = normalize(lightPos - position);\n"
+			"vec3 viewDir = normalize(viewPos - position);\n"
+			"vec3 reflectDir = reflect(-lightDir, n);\n"
+			"vec3 _ambient = ambient * 0.1f;\n"
+			"vec3 _diffuse = diffuse * max(dot(n, lightDir), 0.0f);\n"
+			"vec3 _specular = specular * pow(max(dot(viewDir, reflectDir), 0.0f), max(shininess, 8));\n"
+			"FragColor = vec4(_ambient + _diffuse + _specular, 1.0f);\n"
+			"}";
+
+		defaultShader->CompileFromSrc(vertexSrc, fragmentSrc);
+		Add(defaultShader);
 	}
 
-	void ShaderLibrary::Add(const std::shared_ptr<Shader>& shader)
+	void ShaderLibrary::Add(const std::string& name, Shared<Shader> shader)
 	{
+		GLCORE_ASSERT(!Exists(name), "ShaderLibrary", "Shader already exists!");
+		_shaders[name] = shader;
+	}
+
+	void ShaderLibrary::Add(Shared<Shader> shader){
 		auto& name = shader->name();
 		Add(name, shader);
 	}
 
-	std::shared_ptr<Shader> ShaderLibrary::Load(const std::string& name)
-	{
+	Shared<Shader> ShaderLibrary::Load(const std::string& name){
 		auto shader = CreateShared<Shader>(name);
 		Add(shader);
 		return shader;
 	}
 
-	std::shared_ptr<Shader> ShaderLibrary::Get(const std::string& name)
-	{
-		GLCORE_ASSERT(Exists(name), "ShaderLibrary", "Shader not found!");
-		return m_Shaders[name];
+	Shared<Shader> ShaderLibrary::Get(const std::string& name){
+		if (!Exists(name)) {
+			Console::error("ShaderLibrary") << "Shader " << name << " not found ! Using default shader instead." << Console::endl;
+			return Get("default");
+		}
+		return _shaders[name];
 	}
 
-	bool ShaderLibrary::Exists(const std::string& name)
-	{
-		return m_Shaders.find(name) != m_Shaders.end();
+	bool ShaderLibrary::Exists(const std::string& name){
+		return _shaders.find(name) != _shaders.end();
 	}
 
 }

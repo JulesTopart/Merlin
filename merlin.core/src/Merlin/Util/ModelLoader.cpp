@@ -22,12 +22,13 @@ namespace Merlin::Utils {
         // Create a Mesh object using the parsed vertex and index data
         auto mesh = CreateShared<Mesh>(vertices, indices);
         mesh->RecalculateIndices();
+        mesh->UpdateVAO();
         //mesh->RemoveUnusedVertices();
         //mesh->RecalculateNormals();   
         auto material = CreateShared<Material>();
 
         material->SetProperty(glm::vec3(0.2, 0.2, 0.2), glm::vec3(0.3, 0.3, 0.3), glm::vec3(0.3, 0.3, 0.3), 64);
-        material->SetShader(std::dynamic_pointer_cast<Shader>(ShaderLibrary::Get("default")));
+        //material->SetShader(std::dynamic_pointer_cast<Shader>(ShaderLibrary::Get("default")));
 
         return Model::Create(mesh, material);
 	}
