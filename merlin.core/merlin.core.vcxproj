@@ -1,0 +1,238 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{20200B5F-8CD5-8354-15CA-7D2B817E7A58}</ProjectGuid>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>merlin.core</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>merlin.core</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)bin\Debug-windows-x86_64\merlin.core\</OutDir>
+    <IntDir>$(SolutionDir)bin-int\Debug-windows-x86_64\merlin.core\</IntDir>
+    <TargetName>merlin.core</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <IncludePath>$(ProjectDir)vendor\assimp\include;$(ProjectDir)vendor\spdlog\include;$(ProjectDir)vendor\GLFW\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\ImGUITextEditor;$(ProjectDir)vendor\imgui;$(ProjectDir)vendor\glm;$(ProjectDir)vendor\tinygltf\include;$(ProjectDir)vendor\stb_image;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)bin\Release-windows-x86_64\merlin.core\</OutDir>
+    <IntDir>$(SolutionDir)bin-int\Release-windows-x86_64\merlin.core\</IntDir>
+    <TargetName>merlin.core</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <IncludePath>$(ProjectDir)vendor\assimp\include;$(ProjectDir)vendor\spdlog\include;$(ProjectDir)vendor\GLFW\include;$(ProjectDir)vendor\glad\include;$(ProjectDir)vendor\ImGUITextEditor;$(ProjectDir)vendor\imgui;$(ProjectDir)vendor\glm;$(ProjectDir)vendor\tinygltf\include;$(ProjectDir)vendor\stb_image;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <VcpkgManifestInstall>false</VcpkgManifestInstall>
+    <VcpkgAutoLink>false</VcpkgAutoLink>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>glpch.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLCORE_PLATFORM_WINDOWS;GLFW_INCLUDE_NONE;GLCORE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>glpch.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLCORE_PLATFORM_WINDOWS;GLFW_INCLUDE_NONE;GLCORE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Merlin\Graphics\RendererBase.h" />
+    <ClInclude Include="src\Merlin\Scene\SkyBox.h" />
+    <ClInclude Include="src\Merlin\Graphics\RenderableObject.h" />
+    <ClInclude Include="src\Merlin\Util\Primitives.h" />
+    <ClInclude Include="src\Merlin\Graphics\DeferredRenderer.h" />
+    <ClInclude Include="src\Merlin\Graphics\RayTracer.h" />
+    <ClInclude Include="src\Merlin\Graphics\Renderer.h" />
+    <ClInclude Include="src\Merlin\Scene\Light.h" />
+    <ClInclude Include="src\Merlin\Scene\Model.h" />
+    <ClInclude Include="src\Merlin\Scene\Material.h" />
+    <ClInclude Include="src\GL.h" />
+    <ClInclude Include="src\Merlin\Memory\BufferObject.h" />
+    <ClInclude Include="src\Merlin\Memory\UniformBuffer.h" />
+    <ClInclude Include="src\Merlin\Util\DataStream.h" />
+    <ClInclude Include="src\Merlin\Graphics\Mesh.h" />
+    <ClInclude Include="src\Merlin\Memory\ShaderStorageBuffer.h" />
+    <ClInclude Include="src\Merlin\Tensor\ParticleSystem.h" />
+    <ClInclude Include="src\Merlin\Memory\RenderBuffer.h" />
+    <ClInclude Include="src\Merlin\Memory\FrameBuffer.h" />
+    <ClInclude Include="src\Merlin\Graphics\ScreenQuadRenderer.h" />
+    <ClInclude Include="src\Merlin\Memory\Vertex.h" />
+    <ClInclude Include="src\Merlin\Util\ModelLoader.h" />
+    <ClInclude Include="src\Merlin\Graphics\ShaderBase.h" />
+    <ClInclude Include="src\Merlin\Tensor\ComputeShader.h" />
+    <ClInclude Include="src\Merlin.h" />
+    <ClInclude Include="src\Merlin\Core\Application.h" />
+    <ClInclude Include="src\Merlin\Core\Console.h" />
+    <ClInclude Include="src\Merlin\Core\Core.h" />
+    <ClInclude Include="src\Merlin\Core\Input.h" />
+    <ClInclude Include="src\Merlin\Core\KeyCodes.h" />
+    <ClInclude Include="src\Merlin\Core\Layer.h" />
+    <ClInclude Include="src\Merlin\Core\LayerStack.h" />
+    <ClInclude Include="src\Merlin\Core\Log.h" />
+    <ClInclude Include="src\Merlin\Core\MouseButtonCodes.h" />
+    <ClInclude Include="src\Merlin\Core\Timestep.h" />
+    <ClInclude Include="src\Merlin\Core\Window.h" />
+    <ClInclude Include="src\Merlin\Events\ApplicationEvent.h" />
+    <ClInclude Include="src\Merlin\Events\Event.h" />
+    <ClInclude Include="src\Merlin\Events\KeyEvent.h" />
+    <ClInclude Include="src\Merlin\Events\MouseEvent.h" />
+    <ClInclude Include="src\Merlin\UI\ImGuiLayer.h" />
+    <ClInclude Include="src\Merlin\Memory\IndexBuffer.h" />
+    <ClInclude Include="src\Merlin\Scene\Scene.h" />
+    <ClInclude Include="src\Merlin\Graphics\Shader.h" />
+    <ClInclude Include="src\Merlin\Memory\VertexArray.h" />
+    <ClInclude Include="src\Merlin\Memory\VertexBuffer.h" />
+    <ClInclude Include="src\Merlin\Util\OpenGLDebug.h" />
+    <ClInclude Include="src\Merlin\Scene\Camera.h" />
+    <ClInclude Include="src\Merlin\Scene\CameraController.h" />
+    <ClInclude Include="src\Merlin\Core\WindowsInput.h" />
+    <ClInclude Include="src\Merlin\Core\WindowsWindow.h" />
+    <ClInclude Include="src\glpch.h" />
+    <ClInclude Include="src\Merlin\Memory\Texture.h" />
+    <ClInclude Include="src\Merlin\Memory\TextureMultisampled.h" />
+    <ClInclude Include="src\Merlin\Memory\CubeMap.h" />
+    <ClInclude Include="src\Merlin\Util\TextureLoader.h" />
+    <ClInclude Include="src\Merlin\Util\Util.h" />
+    <ClInclude Include="vendor\stb_image\stb_image.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Merlin\Graphics\RendererBase.cpp" />
+    <ClCompile Include="src\Merlin\Scene\SkyBox.cpp" />
+    <ClCompile Include="src\Merlin\Graphics\RenderableObject.cpp" />
+    <ClCompile Include="src\Merlin\Util\Primitives.cpp" />
+    <ClCompile Include="src\Merlin\Graphics\DeferredRenderer.cpp" />
+    <ClCompile Include="src\Merlin\Graphics\RayTracer.cpp" />
+    <ClCompile Include="src\Merlin\Graphics\Renderer.cpp" />
+    <ClCompile Include="src\Merlin\Scene\Light.cpp" />
+    <ClCompile Include="src\Merlin\Scene\Model.cpp" />
+    <ClCompile Include="src\Merlin\Scene\Material.cpp" />
+    <ClCompile Include="src\Merlin\Memory\BufferObject.cpp" />
+    <ClCompile Include="src\Merlin\Memory\UniformBuffer.cpp" />
+    <ClCompile Include="src\Merlin\Util\DataStream.cpp" />
+    <ClCompile Include="src\Merlin\Graphics\Mesh.cpp" />
+    <ClCompile Include="src\Merlin\Memory\ShaderStorageBuffer.cpp" />
+    <ClCompile Include="src\Merlin\Tensor\ParticleSystem.cpp" />
+    <ClCompile Include="src\Merlin\Memory\RenderBuffer.cpp" />
+    <ClCompile Include="src\Merlin\Memory\FrameBuffer.cpp" />
+    <ClCompile Include="src\Merlin\Graphics\ScreenQuadRenderer.cpp" />
+    <ClCompile Include="src\Merlin\Util\ModelLoader.cpp" />
+    <ClCompile Include="src\Merlin\Graphics\ShaderBase.cpp" />
+    <ClCompile Include="src\Merlin\Tensor\ComputeShader.cpp" />
+    <ClCompile Include="src\Merlin\Core\Application.cpp" />
+    <ClCompile Include="src\Merlin\Core\Console.cpp" />
+    <ClCompile Include="src\Merlin\Core\Layer.cpp" />
+    <ClCompile Include="src\Merlin\Core\LayerStack.cpp" />
+    <ClCompile Include="src\Merlin\UI\ImGuiBuild.cpp" />
+    <ClCompile Include="src\Merlin\UI\ImGuiLayer.cpp" />
+    <ClCompile Include="src\Merlin\Memory\IndexBuffer.cpp" />
+    <ClCompile Include="src\Merlin\Scene\Scene.cpp" />
+    <ClCompile Include="src\Merlin\Graphics\Shader.cpp" />
+    <ClCompile Include="src\Merlin\Memory\VertexArray.cpp" />
+    <ClCompile Include="src\Merlin\Memory\VertexBuffer.cpp" />
+    <ClCompile Include="src\Merlin\Util\OpenGLDebug.cpp" />
+    <ClCompile Include="src\Merlin\Scene\Camera.cpp" />
+    <ClCompile Include="src\Merlin\Scene\CameraController.cpp" />
+    <ClCompile Include="src\Merlin\Core\WindowsInput.cpp" />
+    <ClCompile Include="src\Merlin\Core\WindowsWindow.cpp" />
+    <ClCompile Include="src\glpch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\Merlin\Memory\Texture.cpp" />
+    <ClCompile Include="src\Merlin\Memory\TextureMultisampled.cpp" />
+    <ClCompile Include="src\Merlin\Memory\CubeMap.cpp" />
+    <ClCompile Include="src\Merlin\Util\TextureLoader.cpp" />
+    <ClCompile Include="src\Merlin\Util\Util.cpp" />
+    <ClCompile Include="vendor\stb_image\stb_image.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">
+      <Project>{154B857C-0182-860D-AA6E-6C109684020F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendor\Glad\Glad.vcxproj">
+      <Project>{BDD6857C-A90D-870D-52FA-6C103E10030F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendor\imgui\ImGui.vcxproj">
+      <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendor\tinygltf\tinygltf.vcxproj">
+      <Project>{160b8a25-02d8-e430-2bf1-d2d8171d1abf}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
