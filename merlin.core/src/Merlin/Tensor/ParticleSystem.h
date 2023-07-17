@@ -16,6 +16,12 @@ namespace Merlin::Tensor {
 	using namespace Merlin::Graphics;
 
 
+	enum class ParticleSystemDisplayMode {
+		MESH,
+		SPRITE,
+		POINT_SPRITE
+	};
+
 	// Refer to Uniform block layout alignement: https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL
     // Particle properties
 	struct DefaultParticle {
@@ -23,7 +29,7 @@ namespace Merlin::Tensor {
 		alignas(16) glm::vec4 velocity;      // Velocity (x, y, z) and density (w)
 	};
 
-	class ParticleSystem : public RenderableObject{
+	class ParticleSystem : public RenderableObject {
 	public:
 		ParticleSystem(std::string name, GLsizeiptr maxCount);
 		~ParticleSystem();
@@ -41,12 +47,19 @@ namespace Merlin::Tensor {
 		inline void SetMesh(Shared<Mesh> geometry) { _geometry = geometry; }
 		inline Shared<Mesh> GetMesh() const { return _geometry; }
 
+		inline void SetDisplayMode(ParticleSystemDisplayMode mode) { _displayMode = mode; }
+		inline ParticleSystemDisplayMode GetDisplayMode() const { return _displayMode;}
+
 	private:
 		GLsizeiptr _instancesCount;
 		GLuint _thread = 64;
 			
 		//Geometry
 		Shared<Mesh> _geometry;
+		ParticleSystemDisplayMode _displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
+		
+		//Depth buffer
+
 
 		//Buffers & Compute Shaders
 		std::vector<Shared<SSBO>> _buffers; //Buffer to store the particle

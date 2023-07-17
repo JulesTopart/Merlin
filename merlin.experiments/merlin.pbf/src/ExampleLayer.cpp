@@ -83,7 +83,7 @@ void ExampleLayer::InitGraphics() {
 	//box->Translate(glm::vec3(0, 0, 0));
 	box->SetMaterial("default");
 	box->SetShader(modelShader);
-	box->EnableWireFrame();
+	box->EnableWireFrameMode();
 	//scene.Add(box);
 }
 
@@ -100,10 +100,10 @@ void ExampleLayer::InitPhysics() {
 	particleSystem->Translate(glm::vec3(-1, -0.75, -0.71));
 
 	//Define the mesh for instancing (Here a cube)
-	//Shared<Mesh> particle = Primitives::CreateCube(0.1 * 0.15);
-	Shared<Mesh> particle = Primitives::CreateSphere(0.05*0.15, 10, 10);
+	//Shared<Mesh> particle = Primitives::CreateCube(0.05 * 0.15);
+	//Shared<Mesh> particle = Primitives::CreateSphere(0.05*0.15, 10, 10);
+	Shared<Mesh> particle = Primitives::CreatePoint();
 	particle->SetName("particle");
-	particle->SetMaterial("cyan plastic");
 	particle->SetShader(particleShader);
 	particleSystem->SetMesh(particle);
 
@@ -219,11 +219,10 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 		Simulate();
 	}
 
-	renderer.Clear();
 
+	renderer.Clear();
 	heatMap->Bind();
 	renderer.RenderScene(scene, *camera);
-
 }
 
 void ExampleLayer::OnImGuiRender()

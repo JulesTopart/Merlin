@@ -8,6 +8,7 @@ namespace Merlin::Tensor {
 
 	ParticleSystem::ParticleSystem(std::string name, GLsizeiptr maxCount) : RenderableObject(name){
 		_instancesCount = maxCount;
+		
 	}
 
 	ParticleSystem::~ParticleSystem() {}

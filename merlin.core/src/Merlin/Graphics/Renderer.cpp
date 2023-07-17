@@ -65,50 +65,73 @@ namespace Merlin::Graphics {
 		PushMatrix();
 		currentTransform *= ps.transform();
 
-		const Shader* shader;
-		const Material* mat;
+		if (ps.GetDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE) {
+			const Shader* shader;
+			glPointSize(10);
 
-		if (ps.GetMesh()->HasShader())
-			shader = &ps.GetMesh()->GetShader();
-		else
-			shader = &_shaderLibrary.Get(ps.GetMesh()->GetShaderName());
+			if (ps.GetMesh()->HasShader())
+				shader = &ps.GetMesh()->GetShader();
+			else
+				shader = &_shaderLibrary.Get(ps.GetMesh()->GetShaderName());
 
 
-		if (ps.GetMesh()->HasMaterial())
-			mat = &ps.GetMesh()->GetMaterial();
-		else {
+			shader->Use();
+			shader->SetMat4("model", currentTransform); //Sync model matrix with GPU
+			shader->SetMat4("view", camera.GetViewMatrix()); //Sync model matrix with GPU
+			shader->SetMat4("projection", camera.GetProjectionMatrix()); //Sync model matrix with GPU
+			ps.Draw(*shader);
 
-			mat = &_materialLibrary.Get(ps.GetMesh()->GetMaterialName());
+			glPointSize(1); //restore point size
+		}
+		else if (ps.GetDisplayMode() == ParticleSystemDisplayMode::MESH) {
+			const Shader* shader;
+			const Material* mat;
+
+			if (ps.GetMesh()->HasShader())
+				shader = &ps.GetMesh()->GetShader();
+			else
+				shader = &_shaderLibrary.Get(ps.GetMesh()->GetShaderName());
+
+
+			if (ps.GetMesh()->HasMaterial())
+				mat = &ps.GetMesh()->GetMaterial();
+			else {
+
+				mat = &_materialLibrary.Get(ps.GetMesh()->GetMaterialName());
+			}
+
+
+			shader->Use();
+
+			if (shader->SupportMaterial()) {
+				shader->SetVec3("ambient", mat->ambient());
+				shader->SetVec3("diffuse", mat->diffuse());
+				shader->SetVec3("specular", mat->specular());
+				shader->SetFloat("shininess", mat->shininess());
+				shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
+			}
+
+			shader->SetMat4("model", currentTransform); //Sync model matrix with GPU
+			shader->SetMat4("view", camera.GetViewMatrix()); //Sync model matrix with GPU
+			shader->SetMat4("projection", camera.GetProjectionMatrix()); //Sync model matrix with GPU
+
+			if (shader->SupportTexture()) {
+				Shared<Texture> tex;
+				tex = mat->GetTexture(TextureType::COLOR);
+
+				//WARNING This should be done once...
+				tex->SetUnit(1); //Skybox is 0...
+				tex->SyncTextureUnit(*shader, (tex->typeToString()) + "0");
+
+
+				tex->Bind();
+				shader->SetInt("hasColorTex", !tex->IsDefault());
+			}
+			ps.Draw(*shader);
 		}
 
 
-		shader->Use();
 		
-		if (shader->SupportMaterial()) {
-			shader->SetVec3("ambient", mat->ambient());
-			shader->SetVec3("diffuse", mat->diffuse());
-			shader->SetVec3("specular", mat->specular());
-			shader->SetFloat("shininess", mat->shininess());
-			shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
-		}
-		
-		shader->SetMat4("model", currentTransform); //Sync model matrix with GPU
-		shader->SetMat4("view", camera.GetViewMatrix()); //Sync model matrix with GPU
-		shader->SetMat4("projection", camera.GetProjectionMatrix()); //Sync model matrix with GPU
-		
-		if (shader->SupportTexture()) {
-			Shared<Texture> tex;
-			tex = mat->GetTexture(TextureType::COLOR);
-
-			//WARNING This should be done once...
-			tex->SetUnit(1); //Skybox is 0...
-			tex->SyncTextureUnit(*shader, (tex->typeToString()) + "0");
-
-
-			tex->Bind();
-			shader->SetInt("hasColorTex", !tex->IsDefault());
-		}
-		ps.Draw(*shader);
 
 		PopMatrix();
 

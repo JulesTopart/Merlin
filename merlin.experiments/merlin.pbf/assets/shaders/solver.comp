@@ -372,57 +372,15 @@ void XPBDSolve(uint gid, uint simStep) {
 	}else if(simStep == 4){ //Apply changes
 		p.velocity = (p.new_position - p.position) / (dt*speed);
 		p.position = p.new_position;
-
-		/*
-		float T_ti = 0.;
-		float Ti = p.temperature;
-
-
-		for (uint j = 0; j < numParticles; j++){
-			if(j == gid) continue;
-
-
-			//p.velocity += (artificialViscosity * ((20000.0 - particles[j].temperature)/200.0)) * viscosityLaplacianKernel(length(p.new_position - particles[j].new_position)) * (particles[j].velocity - p.velocity);
-
-			float dynamicViscosity = 0.01;
-			//float dynamicViscosity = artificialViscosity * (p.temperature / 140.0);
-			p.velocity += dynamicViscosity * viscosityLaplacianKernel(length(p.new_position - particles[j].new_position)) * (particles[j].velocity - p.velocity);
-			//p.velocity += artificialViscosity * viscosityLaplacianKernel(length(p.new_position - particles[j].new_position)) * (particles[j].velocity - p.velocity);
-			
-			//float Tj = particles[j].temperature;
-			//float rhoj = particles[j].density;
-					
-					
-			//float w2_pse = 400.5 * viscosityLaplacianKernel(length(p.new_position - particles[j].new_position));
-			//p.temperature += (Tj-Ti) * w2_pse * dt;
-		}
 		
-		//p.temperature = T_ti;
-		//if(p.position.z < H){
-		//	p.temperature += 0.8 * viscosityLaplacianKernel(p.position.z/2.0) * (60.0 - p.temperature) * dt;
-		//	p.velocity /= 5.0 * (60.0/p.temperature);
-		//}
-		//if(p.density < 100)  p.temperature += 0.02 * (20.0 - p.temperature) * dt;
-		*/
-		
-		//calculate Viscosity and vorticity
+		//calculate temperature, Viscosity and vorticity
 
 		ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position * scale) / (2.0) );
 		uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
 
-		/*
-		vec3 omega_i = vec3(0);
-		for (uint j = 0; j < numParticles; j++) {
-			if (j == gid) continue;
-
-			vec3 vij = particles[j].velocity - p.velocity;
-			omega_i += vij * poly6(p.new_position - particles[j].new_position);
-			
-
-		}*/
-
-		/*
-		vec3 omega_i = vec3(0);
+		float T_ti = 0.;
+		float Ti = p.temperature;
+		//vec3 omega_i = vec3(0);
 		for (uint z = binIndexVec.z - (binIndexVec.z > 0 ? 1 : 0); z <= binIndexVec.z + 1; z++) {
 			for (uint y = binIndexVec.y - (binIndexVec.y > 0 ? 1 : 0); y <= binIndexVec.y + 1; y++) {
 				for (int x = int(binIndexVec.x) - (binIndexVec.x > 0 ? 1 : 0); x <= binIndexVec.x + 1; x++) {	
@@ -436,17 +394,30 @@ void XPBDSolve(uint gid, uint simStep) {
 						uint j = bins[currentBinIndex].indices[k];
 							if (j == gid) continue;
 
+							vec3 dij = p.new_position - particles[j].new_position;
 							vec3 vij = particles[j].velocity - p.velocity;
-							omega_i += vij * poly6(p.new_position - particles[j].new_position);
-			
+							//omega_i += vij * poly6(p.new_position - particles[j].new_position);
+
+							float dynamicViscosity = 0.01;
+							//float dynamicViscosity = artificialViscosity * (p.temperature / 140.0);
+							p.velocity += dynamicViscosity * viscosityLaplacianKernel(length(dij)) * (vij);
+
+							float Tj = particles[j].temperature;
+							float rhoj = particles[j].density;
+					
+							float w2_pse = viscosityLaplacianKernel(length(dij));
+							p.temperature += 50* 0.183 * (Tj-Ti) * dt * w2_pse / (particles[gid].density);
 
 					}
 				}
 			}
-		}*/
+		}
 
-
-		
+		if(p.position.z < H){
+			p.temperature += (0.05/(particles[gid].density)) * dt  * (viscosityLaplacianKernel(p.position.z/2.0)  * (60.0 - p.temperature)) ;
+			//p.velocity /= 5.0 * (60.0/p.temperature);
+		}
+		p.temperature += (10.0/(particles[gid].density)) * dt  * (viscosityLaplacianKernel(p.position.z/2.0)  * (20.0 - p.temperature));
 	}
 	particles[gid] = p;
 	//end

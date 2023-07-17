@@ -44,8 +44,8 @@ namespace Merlin::Graphics {
 		bool HasChildren() const;
 
 		inline bool IsWireFrame() const { return _wireframe; }
-		inline void EnableWireFrame() { _wireframe = true; }
-		inline void DisableWireFrame() { _wireframe = false; }
+		inline void EnableWireFrameMode() { _wireframe = true; }
+		inline void DisableWireFrameMode() { _wireframe = false; }
 
 		std::list<Shared<RenderableObject>>& children();
 		RenderableObject* parent();

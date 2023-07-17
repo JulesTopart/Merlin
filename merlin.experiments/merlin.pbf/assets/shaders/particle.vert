@@ -47,8 +47,9 @@ void main() {
 
 	//color = mix(foam, water, particles[gl_InstanceID].density*300.0);
 	//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
-	color = mix(foam, water, particles[gl_InstanceID].density*200.0 + bins[currentBinIndex].count/32.0);
-	//color = vec3(particles[gl_InstanceID].temperature/200.0);
+	//color = mix(foam, water, particles[gl_InstanceID].density*200.0 + bins[currentBinIndex].count/32.0);
+	color = vec4(particles[gl_InstanceID].temperature/200.0);
+	color.w = 0.5;
 	//color = randomColor(currentBinIndex);
 	//color = randomColor(gl_InstanceID);
 	

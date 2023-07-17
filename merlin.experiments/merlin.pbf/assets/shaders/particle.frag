@@ -45,7 +45,14 @@ vec4 heatMap(const float value) {
 	return color;
 }
 
-
+float near = 0.1; 
+float far  = 90.0; 
+  
+float LinearizeDepth(float depth) 
+{
+    float z = depth * 2.0 - 1.0; // back to NDC 
+    return (2.0 * near * far) / (far + near - z * (far - near));	
+}
 
 void main() {
 
@@ -57,6 +64,11 @@ void main() {
 	vec4 ambient = lightColor * 0.5f;
 	vec4 diffuse = lightColor * max(dot(n, lightDir), 0.0);
 	//float specular = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-	//FragColor = heatMap(color.r);
-	FragColor = (ambient + diffuse) * color;
+	FragColor = heatMap(color.r);
+	FragColor.w = 0.5;
+	//FragColor = (ambient + diffuse) * color;
+
+
+	//float depth = LinearizeDepth(gl_FragCoord.z) / far;
+	//FragColor = vec4(vec3(depth), 1.0);
 }

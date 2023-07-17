@@ -65,7 +65,6 @@ namespace Merlin::Utils {
 		Vertices v = {
 			Vertex{glm::vec3(0,0,0), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)}
 		};
-
 		return Mesh::Create("Point", v, GL_POINTS);
 	}
 
