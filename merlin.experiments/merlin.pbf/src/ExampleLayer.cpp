@@ -145,7 +145,7 @@ void ExampleLayer::SetColorGradient() {
 
 
 const long spawnCount = 8 * 8;
-const long spawnDelay = 10;//iteration
+const long spawnDelay = 20;//iteration
 
 long timer = 0;
 long lastSpawn = 0;
@@ -173,18 +173,18 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->SetVec3("sourcePos", u);
 
 	u += v;
-	if (u.x + v.x >= 0.5 || u.x <= 0) {
+	if (u.x + v.x >= 0.75 || u.x <= 0) {
 		v.x = 0;
 		v.y = speed;
 	}
 
-	if (u.y + v.y > (line + 1) * (0.5 / lineCount)) {
+	if (u.y + v.y > (line + 1) * (0.75 / lineCount)) {
 		line++;
 		v.x = ((line % 2 == 0) ? speed : -speed);
 		v.y = 0;
 	}
 
-	if (u.y + v.y >= 0.5) {
+	if (u.y + v.y >= 0.75) {
 		line = 0;
 		u.y = 0;
 		u.x = speed;

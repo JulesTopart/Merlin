@@ -296,8 +296,7 @@ vec3 computePositionDeltaN(uint i) {
 
 
 //calculate Temperature and Viscosity
-void computeTemperatureViscosityN(uint gid) {
-	Particle p = particles[gid];
+Particle computeTemperatureViscosityN(uint gid, Particle p) {
 	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position * scale) / (2.0) );
 	uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
 
@@ -323,7 +322,7 @@ void computeTemperatureViscosityN(uint gid) {
 
 						//float dynamicViscosity = 0.8;
 						float dynamicViscosity = artificialViscosity * (p.temperature / 1400.0);
-						//p.velocity += dynamicViscosity * viscosityLaplacianKernel(length(dij)) * (vij);
+						p.velocity += dynamicViscosity * viscosityLaplacianKernel(length(dij)) * (vij);
 
 						float Tj = particles[j].temperature;
 						float rhoj = particles[j].density;
@@ -339,10 +338,10 @@ void computeTemperatureViscosityN(uint gid) {
 
 	if(p.position.z < H/2.0){
 		p.temperature += 0.8 * (floorTemperature - p.temperature) * dt;//;(0.05/(particles[gid].density)) * dt  * (viscosityLaplacianKernel(p.position.z/2.0)  * (60.0 - p.temperature)) ;
-		//p.velocity = floorFriction * p.velocity;
+		p.velocity = floorFriction * p.velocity;
 	}
 	p.temperature += 0.5*(ambientTemperature - p.temperature)*dt;//(10.0/(particles[gid].density)) * dt  * (viscosityLaplacianKernel(p.position.z/2.0)  * (20.0 - p.temperature));
-	particles[gid] = p;
+	return p;
 }
 
 
@@ -422,11 +421,10 @@ void XPBDSolve(uint gid, uint simStep) {
 		p.new_position = clampToBoundaries(p.new_position + positionDelta);
 	}else if(simStep == 4){ //Apply changes
 		p.velocity = (p.new_position - p.position) / (dt*speed);
-
-		computeTemperatureViscosityN(gid);
-
-
 		p.position = p.new_position;
+
+		p = computeTemperatureViscosityN(gid, p);
+		
 	}
 	particles[gid] = p;
 	//end
