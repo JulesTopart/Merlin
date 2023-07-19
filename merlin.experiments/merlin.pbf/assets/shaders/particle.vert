@@ -2,6 +2,7 @@
 #version 450 core
 
 #include "common.glsl"
+#include "constants.glsl"
 
 layout(location = 0) in vec3 _position;
 layout(location = 1) in vec3 _normal;
@@ -39,8 +40,6 @@ void main() {
 	position = vec3(model * vec4((_position) + offset*scale, 1.0f));
 
 	ivec3 binIndexVec = ivec3(        floor(  particles[gl_InstanceID].position / ( 1.0/(16*0.025/2.0) )   )           );
-
-	uint binResolution = 128;
 	uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
 
 
@@ -48,7 +47,7 @@ void main() {
 	//color = mix(foam, water, particles[gl_InstanceID].density*300.0);
 	//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
 	//color = mix(foam, water, particles[gl_InstanceID].density*200.0 + bins[currentBinIndex].count/32.0);
-	color = vec4(particles[gl_InstanceID].temperature/200.0);
+	color = vec4(particles[gl_InstanceID].temperature/nozzleTemperature);
 	color.w = 0.5;
 	//color = randomColor(currentBinIndex);
 	//color = randomColor(gl_InstanceID);

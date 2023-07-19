@@ -43,6 +43,7 @@ namespace Merlin::Tensor {
 		void AddStorageBuffer(Shared<SSBO>);
 
 		inline void SetThread(GLuint t) { _thread = t; }
+		inline void SetActiveInstancesCount(GLuint t) { _activeInstancesCount = t; }
 		//Meshs
 		inline void SetMesh(Shared<Mesh> geometry) { _geometry = geometry; }
 		inline Shared<Mesh> GetMesh() const { return _geometry; }
@@ -52,6 +53,7 @@ namespace Merlin::Tensor {
 
 	private:
 		GLsizeiptr _instancesCount;
+		GLsizeiptr _activeInstancesCount;
 		GLuint _thread = 64;
 			
 		//Geometry

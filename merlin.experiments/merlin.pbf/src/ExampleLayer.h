@@ -72,7 +72,7 @@ public:
 	void InitGraphics();
 	void InitPhysics();
 	void SetColorGradient();
-	void Simulate();
+	void Simulate(Merlin::Timestep ts);
 
 	void updateFPS(Merlin::Timestep ts);
 
@@ -107,8 +107,10 @@ private:
 	Shared<Camera> camera;
 	Shared<CameraController> cameraController;
 
+	GLuint numParticles = 0;
+
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	int solver_iteration = 15;
+	int solver_iteration = 40;
 
 	bool paused = true;
 	float sim_speed = 1;

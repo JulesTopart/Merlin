@@ -124,7 +124,7 @@ void ExampleLayer::InitPhysics() {
 	scene.Add(particleSystem);
 
 	solver->Use();
-	solver->SetUInt("numParticles", maxParticlesCount);
+	solver->SetUInt("numParticles", numParticles);
 
 }
 
@@ -144,8 +144,58 @@ void ExampleLayer::SetColorGradient() {
 }
 
 
-void ExampleLayer::Simulate() {
+const long spawnCount = 8 * 8;
+const long spawnDelay = 10;//iteration
+
+long timer = 0;
+long lastSpawn = 0;
+
+glm::vec3 u(0.0,0.0,0.1);
+const float speed = 0.001;
+glm::vec3 v(speed, 0, 0);
+int line = 0;
+int lineCount = 5;
+
+void ExampleLayer::Simulate(Merlin::Timestep ts) {
+
+	timer ++;
+	
+	if (timer - lastSpawn > spawnDelay) {
+		numParticles += spawnCount;
+		lastSpawn = timer;
+	}
+
+
+
+
+
 	solver->Use();
+	solver->SetVec3("sourcePos", u);
+
+	u += v;
+	if (u.x + v.x >= 0.5 || u.x <= 0) {
+		v.x = 0;
+		v.y = speed;
+	}
+
+	if (u.y + v.y > (line + 1) * (0.5 / lineCount)) {
+		line++;
+		v.x = ((line % 2 == 0) ? speed : -speed);
+		v.y = 0;
+	}
+
+	if (u.y + v.y >= 0.5) {
+		line = 0;
+		u.y = 0;
+		u.x = speed;
+		v.y = 0;
+		v.x = speed;
+		u += glm::vec3(0, 0, (0.05));
+	}
+
+
+	
+	particleSystem->SetActiveInstancesCount(numParticles);
 
 	particleBuffer->Bind();
 	particleBuffer->Attach(*solver);
@@ -156,6 +206,10 @@ void ExampleLayer::Simulate() {
 
 	solver->SetUInt("stage", 0);
 	particleSystem->Execute(solver, false); //Predict
+
+
+	solver->SetUInt("numParticles", numParticles);
+
 
 	
 	//binBuffer->Bind();
@@ -190,6 +244,7 @@ void ExampleLayer::OnAttach(){
 	SetColorGradient();
 
 	particleSystem->SetThread(thread);
+	particleSystem->SetActiveInstancesCount(maxParticlesCount);
 	particleSystem->Execute(init);
 }
 
@@ -216,9 +271,8 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	updateFPS(ts);
 
 	if (!paused) {
-		Simulate();
+		Simulate(ts);
 	}
-
 
 	renderer.Clear();
 	heatMap->Bind();
@@ -249,7 +303,16 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 	if (ImGui::SmallButton("Reset simulation")) {
+		particleSystem->SetActiveInstancesCount(maxParticlesCount);
 		particleSystem->Execute(init); //init position using init compute shader
+		numParticles = 0;
+		solver->Use();
+		solver->SetUInt("numParticles", numParticles);
+		u = glm::vec3(0.0, 0.0, 0.1);
+		v = glm::vec3(speed, 0, 0);
+		line = 0;
+		timer = 0;
+		lastSpawn = 0;
 		//count = 1;
 	}
 

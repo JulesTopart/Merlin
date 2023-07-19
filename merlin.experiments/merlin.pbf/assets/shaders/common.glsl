@@ -22,4 +22,3 @@ layout(std430, binding = 2) buffer BinBuffer {
 	Bin bins[];
 };
 
-const float scale = 0.025/(4.0);

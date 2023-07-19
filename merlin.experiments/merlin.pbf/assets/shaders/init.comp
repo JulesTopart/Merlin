@@ -4,24 +4,41 @@ layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 #include "common.glsl"
 #include "constants.glsl"
 
-
 void main() {
   uint index = gl_GlobalInvocationID.x;
   // Calculate the indices for each dimension using div and mod
   
+  /* Cube
   uint i = index / (grid * grid);
   uint j = (index % (grid * grid)) / grid;
   uint k = index % grid;
-  
 
   float space = gridSpacing;
-
   particles[index].position = vec3((i+1) * space + (k%2 == 0 ? 0.0 : space/2), (j+1) * space + (k%2 == 0 ? 0.0 : space/2), k * space + 30);
   particles[index].new_position = vec3((i+1) * space + (k%2 == 0 ? 0.0 : space/2), (j+1) * space + (k%2 == 0 ? 0.0 : space/2), k * space + 30);
   particles[index].velocity = vec3(0.0);
   particles[index].density = 0;
   particles[index].lambda = 0.0;
-  particles[index].temperature = 200.0;
+  particles[index].temperature = nozzleTemperature;
 
+  */
+
+
+   /* Source */
+  float space = gridSpacing;
+  uint count = 8;
+
+  uint i = (index % count);
+  uint j = uint((index % (count*count)) / count);
+  uint k = index % count;
+  
+  particles[index].position     = vec3(50 + (i+1) * space, 50+ (j+1) * space, 0.0);
+  particles[index].new_position = vec3(0.0);
+  particles[index].velocity = vec3(0.0,0.0,-200.0);
+  particles[index].density = 0;
+  particles[index].lambda = 0.0;
+  particles[index].temperature = nozzleTemperature;
+
+  
 	
 }
