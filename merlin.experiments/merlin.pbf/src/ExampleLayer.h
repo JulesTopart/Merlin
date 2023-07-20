@@ -71,6 +71,7 @@ public:
 
 	void InitGraphics();
 	void InitPhysics();
+	void ResetSimulation();
 	void SetColorGradient();
 	void Simulate(Merlin::Timestep ts);
 
@@ -111,6 +112,8 @@ private:
 
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 	int solver_iteration = 40;
+
+	int sim = 0;
 
 	bool paused = true;
 	float sim_speed = 1;

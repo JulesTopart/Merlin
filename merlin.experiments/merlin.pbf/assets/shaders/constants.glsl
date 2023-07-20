@@ -23,8 +23,8 @@ const float dt = 0.0016;//s Timestep (16 substeps of a 60hz frame time)
 //const float REST_DENSITY = 6378.0; //WATER ?
 const float REST_DENSITY = 933.0; //Metled plastic
 const float INV_REST_DENSITY = 1.0 / REST_DENSITY;
-//const float relaxation = 0.0028;
-const float relaxation = 0.0033;
+const float relaxation = 0.0028;
+//const float relaxation = 0.0033;
 // --- SPH ---
 // SPH Parameters
 //const float H = 1.2; // Kernel radius // 0.1m
@@ -41,6 +41,9 @@ const float floorTemperature = 333.15;
 const float nozzleTemperature = 488.15;
 const float kPLA = 0.183;
 const float CpPLA = 400.0;
+
+const float kAmbient = 1.0;
+const float kPlateau = 3.0;
 
 
 // --- Artificial Pressure ---

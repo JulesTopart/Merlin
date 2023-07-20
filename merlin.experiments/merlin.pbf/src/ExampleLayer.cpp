@@ -143,36 +143,23 @@ void ExampleLayer::SetColorGradient() {
 	heatMap->Allocate<Color>(colors);
 }
 
-
-const long spawnCount = 8 * 8;
-const long spawnDelay = 20;//iteration
+const long spawnCount = 4 * 4 *4;
+long spawnDelay = 7;//iteration
 
 long timer = 0;
 long lastSpawn = 0;
 
-glm::vec3 u(0.0,0.0,0.1);
-const float speed = 0.001;
+float layerHeight = 0.008;
+float firstlayerHeight = 0.010;
+glm::vec3 u(0.0,0.0, firstlayerHeight);
+const float speed = 0.009;
 glm::vec3 v(speed, 0, 0);
 int line = 0;
 int lineCount = 5;
 
-void ExampleLayer::Simulate(Merlin::Timestep ts) {
-
-	timer ++;
-	
-	if (timer - lastSpawn > spawnDelay) {
-		numParticles += spawnCount;
-		lastSpawn = timer;
-	}
 
 
-
-
-
-	solver->Use();
-	solver->SetVec3("sourcePos", u);
-
-	u += v;
+void snake() {
 	if (u.x + v.x >= 0.75 || u.x <= 0) {
 		v.x = 0;
 		v.y = speed;
@@ -190,8 +177,63 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 		u.x = speed;
 		v.y = 0;
 		v.x = speed;
-		u += glm::vec3(0, 0, (0.05));
+		u += glm::vec3(0, 0, (layerHeight));
 	}
+
+
+	u += v;
+}
+
+
+float theta = 0.0;
+float radius = 0.4;
+float segment = 10.0 * 36.0;
+float theta_v = (2.0 * 3.14159265359 / segment);// *(speed / radius);
+
+void circle() {
+	u = glm::vec3((1.0 + cos(theta)) * radius, (1.0 + sin(theta)) * radius, u.z);
+	theta += theta_v;
+	if (theta >= 2.0*3.14159265359) {
+		theta -= 2.0*3.14159265359;
+		u.z += layerHeight;
+	}
+}
+
+
+void ExampleLayer::ResetSimulation() {
+
+	particleSystem->SetActiveInstancesCount(maxParticlesCount);
+	particleSystem->Execute(init); //init position using init compute shader
+	numParticles = 0;
+	solver->Use();
+	solver->SetUInt("numParticles", numParticles);
+	u = glm::vec3(0.0, 0.0, firstlayerHeight);
+	v = glm::vec3(speed, 0, 0);
+	line = 0;
+	timer = 0;
+	lastSpawn = 0;
+	if (sim == 0) spawnDelay = 7;//iteratinon
+	else spawnDelay = 5;//iteratinon
+}
+
+
+void ExampleLayer::Simulate(Merlin::Timestep ts) {
+
+	timer ++;
+	
+	if (timer - lastSpawn > spawnDelay/sim_speed) {
+		numParticles += spawnCount;
+		lastSpawn = timer;
+	}
+
+	if(sim == 0)circle();
+	else if(sim == 1)snake();
+
+
+	solver->Use();
+	solver->SetVec3("sourcePos", u);
+
+
 
 
 	
@@ -244,8 +286,7 @@ void ExampleLayer::OnAttach(){
 	SetColorGradient();
 
 	particleSystem->SetThread(thread);
-	particleSystem->SetActiveInstancesCount(maxParticlesCount);
-	particleSystem->Execute(init);
+	ResetSimulation();
 }
 
 void ExampleLayer::OnDetach(){}
@@ -286,7 +327,7 @@ void ExampleLayer::OnImGuiRender()
 	model_matrix_translation = camera->GetPosition();
 	camera_speed = cameraController->GetCameraSpeed();
 
-	ImGui::LabelText("Particle count", std::to_string(maxParticlesCount).c_str());
+	ImGui::LabelText("Particle count", std::to_string(numParticles).c_str());
 
 	if (FPS_sample > 0) {
 		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS / FPS_sample)).c_str());
@@ -303,16 +344,7 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 	if (ImGui::SmallButton("Reset simulation")) {
-		particleSystem->SetActiveInstancesCount(maxParticlesCount);
-		particleSystem->Execute(init); //init position using init compute shader
-		numParticles = 0;
-		solver->Use();
-		solver->SetUInt("numParticles", numParticles);
-		u = glm::vec3(0.0, 0.0, 0.1);
-		v = glm::vec3(speed, 0, 0);
-		line = 0;
-		timer = 0;
-		lastSpawn = 0;
+		ResetSimulation();
 		//count = 1;
 	}
 
@@ -325,6 +357,16 @@ void ExampleLayer::OnImGuiRender()
 		cameraController->SetCameraSpeed(camera_speed);
 	}
 	if (ImGui::SliderFloat("Simulation speed", &sim_speed, 0.0, 5.0f)) {
+	}
+
+	if (ImGui::Button("Circular Path")) {
+		sim = 0;
+		ResetSimulation();
+	}
+
+	if (ImGui::Button("Snake Path")) {
+		sim = 1;
+		ResetSimulation();
 	}
 
 
