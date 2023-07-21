@@ -64,7 +64,7 @@ void ExampleLayer::InitGraphics() {
 	//box->Translate(glm::vec3(0, 0, 0));
 	box->SetMaterial("default");
 	box->SetShader(modelShader);
-	box->EnableWireFrame();
+	box->EnableWireFrameMode();
 	scene.Add(box);
 
 

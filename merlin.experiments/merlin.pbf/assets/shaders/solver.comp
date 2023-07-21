@@ -93,7 +93,7 @@ float calculateDensity(uint gid, vec3 pposition) {
 float calculateDensityN(uint gid, vec3 pposition) {
 	float density = 0.0;
 
-	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position * scale) / (2.0) );
+	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position) / (2.0) );
 
 	for (uint z = binIndexVec.z - (binIndexVec.z > 0 ? 1 : 0); z <= binIndexVec.z + 1; z++) {
 		for (uint y = binIndexVec.y - (binIndexVec.y > 0 ? 1 : 0); y <= binIndexVec.y + 1; y++) {
@@ -160,7 +160,7 @@ float computeLambda(uint gid, vec3 pposition, float density) {
 
 // SPH_Lambda_neighbor
 float computeLambdaN(uint gid, vec3 pposition, float density) {
-	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position * scale) / (2.0) );
+	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position) / (2.0) );
 
 	float C_i = (density * INV_REST_DENSITY) - 1.0f;
 	vec3 gradient = vec3(0.0);
@@ -247,7 +247,7 @@ vec3 computePositionDelta(uint i) {
 vec3 computePositionDeltaN(uint i) {
 	vec3 posDelta = vec3(0.0f, 0.0f, 0.0f);
 
-	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[i].position * scale) / (2.0) );
+	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[i].position) / (2.0) );
 
 	for (uint z = binIndexVec.z - (binIndexVec.z > 0 ? 1 : 0); z <= binIndexVec.z + 1; z++) {
 		for (uint y = binIndexVec.y - (binIndexVec.y > 0 ? 1 : 0); y <= binIndexVec.y + 1; y++) {
@@ -296,7 +296,7 @@ vec3 computePositionDeltaN(uint i) {
 
 //calculate Viscosity
 vec3 constrainVelocityN(uint gid, vec3 velocity) {
-	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position * scale) / (2.0) );
+	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position) / (2.0) );
 	uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
 
 
@@ -324,7 +324,7 @@ vec3 constrainVelocityN(uint gid, vec3 velocity) {
 		}
 	}
 
-	if(particles[gid].position.z < H/2.0){
+	if(particles[gid].position.z < 10.0*EPSILON){
 		velocity -= floorFriction * velocity;
 	}
 
@@ -335,7 +335,7 @@ vec3 constrainVelocityN(uint gid, vec3 velocity) {
 
 //calculate Temperature
 float computeTemperatureN(uint gid) {
-	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position * scale) / (2.0) );
+	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position) / (2.0) );
 	uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
 
 	const float Ti = particles[gid].temperature;
@@ -368,7 +368,7 @@ float computeTemperatureN(uint gid) {
 		}
 	}
 
-	if(particles[gid].position.z < H/2.0){
+	if(particles[gid].position.z < 10.0*EPSILON){
 		temperatureDelta += kPlateau * (floorTemperature - Ti) * dt;
 	}
 	temperatureDelta += kAmbient*(ambientTemperature - Ti) * dt;
@@ -406,14 +406,14 @@ vec3 clampToBoundaries(vec3 position)
 	vec3 correctedPosition = position;
 	for (int i = 0; i < 3; i++)
 	{
-		if ((correctedPosition[i] - H*0.3) * scale  < boundaryMin[i])
+		if ((correctedPosition[i] - H*0.3) < boundaryMin[i])
 		{
-			correctedPosition[i] = (boundaryMin[i]/scale) + ((H*0.3) + EPSILON);
+			correctedPosition[i] = (boundaryMin[i]) + ((H*0.3) + EPSILON);
 
 		}
-		else if ((correctedPosition[i] + H*0.3) * scale  > boundaryMax[i])
+		else if ((correctedPosition[i] + H*0.3) > boundaryMax[i])
 		{
-			correctedPosition[i] =  (boundaryMax[i]/scale) - ((H*0.3) + EPSILON);
+			correctedPosition[i] =  (boundaryMax[i]) - ((H*0.3) + EPSILON);
 		}
 	}
 
@@ -427,7 +427,7 @@ void XPBDSolve(uint gid, uint simStep) {
 	Particle p = particles[gid];
 	if(simStep == 0){ //Integrate
 		//Calculate external force
-		vec3 externalForce = vec3(0,0,-G*particleMass/scale);
+		vec3 externalForce = vec3(0,0,-G*particleMass);
 
 		//Predict position
 		p.velocity = p.velocity + (externalForce / particleMass) * dt * speed;
@@ -436,7 +436,7 @@ void XPBDSolve(uint gid, uint simStep) {
 
 	}else if(simStep == 1){ //Neighbor search
 
-		ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position * scale) / (2.0) );
+		ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position / binsWidth) / (2.0) );
 		uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
 		uint preValue = max(min(atomicAdd(bins[currentBinIndex].count, 1),31),0);
 		atomicAdd(bins[currentBinIndex].indices[preValue], gid);
@@ -474,7 +474,7 @@ void main() {
 	uint gid = gl_GlobalInvocationID.x;
 	if (gid >= numParticles){ 
 		if(particles[gid].new_position == vec3(0.0)){ //Spawing a new particle in the nozzle
-			particles[gid].position += sourcePos/scale;
+			particles[gid].position += sourcePos;
 		}
 	}
 

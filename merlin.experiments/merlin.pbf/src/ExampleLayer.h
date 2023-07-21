@@ -51,9 +51,9 @@ struct Bin {
 };
 
 
-const GLuint thread = 32;
+const GLuint thread = 4;
 const GLsizei binCount = 128 * 128 * 128;
-const GLsizei maxParticlesCount = 64 * 64 * 64;
+const GLsizei maxParticlesCount = 32 * 32 * 32;
 
 
 class ExampleLayer : public Merlin::Layer

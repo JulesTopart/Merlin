@@ -13,6 +13,9 @@ namespace Merlin::Graphics {
 		void EnableTransparency();
 		void DisableTransparency();
 
+		void EnableSampleShading();
+		void DisableSampleShading();
+
 		void EnableMultisampling();
 		void DisableMultisampling();
 

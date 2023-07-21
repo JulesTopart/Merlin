@@ -182,9 +182,8 @@ void ExampleLayer::OnAttach(){
 	renderer.Initialize();
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
 
+	renderer.EnableSampleShading();
 
-	glEnable(GL_SAMPLE_SHADING);
-	glMinSampleShading(8);
 
 	screen = std::make_shared<ScreenQuadRenderer>();
 
@@ -215,7 +214,7 @@ void ExampleLayer::OnAttach(){
 	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGB, 0));
 	fbo->Unbind();
 	
-	modelShader = Shader::Create("default", "assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl");
+	modelShader = Shader::Create("default", "assets/shaders/model.vert", "assets/shaders/model.frag");
 	renderer.AddShader(modelShader);
 	
 	LoadScene();

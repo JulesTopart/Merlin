@@ -47,7 +47,7 @@
     <IntDir>$(SolutionDir)bin-int\Debug-windows-x86_64\merlin.example\</IntDir>
     <TargetName>merlin.example</TargetName>
     <TargetExt>.exe</TargetExt>
-    <IncludePath>$(SolutionDir)merlin.core\vendor\assimp\include;$(SolutionDir)merlin.core\vendor\spdlog\include;$(SolutionDir)merlin.core\vendor\GLFW\include;$(SolutionDir)merlin.core\vendor\glad\include;$(SolutionDir)merlin.core\vendor\imgui;$(SolutionDir)merlin.core\vendor\glm;$(SolutionDir)merlin.core\vendor\stb_image;$(SolutionDir)merlin.core\vendor\tinygltf\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)merlin.core\vendor\ImGUITextEditor;$(SolutionDir)merlin.core\vendor\assimp\include;$(SolutionDir)merlin.core\vendor\spdlog\include;$(SolutionDir)merlin.core\vendor\GLFW\include;$(SolutionDir)merlin.core\vendor\glad\include;$(SolutionDir)merlin.core\vendor\imgui;$(SolutionDir)merlin.core\vendor\glm;$(SolutionDir)merlin.core\vendor\stb_image;$(SolutionDir)merlin.core\vendor\tinygltf\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)bin\Debug-windows-x86_64\merlin.core\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -56,7 +56,7 @@
     <IntDir>$(SolutionDir)bin-int\Release-windows-x86_64\merlin.example\</IntDir>
     <TargetName>merlin.example</TargetName>
     <TargetExt>.exe</TargetExt>
-    <IncludePath>$(SolutionDir)merlin.core\vendor\assimp\include;$(SolutionDir)merlin.core\vendor\spdlog\include;$(SolutionDir)merlin.core\vendor\GLFW\include;$(SolutionDir)merlin.core\vendor\glad\include;$(SolutionDir)merlin.core\vendor\imgui;$(SolutionDir)merlin.core\vendor\glm;$(SolutionDir)merlin.core\vendor\stb_image;$(SolutionDir)merlin.core\vendor\tinygltf\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)merlin.core\vendor\ImGUITextEditor;$(SolutionDir)merlin.core\vendor\assimp\include;$(SolutionDir)merlin.core\vendor\spdlog\include;$(SolutionDir)merlin.core\vendor\GLFW\include;$(SolutionDir)merlin.core\vendor\glad\include;$(SolutionDir)merlin.core\vendor\imgui;$(SolutionDir)merlin.core\vendor\glm;$(SolutionDir)merlin.core\vendor\stb_image;$(SolutionDir)merlin.core\vendor\tinygltf\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)bin\Release-windows-x86_64\merlin.core\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -128,8 +128,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\shaders\model.frag.glsl" />
-    <None Include="assets\shaders\model.vert.glsl" />
+    <None Include="assets\shaders\model.frag" />
+    <None Include="assets\shaders\model.vert" />
     <None Include="assets\shaders\normal.geom.glsl" />
     <None Include="assets\shaders\normal.vert.glsl" />
     <None Include="assets\shaders\normal.frag.glsl" />

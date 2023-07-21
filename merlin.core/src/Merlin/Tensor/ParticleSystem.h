@@ -19,7 +19,8 @@ namespace Merlin::Tensor {
 	enum class ParticleSystemDisplayMode {
 		MESH,
 		SPRITE,
-		POINT_SPRITE
+		POINT_SPRITE,
+		POINT_SPRITE_TRANSPARENT
 	};
 
 	// Refer to Uniform block layout alignement: https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL

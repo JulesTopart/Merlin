@@ -12,11 +12,11 @@ ExampleLayer::ExampleLayer() {
 	int height = w->GetHeight();
 	int width = w->GetWidth();
 	camera = CreateShared<Camera>(width, height, Projection::Perspective);
-	camera->setNearPlane(0.001f);
+	camera->setNearPlane(0.8f);
 	camera->setFarPlane(3000.0f);
-	camera->setFOV(45.0f); //Use 90.0f as we are using cubemaps
-	camera->SetPosition(glm::vec3(0.0f, 1.8f, 0.0f));
-	camera->SetRotation(glm::vec3(0, 0, -90));
+	camera->setFOV(60); //Use 90.0f as we are using cubemaps
+	camera->SetPosition(glm::vec3(0.0f, -240.0f, 200.0));
+	camera->SetRotation(glm::vec3(0, 40, -270));
 	cameraController = CreateShared<CameraController3D>(camera);
 }
 
@@ -31,19 +31,20 @@ void ExampleLayer::InitGraphics() {
 
 	//Shaders
 	modelShader = Shader::Create("model", "assets/shaders/model.vert", "assets/shaders/model.frag");
-	modelShader->SetVec3("lightPos", glm::vec3(0, 3, 3));
+	modelShader->SetVec3("lightPos", glm::vec3(0, 0, 100));
 
 	particleShader = Shader::Create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
 	particleShader->noTexture();
 	particleShader->noMaterial();
 	particleShader->SetUInt("colorCount", 5);
 	particleShader->SetVec4("lightColor", glm::vec4(1));
-	particleShader->SetVec3("lightPos", glm::vec3(0, 0, 8));
+	particleShader->SetVec3("lightPos", glm::vec3(0, 0, 100));
 
 	renderer.AddShader(modelShader);
 	renderer.AddShader(particleShader);
 
-	renderer.EnableTransparency();
+	//renderer.EnableTransparency();
+	renderer.EnableSampleShading();
 
 
 	//SkyBox
@@ -61,30 +62,45 @@ void ExampleLayer::InitGraphics() {
 	sky->SetShader(skyShader);
 	scene.Add(sky);
 
-	//Floor
-	Shared<Model> floor = Model::Create("floor", Primitives::CreateCube(10.0, 10.0, 0.1));
-	floor->Translate(glm::vec3(-0.5, -0.4, -(0.75 + 1.0 / 32.0)));
+
+
+	Shared<Model> floor = ModelLoader::LoadModel("./assets/models/bed.stl");
+	floor->Translate(glm::vec3(0, 0, -0.2));
 
 	Shared<Material> floorMat = CreateShared<Material>("floorMat");
 	floorMat->SetAmbient(glm::vec3(0.1));
-	floorMat->SetDiffuse(glm::vec3(0.2));
+	floorMat->SetDiffuse(glm::vec3(0.6));
 	floorMat->SetSpecular(glm::vec3(0.2));
-	floorMat->SetShininess(0.5);
-	floorMat->LoadTexture("./assets/textures/wood/BaseColor.png", TextureType::COLOR);
-	floorMat->LoadTexture("./assets/textures/wood/NormalMap.png", TextureType::NORMAL);
+	floorMat->SetShininess(0.8);
 
-	floor->SetMaterial(floorMat);
+	floor->SetMaterial("chrome");
 	floor->SetShader("model");
 	scene.Add(floor);
 
 
+	Shared<Model> floorSurface = Model::Create("floorSurface", Primitives::CreateRectangle(300, 200));
+	floorSurface->Translate(glm::vec3(0, 0, -0.025));
+
+	Shared<Material> floorMat2 = CreateShared<Material>("floorMat2");
+	floorMat2->SetAmbient(glm::vec3(0.4));
+	floorMat2->SetDiffuse(glm::vec3(0.9));
+	floorMat2->SetSpecular(glm::vec3(0.2));
+	floorMat2->SetShininess(0.8);
+	floorMat2->LoadTexture("assets/textures/bed.png", TextureType::COLOR);
+
+	floorSurface->SetMaterial(floorMat2);
+	floorSurface->SetShader("model");
+	scene.Add(floorSurface);
+
+
+
 	//Box
-	Shared<Model> box = Model::Create("box", Primitives::CreateCube(2, 1.5, 1.5));
-	//box->Translate(glm::vec3(0, 0, 0));
+	Shared<Model> box = Model::Create("box", Primitives::CreateCube(60, 60, 60));
+	box->Translate(glm::vec3(0, 0, 30));
 	box->SetMaterial("default");
 	box->SetShader(modelShader);
 	box->EnableWireFrameMode();
-	//scene.Add(box);
+	scene.Add(box);
 }
 
 void ExampleLayer::InitPhysics() {
@@ -97,7 +113,7 @@ void ExampleLayer::InitPhysics() {
 
 	//Create particle system
 	particleSystem = CreateShared<ParticleSystem>("ParticleSystem", maxParticlesCount);
-	particleSystem->Translate(glm::vec3(-1, -0.75, -0.71));
+	particleSystem->Translate(glm::vec3(0, 0, 0));
 
 	//Define the mesh for instancing (Here a cube)
 	//Shared<Mesh> particle = Primitives::CreateCube(0.05 * 0.15);
@@ -143,35 +159,37 @@ void ExampleLayer::SetColorGradient() {
 	heatMap->Allocate<Color>(colors);
 }
 
-const long spawnCount = 4 * 4 *4;
+const long spawnCount = 4 * 4 * 4;
 long spawnDelay = 7;//iteration
 
 long timer = 0;
 long lastSpawn = 0;
 
-float layerHeight = 0.008;
-float firstlayerHeight = 0.010;
+float layerHeight = 0.2;
+float firstlayerHeight = 0.1;
 glm::vec3 u(0.0,0.0, firstlayerHeight);
-const float speed = 0.009;
+const float speed = 1.0;
 glm::vec3 v(speed, 0, 0);
 int line = 0;
 int lineCount = 5;
 
 
 
+
+
 void snake() {
-	if (u.x + v.x >= 0.75 || u.x <= 0) {
+	if (u.x + v.x >= 0.75*10.0 || u.x <= 0) {
 		v.x = 0;
 		v.y = speed;
 	}
 
-	if (u.y + v.y > (line + 1) * (0.75 / lineCount)) {
+	if (u.y + v.y > (line + 1) * (0.75 * 10.0 / lineCount)) {
 		line++;
 		v.x = ((line % 2 == 0) ? speed : -speed);
 		v.y = 0;
 	}
 
-	if (u.y + v.y >= 0.75) {
+	if (u.y + v.y >= 0.75 * 10.0) {
 		line = 0;
 		u.y = 0;
 		u.x = speed;
@@ -186,7 +204,7 @@ void snake() {
 
 
 float theta = 0.0;
-float radius = 0.4;
+float radius = 10;
 float segment = 10.0 * 36.0;
 float theta_v = (2.0 * 3.14159265359 / segment);// *(speed / radius);
 
@@ -212,8 +230,8 @@ void ExampleLayer::ResetSimulation() {
 	line = 0;
 	timer = 0;
 	lastSpawn = 0;
-	if (sim == 0) spawnDelay = 7;//iteratinon
-	else spawnDelay = 5;//iteratinon
+	if (sim == 0) spawnDelay = 7;//iteration
+	else spawnDelay = 5;//iteration
 }
 
 
@@ -237,7 +255,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 
 	
-	particleSystem->SetActiveInstancesCount(numParticles);
+	particleSystem->SetActiveInstancesCount(64);
 
 	particleBuffer->Bind();
 	particleBuffer->Attach(*solver);

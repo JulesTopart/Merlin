@@ -45,7 +45,7 @@ namespace Merlin::Graphics {
 		if (Input::IsKeyPressed(MRL_KEY_E))
 			_dR.x -= _CameraSpeed;
 
-		_dR *= ts * _CameraSpeed;
+		_dR *= ts * 2.0;
 		_Camera->Translate(_dU);
 
 		if (_Camera->GetRotation().y + _dR.y > -90 && _Camera->GetRotation().y + _dR.y < 90)

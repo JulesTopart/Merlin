@@ -17,7 +17,7 @@ namespace Merlin::Utils{
 		static Shared<Model> LoadModel(const std::string& filepath);
 
 		// Load a GLTF file and extract the data
-		static Shared<Model> LoadGLTF(const std::string& file_path);
+		//static Shared<Model> LoadGLTF(const std::string& file_path);
 
 	private:
 

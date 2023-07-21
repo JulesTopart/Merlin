@@ -122,19 +122,19 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\shaders\model.frag" />
+    <None Include="assets\shaders\model.vert" />
     <None Include="assets\shaders\neighbor.comp" />
+    <None Include="assets\shaders\skybox.frag" />
+    <None Include="assets\shaders\skybox.vert" />
     <None Include="assets\shaders\solver.comp" />
     <None Include="assets\shaders\common.glsl" />
     <None Include="assets\shaders\constants.glsl" />
     <None Include="assets\shaders\box.frag" />
     <None Include="assets\shaders\box.vert" />
-    <None Include="assets\shaders\model.frag" />
-    <None Include="assets\shaders\model.vert" />
     <None Include="assets\shaders\particle.frag" />
     <None Include="assets\shaders\init.comp" />
     <None Include="assets\shaders\particle.vert" />
-    <None Include="assets\shaders\skybox.frag" />
-    <None Include="assets\shaders\skybox.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
