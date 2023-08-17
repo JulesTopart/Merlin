@@ -39,10 +39,7 @@ void main() {
 	vec3 offset = vec3(particles[gl_InstanceID].position);
 	position = vec3(model * vec4((_position) + offset*0.5, 1.0f));
 
-	ivec3 binIndexVec = getBinIndex(particles[gl_InstanceID].position);
-	uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
-
-
+	uint currentBinIndex = getBinIndex(particles[gl_InstanceID].position);
 
 	//color = mix(foam, water, particles[gl_InstanceID].density*300.0);
 	//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);

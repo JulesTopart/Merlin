@@ -100,7 +100,7 @@ void ExampleLayer::InitGraphics() {
 	box->SetMaterial("default");
 	box->SetShader(modelShader);
 	box->EnableWireFrameMode();
-	scene.Add(box);
+	//scene.Add(box);
 }
 
 void ExampleLayer::InitPhysics() {
@@ -248,9 +248,6 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->Use();
 	solver->SetVec3("sourcePos", u);
-
-
-
 
 
 	particleSystem->SetActiveInstancesCount(numParticles);
