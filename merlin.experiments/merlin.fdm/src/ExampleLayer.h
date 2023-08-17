@@ -92,8 +92,10 @@ private:
 
 	Shared<Shader> modelShader;
 	Shared<Shader> particleShader;
+	Shared<Shader> binShader;
 
 	Shared<ParticleSystem> particleSystem;
+	Shared<ParticleSystem> binSystem;
 
 	Renderer renderer;
 	Scene scene;

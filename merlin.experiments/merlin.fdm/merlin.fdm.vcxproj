@@ -136,6 +136,8 @@
     <None Include="assets\shaders\init.comp" />
     <None Include="assets\shaders\particle.vert" />
     <None Include="assets\shaders\sph.kernels.glsl" />
+    <None Include="assets\shaders\bin.frag" />
+    <None Include="assets\shaders\bin.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
