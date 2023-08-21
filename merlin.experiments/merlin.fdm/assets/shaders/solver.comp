@@ -259,9 +259,9 @@ vec3 constrainVelocity(uint gid, vec3 velocity) {
 						vec3 vij = particles[j].velocity - particles[gid].velocity;
 						
 						float shearRate = length(vij) / length(dij);
-						float dynamicViscosity = rheo_k * pow(shearRate, rheo_n - 1.0);
+						//float dynamicViscosity = rheo_k * pow(shearRate, rheo_n - 1.0);
 
-						//float dynamicViscosity = 5.0;//max(min(artificialViscosity, artificialViscosity * (particles[gid].temperature / 453.15)), 10*artificialViscosity);
+						float dynamicViscosity = 5.0;//max(min(artificialViscosity, artificialViscosity * (particles[gid].temperature / 453.15)), 10*artificialViscosity);
 						velocity += 5 * viscosityLaplacianKernel(length(dij)) * (vij);
 				}
 			}
@@ -367,13 +367,14 @@ void XPBDSolve(uint gid, uint simStep) {
 	}else if (simStep == 3){ //position delta
 		vec3 positionDelta = computePositionDelta(gid);
 		p.new_position = clampToBoundaries(p.new_position + positionDelta);
+		//vec3 velocity = (p.new_position - p.position) / (dt*speed);
+		//velocity = constrainVelocity(gid, p.velocity);
+		//p.new_position = p.position + velocity * dt*speed;
 	}else if(simStep == 4){ //Apply changes
 		p.velocity = (p.new_position - p.position) / (dt*speed);
 		p.position = p.new_position;
-		p.temperature += computeTemperature(gid);
+		p.temperature += computeTemperature(gid);		
 		//p.velocity = constrainVelocity(gid, p.velocity);
-
-		
 	}
 	particles[gid] = p;
 	//end

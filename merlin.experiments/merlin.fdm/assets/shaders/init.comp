@@ -26,14 +26,14 @@ void main() {
 
 
    /* Source */
-  float space = gridSpacing*1.3;
+  float space = domain.x/binResolution;
   uint count = 4;
   
   uint i = index % count;
   uint j = uint((index % (count*count)) / count);
   uint k = uint(index / (count*count))%count;
   
-  particles[index].position     = vec3(0 + (i+1) * space + (k%2 == 0 ? 0.0 : space/2), 0+ (j+1) * space + (k%2 == 0 ? 0.0 : space/2), (k+1)*space);
+  particles[index].position     = vec3(0 + (i+1) * space.x + (k%2 == 0 ? 0.0 : space/2), 0+ (j+1) * space + (k%2 == 0 ? 0.0 : space/2), (k+1)*space);
   particles[index].new_position = vec3(0.0);
   particles[index].velocity = vec3(0.0,0.0,0.0);
   particles[index].density = 0;

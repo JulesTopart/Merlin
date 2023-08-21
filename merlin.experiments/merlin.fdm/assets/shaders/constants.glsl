@@ -15,7 +15,7 @@ Artificial Viscosity (c): <= 0.01"
 
 */
 // --- Global ---
-const float scale = 0.035 / (4.0);
+const float scale = 0.1;
 const float G = 9.81f; //gravity
 const float EPSILON = 1.0e-5f; //Small error epsilon
 const float particleMass = 1.0;//kg Mass
@@ -64,14 +64,24 @@ const float rheo_n = 0.5; // Flow behavior index
 
 
 
-// --- Cube of particle ---
-const uint grid = 64;
-const float gridSpacing = 1.45;
-
-// --- Cube of particle ---
-const float binsWidth = 2.0; //1m / scale
+// --- Domain ---
 const uint binResolution = 128;
-const uint binCount = binResolution * binResolution * binResolution;
+const vec3 boundaryMin = vec3(-150, -100, 0);
+const vec3 boundaryMax = vec3(150, 100, 250);
+const vec3 domain = boundaryMax - boundaryMin;
+
+const float binSize = max(max(domain.x, domain.y), domain.z) / binResolution;
+const uvec3 binMax = uvec3(domain / binSize)
+const uint binCount = binGrid.x * binGrid.y * binGrid.z;
+// Define boundary
+
+
+const float boundaryRestitution = 0.05; // Bounce factor
+const float boundaryRepulsionDistance = 0.03125;
+const float boundaryRepulsionForce = 0.0;
+
+
+
 
 // --- Kernels ---
 // Kernel Functions Precomputed Constants
@@ -81,14 +91,3 @@ const float VISC_LAPLACE_COEFFICIENT = 45.0 / (3.14159265359 * pow(H, 6));
 #define M_PI 3.14159265358979323846
 #define PI_FAC 0.454728408833987
 
-// --- Boundary ---
-// Define boundary
-const vec3 boundaryMin = vec3(-binsWidth / 2.0, -binsWidth / 2.0, 0);
-const vec3 boundaryMax = vec3(binsWidth / 2.0, binsWidth / 2.0, binsWidth);
-
-//const vec3 boundaryMin = vec3(0,0,0);
-//const vec3 boundaryMax = vec3(binsWidth, binsWidth, binsWidth);
-
-const float boundaryRestitution = 0.05; // Bounce factor
-const float boundaryRepulsionDistance = 0.03125;
-const float boundaryRepulsionForce = 0.0;

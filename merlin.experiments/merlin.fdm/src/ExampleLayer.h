@@ -50,9 +50,12 @@ struct Bin {
 	GLuint indices[32]; //average is 16
 };
 
+const float scale = 0.035 / (4.0);
 
 const GLuint thread = 32;
-const GLsizei binCount = 128 * 128 * 128;
+const GLsizei binRes = 128;
+const GLsizei binCount = binRes * binRes * binRes;
+const float binWidth = (0.5/scale) / float(binRes);
 const GLsizei maxParticlesCount = 64 * 64 * 64;
 
 
@@ -86,7 +89,6 @@ private:
 
 	Shared<SSBO> binBuffer; //Particle buffer
 	Shared<SSBO> particleBuffer; //Particle buffer
-	//Shared<SSBO> sortedparticleBuffer; //Particle buffer
 
 	Shared<UBO> simParameters;
 

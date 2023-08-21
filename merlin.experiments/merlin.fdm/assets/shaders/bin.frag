@@ -57,5 +57,5 @@ float LinearizeDepth(float depth)
 void main() {
 	FragColor = heatMap(color.w);
 	//FragColor = color;
-	FragColor.w = 1;
+	FragColor.w = 0.5;
 }

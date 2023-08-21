@@ -19,7 +19,6 @@ uniform mat4 projection;
 uniform mat4 model;
 
 
-
 float rand(vec2 co){
     return 0.00001*abs(fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453));
 }
@@ -30,14 +29,13 @@ vec3 randomColor(uint index){
 	return vec3(0.2) + normalize(vec3(rand(co*0.8738), rand(co*0.321313), rand(0.12354*co)));
 }
 
-
 void main() {
 
 	vec4 water = vec4(0.25, 0.4, 1.0, 0.8);
 	vec4 foam = vec4(1, 1, 1, 0.1);
 
 	vec3 offset = vec3(particles[gl_InstanceID].position);
-	position = vec3(model * vec4((_position) + offset*0.5, 1.0f));
+	position = vec3(model * vec4((_position) + offset, 1.0f))*scale;
 
 	uint currentBinIndex = getBinIndex(particles[gl_InstanceID].position);
 
@@ -54,5 +52,5 @@ void main() {
 	texCoord = _texCoord;
 
 	gl_Position = projection * view * vec4(position, 1.0f);
-	gl_PointSize = 400.0/gl_Position.w;
+	gl_PointSize = 450.0/gl_Position.w;
 }

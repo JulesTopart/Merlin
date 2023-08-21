@@ -40,8 +40,16 @@ void ExampleLayer::InitGraphics() {
 	particleShader->SetVec4("lightColor", glm::vec4(1));
 	particleShader->SetVec3("lightPos", glm::vec3(0, 0, 100));
 
+	binShader = Shader::Create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
+	binShader->noTexture();
+	binShader->noMaterial();
+	binShader->SetUInt("colorCount", 5);
+	binShader->SetVec4("lightColor", glm::vec4(1));
+	binShader->SetVec3("lightPos", glm::vec3(0, 0, 100));
+
 	renderer.AddShader(modelShader);
 	renderer.AddShader(particleShader);
+	renderer.AddShader(binShader);
 
 	//renderer.EnableTransparency();
 	renderer.EnableSampleShading();
@@ -123,6 +131,19 @@ void ExampleLayer::InitPhysics() {
 	particle->SetShader(particleShader);
 	particleSystem->SetMesh(particle);
 
+	//Create bin system
+	binSystem = CreateShared<ParticleSystem>("BinSystem", binRes * binRes * binRes);
+	binSystem->Translate(glm::vec3(0, 0, 0));
+
+	//Define the mesh for instancing (Here a cube)
+	//Shared<Mesh> particle = Primitives::CreateCube(0.05 * 0.15);
+	//Shared<Mesh> particle = Primitives::CreateSphere(0.05*0.15, 10, 10);
+	Shared<Mesh> binInstance = Primitives::CreateCube(binWidth, binWidth, binWidth);
+	binInstance->SetName("bin");
+	binInstance->SetShader(binShader);
+	binSystem->SetMesh(binInstance);
+	binSystem->EnableWireFrameMode();
+
 	//scene.Add(particleSystem);
 	//Create the buffer
 	particleBuffer = CreateShared<SSBO>("ParticleBuffer");
@@ -137,7 +158,10 @@ void ExampleLayer::InitPhysics() {
 	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddComputeShader(solver);
 
+	binSystem->AddStorageBuffer(binBuffer);
+
 	scene.Add(particleSystem);
+	scene.Add(binSystem);
 
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
@@ -207,7 +231,7 @@ float segment = 10.0 * 36.0;
 float theta_v = (2.0 * 3.14159265359 / segment);// *(speed / radius);
 
 void circle() {
-	u = glm::vec3((1.0 + cos(theta)) * radius, (1.0 + sin(theta)) * radius, u.z);
+	u = glm::vec3((cos(theta)) * radius, (sin(theta)) * radius, u.z);
 	theta += theta_v;
 	if (theta >= 2.0 * 3.14159265359) {
 		theta -= 2.0 * 3.14159265359;
