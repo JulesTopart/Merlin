@@ -15,19 +15,19 @@ Artificial Viscosity (c): <= 0.01"
 
 */
 // --- Global ---
-const float scale = 1.0;
+const float scale = 0.4;
 const float G = 1000 * 9.81f; //gravity
 const float EPSILON = 1.0e-5f; //Small error epsilon
 const float particleMass = 1.0;//kg Mass
 const float dt = 0.0016;//s Timestep (16 substeps of a 60hz frame time)
 //const float REST_DENSITY = 6378.0; //WATER ?
-const float REST_DENSITY = 500.0*933.0; //Metled plastic
+const float REST_DENSITY = 10000.0*933.0; //Metled plastic
 const float INV_REST_DENSITY = 1.0 / REST_DENSITY;
 const float relaxation = 0.0033;
 // --- SPH ---
 // SPH Parameters
 //const float H = 1.2; // Kernel radius // 0.1m
-const float H = 1; // Kernel radius // 2mm
+const float H = 1.2; // Kernel radius // 5mm
 const float H2 = H * H;
 const float H6 = H * H * H * H * H * H;
 const float H9 = H * H * H * H * H * H * H * H * H;
@@ -65,7 +65,7 @@ const float rheo_n = 0.5; // Flow behavior index
 
 
 // --- Domain ---
-const uint binResolution = 128;
+const uint binResolution = 32;
 const vec3 domain = vec3(300, 200, 250);
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);
@@ -74,6 +74,8 @@ const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);
 const float binSize = max(max(domain.x, domain.y), domain.z) / float(binResolution);
 const uvec3 binMax = uvec3(domain / binSize);
 const uint binCount = binMax.x * binMax.y * binMax.z;
+
+const uint maxParticlePerBin = 8*8*8;
 // Define boundary
 
 

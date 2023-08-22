@@ -24,7 +24,7 @@ float rand(vec2 co){
 }
 
 vec3 randomColor(uint index){
-	float v = index/5000.0;
+	float v = float(index)/5000.0;
 	vec2 co = vec2(v, v*v);
 	return vec3(0.2) + normalize(vec3(rand(co*0.8738), rand(co*0.321313), rand(0.12354*co)));
 }
@@ -34,7 +34,7 @@ void main() {
 	vec4 water = vec4(0.25, 0.4, 1.0, 0.8);
 	vec4 foam = vec4(1, 1, 1, 0.1);
 
-	vec3 offset = vec3(particles[gl_InstanceID].position)*scale;
+	vec3 offset = vec3(particles[gl_InstanceID].position*scale);
 	position = vec3(model * vec4((_position) + offset, 1.0f));
 
 	uint currentBinIndex = getBinIndex(particles[gl_InstanceID].position);

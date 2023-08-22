@@ -47,15 +47,15 @@ struct FluidParticle {
 
 struct Bin {
 	GLuint count;
-	GLuint indices[32]; //average is 16
+	GLuint startIndex;
 };
 
 const float scale = 0.035 / (4.0);
 
 const GLuint thread = 32;
-const GLsizei binRes = 128;
+const GLsizei binRes = 32;
 const float binWidth = 300.0/float(binRes);
-const GLsizei binCount = int(300 /(binWidth)) * int(200 / (binWidth)) * int(250 / (binWidth));
+const GLsizei binCount = int(300.0 /(binWidth)) * int(200 / (binWidth)) * int(250 / (binWidth));
 const GLsizei maxParticlesCount = 64 * 64 * 64;
 
 
@@ -86,9 +86,13 @@ private:
 	//Simulation
 	Shared<ComputeShader> init;
 	Shared<ComputeShader> solver;
+	Shared<ComputeShader> prefixSum;
 
 	Shared<SSBO> binBuffer; //Particle buffer
+	Shared<SSBO> sortedIndexBuffer; //Index buffer
 	Shared<SSBO> particleBuffer; //Particle buffer
+
+	
 
 	Shared<UBO> simParameters;
 
@@ -103,7 +107,8 @@ private:
 	Scene scene;
 
 	Shared<Model>  light;
-	Shared<Model>  nozzle;
+	Shared<Model>  nozzleMdl;
+	Shared<TransformObject>  nozzle;
 
 	//Heat Map
 	Shared<SSBO> heatMap;

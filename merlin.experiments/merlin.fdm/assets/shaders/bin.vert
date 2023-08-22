@@ -21,7 +21,7 @@ float rand(vec2 co){
 }
 
 vec3 randomColor(uint index){
-	float v = index/5000.0;
+	float v = float(index)/5000.0;
 	vec2 co = vec2(v, v*v);
 	return vec3(0.2) + normalize(vec3(rand(co*0.8738), rand(co*0.321313), rand(0.12354*co)));
 }
@@ -30,7 +30,7 @@ void main() {
 	vec3 offset = (vec3(getBinCoordFromIndex(gl_InstanceID)) * binSize);
 	position = vec3(model * vec4(_position + offset + boundaryMin, 1.0f));
 
-	color.w = bins[gl_InstanceID].count/32;
+	color.w = float(bins[gl_InstanceID].count)/32.0;
 	color = vec4(randomColor(gl_InstanceID), color.w);
 	
 	normal = _normal;

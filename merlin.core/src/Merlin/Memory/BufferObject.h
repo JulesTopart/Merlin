@@ -16,10 +16,10 @@ namespace Merlin::Memory{
 		void Clear();
 
 		template<typename T>
-		void Allocate(std::vector<T> data, GLenum usage = GL_DYNAMIC_DRAW);
+		void Allocate(std::vector<T> data, GLenum usage = GL_STATIC_DRAW);
 
 		template<typename T>
-		void Allocate(GLsizeiptr size, GLenum usage = GL_DYNAMIC_DRAW);
+		void Allocate(GLsizeiptr size, GLenum usage = GL_STATIC_DRAW);
 
 		void PrintLimits();
 		inline GLuint id() const { return _BufferID; }
@@ -49,12 +49,9 @@ namespace Merlin::Memory{
 
 	template<typename T>
 	void BufferObject::Allocate(GLsizeiptr count, GLenum usage) {
-
-		std::vector<T> data;
-		for (GLsizeiptr i(0); i < count; i++) {
-			data.emplace_back();
-		}
-		Allocate<T>(data, usage);
+		_size = count * sizeof(T);
+		Console::info("Buffer") << "allocating " << _size / 1000000.0 << "Mb of GPU Memory" << Console::endl;
+		glBufferData(_Target, _size, NULL, usage);
 	}
 
 }

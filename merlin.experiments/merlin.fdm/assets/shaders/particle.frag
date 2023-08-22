@@ -24,7 +24,7 @@ uniform uint colorCount;
 vec4 heatMap(const float value) {
 	float minValue = 0.0f;
 	float maxValue = 1.0f;
-	float v = (value - minValue) / (maxValue - minValue);
+	float v = (value - minValue)/(maxValue - minValue);
 	vec4 color;
 	color.a = 1.0f;
 	if (colorCount == 0) return vec4(0,0,0,1);

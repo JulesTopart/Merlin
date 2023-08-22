@@ -15,9 +15,10 @@ namespace Merlin::Graphics {
 		void RenderSkyBox(const SkyBox& sky, const Camera& camera);
 		void RenderMesh(const Mesh& mesh, const Camera& camera);
 		void RenderModel(const Model& model, const Camera& camera);
-		void RenderScene(const Scene& model, const Camera& camera);
-		void RenderParticleSystem(const ParticleSystem& ps, const Camera& camera);
+		void RenderParticleSystem(const ParticleSystem& ps, const Camera& camera); 
+		void RenderTransformObject(const TransformObject& obj, const Camera& camera);
 
+		void RenderScene(const Scene& model, const Camera& camera);
 		void Render(const Shared<RenderableObject>& object, const Camera& camera);
 		
 		void Initialize();		

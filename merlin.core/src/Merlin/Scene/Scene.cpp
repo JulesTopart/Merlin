@@ -39,5 +39,9 @@ namespace Merlin::Graphics {
 		_currentNode->AddChild(sky);
 	}
 
+	void Scene::Add(Shared<TransformObject> t) {
+		_currentNode->AddChild(t);
+	}
+
 	
 }

@@ -44,9 +44,10 @@ float calculateDensity(uint gid, vec3 pposition) {
 
 				uint currentBinIndex = getBinIndexFromCoord(ivec3(x,y,z));
 
-				uint ns = min(bins[currentBinIndex].count, 32);
-				for(int k = 0; k < ns; k++){
-					uint j = bins[currentBinIndex].indices[k];
+				uint st = bins[currentBinIndex].startIndex;
+				uint ns = bins[currentBinIndex].count;
+				for(uint k = st; k < ns; k++){
+					uint j = sortedParticleIndices[k];
 
 					if (j == gid) continue;
 
@@ -117,9 +118,10 @@ float computeLambda(uint gid, vec3 pposition, float density) {
 
 				uint currentBinIndex = getBinIndexFromCoord(ivec3(x,y,z));
 
-				uint ns = min(bins[currentBinIndex].count, 32);
-				for(int k = 0; k < ns; k++){
-					uint j = bins[currentBinIndex].indices[k];
+				uint st = bins[currentBinIndex].startIndex;
+				uint ns = bins[currentBinIndex].count;
+				for(uint k = st; k < ns; k++){
+					uint j = sortedParticleIndices[k];
 
 					if (j == gid) continue;
 		
@@ -200,9 +202,10 @@ vec3 computePositionDelta(uint i) {
 
 				uint currentBinIndex = getBinIndexFromCoord(ivec3(x,y,z));
 
-				uint ns = min(bins[currentBinIndex].count, 32);
-				for(uint k = 0; k < ns; k++){
-					uint j = bins[currentBinIndex].indices[k];
+				uint st = bins[currentBinIndex].startIndex;
+				uint ns = bins[currentBinIndex].count;
+				for(uint k = st; k < ns; k++){
+					uint j = sortedParticleIndices[k];
 
 					if (j == i || j == 0) continue;
 		
@@ -250,9 +253,10 @@ vec3 constrainVelocity(uint gid, vec3 velocity) {
 
 				uint currentBinIndex = getBinIndexFromCoord(ivec3(x,y,z));
 
-				uint ns = min(bins[currentBinIndex].count, 32);
-				for(int k = 0; k < ns; k++){
-					uint j = bins[currentBinIndex].indices[k];
+				uint st = bins[currentBinIndex].startIndex;
+				uint ns = bins[currentBinIndex].count;
+				for(uint k = st; k < ns; k++){
+					uint j = sortedParticleIndices[k];
 						if (j == gid) continue;
 
 						vec3 dij = particles[gid].new_position - particles[j].new_position;
@@ -261,7 +265,7 @@ vec3 constrainVelocity(uint gid, vec3 velocity) {
 						float shearRate = length(vij) / length(dij);
 						//float dynamicViscosity = rheo_k * pow(shearRate, rheo_n - 1.0);
 
-						float dynamicViscosity = 0.05*H;//max(min(artificialViscosity, artificialViscosity * (particles[gid].temperature / 453.15)), 10*artificialViscosity);
+						float dynamicViscosity = 0.0*H;//max(min(artificialViscosity, artificialViscosity * (particles[gid].temperature / 453.15)), 10*artificialViscosity);
 						velocity += dynamicViscosity * viscosityLaplacianKernel(length(dij)) * (vij);
 				}
 			}
@@ -294,9 +298,10 @@ float computeTemperature(uint gid) {
 
 				uint currentBinIndex = getBinIndexFromCoord(ivec3(x,y,z));
 
-				uint ns = min(bins[currentBinIndex].count, 32);
-				for(int k = 0; k < ns; k++){
-					uint j = bins[currentBinIndex].indices[k];
+				uint st = bins[currentBinIndex].startIndex;
+				uint ns = bins[currentBinIndex].count;
+				for(uint k = st; k < ns; k++){
+					uint j = sortedParticleIndices[k];
 						if (j == gid) continue;
 
 						vec3 dij = particles[gid].new_position - particles[j].new_position;
@@ -356,21 +361,28 @@ void XPBDSolve(uint gid, uint simStep) {
 	}else if(simStep == 1){ //Neighbor search
 		#ifdef USE_NEAREST_NEIGHBORS
 		uint currentBinIndex = getBinIndex(particles[gid].position);
-		uint preValue = max(min(atomicAdd(bins[currentBinIndex].count, 1),31),0);
-		bins[currentBinIndex].indices[preValue] = gid;
+		uint preValue = max(min(atomicAdd(bins[currentBinIndex].count, 1),maxParticlePerBin-1),0);
+		//bins[currentBinIndex].indices[preValue] = gid;
+		#endif
+
+	}else if(simStep == 2){ //Particle sort
+		#ifdef USE_NEAREST_NEIGHBORS
+		uint binIndex = getBinIndex(particles[gid].position);
+		uint sortedPosition = atomicAdd(bins[binIndex].startIndex, 1);
+		sortedParticleIndices[sortedPosition] = gid;
 		#endif
 	}
 	//Solver iteration
-	else if(simStep == 2){ //Compute lambda
+	else if(simStep == 3){ //Compute lambda
 		p.density = calculateDensity(gid, p.new_position);
 		p.lambda = computeLambda(gid, p.new_position, p.density); 
-	}else if (simStep == 3){ //position delta
+	}else if (simStep == 4){ //position delta
 		vec3 positionDelta = computePositionDelta(gid);
 		p.new_position = clampToBoundaries(p.new_position + positionDelta);
-		//vec3 velocity = (p.new_position - p.position) / (dt*speed);
-		//velocity = constrainVelocity(gid, p.velocity);
-		//p.new_position = p.position + velocity * dt*speed;
-	}else if(simStep == 4){ //Apply changes
+		vec3 velocity = (p.new_position - p.position) / (dt*speed);
+		velocity = constrainVelocity(gid, velocity);
+		p.new_position = clampToBoundaries(p.position + velocity * dt*speed);
+	}else if(simStep == 5){ //Apply changes
 		p.velocity = (p.new_position - p.position) / (dt*speed);
 		p.position = p.new_position;
 		p.temperature += computeTemperature(gid);		

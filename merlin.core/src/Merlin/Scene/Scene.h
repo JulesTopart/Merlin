@@ -5,6 +5,7 @@
 #include "Merlin/Scene/Model.h"
 #include "Merlin/Scene/SkyBox.h"
 #include "Merlin/Scene/Light.h"
+#include "Merlin/Scene/TransformObject.h"
 #include "Merlin/Tensor/ParticleSystem.h"
 #include "Camera.h"
 
@@ -25,6 +26,7 @@ namespace Merlin::Graphics {
 		void Add(Shared<ParticleSystem>);
 		void Add(Shared<Light>);
 		void Add(Shared<SkyBox>);
+		void Add(Shared<TransformObject> t);
 
 		void SetCamera(Shared<Camera> camera);
 		Camera& camera();

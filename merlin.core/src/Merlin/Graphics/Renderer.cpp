@@ -39,32 +39,19 @@ namespace Merlin::Graphics {
 
 
 	void Renderer::RenderScene(const Scene& scene, const Camera& camera) {
-		PushMatrix();
-		currentTransform *= scene.transform();
-
 		for (const auto& node : scene.nodes()) {
 			if(!node->IsHidden()) Render(node, camera);
 		}
-
-		PopMatrix();
 	}
 
 	void Renderer::RenderModel(const Model& mdl, const Camera& camera) {
-		PushMatrix();
-		currentTransform *= mdl.transform();
-
 		for (const auto& mesh : mdl.meshes()) {
 			RenderMesh(*mesh, camera);
 		}
-
-		PopMatrix();
 	}
 
 
 	void Renderer::RenderParticleSystem(const ParticleSystem& ps, const Camera& camera) {
-		PushMatrix();
-		currentTransform *= ps.transform();
-
 		if (ps.GetDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE) {
 			const Shader* shader;
 			//glPointSize(10);
@@ -149,17 +136,13 @@ namespace Merlin::Graphics {
 			}
 			ps.Draw(*shader);
 		}
+	}
 
-
-		
-
-		PopMatrix();
-
+	void Renderer::RenderTransformObject(const TransformObject& obj, const Camera& camera) {
+		//TODO Render axis
 	}
 
 	void Renderer::RenderSkyBox(const SkyBox& sky, const Camera& camera) {
-		PushMatrix();
-		
 		// Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
 		glDepthFunc(GL_LEQUAL);
 		
@@ -183,13 +166,9 @@ namespace Merlin::Graphics {
 
 		// Switch back to the normal depth function
 		glDepthFunc(GL_LESS);
-		PopMatrix();
 	}
 
 	void Renderer::RenderMesh(const Mesh& mesh, const Camera& camera) {
-
-		PushMatrix();
-		currentTransform *= mesh.transform();
 
 		const Shader* shader;
 		const Material* mat;
@@ -239,14 +218,13 @@ namespace Merlin::Graphics {
 			tex->Bind();
 			shader->SetInt("hasColorTex", !tex->IsDefault());
 		}
-
-
 		
 		mesh.Draw();
-		PopMatrix();
 	}
 
 	void Renderer::Render(const Shared<RenderableObject>& object, const Camera& camera) {
+		PushMatrix();
+		currentTransform *= object->transform();
 
 		if (object->IsWireFrame()) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -264,16 +242,20 @@ namespace Merlin::Graphics {
 		else if (const auto sky = std::dynamic_pointer_cast<SkyBox>(object)) {
 			RenderSkyBox(*sky, camera); //Propagate to childrens
 		}//The object is a skybox node
+		else if (const auto ps = std::dynamic_pointer_cast<TransformObject>(object)) {
+			RenderTransformObject(*ps, camera); //Propagate to childrens
+		}
 		else if (const auto ps = std::dynamic_pointer_cast<ParticleSystem>(object)) {
 			RenderParticleSystem(*ps, camera); //Propagate to childrens
 		}//The object is a particleSystem node
-		else {
-			for (auto node : object->children()) {
-				Render(node, camera);//Propagate to childrens
-			}
-		}
 		
+		for (auto node : object->children()) {
+			Render(node, camera);//Propagate to childrens
+		}
+
+		PopMatrix();
 	}
+
 
 	const Shared<Shader>& Renderer::ShareShader(std::string n) {
 		return _shaderLibrary.Share(n);

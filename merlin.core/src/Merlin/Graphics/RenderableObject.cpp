@@ -49,8 +49,7 @@ namespace Merlin::Graphics {
 	}
 
 	void RenderableObject::SetPosition(glm::vec3 v) {
-		_transform = glm::translate(_transform, -position());
-		_transform = glm::translate(_transform, v);
+		_transform = glm::translate(_transform, v - position());
 	}
 
 	void RenderableObject::Rotate(glm::vec3 v) {

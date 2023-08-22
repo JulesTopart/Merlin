@@ -14,12 +14,16 @@ layout(std430, binding = 1) buffer ParticleBuffer {
 
 struct Bin {
 	uint count;
-	uint indices[32];
+	uint startIndex;
 };
 
 
 layout(std430, binding = 2) buffer BinBuffer {
 	Bin bins[];
+};
+
+layout(std430, binding = 3) buffer SortedParticleIndexBuffer {
+    uint sortedParticleIndices[];
 };
 
 uvec3 getBinCoord(vec3 position) {

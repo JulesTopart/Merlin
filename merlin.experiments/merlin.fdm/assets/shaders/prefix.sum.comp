@@ -1,0 +1,12 @@
+#version 460
+
+layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+
+#include "constants.glsl"
+#include "common.glsl"
+
+void main() {
+    uint binID = gl_GlobalInvocationID.x;
+    if (binID == 0) bins[binID].startIndex = 0;  // For the first bin, start index is 0
+    else bins[binID].startIndex = bins[binID - 1].startIndex + bins[binID - 1].count;
+}

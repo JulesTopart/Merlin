@@ -105,11 +105,15 @@ void ExampleLayer::InitGraphics() {
 	box->EnableWireFrameMode();
 	scene.Add(box);
 
-	nozzle = ModelLoader::LoadModel("./assets/models/nozzle.stl");
-	nozzle->SetMaterial("gold");
-	nozzle->SetShader(modelShader);
-	nozzle->Rotate(glm::vec3(3.141592654, 0, 0));
-	nozzle->Translate(glm::vec3(0, 0, -45));
+	nozzleMdl = ModelLoader::LoadModel("./assets/models/nozzle.stl");
+	nozzleMdl->SetMaterial("gold");
+	nozzleMdl->SetShader(modelShader);
+	nozzleMdl->Rotate(glm::vec3(3.141592654, 0, 0));
+	nozzleMdl->Translate(glm::vec3(0, 0, -40));
+
+	nozzle = TransformObject::Create("nozzleTransform");
+	nozzle->AddChild(nozzleMdl);
+	nozzle->Translate(glm::vec3(0, 0, 0));
 	scene.Add(nozzle);
 
 }
@@ -118,6 +122,7 @@ void ExampleLayer::InitPhysics() {
 	//Compute Shaders
 	init = ComputeShader::Create("init", "assets/shaders/init.comp");
 	solver = ComputeShader::Create("solver", "assets/shaders/solver.comp");
+	prefixSum = ComputeShader::Create("solver", "assets/shaders/prefix.sum.comp");
 	
 	//Particle System
 	float gridWidth = 1.0f;
@@ -157,11 +162,18 @@ void ExampleLayer::InitPhysics() {
 	binBuffer->SetBindingPoint(2);
 	binBuffer->Allocate<Bin>(binCount);
 
+	sortedIndexBuffer = CreateShared<SSBO>("SortedParticleIndexBuffer");
+	sortedIndexBuffer->SetBindingPoint(3);
+	sortedIndexBuffer->Allocate<GLuint>(maxParticlesCount);
+
+
 	particleSystem->AddStorageBuffer(binBuffer);
 	particleSystem->AddStorageBuffer(particleBuffer);
+	particleSystem->AddStorageBuffer(sortedIndexBuffer);
 	particleSystem->AddComputeShader(solver);
 
 	binSystem->AddStorageBuffer(binBuffer);
+	binSystem->AddComputeShader(prefixSum);
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
@@ -187,16 +199,17 @@ void ExampleLayer::SetColorGradient() {
 	heatMap->Allocate<Color>(colors);
 }
 
-const long spawnCount = 4 * 4 * 4;
-long spawnDelay = 7;//iteration
+const long lCount = 4;
+const long spawnCount = lCount * lCount * lCount;
+long spawnDelay = 1;//iteration old7
 
 long timer = 0;
 long lastSpawn = 0;
 
 float layerHeight = 0.2;
 float firstlayerHeight = 0.1;
-glm::vec3 u(0.0, 0.0, firstlayerHeight);
-const float speed = 1.0;
+glm::vec3 u(150.0, 0.0, firstlayerHeight);
+const float speed = 3.0; //old 0.8
 glm::vec3 v(speed, 0, 0);
 int line = 0;
 int lineCount = 5;
@@ -231,9 +244,9 @@ glm::vec3 snake() {
 
 
 float theta = 0.0;
-float radius = 50;
+float radius = 25;
 float segment = 10.0 * 36.0;
-float theta_v = (1.0 * 3.14159265359 / segment);// *(speed / radius);
+float theta_v = (speed * 3.14159265359 / segment);// *(speed / radius);
 
 glm::vec3 circle() {
 	u = glm::vec3((cos(theta)) * radius, (sin(theta)) * radius, u.z);
@@ -258,7 +271,7 @@ void ExampleLayer::ResetSimulation() {
 	line = 0;
 	timer = 0;
 	lastSpawn = 0;
-	if (sim == 0) spawnDelay = 7;//iteratinon
+	if (sim == 0) spawnDelay = 1;//iteratinon
 	else spawnDelay = 5;//iteratinon
 }
 
@@ -275,10 +288,9 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	if (sim == 0)nozzle->SetPosition(circle());
 	else if (sim == 1)nozzle->SetPosition(snake());
 
-
 	solver->Use();
 	solver->SetVec3("sourcePos", u);
-
+	solver->SetFloat("speed", sim_speed);
 
 	particleSystem->SetActiveInstancesCount(numParticles);
 
@@ -287,29 +299,33 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	binBuffer->Bind();
 	binBuffer->Attach(*solver);
 
-	solver->SetFloat("speed", sim_speed);
-
 	solver->SetUInt("stage", 0);
 	particleSystem->Execute(solver, false); //Predict
+	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
 
-
-	solver->SetUInt("numParticles", numParticles);
-
-	binBuffer->Clear(); //Clear neighbor list
+	binBuffer->Clear(); //Clear neighbor search data
 	solver->SetUInt("stage", 1);
 	particleSystem->Execute(solver, false); //Neighbor
+
+	prefixSum->Use();
+	binBuffer->Attach(*prefixSum); 
+	binSystem->Execute(prefixSum, false);
+
+	solver->Use();
+	solver->SetUInt("stage", 2);
+	particleSystem->Execute(solver, false); //Sort
 
 
 	for (int i = 0; i < solver_iteration; i++) {
 
-		solver->SetUInt("stage", 2);
+		solver->SetUInt("stage", 3);
 		particleSystem->Execute(solver, false); //Compute lambda
 
-		solver->SetUInt("stage", 3);
+		solver->SetUInt("stage", 4);
 		particleSystem->Execute(solver, false); //Position delta
 	}
 
-	solver->SetUInt("stage", 4);
+	solver->SetUInt("stage", 5);
 	particleSystem->Execute(solver, false); //Apply changes
 }
 
@@ -326,6 +342,7 @@ void ExampleLayer::OnAttach() {
 	SetColorGradient();
 
 	particleSystem->SetThread(thread);
+	binSystem->SetThread(128);
 	ResetSimulation();
 }
 
@@ -410,8 +427,7 @@ void ExampleLayer::OnImGuiRender()
 		binShader->SetInt("colorCycle", Cstate ? 1 : 0);
 	}
 
-	ImGui::DragInt("Solver iteration", &solver_iteration, 0.1, 1, 50);
-
+	ImGui::DragInt("Solver iteration", &solver_iteration, 0.1, 1, 50); 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->SetPosition(model_matrix_translation);
 	}
