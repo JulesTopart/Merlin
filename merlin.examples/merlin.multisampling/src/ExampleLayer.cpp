@@ -54,7 +54,7 @@ void ExampleLayer::LoadScene() {
 	Shared<Model> floor = Model::Create("floor", Primitives::CreateCube(10, 6, 0.1));
 	light = Model::Create("light", Primitives::CreateCube(0.2));
 
-	model1->SetMaterial("emmerald");
+	model1->SetMaterial("emerald");
 	model2->SetMaterial("jade");
 	model3->SetMaterial("obsidian");
 	model4->SetMaterial("pearl");

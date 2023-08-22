@@ -54,6 +54,8 @@ float LinearizeDepth(float depth)
     return (2.0 * near * far) / (far + near - z * (far - near));	
 }
 
+uniform int colorCycle;
+
 void main() {
 
 	vec4 lightDir = normalize(vec4(1, 1, -2, 1.0));
@@ -64,9 +66,14 @@ void main() {
 	vec4 ambient = lightColor * 0.5f;
 	vec4 diffuse = lightColor * max(dot(n, lightDir), 0.0);
 	//float specular = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-	FragColor = heatMap(color.r);
-	FragColor.w = 0.5;
-	//FragColor = (ambient + diffuse) * color;
+	
+	if(colorCycle == 1)
+	FragColor = color;
+	else
+	FragColor = heatMap(color.w);
+
+	FragColor.w = 1;
+
 
 
 	//float depth = LinearizeDepth(gl_FragCoord.z) / far;

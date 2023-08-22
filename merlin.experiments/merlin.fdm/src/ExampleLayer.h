@@ -54,8 +54,8 @@ const float scale = 0.035 / (4.0);
 
 const GLuint thread = 32;
 const GLsizei binRes = 128;
-const GLsizei binCount = binRes * binRes * binRes;
-const float binWidth = (0.5/scale) / float(binRes);
+const float binWidth = 300.0/float(binRes);
+const GLsizei binCount = int(300 /(binWidth)) * int(200 / (binWidth)) * int(250 / (binWidth));
 const GLsizei maxParticlesCount = 64 * 64 * 64;
 
 
@@ -103,6 +103,7 @@ private:
 	Scene scene;
 
 	Shared<Model>  light;
+	Shared<Model>  nozzle;
 
 	//Heat Map
 	Shared<SSBO> heatMap;
@@ -115,7 +116,7 @@ private:
 	GLuint numParticles = 0;
 
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	int solver_iteration = 40;
+	int solver_iteration = 15;
 
 	int sim = 0;
 

@@ -36,6 +36,7 @@ namespace Merlin::Graphics {
 
 	void RendererBase::EnableMultisampling() {
 		glEnable(GL_MULTISAMPLE);
+		glEnable(GL_LINE_SMOOTH);
 	}
 
 	void RendererBase::EnableFaceCulling() {

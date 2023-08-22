@@ -70,8 +70,6 @@ void ExampleLayer::InitGraphics() {
 	sky->SetShader(skyShader);
 	scene.Add(sky);
 
-
-
 	Shared<Model> floor = ModelLoader::LoadModel("./assets/models/bed.stl");
 	floor->Translate(glm::vec3(0, 0, -0.2));
 
@@ -84,7 +82,6 @@ void ExampleLayer::InitGraphics() {
 	floor->SetMaterial("chrome");
 	floor->SetShader("model");
 	scene.Add(floor);
-
 
 	Shared<Model> floorSurface = Model::Create("floorSurface", Primitives::CreateRectangle(300, 200));
 	floorSurface->Translate(glm::vec3(0, 0, -0.025));
@@ -100,22 +97,28 @@ void ExampleLayer::InitGraphics() {
 	floorSurface->SetShader("model");
 	scene.Add(floorSurface);
 
-
-
 	//Box
-	Shared<Model> box = Model::Create("box", Primitives::CreateCube(60, 60, 60));
-	box->Translate(glm::vec3(0, 0, 30));
+	Shared<Model> box = Model::Create("box", Primitives::CreateQuadCube(300, 200, 250));
+	box->Translate(glm::vec3(0, 0, 250/2.0));
 	box->SetMaterial("default");
 	box->SetShader(modelShader);
 	box->EnableWireFrameMode();
-	//scene.Add(box);
+	scene.Add(box);
+
+	nozzle = ModelLoader::LoadModel("./assets/models/nozzle.stl");
+	nozzle->SetMaterial("gold");
+	nozzle->SetShader(modelShader);
+	nozzle->Rotate(glm::vec3(3.141592654, 0, 0));
+	nozzle->Translate(glm::vec3(0, 0, -45));
+	scene.Add(nozzle);
+
 }
 
 void ExampleLayer::InitPhysics() {
 	//Compute Shaders
 	init = ComputeShader::Create("init", "assets/shaders/init.comp");
 	solver = ComputeShader::Create("solver", "assets/shaders/solver.comp");
-
+	
 	//Particle System
 	float gridWidth = 1.0f;
 
@@ -132,13 +135,13 @@ void ExampleLayer::InitPhysics() {
 	particleSystem->SetMesh(particle);
 
 	//Create bin system
-	binSystem = CreateShared<ParticleSystem>("BinSystem", binRes * binRes * binRes);
+	binSystem = CreateShared<ParticleSystem>("BinSystem", binCount);
 	binSystem->Translate(glm::vec3(0, 0, 0));
 
 	//Define the mesh for instancing (Here a cube)
 	//Shared<Mesh> particle = Primitives::CreateCube(0.05 * 0.15);
 	//Shared<Mesh> particle = Primitives::CreateSphere(0.05*0.15, 10, 10);
-	Shared<Mesh> binInstance = Primitives::CreateCube(binWidth, binWidth, binWidth);
+	Shared<Mesh> binInstance = Primitives::CreateQuadCube(binWidth, false);
 	binInstance->SetName("bin");
 	binInstance->SetShader(binShader);
 	binSystem->SetMesh(binInstance);
@@ -162,6 +165,7 @@ void ExampleLayer::InitPhysics() {
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
+	binSystem->Hide();
 
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
@@ -189,29 +193,29 @@ long spawnDelay = 7;//iteration
 long timer = 0;
 long lastSpawn = 0;
 
-float layerHeight = 0.008;
-float firstlayerHeight = 0.010;
+float layerHeight = 0.2;
+float firstlayerHeight = 0.1;
 glm::vec3 u(0.0, 0.0, firstlayerHeight);
-const float speed = 0.009;
+const float speed = 1.0;
 glm::vec3 v(speed, 0, 0);
 int line = 0;
 int lineCount = 5;
+glm::vec3 partDim(50, 50, 50);
 
 
-
-void snake() {
-	if (u.x + v.x >= 0.75 || u.x <= 0) {
+glm::vec3 snake() {
+	if (u.x + v.x >= 0.9 * partDim.x || u.x <= 0) {
 		v.x = 0;
 		v.y = speed;
 	}
 
-	if (u.y + v.y > (line + 1) * (0.75 / lineCount)) {
+	if (u.y + v.y > (line + 1) * (0.75 * partDim.y / lineCount)) {
 		line++;
 		v.x = ((line % 2 == 0) ? speed : -speed);
 		v.y = 0;
 	}
 
-	if (u.y + v.y >= 0.75) {
+	if (u.y + v.y >= 0.75 * partDim.y) {
 		line = 0;
 		u.y = 0;
 		u.x = speed;
@@ -222,21 +226,23 @@ void snake() {
 
 
 	u += v;
+	return u;
 }
 
 
 float theta = 0.0;
-float radius = 0.4;
+float radius = 50;
 float segment = 10.0 * 36.0;
-float theta_v = (2.0 * 3.14159265359 / segment);// *(speed / radius);
+float theta_v = (1.0 * 3.14159265359 / segment);// *(speed / radius);
 
-void circle() {
+glm::vec3 circle() {
 	u = glm::vec3((cos(theta)) * radius, (sin(theta)) * radius, u.z);
 	theta += theta_v;
 	if (theta >= 2.0 * 3.14159265359) {
 		theta -= 2.0 * 3.14159265359;
 		u.z += layerHeight;
 	}
+	return u;
 }
 
 
@@ -266,8 +272,8 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 		lastSpawn = timer;
 	}
 
-	if (sim == 0)circle();
-	else if (sim == 1)snake();
+	if (sim == 0)nozzle->SetPosition(circle());
+	else if (sim == 1)nozzle->SetPosition(snake());
 
 
 	solver->Use();
@@ -289,9 +295,6 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->SetUInt("numParticles", numParticles);
 
-
-
-	//binBuffer->Bind();
 	binBuffer->Clear(); //Clear neighbor list
 	solver->SetUInt("stage", 1);
 	particleSystem->Execute(solver, false); //Neighbor
@@ -365,7 +368,8 @@ void ExampleLayer::OnImGuiRender()
 	model_matrix_translation = camera->GetPosition();
 	camera_speed = cameraController->GetCameraSpeed();
 
-	ImGui::LabelText("Particle count", std::to_string(numParticles).c_str());
+	ImGui::LabelText(std::to_string(numParticles).c_str(), "particles");
+	ImGui::LabelText(std::to_string(binCount).c_str(), "bins");
 
 	if (FPS_sample > 0) {
 		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS / FPS_sample)).c_str());
@@ -384,6 +388,26 @@ void ExampleLayer::OnImGuiRender()
 	if (ImGui::SmallButton("Reset simulation")) {
 		ResetSimulation();
 		//count = 1;
+	}
+
+	static bool Pstate = true;
+	if(ImGui::Checkbox("Show Particles", &Pstate)) {
+		if(Pstate) particleSystem->Show();
+		else particleSystem->Hide();
+	}
+
+	static bool Bstate = false;
+	if (ImGui::Checkbox("Show Bins", &Bstate)) {
+		if (Bstate) binSystem->Show();
+		else binSystem->Hide();
+	}
+
+	static bool Cstate = false;
+	if (ImGui::Checkbox("Color cycling", &Cstate)) {
+		particleShader->Use();
+		particleShader->SetInt("colorCycle", Cstate ? 1 : 0);
+		binShader->Use();
+		binShader->SetInt("colorCycle", Cstate ? 1 : 0);
 	}
 
 	ImGui::DragInt("Solver iteration", &solver_iteration, 0.1, 1, 50);

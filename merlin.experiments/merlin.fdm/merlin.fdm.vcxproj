@@ -124,7 +124,6 @@
   <ItemGroup>
     <None Include="assets\shaders\model.frag" />
     <None Include="assets\shaders\model.vert" />
-    <None Include="assets\shaders\neighbor.comp" />
     <None Include="assets\shaders\skybox.frag" />
     <None Include="assets\shaders\skybox.vert" />
     <None Include="assets\shaders\solver.comp" />

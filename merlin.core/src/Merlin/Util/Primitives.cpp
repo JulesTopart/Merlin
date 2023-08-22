@@ -90,6 +90,72 @@ namespace Merlin::Utils {
 		return Mesh::Create("CoordinateSystem", v, GL_LINES);
 	}
 
+	Shared<Mesh> Primitives::CreateQuadCube(float w, bool centered) {
+		return CreateQuadCube(w, w, w, centered);
+	}
+
+	Shared<Mesh> Primitives::CreateQuadCube(float x, float y, float z, bool centered) {
+
+		float x_lo;
+		float x_up;
+		float y_lo;
+		float y_up;
+		float z_lo;
+		float z_up;
+
+		if (centered) {
+			x_lo = -x / 2.0f;
+			x_up = x / 2.0f;
+			y_lo = -y / 2.0f;
+			y_up = y / 2.0f;
+			z_lo = -z / 2.0f;
+			z_up = z / 2.0f;
+		}else{
+			x_lo = 0;
+			x_up = x;
+			y_lo = 0;
+			y_up = y;
+			z_lo = 0;
+			z_up = z;
+		}
+
+		std::vector<Vertex> v = {
+			//   Coordinates
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // X-
+			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+
+			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // X+
+			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+	
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // Y-
+			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+
+			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // Y+
+			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // Z-
+			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+
+			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // Z+
+			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)}
+
+		};
+
+		return Mesh::Create("Cube", v, GL_QUADS);
+	}
+
 	Shared<Mesh> Primitives::CreateCube(float w) { return CreateCube(w, w, w); }
 
 	Shared<Mesh> Primitives::CreateCube(float x, float y, float z) {

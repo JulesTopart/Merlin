@@ -225,7 +225,7 @@ vec3 computePositionDelta(uint i) {
 
 					// Finally, compute the artificial pressure correction:
 					float lambda_corr = -pressureStrength * pow(nd, pressurePower);
-					posDelta += ((lambda_i + lambda_j + lambda_corr) * gradient);
+					posDelta += ((lambda_i + lambda_j /*+ lambda_corr*/) * gradient);
 
 				}
 			}
@@ -261,8 +261,8 @@ vec3 constrainVelocity(uint gid, vec3 velocity) {
 						float shearRate = length(vij) / length(dij);
 						//float dynamicViscosity = rheo_k * pow(shearRate, rheo_n - 1.0);
 
-						float dynamicViscosity = 5.0;//max(min(artificialViscosity, artificialViscosity * (particles[gid].temperature / 453.15)), 10*artificialViscosity);
-						velocity += 5 * viscosityLaplacianKernel(length(dij)) * (vij);
+						float dynamicViscosity = 0.05*H;//max(min(artificialViscosity, artificialViscosity * (particles[gid].temperature / 453.15)), 10*artificialViscosity);
+						velocity += dynamicViscosity * viscosityLaplacianKernel(length(dij)) * (vij);
 				}
 			}
 		}
@@ -357,7 +357,7 @@ void XPBDSolve(uint gid, uint simStep) {
 		#ifdef USE_NEAREST_NEIGHBORS
 		uint currentBinIndex = getBinIndex(particles[gid].position);
 		uint preValue = max(min(atomicAdd(bins[currentBinIndex].count, 1),31),0);
-		atomicAdd(bins[currentBinIndex].indices[preValue], gid);
+		bins[currentBinIndex].indices[preValue] = gid;
 		#endif
 	}
 	//Solver iteration
@@ -374,7 +374,7 @@ void XPBDSolve(uint gid, uint simStep) {
 		p.velocity = (p.new_position - p.position) / (dt*speed);
 		p.position = p.new_position;
 		p.temperature += computeTemperature(gid);		
-		//p.velocity = constrainVelocity(gid, p.velocity);
+		p.velocity = constrainVelocity(gid, p.velocity);
 	}
 	particles[gid] = p;
 	//end

@@ -27,14 +27,14 @@ vec3 randomColor(uint index){
 }
 
 void main() {
-
-	vec3 offset = vec3(getBinCoordFromIndex(gl_InstanceID));
-	position = vec3(model * vec4((_position) + offset, 1.0f));
+	vec3 offset = (vec3(getBinCoordFromIndex(gl_InstanceID)) * binSize);
+	position = vec3(model * vec4(_position + offset + boundaryMin, 1.0f));
 
 	color.w = bins[gl_InstanceID].count/32;
 	color = vec4(randomColor(gl_InstanceID), color.w);
 	
 	normal = _normal;
 
-	gl_Position = projection * view * vec4(position, 1.0f);
+	if(bins[gl_InstanceID].count == 0) gl_Position = vec4(0);
+	else gl_Position = projection * view * vec4(position, 1.0f);
 }

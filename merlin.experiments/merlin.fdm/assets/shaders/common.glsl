@@ -22,18 +22,23 @@ layout(std430, binding = 2) buffer BinBuffer {
 	Bin bins[];
 };
 
-
-uint getBinIndex(vec3 position) {
+uvec3 getBinCoord(vec3 position) {
+	position *= scale;
 	position -= boundaryMin;
-
-	uvec3 bin3D = floor(position*scale/domain);
-
-	bin3D = uvec3(max(min(bin3D, binMax-uvec3(1)), 0));
-    return (bin3D.z * binMax.x * binMax.y) + (bin3D.y * binMax.x) + bin3D.x;
+	uvec3 bin3D = uvec3(position / binSize);
+	bin3D.x = max(        min(bin3D.x, binMax.x - 1), 0);
+	bin3D.y = max(        min(bin3D.y, binMax.y - 1), 0);
+	bin3D.z = max(        min(bin3D.z, binMax.z - 1), 0);
+	return bin3D;
 }
 
 uint getBinIndexFromCoord(uvec3 coord) {
 	return (coord.z * binMax.x * binMax.y) + (coord.y * binMax.x) + coord.x;
+}
+
+uint getBinIndex(vec3 position) {
+	uvec3 bin3D = getBinCoord(position);
+    return getBinIndexFromCoord(bin3D);
 }
 
 uvec3 getBinCoordFromIndex(uint index) {
@@ -44,11 +49,3 @@ uvec3 getBinCoordFromIndex(uint index) {
 	return uvec3(x, y, z);
 }
 
-uvec3 getBinCoord(vec3 position) {
-	position -= boundaryMin;
-	uvec3 result = uvec3(floor(float(binResolution) * position * scale) / (2.0));
-	result.x = uint(max(min(result.x, int(binResolution) - 1), 0));
-	result.y = uint(max(min(result.y, int(binResolution) - 1), 0));
-	result.z = uint(max(min(result.z, int(binResolution) - 1), 0));
-	return result;
-}

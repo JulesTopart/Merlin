@@ -190,7 +190,6 @@ float t = 0.0;
 void ExampleLayer::OnUpdate(Timestep ts){
 	cameraController->OnUpdate(ts);
 
-
 	t += ts;
 	float x = light->position().x;
 	float y = light->position().y;
@@ -228,7 +227,6 @@ void ExampleLayer::OnImGuiRender()
 					ImGui::Text(node->name().c_str());
 				}
 				
-
 				// Draw the node's children
 				traverseNodes(node->children());
 

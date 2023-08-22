@@ -43,7 +43,7 @@ namespace Merlin::Graphics {
 		currentTransform *= scene.transform();
 
 		for (const auto& node : scene.nodes()) {
-			Render(node, camera);
+			if(!node->IsHidden()) Render(node, camera);
 		}
 
 		PopMatrix();

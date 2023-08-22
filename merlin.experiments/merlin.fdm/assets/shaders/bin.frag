@@ -21,6 +21,7 @@ layout(std430, binding = 0) buffer ColorMapBuffer {
 
 uniform uint colorCount;
 
+
 vec4 heatMap(const float value) {
 	float minValue = 0.0f;
 	float maxValue = 1.0f;
@@ -48,14 +49,23 @@ vec4 heatMap(const float value) {
 float near = 0.1; 
 float far  = 90.0; 
   
+
+
 float LinearizeDepth(float depth) 
 {
     float z = depth * 2.0 - 1.0; // back to NDC 
     return (2.0 * near * far) / (far + near - z * (far - near));	
 }
 
+uniform int colorCycle;
+
 void main() {
+	//FragColor = heatMap(color.w)
+
+	if(colorCycle == 1)
+	FragColor = color;
+	else
 	FragColor = heatMap(color.w);
-	//FragColor = color;
-	FragColor.w = 0.5;
+
+	FragColor.w = 1;
 }
