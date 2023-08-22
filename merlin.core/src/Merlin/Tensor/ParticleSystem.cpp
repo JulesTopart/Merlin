@@ -7,8 +7,7 @@
 namespace Merlin::Tensor {
 
 	ParticleSystem::ParticleSystem(std::string name, GLsizeiptr maxCount) : RenderableObject(name){
-		_instancesCount = maxCount;
-		
+		_activeInstancesCount = _instancesCount = maxCount;
 	}
 
 	ParticleSystem::~ParticleSystem() {}
@@ -34,7 +33,7 @@ namespace Merlin::Tensor {
 			//shader->SetFloat("dt", ts);
 
 			// Dispatch the compute shader, specifying the number of work groups to execute and the number of threads per work group.
-			shader->Dispatch(_instancesCount / _thread, 1, 1);
+			shader->Dispatch(_activeInstancesCount / _thread, 1, 1);
 
 			// Use glMemoryBarrier to ensure that the compute shader has finished writing to the buffer object before the CPU reads from it.
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -53,7 +52,7 @@ namespace Merlin::Tensor {
 			shader->Use();
 		}
 		// Dispatch the compute shader, specifying the number of work groups to execute and the number of threads per work group.
-		shader->Dispatch(_instancesCount / _thread, 1, 1);
+		shader->Dispatch(_activeInstancesCount / _thread, 1, 1);
 
 		// Use glMemoryBarrier to ensure that the compute shader has finished writing to the buffer object before the CPU reads from it.
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -66,7 +65,7 @@ namespace Merlin::Tensor {
 		}
 
 
-		_geometry->DrawInstanced(_instancesCount);
+		_geometry->DrawInstanced(_activeInstancesCount);
 	}
 
 

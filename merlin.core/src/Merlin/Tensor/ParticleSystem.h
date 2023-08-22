@@ -19,7 +19,8 @@ namespace Merlin::Tensor {
 	enum class ParticleSystemDisplayMode {
 		MESH,
 		SPRITE,
-		POINT_SPRITE
+		POINT_SPRITE,
+		POINT_SPRITE_TRANSPARENT
 	};
 
 	// Refer to Uniform block layout alignement: https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL
@@ -43,6 +44,7 @@ namespace Merlin::Tensor {
 		void AddStorageBuffer(Shared<SSBO>);
 
 		inline void SetThread(GLuint t) { _thread = t; }
+		inline void SetActiveInstancesCount(GLuint t) { _activeInstancesCount = t; }
 		//Meshs
 		inline void SetMesh(Shared<Mesh> geometry) { _geometry = geometry; }
 		inline Shared<Mesh> GetMesh() const { return _geometry; }
@@ -52,6 +54,7 @@ namespace Merlin::Tensor {
 
 	private:
 		GLsizeiptr _instancesCount;
+		GLsizeiptr _activeInstancesCount;
 		GLuint _thread = 64;
 			
 		//Geometry

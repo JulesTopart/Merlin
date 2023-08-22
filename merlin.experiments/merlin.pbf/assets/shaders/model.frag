@@ -25,14 +25,9 @@ uniform int hasNormalTex;
 out vec4 FragColor;
 
 vec4 defaultLight() {
-	vec3 ambientColor = ambient * color;
+	vec3 ambientColor;// = ambient * color;
 	vec3 norm = normalize(normal);
 	vec2 uv = texCoord;
-	if (abs(uv.x) > 0.0) uv.x *= 2.0;
-	if (abs(uv.y) > 0.0) {
-		uv.y *= 1.2;
-		uv.y -= uv.y;
-	}
 
 	if (hasNormalTex == 1) {
 		norm = normalize(texture(normal0, uv).rgb) * norm;
@@ -42,10 +37,12 @@ vec4 defaultLight() {
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuseColor;
 	if (hasColorTex == 1) {
-		diffuseColor = diff * texture(color0, uv).rgb * color;
+		ambientColor = ambient * texture(color0, uv).rgb * color;
+		diffuseColor = (diff) * texture(color0, uv).rgb * color;
 	}
 	else {
-		diffuseColor = diff * diffuse * color;
+		ambientColor = ambient * color;
+		diffuseColor = (diff) * diffuse * color;
 	}
 
 	// Specular
@@ -58,7 +55,7 @@ vec4 defaultLight() {
 	
 
 	// Attenuation
-	float distance = length(lightPos - position);
+	float distance = length(lightPos - position)/100.0;
 	float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * (distance * distance));
 	vec3 finalColor = ambientColor + attenuation * (diffuseColor + specularColor);
 	// Apply light color

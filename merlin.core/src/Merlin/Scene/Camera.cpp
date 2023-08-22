@@ -12,7 +12,7 @@ namespace Merlin::Graphics {
 		_AspectRatio(float(_width) / float(_height)),
 		_projection(Projection::Perspective),
 		_fov(45.0f),
-		_nearPlane(0.01f),
+		_nearPlane(0.1f),
 		_farPlane(2000.f),
 		_zoom(1.0f)
 	{
@@ -29,7 +29,7 @@ namespace Merlin::Graphics {
 		_AspectRatio(float(width)/float(height)), 
 		_projection(projection),
 		_fov(45.0f),
-		_nearPlane(0.01f),
+		_nearPlane(0.1f),
 		_farPlane(2000.f), 
 		_zoom(1.0f)
 	{

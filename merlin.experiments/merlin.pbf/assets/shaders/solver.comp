@@ -15,7 +15,7 @@ float poly6(vec3 r)
 	float rBar = length(r);
 
 	if (rBar < EPSILON || rBar > H) {
-		return 0.0f;
+		return EPSILON;
 	}
 
 	// (315 / (64 * PI * h^9)) * (h^2 - |r|^2)^3
@@ -93,7 +93,7 @@ float calculateDensity(uint gid, vec3 pposition) {
 float calculateDensityN(uint gid, vec3 pposition) {
 	float density = 0.0;
 
-	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position * scale) / (2.0) );
+	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position) / (2.0) );
 
 	for (uint z = binIndexVec.z - (binIndexVec.z > 0 ? 1 : 0); z <= binIndexVec.z + 1; z++) {
 		for (uint y = binIndexVec.y - (binIndexVec.y > 0 ? 1 : 0); y <= binIndexVec.y + 1; y++) {
@@ -160,7 +160,7 @@ float computeLambda(uint gid, vec3 pposition, float density) {
 
 // SPH_Lambda_neighbor
 float computeLambdaN(uint gid, vec3 pposition, float density) {
-	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position * scale) / (2.0) );
+	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position) / (2.0) );
 
 	float C_i = (density * INV_REST_DENSITY) - 1.0f;
 	vec3 gradient = vec3(0.0);
@@ -204,7 +204,7 @@ float computeLambdaN(uint gid, vec3 pposition, float density) {
 		gradientSum = EPSILON;
     }
 
-	return -(C_i / ((gradientSum + relaxation))); //relaxation
+	return -(C_i /((gradientSum + relaxation))); //lamdba Incompressibility
 }
 
 
@@ -239,7 +239,7 @@ vec3 computePositionDelta(uint i) {
 
 	}
 
-	vec3 final = INV_REST_DENSITY * posDelta;
+	vec3 final = INV_REST_DENSITY * posDelta ;
 	return final;
 }
 
@@ -247,7 +247,7 @@ vec3 computePositionDelta(uint i) {
 vec3 computePositionDeltaN(uint i) {
 	vec3 posDelta = vec3(0.0f, 0.0f, 0.0f);
 
-	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[i].position * scale) / (2.0) );
+	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[i].position) / (2.0) );
 
 	for (uint z = binIndexVec.z - (binIndexVec.z > 0 ? 1 : 0); z <= binIndexVec.z + 1; z++) {
 		for (uint y = binIndexVec.y - (binIndexVec.y > 0 ? 1 : 0); y <= binIndexVec.y + 1; y++) {
@@ -268,14 +268,14 @@ vec3 computePositionDeltaN(uint i) {
 
 					// Introduce the artificial pressure corrector:
 
-					vec3 r = particles[i].new_position - particles[j].new_position;
+					vec3 r = particles[i].new_position - particles[j].position; //This seems to be related to elastisity
 					vec3 gradient = spiky(r);
 					float n = poly6(r);
 
 					// For the point delta Q, we use p_j->posStar as a starting point, and
 					// add an offset value:
 
-					float offset = (0.3f * H);
+					float offset = (0.2f * H);
 					vec3 deltaQ = particles[j].new_position + vec3(offset, offset, offset);
 					float d = poly6(deltaQ);
 					float nd = abs(d) <= EPSILON ? 0.0f : n / d;
@@ -288,9 +288,91 @@ vec3 computePositionDeltaN(uint i) {
 			}
 		}
 	}
-
 	vec3 final = INV_REST_DENSITY * posDelta;
 	return final;
+}
+
+
+
+//calculate Viscosity
+vec3 constrainVelocityN(uint gid, vec3 velocity) {
+	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position) / (2.0) );
+	uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
+
+
+
+	for (uint z = binIndexVec.z - (binIndexVec.z > 0 ? 1 : 0); z <= binIndexVec.z + 1; z++) {
+		for (uint y = binIndexVec.y - (binIndexVec.y > 0 ? 1 : 0); y <= binIndexVec.y + 1; y++) {
+			for (int x = int(binIndexVec.x) - (binIndexVec.x > 0 ? 1 : 0); x <= binIndexVec.x + 1; x++) {	
+
+				if(x < 0 || y < 0 || z < 0) continue;
+				if(x > binResolution || y > binResolution || z > binResolution) continue;
+
+				uint currentBinIndex = (z * binResolution * binResolution) + (y * binResolution) + x;
+
+				for(uint k = 0; k < bins[currentBinIndex].count; k++){
+					uint j = bins[currentBinIndex].indices[k];
+						if (j == gid) continue;
+
+						vec3 dij = particles[gid].new_position - particles[j].new_position;
+						vec3 vij = particles[j].velocity - particles[gid].velocity;
+						
+						float dynamicViscosity = 5.0;//max(min(artificialViscosity, artificialViscosity * (particles[gid].temperature / 453.15)), 10*artificialViscosity);
+						velocity += dynamicViscosity * viscosityLaplacianKernel(length(dij)) * (vij);
+				}
+			}
+		}
+	}
+
+	if(particles[gid].position.z < 10.0*EPSILON){
+		velocity -= floorFriction * velocity;
+	}
+
+	//velocity *= max(min((particles[gid].temperature / (453.15)),0.0),1.0);
+	return velocity;
+}
+
+
+//calculate Temperature
+float computeTemperatureN(uint gid) {
+	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position) / (2.0) );
+	uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
+
+	const float Ti = particles[gid].temperature;
+	float temperatureDelta = 0.0;
+	
+	for (uint z = binIndexVec.z - (binIndexVec.z > 0 ? 1 : 0); z <= binIndexVec.z + 1; z++) {
+		for (uint y = binIndexVec.y - (binIndexVec.y > 0 ? 1 : 0); y <= binIndexVec.y + 1; y++) {
+			for (int x = int(binIndexVec.x) - (binIndexVec.x > 0 ? 1 : 0); x <= binIndexVec.x + 1; x++) {	
+
+				if(x < 0 || y < 0 || z < 0) continue;
+				if(x > binResolution || y > binResolution || z > binResolution) continue;
+
+				uint currentBinIndex = (z * binResolution * binResolution) + (y * binResolution) + x;
+
+				for(uint k = 0; k < bins[currentBinIndex].count; k++){
+					uint j = bins[currentBinIndex].indices[k];
+						if (j == gid) continue;
+
+						vec3 dij = particles[gid].new_position - particles[j].new_position;
+
+						float Tj = particles[j].temperature;
+						float rhoj = particles[j].density;
+					
+						float w2_pse = viscosityLaplacianKernel(dij.length);
+						float lambda = (kPLA / (CpPLA * particles[gid].density));
+						temperatureDelta += lambda * (Tj-Ti) * w2_pse * dt;
+
+				}
+			}
+		}
+	}
+
+	if(particles[gid].position.z < 10.0*EPSILON){
+		temperatureDelta += kPlateau * (floorTemperature - Ti) * dt;
+	}
+	temperatureDelta += kAmbient*(ambientTemperature - Ti) * dt;
+	return temperatureDelta;
 }
 
 
@@ -324,14 +406,14 @@ vec3 clampToBoundaries(vec3 position)
 	vec3 correctedPosition = position;
 	for (int i = 0; i < 3; i++)
 	{
-		if ((correctedPosition[i] - H*0.3) * scale  < boundaryMin[i])
+		if ((correctedPosition[i] - H*0.3) < boundaryMin[i])
 		{
-			correctedPosition[i] = (boundaryMin[i]/scale) + ((H*0.3) + EPSILON);
+			correctedPosition[i] = (boundaryMin[i]) + ((H*0.3) + EPSILON);
 
 		}
-		else if ((correctedPosition[i] + H*0.3) * scale  > boundaryMax[i])
+		else if ((correctedPosition[i] + H*0.3) > boundaryMax[i])
 		{
-			correctedPosition[i] =  (boundaryMax[i]/scale) - ((H*0.3) + EPSILON);
+			correctedPosition[i] =  (boundaryMax[i]) - ((H*0.3) + EPSILON);
 		}
 	}
 
@@ -345,79 +427,40 @@ void XPBDSolve(uint gid, uint simStep) {
 	Particle p = particles[gid];
 	if(simStep == 0){ //Integrate
 		//Calculate external force
-		vec3 externalForce = vec3(0,0,-G*particleMass/scale);
+		vec3 externalForce = vec3(0,0,-G*particleMass);
 
 		//Predict position
 		p.velocity = p.velocity + (externalForce / particleMass) * dt * speed;
 		p.new_position = clampToBoundaries(p.position + p.velocity * dt * speed);
+		
 
-    
 	}else if(simStep == 1){ //Neighbor search
-		//TODO Neighbor search
-		ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position * scale) / (2.0) );
+
+		ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position / binsWidth) / (2.0) );
 		uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
-		uint preValue = min(atomicAdd(bins[currentBinIndex].count, 1),31);
+		uint preValue = max(min(atomicAdd(bins[currentBinIndex].count, 1),31),0);
 		atomicAdd(bins[currentBinIndex].indices[preValue], gid);
 	}
 	//Solver iteration
 	else if(simStep == 2){ //Compute lambda
 		//p.density = calculateDensity(gid, p.new_position);
 		p.density = calculateDensityN(gid, p.new_position);
+		
+		
 		//p.lambda = computeLambda(gid, p.new_position, p.density); 
 		p.lambda = computeLambdaN(gid, p.new_position, p.density); 
 	}else if (simStep == 3){ //position delta
 		//vec3 positionDelta = computePositionDelta(gid);
+		
 		vec3 positionDelta = computePositionDeltaN(gid);
 		p.new_position = clampToBoundaries(p.new_position + positionDelta);
 	}else if(simStep == 4){ //Apply changes
 		p.velocity = (p.new_position - p.position) / (dt*speed);
 		p.position = p.new_position;
+		p.temperature += computeTemperatureN(gid);
+		p.velocity = constrainVelocityN(gid, p.velocity);
+
 		
-		//calculate temperature, Viscosity and vorticity
-
-		ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gid].position * scale) / (2.0) );
-		uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
-
-		float T_ti = 0.;
-		float Ti = p.temperature;
-		//vec3 omega_i = vec3(0);
-		for (uint z = binIndexVec.z - (binIndexVec.z > 0 ? 1 : 0); z <= binIndexVec.z + 1; z++) {
-			for (uint y = binIndexVec.y - (binIndexVec.y > 0 ? 1 : 0); y <= binIndexVec.y + 1; y++) {
-				for (int x = int(binIndexVec.x) - (binIndexVec.x > 0 ? 1 : 0); x <= binIndexVec.x + 1; x++) {	
-
-					if(x < 0 || y < 0 || z < 0) continue;
-					if(x > binResolution || y > binResolution || z > binResolution) continue;
-
-					uint currentBinIndex = (z * binResolution * binResolution) + (y * binResolution) + x;
-
-					for(uint k = 0; k < bins[currentBinIndex].count; k++){
-						uint j = bins[currentBinIndex].indices[k];
-							if (j == gid) continue;
-
-							vec3 dij = p.new_position - particles[j].new_position;
-							vec3 vij = particles[j].velocity - p.velocity;
-							//omega_i += vij * poly6(p.new_position - particles[j].new_position);
-
-							float dynamicViscosity = 0.01;
-							//float dynamicViscosity = artificialViscosity * (p.temperature / 140.0);
-							p.velocity += dynamicViscosity * viscosityLaplacianKernel(length(dij)) * (vij);
-
-							float Tj = particles[j].temperature;
-							float rhoj = particles[j].density;
-					
-							float w2_pse = viscosityLaplacianKernel(length(dij));
-							p.temperature += 50* 0.183 * (Tj-Ti) * dt * w2_pse / (particles[gid].density);
-
-					}
-				}
-			}
-		}
-
-		if(p.position.z < H){
-			p.temperature += (0.05/(particles[gid].density)) * dt  * (viscosityLaplacianKernel(p.position.z/2.0)  * (60.0 - p.temperature)) ;
-			//p.velocity /= 5.0 * (60.0/p.temperature);
-		}
-		p.temperature += (10.0/(particles[gid].density)) * dt  * (viscosityLaplacianKernel(p.position.z/2.0)  * (20.0 - p.temperature));
 	}
 	particles[gid] = p;
 	//end
@@ -425,10 +468,15 @@ void XPBDSolve(uint gid, uint simStep) {
 
 
 uniform uint stage;
+uniform vec3 sourcePos;
 // XPBD_Main
 void main() {
 	uint gid = gl_GlobalInvocationID.x;
-	if (gid >= numParticles) return;
+	if (gid >= numParticles){ 
+		if(particles[gid].new_position == vec3(0.0)){ //Spawing a new particle in the nozzle
+			particles[gid].position += sourcePos;
+		}
+	}
 
 	XPBDSolve(gid, stage);
 }

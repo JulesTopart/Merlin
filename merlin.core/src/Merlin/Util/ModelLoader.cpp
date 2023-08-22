@@ -20,20 +20,15 @@ namespace Merlin::Utils {
             if (!ParseMesh(file_path, vertices, indices)) {
                 throw std::runtime_error("Unknown file type: " + file_path);
             }
-
             // Create a Mesh object using the parsed vertex and index data
             auto mesh = Mesh::Create("Mesh", vertices, indices);
             return Model::Create(Utils::GetFileName(file_path), mesh);
-
-        }else if(ft == FileType::GLTF){
-
-        }
-        else {
 
         }
         
 	}
 
+/*
     Shared<Model> ModelLoader::LoadGLTF(const std::string& file_path) {
         tinygltf::Model gltf_model;
         tinygltf::TinyGLTF loader;
@@ -145,7 +140,7 @@ namespace Merlin::Utils {
         }
 
         return model;
-    }
+    }*/
 
 
 

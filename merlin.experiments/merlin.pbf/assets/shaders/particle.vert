@@ -2,6 +2,7 @@
 #version 450 core
 
 #include "common.glsl"
+#include "constants.glsl"
 
 layout(location = 0) in vec3 _position;
 layout(location = 1) in vec3 _normal;
@@ -36,11 +37,9 @@ void main() {
 	vec4 foam = vec4(1, 1, 1, 0.1);
 
 	vec3 offset = vec3(particles[gl_InstanceID].position);
-	position = vec3(model * vec4((_position) + offset*scale, 1.0f));
+	position = vec3(model * vec4((_position) + offset, 1.0f));
 
-	ivec3 binIndexVec = ivec3(        floor(  particles[gl_InstanceID].position / ( 1.0/(16*0.025/2.0) )   )           );
-
-	uint binResolution = 128;
+	ivec3 binIndexVec = ivec3(floor(float(binResolution) * particles[gl_InstanceID].position/binsWidth) / (2.0) );
 	uint currentBinIndex = (binIndexVec.z * binResolution * binResolution) + (binIndexVec.y * binResolution) + binIndexVec.x;
 
 
@@ -48,14 +47,14 @@ void main() {
 	//color = mix(foam, water, particles[gl_InstanceID].density*300.0);
 	//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
 	//color = mix(foam, water, particles[gl_InstanceID].density*200.0 + bins[currentBinIndex].count/32.0);
-	color = vec4(particles[gl_InstanceID].temperature/200.0);
+	//color = vec4(particles[gl_InstanceID].temperature/nozzleTemperature);
 	color.w = 0.5;
-	//color = randomColor(currentBinIndex);
+	color = vec4(randomColor(currentBinIndex),1.0);
 	//color = randomColor(gl_InstanceID);
 	
 	
 	normal = _normal;
 	texCoord = _texCoord;
-
 	gl_Position = projection * view * vec4(position, 1.0f);
+	gl_PointSize = 100.0/gl_Position.w;
 }

@@ -43,7 +43,7 @@ namespace Merlin::Graphics {
 		currentTransform *= scene.transform();
 
 		for (const auto& node : scene.nodes()) {
-			Render(node, camera);
+			if(!node->IsHidden()) Render(node, camera);
 		}
 
 		PopMatrix();
@@ -67,7 +67,27 @@ namespace Merlin::Graphics {
 
 		if (ps.GetDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE) {
 			const Shader* shader;
-			glPointSize(10);
+			//glPointSize(10);
+			glEnable(GL_PROGRAM_POINT_SIZE);
+
+
+			if (ps.GetMesh()->HasShader())
+				shader = &ps.GetMesh()->GetShader();
+			else
+				shader = &_shaderLibrary.Get(ps.GetMesh()->GetShaderName());
+
+			shader->Use();
+			shader->SetMat4("model", currentTransform); //Sync model matrix with GPU
+			shader->SetMat4("view", camera.GetViewMatrix()); //Sync model matrix with GPU
+			shader->SetMat4("projection", camera.GetProjectionMatrix()); //Sync model matrix with GPU
+			ps.Draw(*shader);
+
+			glDisable(GL_PROGRAM_POINT_SIZE);
+		}else if(ps.GetDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT) {
+			const Shader* shader;
+			//glPointSize(10);
+			glEnable(GL_PROGRAM_POINT_SIZE);
+			glDisable(GL_DEPTH_TEST);
 
 			if (ps.GetMesh()->HasShader())
 				shader = &ps.GetMesh()->GetShader();
@@ -81,9 +101,9 @@ namespace Merlin::Graphics {
 			shader->SetMat4("projection", camera.GetProjectionMatrix()); //Sync model matrix with GPU
 			ps.Draw(*shader);
 
-			glPointSize(1); //restore point size
-		}
-		else if (ps.GetDisplayMode() == ParticleSystemDisplayMode::MESH) {
+			glEnable(GL_DEPTH_TEST);
+			glDisable(GL_PROGRAM_POINT_SIZE);
+		}else if (ps.GetDisplayMode() == ParticleSystemDisplayMode::MESH) {
 			const Shader* shader;
 			const Material* mat;
 

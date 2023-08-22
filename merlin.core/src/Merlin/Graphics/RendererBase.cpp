@@ -24,8 +24,19 @@ namespace Merlin::Graphics {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
+
+	void RendererBase::DisableSampleShading() {
+		glDisable(GL_SAMPLE_SHADING);
+	}
+
+	void RendererBase::EnableSampleShading() {
+		glEnable(GL_SAMPLE_SHADING);
+		glMinSampleShading(8);
+	}
+
 	void RendererBase::EnableMultisampling() {
 		glEnable(GL_MULTISAMPLE);
+		glEnable(GL_LINE_SMOOTH);
 	}
 
 	void RendererBase::EnableFaceCulling() {

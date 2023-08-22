@@ -27,6 +27,7 @@ namespace Merlin::Graphics {
 		void Rotate(glm::vec3);
 		void Rotate(float angle, glm::vec3 v);
 		void SetTransform(glm::mat4 t);
+		void SetPosition(glm::vec3 v);
 
 		//Getters
 		const glm::vec3& position() const;
@@ -39,6 +40,10 @@ namespace Merlin::Graphics {
 		void AddChild(const Shared<RenderableObject>& child);
 		void RemoveChild(Shared<RenderableObject> child);
 		void SetParent(RenderableObject* parent);
+
+		inline void Show() { _hidden = false; }
+		inline void Hide() { _hidden = true; }
+		inline bool IsHidden() { return _hidden; }
 
 		bool HasParent() const;
 		bool HasChildren() const;
@@ -61,6 +66,7 @@ namespace Merlin::Graphics {
 		std::string _name;
 		glm::mat4 _transform;
 		bool _wireframe = false;
+		bool _hidden = false;
 	};
 
 

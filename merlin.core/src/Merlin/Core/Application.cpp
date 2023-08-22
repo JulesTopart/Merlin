@@ -60,19 +60,17 @@ namespace Merlin {
 
 	void Application::PrintHeader() const {
 		int deviceMem;
-		int availableMem;
 		glGetIntegerv(GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &deviceMem);
-		glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &availableMem);
 
 		Console::print()
 			<< "| -------------- | " << "------------------------------------------------------------" << "|" << Console::endl
 			<< "| Merlin Engine  | " << Console::alignLeft(60, "v1.0.8") << "|" << Console::endl
 			<< "| -------------- | " << "------------------------------------------------------------" << "|" << Console::endl
-			<< "| Device vendor  | " << Console::alignLeft(60, (const char*)glGetString(GL_VENDOR)) << "|" << Console::endl
-			<< "| Device name    | " << Console::alignLeft(60, (const char*)glGetString(GL_RENDERER)) << "|" << Console::endl
+			<< "| GPU vendor     | " << Console::alignLeft(60, (const char*)glGetString(GL_VENDOR)) << "|" << Console::endl
+			<< "| GPU name       | " << Console::alignLeft(60, (const char*)glGetString(GL_RENDERER)) << "|" << Console::endl
 			<< "| OpenGL version | " << Console::alignLeft(60, (const char*)glGetString(GL_VERSION)) << "|" << Console::endl
 			<< "| GLSL version   | " << Console::alignLeft(60, (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION)) << "|" << Console::endl
-			<< "| Device RAM     | " << Console::alignLeft(60, std::to_string(availableMem / 1000000.0f) + " / " + std::to_string(deviceMem / 1000000.0f) + " Go") << "|" << Console::endl
+			<< "| GPU RAM        | " << Console::alignLeft(60, std::to_string(deviceMem / 1000000.0f) + " Go") << "|" << Console::endl
 			<< "| -------------- | " << "------------------------------------------------------------" << "|" << Console::endl;
 	}
 
@@ -117,6 +115,7 @@ namespace Merlin {
 			m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
+
 		}
 	}
 

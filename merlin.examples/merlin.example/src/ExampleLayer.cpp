@@ -34,7 +34,7 @@ void ExampleLayer::OnAttach(){
 
 	renderer.Initialize();
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
-	modelShader = Shader::Create("default", "assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl");
+	modelShader = Shader::Create("default", "assets/shaders/model.vert", "assets/shaders/model.frag");
 	renderer.AddShader(modelShader);
 
 	Shared<Model> model1 = Model::Create("sphere1", GetModel());
@@ -64,7 +64,7 @@ void ExampleLayer::OnAttach(){
 	Shared<Model> floor = Model::Create("floor", Primitives::CreateCube(10, 6, 0.1));
 	light = Model::Create("light", Primitives::CreateCube(0.2));
 
-	model1->SetMaterial("emmerald");
+	model1->SetMaterial("emerald");
 	model2->SetMaterial("jade");
 	model3->SetMaterial("obsidian");
 	model4->SetMaterial("pearl");
@@ -190,7 +190,6 @@ float t = 0.0;
 void ExampleLayer::OnUpdate(Timestep ts){
 	cameraController->OnUpdate(ts);
 
-
 	t += ts;
 	float x = light->position().x;
 	float y = light->position().y;
@@ -228,7 +227,6 @@ void ExampleLayer::OnImGuiRender()
 					ImGui::Text(node->name().c_str());
 				}
 				
-
 				// Draw the node's children
 				traverseNodes(node->children());
 

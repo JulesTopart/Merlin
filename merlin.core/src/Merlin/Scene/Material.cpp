@@ -152,11 +152,11 @@ namespace Merlin::Graphics {
 		defaultMaterial->SetProperty(glm::vec3(0.6, 0.6, 0.6), glm::vec3(0.4, 0.4, 0.4), glm::vec3(0.2, 0.2, 0.2), 64);
 		Add(defaultMaterial);
 
-		Shared<Material> emmerald = CreateShared<Material>("emmerald");
-		emmerald->SetAmbient(glm::vec3(0.0215, 0.1745, 0.0215));
-		emmerald->SetDiffuse(glm::vec3(0.07568, 0.61424, 0.07568));
-		emmerald->SetSpecular(glm::vec3(0.633, 0.727811, 0.633));
-		emmerald->SetShininess(0.6);
+		Shared<Material> emerald = CreateShared<Material>("emerald");
+		emerald->SetAmbient(glm::vec3(0.0215, 0.1745, 0.0215));
+		emerald->SetDiffuse(glm::vec3(0.07568, 0.61424, 0.07568));
+		emerald->SetSpecular(glm::vec3(0.633, 0.727811, 0.633));
+		emerald->SetShininess(0.6);
 
 		Shared<Material> jade = CreateShared<Material>("jade");
 		jade->SetAmbient(glm::vec3(0.135, 0.2225, 0.1575));
@@ -296,7 +296,7 @@ namespace Merlin::Graphics {
 		yellow_rubber->SetSpecular(glm::vec3(0.7, 0.7, 0.04));
 		yellow_rubber->SetShininess(0.078125);
 
-		Add(emmerald);
+		Add(emerald);
 		Add(jade);
 		Add(obsidian);
 		Add(pearl);

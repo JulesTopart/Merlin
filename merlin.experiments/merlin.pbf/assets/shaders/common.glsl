@@ -22,4 +22,11 @@ layout(std430, binding = 2) buffer BinBuffer {
 	Bin bins[];
 };
 
-const float scale = 0.025/(4.0);
+
+ivec3 getBinIndex(vec3 position) {
+	ivec3 result = ivec3(floor(float(binResolution) * position * scale) / (2.0));
+	result.x = max(min(result.x, int(binResolution)), 0);
+	result.y = max(min(result.y, int(binResolution)), 0);
+	result.z = max(min(result.z, int(binResolution)), 0);
+	return result;
+}
