@@ -361,8 +361,7 @@ void XPBDSolve(uint gid, uint simStep) {
 	}else if(simStep == 1){ //Neighbor search
 		#ifdef USE_NEAREST_NEIGHBORS
 		uint currentBinIndex = getBinIndex(particles[gid].position);
-		uint preValue = max(min(atomicAdd(bins[currentBinIndex].count, 1),maxParticlePerBin-1),0);
-		//bins[currentBinIndex].indices[preValue] = gid;
+		atomicAdd(bins[currentBinIndex].count, 1);
 		#endif
 
 	}else if(simStep == 2){ //Particle sort

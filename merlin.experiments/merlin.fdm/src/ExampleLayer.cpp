@@ -158,15 +158,18 @@ void ExampleLayer::InitPhysics() {
 	particleBuffer = CreateShared<SSBO>("ParticleBuffer");
 	particleBuffer->SetBindingPoint(1);
 	particleBuffer->Allocate<FluidParticle>(maxParticlesCount);
+	particleCPUBuffer.resize(maxParticlesCount);
 
 	binBuffer = CreateShared<SSBO>("BinBuffer");
 	binBuffer->SetBindingPoint(2);
-	binBuffer->Allocate<Bin>(binCount);
+	binBuffer->Allocate<Bin>(binCount, GL_DYNAMIC_DRAW);
+	binCPUBuffer.resize(binCount);
+	
 
 	sortedIndexBuffer = CreateShared<SSBO>("SortedParticleIndexBuffer");
 	sortedIndexBuffer->SetBindingPoint(3);
 	sortedIndexBuffer->Allocate<GLuint>(maxParticlesCount);
-
+	sortedIndexCPUBuffer.resize(maxParticlesCount);
 
 	particleSystem->AddStorageBuffer(binBuffer);
 	particleSystem->AddStorageBuffer(particleBuffer);
@@ -175,6 +178,7 @@ void ExampleLayer::InitPhysics() {
 
 	binSystem->AddStorageBuffer(binBuffer);
 	binSystem->AddComputeShader(prefixSum);
+	
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
@@ -277,6 +281,37 @@ void ExampleLayer::ResetSimulation() {
 }
 
 
+glm::uvec3 getBinCoord(glm::vec3 position) {
+	position *= scale;
+	position += glm::vec3(150,100,125);
+	glm::uvec3 bin3D = glm::uvec3(position / binWidth);
+	bin3D.x = max(min(bin3D.x, (300.0 / (binWidth)) - 1), 0);
+	bin3D.y = max(min(bin3D.y, (200.0 / (binWidth)) - 1), 0);
+	bin3D.z = max(min(bin3D.z, (250.0 / (binWidth)) - 1), 0);
+	return bin3D;
+}
+
+GLuint getBinIndexFromCoord(glm::uvec3 coord) {
+	return (coord.z * (300.0 / (binWidth)) * (200.0 / (binWidth))) + (coord.y * (300.0 / (binWidth))) + coord.x;
+}
+
+GLuint getBinIndex(glm::vec3 position) {
+	glm::uvec3 bin3D = getBinCoord(position);
+	return getBinIndexFromCoord(bin3D);
+}
+
+glm::uvec3 getBinCoordFromIndex(GLuint index) {
+	GLuint z = index / ((300.0 / (binWidth)) * (200.0 / (binWidth)));
+	index -= (z * (300.0 / (binWidth)) * (200.0 / (binWidth)));
+	GLuint y = index / (300.0 / (binWidth));
+	GLuint x = index % int(300.0 / (binWidth));
+	return glm::uvec3(x, y, z);
+}
+
+
+
+
+
 void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	timer++;
@@ -308,6 +343,33 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->SetUInt("stage", 1);
 	particleSystem->Execute(solver, false); //Neighbor
 
+
+
+
+	memcpy(binCPUBuffer.data(), binBuffer->Map(), binCPUBuffer.size() * sizeof(Bin));
+	for (int i = 0; i < binCount; i++) {
+		if (i == 0) binCPUBuffer[i].startIndex = 0;  // For the first bin, start index is 0
+		else binCPUBuffer[i].startIndex = binCPUBuffer[i - 1].startIndex + binCPUBuffer[i - 1].count;
+	}
+	binBuffer->Unmap();
+
+	particleBuffer->Bind();
+	memcpy(particleCPUBuffer.data(), particleBuffer->Map(), particleCPUBuffer.size() * sizeof(FluidParticle));
+	particleBuffer->Unmap();
+
+	sortedIndexBuffer->Bind();
+	memcpy(sortedIndexCPUBuffer.data(), sortedIndexBuffer->Map(), sortedIndexCPUBuffer.size() * sizeof(GLuint));
+	for (int i = 0; i < numParticles; i++) {
+		GLuint binIndex = getBinIndex(glm::vec3(particleCPUBuffer[i].position[0], particleCPUBuffer[i].position[1], particleCPUBuffer[i].position[2]));
+		GLuint sortedPosition = binCPUBuffer[binIndex].startIndex++;
+		sortedIndexCPUBuffer[sortedPosition] = i;
+	}
+	sortedIndexBuffer->Unmap();
+	
+	memcpy(sortedIndexBuffer->Map(), sortedIndexCPUBuffer.data(), sortedIndexCPUBuffer.size() * sizeof(GLuint));
+	sortedIndexBuffer->Unmap();
+
+	/*
 	prefixSum->Use();
 	binBuffer->Attach(*prefixSum); 
 	binSystem->Execute(prefixSum, false);
@@ -315,7 +377,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->Use();
 	solver->SetUInt("stage", 2);
 	particleSystem->Execute(solver, false); //Sort
-
+	*/
 
 	for (int i = 0; i < solver_iteration; i++) {
 
@@ -343,7 +405,7 @@ void ExampleLayer::OnAttach() {
 	SetColorGradient();
 
 	particleSystem->SetThread(thread);
-	binSystem->SetThread(128);
+	binSystem->SetThread(binThread);
 	ResetSimulation();
 }
 

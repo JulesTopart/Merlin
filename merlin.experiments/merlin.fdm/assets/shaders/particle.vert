@@ -45,6 +45,19 @@ void main() {
 	color.w = particles[gl_InstanceID].temperature/nozzleTemperature;
 	color = vec4(randomColor(currentBinIndex), color.w);
 	//color = vec4(randomColor(gl_InstanceID), 1);
+
+	uint sampleNNPos = getBinIndex(particles[0].position);
+	uint st = bins[sampleNNPos].startIndex;
+	uint ns = bins[sampleNNPos].count;
+	bool test = false;
+
+	for(uint k = st; k < st+ns; k++){
+		uint j = sortedParticleIndices[k];
+			if (j == gl_InstanceID) test = true;
+	}
+
+	if(test) color = vec4(0,255,0, 0);
+	else color = vec4(0,0,0, 0);
 	
 	normal = _normal;
 	texCoord = _texCoord;

@@ -53,7 +53,8 @@ struct Bin {
 const float scale = 0.035 / (4.0);
 
 const GLuint thread = 32;
-const GLsizei binRes = 32;
+const GLuint binThread = 8;
+const GLsizei binRes = 8;
 const float binWidth = 300.0/float(binRes);
 const GLsizei binCount = int(300.0 /(binWidth)) * int(200 / (binWidth)) * int(250 / (binWidth));
 const GLsizei maxParticlesCount = 64 * 64 * 64;
@@ -88,9 +89,15 @@ private:
 	Shared<ComputeShader> solver;
 	Shared<ComputeShader> prefixSum;
 
+	
 	Shared<SSBO> binBuffer; //Particle buffer
+	std::vector<Bin> binCPUBuffer; //Particle buffer
+
 	Shared<SSBO> sortedIndexBuffer; //Index buffer
+	std::vector<GLuint> sortedIndexCPUBuffer; //Particle buffer
+
 	Shared<SSBO> particleBuffer; //Particle buffer
+	std::vector<FluidParticle> particleCPUBuffer; //Particle buffer
 
 	
 
