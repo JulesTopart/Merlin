@@ -28,6 +28,7 @@ namespace Merlin::Graphics {
 		void Rotate(float angle, glm::vec3 v);
 		void SetTransform(glm::mat4 t);
 		void SetPosition(glm::vec3 v);
+		void Scale(glm::vec3 v);
 
 		//Getters
 		const glm::vec3& position() const;

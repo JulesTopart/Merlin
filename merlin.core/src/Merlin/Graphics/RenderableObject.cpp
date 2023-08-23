@@ -2,6 +2,7 @@
 #include "Merlin/Core/Core.h"
 #include "Merlin/Graphics/RenderableObject.h"
 #include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Merlin::Graphics {
 	
@@ -46,6 +47,10 @@ namespace Merlin::Graphics {
 
 	void RenderableObject::Translate(glm::vec3 v) {
 		_transform = glm::translate(_transform, v);
+	}
+
+	void RenderableObject::Scale(glm::vec3 v) {
+		_transform = glm::scale(_transform, v);
 	}
 
 	void RenderableObject::SetPosition(glm::vec3 v) {

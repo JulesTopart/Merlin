@@ -109,7 +109,8 @@ void ExampleLayer::InitGraphics() {
 	nozzleMdl->SetMaterial("gold");
 	nozzleMdl->SetShader(modelShader);
 	nozzleMdl->Rotate(glm::vec3(3.141592654, 0, 0));
-	nozzleMdl->Translate(glm::vec3(0, 0, -40));
+	nozzleMdl->Translate(glm::vec3(0, 0, -20));
+	nozzleMdl->Scale(glm::vec3(0.5,0.5,0.5));
 
 	nozzle = TransformObject::Create("nozzleTransform");
 	nozzle->AddChild(nozzleMdl);
@@ -209,7 +210,7 @@ long lastSpawn = 0;
 float layerHeight = 0.2;
 float firstlayerHeight = 0.1;
 glm::vec3 u(150.0, 0.0, firstlayerHeight);
-const float speed = 3.0; //old 0.8
+const float speed = 2.0; //old 0.8
 glm::vec3 v(speed, 0, 0);
 int line = 0;
 int lineCount = 5;
