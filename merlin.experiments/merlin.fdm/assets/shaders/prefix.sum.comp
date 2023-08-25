@@ -1,12 +1,81 @@
 #version 460
-
-layout(local_size_x = 8, local_size_y = 1, local_size_z = 1) in;
-
 #include "constants.glsl"
+
+layout(local_size_x = BTHREAD) in;
+
+
 #include "common.glsl"
 
+//https://betterprogramming.pub/efficient-parallel-prefix-sum-in-metal-for-apple-m1-9e60b974d62
+
+shared uint sharedData[1024];
+
+void LocalScan() {
+    uint tid = gl_LocalInvocationID.x;
+    uint offset = 1;
+
+    // Load input into shared memory.
+    sharedData[2*tid] = bins[2*tid + 2*gl_GlobalInvocationID.x].count;
+    sharedData[2*tid+1] = bins[2*tid+1 + 2*gl_GlobalInvocationID.x].count;
+
+    barrier();
+
+    // Up-sweep (reduce) phase.
+    for (uint d = gl_WorkGroupSize.x; d > 0; d >>= 1) {
+        barrier();
+        if (tid < d) {
+            uint ai = offset*(2*tid+1) - 1;
+            uint bi = offset*(2*tid+2) - 1;
+
+            sharedData[bi] += sharedData[ai];
+        }
+        offset *= 2;
+    }
+
+    // Clear the last element and update the sum in the bins buffer.
+    if (tid == 0) {
+        bins[gl_WorkGroupID.x].sum = sharedData[gl_WorkGroupSize.x * 2 - 1];
+        sharedData[gl_WorkGroupSize.x * 2 - 1] = 0;
+    }
+
+    // Down-sweep phase.
+    for (uint d = 1; d < gl_WorkGroupSize.x * 2; d *= 2) {
+        offset >>= 1;
+        barrier();
+        if (tid < d) {
+            uint ai = offset*(2*tid+1) - 1;
+            uint bi = offset*(2*tid+2) - 1;
+
+            uint t = sharedData[ai];
+            sharedData[ai] = sharedData[bi];
+            sharedData[bi] += t;
+        }
+    }
+
+    barrier();
+
+    // Write results to the bins buffer.
+    bins[2*tid + 2*gl_GlobalInvocationID.x].count = sharedData[2*tid];
+    bins[2*tid+1 + 2*gl_GlobalInvocationID.x].count = sharedData[2*tid+1];
+}
+
 void main() {
-    uint binID = gl_GlobalInvocationID.x;
-    if (binID == 0) bins[binID].startIndex = 0;  // For the first bin, start index is 0
-    else bins[binID].startIndex = bins[binID - 1].startIndex + bins[binID - 1].count;
+    LocalScan();
+
+    // Only one workgroup handles the sum of sums.
+    if (gl_WorkGroupID.x == 0) {
+        // This is a naive approach for the sum of sums. In practice, you'd probably want to use a more efficient method.
+        for (uint i = 1; i < gl_NumWorkGroups.x; ++i) {
+            bins[i].sum += bins[i - 1].sum;
+        }
+    }
+
+    barrier();
+
+    // Add scanned sums to local scan results.
+    if (gl_WorkGroupID.x > 0) {
+        uint addValue = bins[gl_WorkGroupID.x - 1].sum;
+        bins[2*gl_GlobalInvocationID.x].count += addValue;
+        bins[2*gl_GlobalInvocationID.x + 1].count += addValue;
+    }
 }

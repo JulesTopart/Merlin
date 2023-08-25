@@ -14,6 +14,10 @@ Artificial Pressure Power (n): 4
 Artificial Viscosity (c): <= 0.01"
 
 */
+
+#define BTHREAD 512
+#define PTHREAD 512
+
 // --- Global ---
 const float scale = 0.4;
 const float G = 1000 * 9.81f; //gravity
@@ -65,20 +69,16 @@ const float rheo_n = 0.5; // Flow behavior index
 
 
 // --- Domain ---
-const uint binResolution = 8;
-const vec3 domain = vec3(300, 200, 250);
+const uint binResolution = 512;
+const vec3 domain = vec3(100, 100, 20);
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);
-
 
 const float binSize = max(max(domain.x, domain.y), domain.z) / float(binResolution);
 const uvec3 binMax = uvec3(domain / binSize);
 const uint binCount = binMax.x * binMax.y * binMax.z;
 
-const uint maxParticlePerBin = 8*8*8;
 // Define boundary
-
-
 const float boundaryRestitution = 0.05; // Bounce factor
 const float boundaryRepulsionDistance = 0.03125;
 const float boundaryRepulsionForce = 0.0;

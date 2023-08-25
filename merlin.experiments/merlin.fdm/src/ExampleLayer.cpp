@@ -344,13 +344,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	particleSystem->Execute(solver, false); //Neighbor
 
 
-
-
 	memcpy(binCPUBuffer.data(), binBuffer->Map(), binCPUBuffer.size() * sizeof(Bin));
-	for (int i = 0; i < binCount; i++) {
-		if (i == 0) binCPUBuffer[i].startIndex = 0;  // For the first bin, start index is 0
-		else binCPUBuffer[i].startIndex = binCPUBuffer[i - 1].startIndex + binCPUBuffer[i - 1].count;
-	}
 	binBuffer->Unmap();
 
 	particleBuffer->Bind();
@@ -359,17 +353,8 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	sortedIndexBuffer->Bind();
 	memcpy(sortedIndexCPUBuffer.data(), sortedIndexBuffer->Map(), sortedIndexCPUBuffer.size() * sizeof(GLuint));
-	for (int i = 0; i < numParticles; i++) {
-		GLuint binIndex = getBinIndex(glm::vec3(particleCPUBuffer[i].position[0], particleCPUBuffer[i].position[1], particleCPUBuffer[i].position[2]));
-		GLuint sortedPosition = binCPUBuffer[binIndex].startIndex++;
-		sortedIndexCPUBuffer[sortedPosition] = i;
-	}
 	sortedIndexBuffer->Unmap();
 	
-	memcpy(sortedIndexBuffer->Map(), sortedIndexCPUBuffer.data(), sortedIndexCPUBuffer.size() * sizeof(GLuint));
-	sortedIndexBuffer->Unmap();
-
-	/*
 	prefixSum->Use();
 	binBuffer->Attach(*prefixSum); 
 	binSystem->Execute(prefixSum, false);
@@ -377,7 +362,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->Use();
 	solver->SetUInt("stage", 2);
 	particleSystem->Execute(solver, false); //Sort
-	*/
+	
 
 	for (int i = 0; i < solver_iteration; i++) {
 

@@ -14,6 +14,7 @@ layout(std430, binding = 1) buffer ParticleBuffer {
 
 struct Bin {
 	uint count;
+	uint sum;
 	uint startIndex;
 };
 
