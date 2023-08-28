@@ -396,12 +396,14 @@ uniform vec3 sourcePos;
 // XPBD_Main
 void main() {
 	uint gid = gl_GlobalInvocationID.x;
-	if (gid >= numParticles){ 
-		if(particles[gid].new_position == vec3(0.0)){ //Spawing a new particle in the nozzle
+
+	if (gid < numParticles){
+		if (particles[gid].new_position == vec3(0)){ 
 			particles[gid].position += sourcePos/scale;
+			particles[gid].new_position = particles[gid].position;
 			particles[gid].position = clampToBoundaries(particles[gid].position);
 		}
+		else XPBDSolve(gid, stage);
 	}
-
-	XPBDSolve(gid, stage);
+	
 }

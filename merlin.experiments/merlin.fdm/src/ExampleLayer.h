@@ -56,9 +56,9 @@ const float bx = 100;
 const float by = 100;
 const float bz = 20;
 
-const GLuint thread = 512;
-const GLuint binThread = 512;
-const GLsizei binRes = 512;
+const GLuint thread = 128;
+const GLuint binThread = 64;
+const GLsizei binRes = 128;
 const float binWidth = 300.0/float(binRes);
 const GLsizei binCount = int(bx / (binWidth)) * int(by / (binWidth)) * int(bz / (binWidth));
 const GLsizei maxParticlesCount = 64 * 64 * 64;

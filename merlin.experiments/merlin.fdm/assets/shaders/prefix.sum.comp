@@ -1,14 +1,11 @@
 #version 460
 #include "constants.glsl"
-
 layout(local_size_x = BTHREAD) in;
-
-
 #include "common.glsl"
 
 //https://betterprogramming.pub/efficient-parallel-prefix-sum-in-metal-for-apple-m1-9e60b974d62
 
-shared uint sharedData[1024];
+shared uint sharedData[256];
 
 void LocalScan() {
     uint tid = gl_LocalInvocationID.x;

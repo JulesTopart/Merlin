@@ -15,8 +15,8 @@ Artificial Viscosity (c): <= 0.01"
 
 */
 
-#define BTHREAD 512
-#define PTHREAD 512
+#define BTHREAD 64
+#define PTHREAD 128
 
 // --- Global ---
 const float scale = 0.4;
@@ -69,7 +69,7 @@ const float rheo_n = 0.5; // Flow behavior index
 
 
 // --- Domain ---
-const uint binResolution = 512;
+const uint binResolution = 128;
 const vec3 domain = vec3(100, 100, 20);
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);

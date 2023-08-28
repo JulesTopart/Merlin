@@ -187,6 +187,11 @@ void ExampleLayer::InitPhysics() {
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
 
+	particleBuffer->Bind();
+	particleBuffer->Attach(*solver);
+	binBuffer->Bind();
+	binBuffer->Attach(*solver);
+
 }
 
 void ExampleLayer::SetColorGradient() {
@@ -315,35 +320,30 @@ glm::uvec3 getBinCoordFromIndex(GLuint index) {
 void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	timer++;
+	solver->Use();
 
 	if (timer - lastSpawn > spawnDelay / sim_speed) {
 		numParticles += spawnCount;
+		particleSystem->SetActiveInstancesCount(numParticles);
 		lastSpawn = timer;
 	}
+
 
 	if (sim == 0)nozzle->SetPosition(circle());
 	else if (sim == 1)nozzle->SetPosition(snake());
 
-	solver->Use();
 	solver->SetVec3("sourcePos", u);
 	solver->SetFloat("speed", sim_speed);
-
-	particleSystem->SetActiveInstancesCount(numParticles);
-
-	particleBuffer->Bind();
-	particleBuffer->Attach(*solver);
-	binBuffer->Bind();
-	binBuffer->Attach(*solver);
+	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
 
 	solver->SetUInt("stage", 0);
 	particleSystem->Execute(solver, false); //Predict
-	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
 
 	binBuffer->Clear(); //Clear neighbor search data
 	solver->SetUInt("stage", 1);
 	particleSystem->Execute(solver, false); //Neighbor
 
-
+	/*
 	memcpy(binCPUBuffer.data(), binBuffer->Map(), binCPUBuffer.size() * sizeof(Bin));
 	binBuffer->Unmap();
 
@@ -354,7 +354,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	sortedIndexBuffer->Bind();
 	memcpy(sortedIndexCPUBuffer.data(), sortedIndexBuffer->Map(), sortedIndexCPUBuffer.size() * sizeof(GLuint));
 	sortedIndexBuffer->Unmap();
-	
+	*/
 	prefixSum->Use();
 	binBuffer->Attach(*prefixSum); 
 	binSystem->Execute(prefixSum, false);
