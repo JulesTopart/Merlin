@@ -5,6 +5,10 @@ struct Particle {
 	float lambda;
 	vec3 velocity;		// velocity			  (vx, vy, vz, 0);
 	float temperature;  // temperature
+	float a;			// a
+	float b;			// b
+	float c;			// c
+	uint binIndex;		// spatial hashing
 };
 
 layout(std430, binding = 1) buffer ParticleBuffer {

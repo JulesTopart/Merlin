@@ -43,6 +43,10 @@ struct FluidParticle {
 	float lambda;
 	float velocity[3];		// velocity			  (vx, vy, vz, 0);
 	float temperature;		// padding
+	float a;				// empty
+	float b;				// empty
+	float c;				// empty
+	GLuint binIndex;		// bin index
 };
 
 struct Bin {

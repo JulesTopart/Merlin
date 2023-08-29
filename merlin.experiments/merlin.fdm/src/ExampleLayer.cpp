@@ -328,7 +328,6 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 		lastSpawn = timer;
 	}
 
-
 	if (sim == 0)nozzle->SetPosition(circle());
 	else if (sim == 1)nozzle->SetPosition(snake());
 
@@ -343,7 +342,16 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->SetUInt("stage", 1);
 	particleSystem->Execute(solver, false); //Neighbor
 
-	/*
+	
+	prefixSum->Use();
+	binBuffer->Attach(*prefixSum); 
+	binSystem->Execute(prefixSum, false);// prefix sum
+
+	solver->Use();
+	solver->SetUInt("stage", 2);
+	particleSystem->Execute(solver, false); //Sort
+	
+
 	memcpy(binCPUBuffer.data(), binBuffer->Map(), binCPUBuffer.size() * sizeof(Bin));
 	binBuffer->Unmap();
 
@@ -354,15 +362,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	sortedIndexBuffer->Bind();
 	memcpy(sortedIndexCPUBuffer.data(), sortedIndexBuffer->Map(), sortedIndexCPUBuffer.size() * sizeof(GLuint));
 	sortedIndexBuffer->Unmap();
-	*/
-	prefixSum->Use();
-	binBuffer->Attach(*prefixSum); 
-	binSystem->Execute(prefixSum, false);
 
-	solver->Use();
-	solver->SetUInt("stage", 2);
-	particleSystem->Execute(solver, false); //Sort
-	
 
 	for (int i = 0; i < solver_iteration; i++) {
 

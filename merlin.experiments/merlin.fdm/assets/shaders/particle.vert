@@ -37,16 +37,14 @@ void main() {
 	vec3 offset = vec3(particles[gl_InstanceID].position*scale);
 	position = vec3(model * vec4((_position) + offset, 1.0f));
 
-	uint currentBinIndex = getBinIndex(particles[gl_InstanceID].position);
-
 	//color = mix(foam, water, particles[gl_InstanceID].density*300.0);
 	//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
 	//color = mix(foam, water, particles[gl_InstanceID].density*200.0 + bins[currentBinIndex].count/32.0);
 	color.w = particles[gl_InstanceID].temperature/nozzleTemperature;
-	color = vec4(randomColor(currentBinIndex), color.w);
+	color = vec4(randomColor(particles[gl_InstanceID].binIndex), color.w);
 	//color = vec4(randomColor(gl_InstanceID), 1);
 
-	uint sampleNNPos = getBinIndex(particles[0].position);
+	uint sampleNNPos = particles[0].binIndex;
 	uint st = bins[sampleNNPos].startIndex;
 	uint ns = bins[sampleNNPos].count;
 	bool test = false;

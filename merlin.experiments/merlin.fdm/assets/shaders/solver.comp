@@ -41,10 +41,8 @@ float calculateDensity(uint gid, vec3 pposition) {
 				if(x < 0 || y < 0 || z < 0) continue;
 				if(x > binResolution || y > binResolution || z > binResolution) continue;
 
-				uint currentBinIndex = getBinIndexFromCoord(ivec3(x,y,z));
-
-				uint st = bins[currentBinIndex].startIndex;
-				uint ns = bins[currentBinIndex].count;
+				uint st = bins[particles[gid].binIndex].startIndex;
+				uint ns = bins[particles[gid].binIndex].count;
 				for(uint k = st; k < ns; k++){
 					uint j = sortedParticleIndices[k];
 
@@ -115,10 +113,8 @@ float computeLambda(uint gid, vec3 pposition, float density) {
 				if(x < 0 || y < 0 || z < 0) continue;
 				if(x > binResolution || y > binResolution || z > binResolution) continue;
 
-				uint currentBinIndex = getBinIndexFromCoord(ivec3(x,y,z));
-
-				uint st = bins[currentBinIndex].startIndex;
-				uint ns = bins[currentBinIndex].count;
+				uint st = bins[particles[gid].binIndex].startIndex;
+				uint ns = bins[particles[gid].binIndex].count;
 				for(uint k = st; k < ns; k++){
 					uint j = sortedParticleIndices[k];
 
@@ -199,10 +195,8 @@ vec3 computePositionDelta(uint i) {
 				if(x < 0 || y < 0 || z < 0) continue;
 				if(x > binResolution || y > binResolution || z > binResolution) continue;
 
-				uint currentBinIndex = getBinIndexFromCoord(ivec3(x,y,z));
-
-				uint st = bins[currentBinIndex].startIndex;
-				uint ns = bins[currentBinIndex].count;
+				uint st = bins[particles[gid].binIndex].startIndex;
+				uint ns = bins[particles[gid].binIndex].count;
 				for(uint k = st; k < ns; k++){
 					uint j = sortedParticleIndices[k];
 
@@ -250,10 +244,8 @@ vec3 constrainVelocity(uint gid, vec3 velocity) {
 				if(x < 0 || y < 0 || z < 0) continue;
 				if(x > binResolution || y > binResolution || z > binResolution) continue;
 
-				uint currentBinIndex = getBinIndexFromCoord(ivec3(x,y,z));
-
-				uint st = bins[currentBinIndex].startIndex;
-				uint ns = bins[currentBinIndex].count;
+				uint st = bins[particles[gid].binIndex].startIndex;
+				uint ns = bins[particles[gid].binIndex].count;
 				for(uint k = st; k < ns; k++){
 					uint j = sortedParticleIndices[k];
 						if (j == gid) continue;
@@ -295,10 +287,8 @@ float computeTemperature(uint gid) {
 				if(x < 0 || y < 0 || z < 0) continue;
 				if(x > binResolution || y > binResolution || z > binResolution) continue;
 
-				uint currentBinIndex = getBinIndexFromCoord(ivec3(x,y,z));
-
-				uint st = bins[currentBinIndex].startIndex;
-				uint ns = bins[currentBinIndex].count;
+				uint st = bins[particles[gid].binIndex].startIndex;
+				uint ns = bins[particles[gid].binIndex].count;
 				for(uint k = st; k < ns; k++){
 					uint j = sortedParticleIndices[k];
 						if (j == gid) continue;
@@ -359,14 +349,13 @@ void XPBDSolve(uint gid, uint simStep) {
 
 	}else if(simStep == 1){ //Neighbor search
 		#ifdef USE_NEAREST_NEIGHBORS
-		uint currentBinIndex = getBinIndex(particles[gid].position);
-		atomicAdd(bins[currentBinIndex].count, 1);
+		p.binIndex = getBinIndex(particles[gid].position);
+		atomicAdd(bins[p.binIndex].count, 1);
 		#endif
 
 	}else if(simStep == 2){ //Particle sort
 		#ifdef USE_NEAREST_NEIGHBORS
-		uint binIndex = getBinIndex(particles[gid].position);
-		uint sortedPosition = atomicAdd(bins[binIndex].startIndex, 1);
+		uint sortedPosition = atomicAdd(bins[p.binIndex].count, -1);
 		sortedParticleIndices[sortedPosition] = gid;
 		#endif
 	}
