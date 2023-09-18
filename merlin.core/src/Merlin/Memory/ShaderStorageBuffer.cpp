@@ -28,6 +28,10 @@ namespace Merlin::Memory {
 		Bind();
 	}
 
+	Shared<ShaderStorageBuffer> ShaderStorageBuffer::Create(std::string name) {
+		return std::make_shared<ShaderStorageBuffer>(name);
+	}
+
 	ShaderStorageBuffer::~ShaderStorageBuffer() {}
 
 	void ShaderStorageBuffer::SetBindingPoint(GLuint binding) {

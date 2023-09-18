@@ -54,6 +54,13 @@ struct Bin {
 	GLuint startIndex;
 };
 
+//Moving particles
+struct Constraint {
+	alignas(16) glm::vec4 position;      // Position (x, y, z) and mass (w)
+	alignas(16) glm::vec4 velocity;      // Velocity (x, y, z) and inverse density (w)
+};
+
+
 const float scale = 0.035 / (4.0);
 
 const float bx = 100;
@@ -101,15 +108,14 @@ private:
 	Shared<SSBO> binBuffer; //Particle buffer
 	std::vector<Bin> binCPUBuffer; //Particle buffer
 
-	Shared<SSBO> sortedIndexBuffer; //Index buffer
-	std::vector<GLuint> sortedIndexCPUBuffer; //Particle buffer
+	Shared<SSBO> constraintBuffer; //Index buffer
+	std::vector<Constraint> constraintCPUBuffer; //Particle buffer
 
 	Shared<SSBO> particleBuffer; //Particle buffer
 	std::vector<FluidParticle> particleCPUBuffer; //Particle buffer
 
-	
 
-	Shared<UBO> simParameters;
+	//Shared<UBO> simParameters;
 
 	Shared<Shader> modelShader;
 	Shared<Shader> particleShader;

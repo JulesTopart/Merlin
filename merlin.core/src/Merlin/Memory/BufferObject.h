@@ -52,6 +52,7 @@ namespace Merlin::Memory{
 		_size = count * sizeof(T);
 		Console::info("Buffer") << "allocating " << _size / 1000000.0 << "Mb of GPU Memory" << Console::endl;
 		glBufferData(_Target, _size, NULL, usage);
+		Clear();
 	}
 
 }

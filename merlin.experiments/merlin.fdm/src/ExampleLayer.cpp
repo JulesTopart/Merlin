@@ -164,16 +164,9 @@ void ExampleLayer::InitPhysics() {
 	binBuffer->SetBindingPoint(2);
 	binBuffer->Allocate<Bin>(binCount, GL_DYNAMIC_DRAW);
 	binCPUBuffer.resize(binCount);
-	
-
-	sortedIndexBuffer = CreateShared<SSBO>("SortedParticleIndexBuffer");
-	sortedIndexBuffer->SetBindingPoint(3);
-	sortedIndexBuffer->Allocate<GLuint>(maxParticlesCount);
-	sortedIndexCPUBuffer.resize(maxParticlesCount);
 
 	particleSystem->AddStorageBuffer(binBuffer);
 	particleSystem->AddStorageBuffer(particleBuffer);
-	particleSystem->AddStorageBuffer(sortedIndexBuffer);
 	particleSystem->AddComputeShader(solver);
 
 	binSystem->AddStorageBuffer(binBuffer);
@@ -351,17 +344,6 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->SetUInt("stage", 2);
 	particleSystem->Execute(solver, false); //Sort
 	
-
-	memcpy(binCPUBuffer.data(), binBuffer->Map(), binCPUBuffer.size() * sizeof(Bin));
-	binBuffer->Unmap();
-
-	particleBuffer->Bind();
-	memcpy(particleCPUBuffer.data(), particleBuffer->Map(), particleCPUBuffer.size() * sizeof(FluidParticle));
-	particleBuffer->Unmap();
-
-	sortedIndexBuffer->Bind();
-	memcpy(sortedIndexCPUBuffer.data(), sortedIndexBuffer->Map(), sortedIndexCPUBuffer.size() * sizeof(GLuint));
-	sortedIndexBuffer->Unmap();
 
 
 	for (int i = 0; i < solver_iteration; i++) {

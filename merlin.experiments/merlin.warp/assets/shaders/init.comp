@@ -1,0 +1,28 @@
+#version 450
+#include "constants.glsl"
+
+layout (local_size_x = PTHREAD) in;
+#include "common.glsl"
+
+
+void main() {
+  uint index = gl_GlobalInvocationID.x;
+
+   /* Source */
+  float space = H*0.2;
+  uint count = 4;
+
+  uint i = index % count;
+  uint j = uint((index % (count*count)) / count);
+  uint k = uint(index / (count*count))%count;
+
+  particles[index].position     = vec3(0 + (i) * space.x + (k%2 == 0 ? 0.0 : space/2), 0+ (j) * space + (k%2 == 0 ? 0.0 : space/2), (k)*space) - vec3(2.5*space, 2.5*space,0);
+  particles[index].new_position = vec3(0.0);
+  particles[index].velocity = vec3(0.0,0.0,0.0);
+  particles[index].density = 0;
+  particles[index].lambda = 0.0;
+  particles[index].temperature = nozzleTemperature;
+
+  
+	
+}

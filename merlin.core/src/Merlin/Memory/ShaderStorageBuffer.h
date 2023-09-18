@@ -18,6 +18,7 @@ namespace Merlin::Memory {
 		inline std::string name() const { return _name; }
 
 		static void copy(Shared<ShaderStorageBuffer> origin, Shared<ShaderStorageBuffer> target, GLsizeiptr size);
+		static Shared<ShaderStorageBuffer> Create(std::string name);
 
 	private:
 		std::string _name;

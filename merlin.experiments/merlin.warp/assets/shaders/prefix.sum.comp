@@ -1,0 +1,15 @@
+#version 460
+#include "constants.glsl"
+layout(local_size_x = BTHREAD) in;
+#include "common.glsl"
+
+uniform uint stride; //1, 2, 4
+
+void main() {
+	uint i = gl_GlobalInvocationID.x;
+
+	if(i <= stride);// bins[i].count = bins[i].count;
+	else{
+		bins[i].count = bins[i- stride].count + bins[i].count;
+	}
+}
