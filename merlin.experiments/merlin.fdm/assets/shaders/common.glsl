@@ -15,13 +15,10 @@ layout(std430, binding = 1) buffer ParticleBuffer {
 	Particle particles[];
 };
 
-
 struct Bin {
 	uint count;
 	uint sum;
-	uint startIndex;
 };
-
 
 layout(std430, binding = 2) buffer BinBuffer {
 	Bin bins[];
@@ -57,4 +54,6 @@ uvec3 getBinCoordFromIndex(uint index) {
 	uint x = index % binMax.x;
 	return uvec3(x, y, z);
 }
+
+
 

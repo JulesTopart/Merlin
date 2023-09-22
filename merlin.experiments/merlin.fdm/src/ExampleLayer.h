@@ -47,6 +47,7 @@ struct FluidParticle {
 	float b;				// empty
 	float c;				// empty
 	GLuint binIndex;		// bin index
+
 };
 
 struct Bin {
@@ -60,20 +61,26 @@ struct Constraint {
 	alignas(16) glm::vec4 velocity;      // Velocity (x, y, z) and inverse density (w)
 };
 
+const struct Settings {
+	float scale = 0.035 / (4.0);
 
-const float scale = 0.035 / (4.0);
+	//Build Volume dimensions
+	float bx = 100;//mm
+	float by = 40;//mm
+	float bz = 40;//mm
 
-const float bx = 100;
-const float by = 100;
-const float bz = 20;
+	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
+	float pDiameter = 0.4; //mm
+	GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
+	GLuint pWkgSize = 128; //Number of thread per workgroup
+	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-const GLuint thread = 128;
-const GLuint binThread = 64;
-const GLsizei binRes = 128;
-const float binWidth = 300.0/float(binRes);
-const GLsizei binCount = int(bx / (binWidth)) * int(by / (binWidth)) * int(bz / (binWidth));
-const GLsizei maxParticlesCount = 64 * 64 * 64;
-
+	GLuint bRes = 64; //Bed width is divided bRes times
+	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
+	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
+	GLuint bWkgSize = bRes; //Number of thread per workgroup
+	GLuint bWkgCount = (bThread + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
+}settings;
 
 class ExampleLayer : public Merlin::Layer
 {

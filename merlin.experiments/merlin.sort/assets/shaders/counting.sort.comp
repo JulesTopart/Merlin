@@ -23,7 +23,7 @@ void calculateHistogram(uint id, uint value) {
 
 }
 
-void computePrefixSum(uint id) {
+void computePrefixSum(uint id) { //sequential
     if (id == 0) { // Use thread 0 to update the global prefixSum
         for (uint i = 1; i < 10; ++i) {
             globalPrefixSum[i] = globalPrefixSum[i-1] + globalPrefixSum[i];
@@ -34,24 +34,26 @@ void computePrefixSum(uint id) {
 
 void reorderData(uint id, uint value) {
     uint digit = (value / radixDivisor) % 10;
-	data[atomicAdd( globalPrefixSum[digit], -1)-1] = value;
+	outData[atomicAdd( globalPrefixSum[digit], -1)-1] = value;
 }
 
 void main() {
     uint id = gl_GlobalInvocationID.x;
     
     // Load data into shared memory
-    if (id < n) {
-        sharedData[gl_LocalInvocationID.x] = data[id];
+    if (id < size) {
+        sharedData[gl_LocalInvocationID.x] = inData[id];
     }
     barrier();
 
-    if (id < n) {
+    if (id < size) {
         calculateHistogram(gl_LocalInvocationID.x, sharedData[gl_LocalInvocationID.x]);
         computePrefixSum(gl_LocalInvocationID.x);
     }
 
-    if (id < n) {
-        reorderData(id, data[id]);
+    if (id < size) {
+        reorderData(id, inData[id]);
     }
+    barrier();
+    inData[id] = outData[id];
 }

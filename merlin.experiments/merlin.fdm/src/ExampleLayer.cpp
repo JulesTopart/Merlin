@@ -22,8 +22,6 @@ ExampleLayer::ExampleLayer() {
 
 ExampleLayer::~ExampleLayer() {}
 
-
-
 void ExampleLayer::InitGraphics() {
 	// Init OpenGL stuff
 	renderer.Initialize();
@@ -110,7 +108,7 @@ void ExampleLayer::InitGraphics() {
 	nozzleMdl->SetShader(modelShader);
 	nozzleMdl->Rotate(glm::vec3(3.141592654, 0, 0));
 	nozzleMdl->Translate(glm::vec3(0, 0, -20));
-	nozzleMdl->Scale(glm::vec3(0.5,0.5,0.5));
+	nozzleMdl->Scale(0.10);
 
 	nozzle = TransformObject::Create("nozzleTransform");
 	nozzle->AddChild(nozzleMdl);
@@ -129,7 +127,7 @@ void ExampleLayer::InitPhysics() {
 	float gridWidth = 1.0f;
 
 	//Create particle system
-	particleSystem = CreateShared<ParticleSystem>("ParticleSystem", maxParticlesCount);
+	particleSystem = CreateShared<ParticleSystem>("ParticleSystem", settings.pThread);
 	particleSystem->Translate(glm::vec3(0, 0, 0));
 
 	//Define the mesh for instancing (Here a cube)
@@ -141,13 +139,13 @@ void ExampleLayer::InitPhysics() {
 	particleSystem->SetMesh(particle);
 
 	//Create bin system
-	binSystem = CreateShared<ParticleSystem>("BinSystem", binCount);
+	binSystem = CreateShared<ParticleSystem>("BinSystem", settings.bThread);
 	binSystem->Translate(glm::vec3(0, 0, 0));
 
 	//Define the mesh for instancing (Here a cube)
 	//Shared<Mesh> particle = Primitives::CreateCube(0.05 * 0.15);
 	//Shared<Mesh> particle = Primitives::CreateSphere(0.05*0.15, 10, 10);
-	Shared<Mesh> binInstance = Primitives::CreateQuadCube(binWidth, false);
+	Shared<Mesh> binInstance = Primitives::CreateQuadCube(settings.bWidth, false);
 	binInstance->SetName("bin");
 	binInstance->SetShader(binShader);
 	binSystem->SetMesh(binInstance);
@@ -157,13 +155,13 @@ void ExampleLayer::InitPhysics() {
 	//Create the buffer
 	particleBuffer = CreateShared<SSBO>("ParticleBuffer");
 	particleBuffer->SetBindingPoint(1);
-	particleBuffer->Allocate<FluidParticle>(maxParticlesCount);
-	particleCPUBuffer.resize(maxParticlesCount);
+	particleBuffer->Allocate<FluidParticle>(pThread);
+	particleCPUBuffer.resize(pThread);
 
 	binBuffer = CreateShared<SSBO>("BinBuffer");
 	binBuffer->SetBindingPoint(2);
-	binBuffer->Allocate<Bin>(binCount, GL_DYNAMIC_DRAW);
-	binCPUBuffer.resize(binCount);
+	binBuffer->Allocate<Bin>(bThread, GL_DYNAMIC_DRAW);
+	binCPUBuffer.resize(bThread);
 
 	particleSystem->AddStorageBuffer(binBuffer);
 	particleSystem->AddStorageBuffer(particleBuffer);
@@ -171,7 +169,6 @@ void ExampleLayer::InitPhysics() {
 
 	binSystem->AddStorageBuffer(binBuffer);
 	binSystem->AddComputeShader(prefixSum);
-	
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
@@ -264,7 +261,7 @@ glm::vec3 circle() {
 
 void ExampleLayer::ResetSimulation() {
 
-	particleSystem->SetActiveInstancesCount(maxParticlesCount);
+	particleSystem->SetActiveInstancesCount(settings.pThread);
 	particleSystem->Execute(init); //init position using init compute shader
 	numParticles = 0;
 	solver->Use();
@@ -280,17 +277,17 @@ void ExampleLayer::ResetSimulation() {
 
 
 glm::uvec3 getBinCoord(glm::vec3 position) {
-	position *= scale;
+	position *= settings.scale;
 	position += glm::vec3(150,100,125);
-	glm::uvec3 bin3D = glm::uvec3(position / binWidth);
-	bin3D.x = max(min(bin3D.x, (300.0 / (binWidth)) - 1), 0);
-	bin3D.y = max(min(bin3D.y, (200.0 / (binWidth)) - 1), 0);
-	bin3D.z = max(min(bin3D.z, (250.0 / (binWidth)) - 1), 0);
+	glm::uvec3 bin3D = glm::uvec3(position / settings.bWidth);
+	bin3D.x = max(min(bin3D.x, (settings.bx / (settings.bWidth)) - 1), 0);
+	bin3D.y = max(min(bin3D.y, (settings.by / (settings.bWidth)) - 1), 0);
+	bin3D.z = max(min(bin3D.z, (settings.bz / (settings.bWidth)) - 1), 0);
 	return bin3D;
 }
 
 GLuint getBinIndexFromCoord(glm::uvec3 coord) {
-	return (coord.z * (300.0 / (binWidth)) * (200.0 / (binWidth))) + (coord.y * (300.0 / (binWidth))) + coord.x;
+	return (coord.z * (settings.bx / (settings.bWidth)) * (settings.by / (settings.bWidth))) + (coord.y * (settings.bx / (settings.bWidth))) + coord.x;
 }
 
 GLuint getBinIndex(glm::vec3 position) {
@@ -299,14 +296,12 @@ GLuint getBinIndex(glm::vec3 position) {
 }
 
 glm::uvec3 getBinCoordFromIndex(GLuint index) {
-	GLuint z = index / ((300.0 / (binWidth)) * (200.0 / (binWidth)));
-	index -= (z * (300.0 / (binWidth)) * (200.0 / (binWidth)));
-	GLuint y = index / (300.0 / (binWidth));
-	GLuint x = index % int(300.0 / (binWidth));
+	GLuint z = index / ((settings.bx / (settings.bWidth)) * (settings.by / (settings.bWidth)));
+	index -= (z * (settings.bx/ (settings.bWidth)) * (settings.by / (settings.bWidth)));
+	GLuint y = index / (settings.bx / (settings.bWidth));
+	GLuint x = index % int(settings.bx / (settings.bWidth));
 	return glm::uvec3(x, y, z);
 }
-
-
 
 
 
@@ -335,7 +330,6 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->SetUInt("stage", 1);
 	particleSystem->Execute(solver, false); //Neighbor
 
-	
 	prefixSum->Use();
 	binBuffer->Attach(*prefixSum); 
 	binSystem->Execute(prefixSum, false);// prefix sum
@@ -344,8 +338,6 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->SetUInt("stage", 2);
 	particleSystem->Execute(solver, false); //Sort
 	
-
-
 	for (int i = 0; i < solver_iteration; i++) {
 
 		solver->SetUInt("stage", 3);
@@ -371,8 +363,8 @@ void ExampleLayer::OnAttach() {
 	InitPhysics();
 	SetColorGradient();
 
-	particleSystem->SetThread(thread);
-	binSystem->SetThread(binThread);
+	particleSystem->SetThread(settings.thread);
+	binSystem->SetThread(settings.binThread);
 	ResetSimulation();
 }
 
@@ -416,7 +408,7 @@ void ExampleLayer::OnImGuiRender()
 	camera_speed = cameraController->GetCameraSpeed();
 
 	ImGui::LabelText(std::to_string(numParticles).c_str(), "particles");
-	ImGui::LabelText(std::to_string(binCount).c_str(), "bins");
+	ImGui::LabelText(std::to_string(settings.bThread).c_str(), "bins");
 
 	if (FPS_sample > 0) {
 		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS / FPS_sample)).c_str());

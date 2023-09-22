@@ -11,10 +11,10 @@ namespace Merlin::Memory {
 		ShaderStorageBuffer(std::string name);
 		~ShaderStorageBuffer();
 
-		void SetBindingPoint(GLuint binding);
-		void Attach(const ShaderBase& sh); //Link the program buffer to the right binding point
+		//void SetBindingPoint(GLuint binding);
+		void Attach(const ShaderBase& sh, GLuint bindingPoint); //Link the program buffer to the right binding point
 
-		inline GLuint binding() const { return _binding; }
+		//inline GLuint binding() const { return _binding; }
 		inline std::string name() const { return _name; }
 
 		static void copy(Shared<ShaderStorageBuffer> origin, Shared<ShaderStorageBuffer> target, GLsizeiptr size);
@@ -22,7 +22,7 @@ namespace Merlin::Memory {
 
 	private:
 		std::string _name;
-		GLuint _binding = 0;
+		//GLuint _binding = 0;
 	};
 
 	typedef ShaderStorageBuffer SSBO;

@@ -1,10 +1,10 @@
-#define n 1000 //Number of data
-#define wgSize 32 //WorkGroup size
-
-layout(std430, binding = 0) buffer dataBuffer {
+layout(std430, binding = 0) buffer inDataBuffer {
     uint data[];
 };
 
 layout(std430, binding = 1) buffer prefixSumBuffer {
-    uint globalPrefixSum[10];
+    uint globalPrefixSum[];
 };
+
+uniform uint size; //input size
+#define wgSize 32 //WorkGroup size

@@ -53,6 +53,10 @@ namespace Merlin::Graphics {
 		_transform = glm::scale(_transform, v);
 	}
 
+	void RenderableObject::Scale(float v) {
+		_transform = glm::scale(_transform, glm::vec3(v));
+	}
+
 	void RenderableObject::SetPosition(glm::vec3 v) {
 		_transform = glm::translate(_transform, v - position());
 	}

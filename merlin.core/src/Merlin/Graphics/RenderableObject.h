@@ -29,6 +29,7 @@ namespace Merlin::Graphics {
 		void SetTransform(glm::mat4 t);
 		void SetPosition(glm::vec3 v);
 		void Scale(glm::vec3 v);
+		void Scale(float v);
 
 		//Getters
 		const glm::vec3& position() const;

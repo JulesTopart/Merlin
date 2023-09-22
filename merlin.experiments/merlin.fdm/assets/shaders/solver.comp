@@ -41,8 +41,8 @@ float calculateDensity(uint gid, vec3 pposition) {
 				if(x < 0 || y < 0 || z < 0) continue;
 				if(x > binResolution || y > binResolution || z > binResolution) continue;
 
-				uint st = bins[particles[gid].binIndex].startIndex;
 				uint ns = bins[particles[gid].binIndex].count;
+				uint st = bins[particles[gid].binIndex].sum - ns;
 				for(uint k = st; k < ns; k++){
 					uint j = sortedParticleIndices[k];
 
@@ -113,8 +113,8 @@ float computeLambda(uint gid, vec3 pposition, float density) {
 				if(x < 0 || y < 0 || z < 0) continue;
 				if(x > binResolution || y > binResolution || z > binResolution) continue;
 
-				uint st = bins[particles[gid].binIndex].startIndex;
 				uint ns = bins[particles[gid].binIndex].count;
+				uint st = bins[particles[gid].binIndex].sum - ns;
 				for(uint k = st; k < ns; k++){
 					uint j = sortedParticleIndices[k];
 
@@ -195,8 +195,8 @@ vec3 computePositionDelta(uint i) {
 				if(x < 0 || y < 0 || z < 0) continue;
 				if(x > binResolution || y > binResolution || z > binResolution) continue;
 
-				uint st = bins[particles[gid].binIndex].startIndex;
 				uint ns = bins[particles[gid].binIndex].count;
+				uint st = bins[particles[gid].binIndex].sum - ns;
 				for(uint k = st; k < ns; k++){
 					uint j = sortedParticleIndices[k];
 
@@ -244,8 +244,8 @@ vec3 constrainVelocity(uint gid, vec3 velocity) {
 				if(x < 0 || y < 0 || z < 0) continue;
 				if(x > binResolution || y > binResolution || z > binResolution) continue;
 
-				uint st = bins[particles[gid].binIndex].startIndex;
 				uint ns = bins[particles[gid].binIndex].count;
+				uint st = bins[particles[gid].binIndex].sum - ns;
 				for(uint k = st; k < ns; k++){
 					uint j = sortedParticleIndices[k];
 						if (j == gid) continue;
@@ -287,8 +287,8 @@ float computeTemperature(uint gid) {
 				if(x < 0 || y < 0 || z < 0) continue;
 				if(x > binResolution || y > binResolution || z > binResolution) continue;
 
-				uint st = bins[particles[gid].binIndex].startIndex;
 				uint ns = bins[particles[gid].binIndex].count;
+				uint st = bins[particles[gid].binIndex].sum - ns;
 				for(uint k = st; k < ns; k++){
 					uint j = sortedParticleIndices[k];
 						if (j == gid) continue;

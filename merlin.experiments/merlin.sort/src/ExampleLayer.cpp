@@ -58,40 +58,33 @@ void ExampleLayer::OnAttach(){
 	debugVector(data);
 
 	//Init buffers
-	radixSort = ComputeShader::Create( "radixSort", "./assets/shaders/radix.sort.comp");
-	radixSort->Use();
+	countingSort = ComputeShader::Create( "radixSort", "./assets/shaders/counting.sort.comp");
+	countingCount = ComputeShader::Create( "radixSort", "./assets/shaders/counting.count.comp");
 
-	dataBuffer = SSBO::Create("dataBuffer");
+	dataBuffer = SSBO::Create("inDataBuffer");
 	dataBuffer->Bind();
-	dataBuffer->SetBindingPoint(0);
-	dataBuffer->Attach(*radixSort);
+	dataBuffer->Attach(*countingSort, 0);
+	dataBuffer->Attach(*countingCount, 0);
 	dataBuffer->Allocate<GLuint>(data);
 
 	prefixSumBuffer = SSBO::Create("prefixSumBuffer");
 	prefixSumBuffer->Bind();
-	prefixSumBuffer->SetBindingPoint(1);
-	prefixSumBuffer->Attach(*radixSort);
+	prefixSumBuffer->Attach(*countingSort, 1);
+	prefixSumBuffer->Attach(*countingCount, 1);
 	prefixSumBuffer->Allocate<GLuint>(10);
 
+	countingCount->Use();
+	countingCount->SetUInt("size", n);
+
+
+
+	countingSort->Use();
+	countingSort->SetUInt("size", n);
+
 	Console::info("Data") << "Sorting data..." << Console::endl;
-	for (GLuint i = 0; i < 4; ++i) {
-		// Set uniforms or push constants for the radix divisor
-		uint32_t radixDivisor = pow(10, i);
-		radixSort->SetUInt("radixDivisor", radixDivisor);
-
-		prefixSumBuffer->Bind();
-		prefixSumBuffer->Clear();
-
-		// Dispatch the compute shader
-		radixSort->Dispatch(wgCount, 1, 1);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-		debugBuffer<GLuint>(*prefixSumBuffer);
 
 
-	}
-
-	debugBuffer<GLuint>(*dataBuffer);
+	
 
 }
 

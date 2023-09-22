@@ -1,9 +1,10 @@
 #version 460
-#include "constants.glsl"
-layout(local_size_x = BTHREAD) in;
 #include "common.glsl"
- 
-const uint blockSize = uint(log2(float(binCount)));
+ layout(local_size_x = wgSize) in;
+
+ #define N 100
+
+const uint blockSize = uint(log2(float(N)));
 shared uint localPrefixSum[blockSize];
 
 //Return the last element of the given block
@@ -19,7 +20,7 @@ uint getIndexOf(uint block, uint i){
 //Do a sum operation over the right most element of block according to Blelloch
 void globalSum(uint bid, uint space = 1){
     if (bid >= space)
-        bins[getLastIndexOf(bid)].sum += bins[getLastIndexOf(bid-space)].sum;
+        data[getLastIndexOf(bid)] += data[getLastIndexOf(bid-space)];
 }
 
 //Sequential sum operation
@@ -33,12 +34,12 @@ void main(){
 
     //Sequential prefix sum on blocks
     for (uint i = 0; i < blockSize; i++) { //Load into shared mem
-        localPrefixSum[i] = bins[getIndexOf(bid, i)].sum; 
+        localPrefixSum[i] = data[getIndexOf(bid, i)]; 
         //compute local prefix sum
         localSum(i);
     }
     //Store local sum result into global memory
-    bins[getLastIndexOf(bid)].sum = localPrefixSum[blockSize - 1];
+    data[getLastIndexOf(bid)] = localPrefixSum[blockSize - 1];
     barrier();
 
     //Binary tree on rightmost element of blocks
@@ -58,7 +59,7 @@ void main(){
     }
 
     for (uint i = 0; i < blockSize; i++) { //Load into shared mem
-        bins[getIndexOf(bid,i)].sum = localPrefixSum[i] + bins[getLastIndexOf(bid)].sum; 
+        data[getIndexOf(bid,i)] = localPrefixSum[i] + data[getLastIndexOf(bid)]; 
     }
 
     barrier();

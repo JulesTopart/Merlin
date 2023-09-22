@@ -24,7 +24,7 @@ namespace Merlin::Memory {
 	ShaderStorageBuffer::ShaderStorageBuffer(std::string name) : BufferObject(GL_SHADER_STORAGE_BUFFER){
 		// Generate a buffer object name.
 		_name = name;
-		_binding = 0;
+		//_binding = 0;
 		Bind();
 	}
 
@@ -34,17 +34,18 @@ namespace Merlin::Memory {
 
 	ShaderStorageBuffer::~ShaderStorageBuffer() {}
 
+	/*
 	void ShaderStorageBuffer::SetBindingPoint(GLuint binding) {
 		_binding = binding;
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, _binding, _BufferID);
-	}
+	}*/
 
-	void ShaderStorageBuffer::Attach(const ShaderBase& sh){
+	void ShaderStorageBuffer::Attach(const ShaderBase& sh, GLuint bindingPoint) {
 		int block_index = glGetProgramResourceIndex(sh.id(), GL_SHADER_STORAGE_BLOCK, _name.c_str());
 		if (block_index == -1) Console::error("SSBO") << "Block " << _name << " not found in shader '" << sh.name() <<  "'. Did you bind it properly ?" << Console::endl;
 		else {
-			glShaderStorageBlockBinding(sh.id(), block_index, _binding);
-			//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, _binding, _BufferID);
+			glShaderStorageBlockBinding(sh.id(), block_index, bindingPoint);
+			//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, _binding, _BufferID); Do this explicitly in your shader !
 		}
 	}
 }
