@@ -1,8 +1,6 @@
-#version 460
 #include "common.glsl"
- layout(local_size_x = wgSize) in;
 
 void main(){
-    uint bid = gl_GlobalInvocationID.x; //blockID
-
+    uint gid = gl_GlobalInvocationID.x; //blockID
+    atomicAdd(globalPrefixSum[gid],1);
 }

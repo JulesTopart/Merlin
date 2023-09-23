@@ -58,34 +58,63 @@ void ExampleLayer::OnAttach(){
 	debugVector(data);
 
 	//Init buffers
-	countingSort = ComputeShader::Create( "radixSort", "./assets/shaders/counting.sort.comp");
-	countingCount = ComputeShader::Create( "radixSort", "./assets/shaders/counting.count.comp");
+	countingCount = ComputeShader::Create( "counting.count", "./assets/shaders/counting.count.comp");
+	prefixSum = ComputeShader::Create( "prefix.sum", "./assets/shaders/prefix.sum.comp");
 
 	dataBuffer = SSBO::Create("inDataBuffer");
 	dataBuffer->Bind();
-	dataBuffer->Attach(*countingSort, 0);
+	dataBuffer->Attach(*prefixSum, 0);
 	dataBuffer->Attach(*countingCount, 0);
 	dataBuffer->Allocate<GLuint>(data);
 
+	compactSumBuffer = SSBO::Create("compactSumBuffer");
+	compactSumBuffer->Bind();
+	compactSumBuffer->Attach(*prefixSum, 1);
+	compactSumBuffer->Attach(*countingCount, 1);
+	compactSumBuffer->Allocate<GLuint>(blocks);
+
 	prefixSumBuffer = SSBO::Create("prefixSumBuffer");
 	prefixSumBuffer->Bind();
-	prefixSumBuffer->Attach(*countingSort, 1);
-	prefixSumBuffer->Attach(*countingCount, 1);
-	prefixSumBuffer->Allocate<GLuint>(10);
+	prefixSumBuffer->Attach(*prefixSum, 2);
+	prefixSumBuffer->Attach(*countingCount, 2);
+	prefixSumBuffer->Allocate<GLuint>(data.size());
 
 	countingCount->Use();
-	countingCount->SetUInt("size", n);
+	countingCount->Dispatch(data.size());
+	glFinish();
 
-
-
-	countingSort->Use();
-	countingSort->SetUInt("size", n);
-
-	Console::info("Data") << "Sorting data..." << Console::endl;
-
-
+	debugBuffer<GLuint>(*prefixSumBuffer);
 	
+	Console::print() << "Parallelizing prefixSum over " << blocks << " blocks ( " << blockSize << " values per blocks)" << Console::endl;
 
+	prefixSum->Use();
+	prefixSum->SetUInt("stage", 0);
+	prefixSum->Dispatch(blocks);
+	glFinish();
+	debugBuffer<GLuint>(*prefixSumBuffer);
+	
+	//Binary tree on rightmost element of blocks
+	GLuint steps = blockSize;
+	GLuint space = 1;
+
+	prefixSum->SetUInt("stage", 1);
+	for (GLuint step = 0; step < blocks; step++) {
+		// Calls the parallel operation
+		
+		prefixSum->SetUInt("space", space);
+		prefixSum->Dispatch(blocks);
+		glFinish();
+
+		debugBuffer<GLuint>(*compactSumBuffer);
+
+		space *= 2;
+	}
+
+	prefixSum->SetUInt("stage", 2);
+	prefixSum->Dispatch(blocks);
+	
+	debugBuffer<GLuint>(*prefixSumBuffer);
+	debugBuffer<GLuint>(*dataBuffer);
 }
 
 void ExampleLayer::OnDetach(){

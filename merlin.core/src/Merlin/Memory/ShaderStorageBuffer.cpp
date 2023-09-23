@@ -45,7 +45,7 @@ namespace Merlin::Memory {
 		if (block_index == -1) Console::error("SSBO") << "Block " << _name << " not found in shader '" << sh.name() <<  "'. Did you bind it properly ?" << Console::endl;
 		else {
 			glShaderStorageBlockBinding(sh.id(), block_index, bindingPoint);
-			//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, _binding, _BufferID); Do this explicitly in your shader !
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, _BufferID); //Do this explicitly in your shader !
 		}
 	}
 }
