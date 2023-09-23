@@ -1,6 +1,15 @@
 #include "common.glsl"
 
+
+
+uniform uint stage;
+
 void main(){
     uint gid = gl_GlobalInvocationID.x; //blockID
-    atomicAdd(globalPrefixSum[gid],1);
+
+    if(stage == 0)
+    if(gid < dataSize) atomicAdd(globalPrefixSum[outData[gid]],1);
+
+    if(stage == 1)
+    if(gid < dataSize) outData[globalPrefixSum[inData[gid]]-1] = inData[gid];
 }

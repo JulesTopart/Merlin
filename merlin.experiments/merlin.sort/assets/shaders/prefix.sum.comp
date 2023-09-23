@@ -15,9 +15,7 @@ uint getLastIndexOf(uint block){
 //Do a sum operation over the right most element of block according to Blelloch
 void compactSum(uint bid, uint space){
     compactPrefixSum[bid] = globalPrefixSum[getLastIndexOf(bid)];
-
-    if (bid >= space && bid < blocks)
-        compactPrefixSum[bid] += compactPrefixSum[bid-space];
+    if (bid >= space) compactPrefixSum[bid] += globalPrefixSum[getLastIndexOf(bid-space)];
 }
 
 uniform uint stage;
@@ -37,8 +35,11 @@ void main(){
     case 1:
         compactSum(bid, space);
     break;
-    case 2: 
-        for (uint i = 0; i < blockSize; i++) { //Load into shared mem
+    case 2:
+         globalPrefixSum[getLastIndexOf(bid)] = compactPrefixSum[bid];
+    break;
+    case 3: 
+        for (uint i = 0; i < blockSize-1; i++) { //Load into shared mem
             globalPrefixSum[getIndexOf(bid,i)] += (bid >= 1 ? compactPrefixSum[bid-1] : 0); 
         }
     break;

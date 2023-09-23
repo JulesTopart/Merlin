@@ -3,8 +3,8 @@
 #include <Merlin.h>
 using namespace Merlin::Graphics;
 
-const GLuint n = 128; //Number of data
-const GLuint wgSize = 1; //WorkGroup size
+const GLuint n = 32*32*32; //Number of data
+const GLuint wgSize = 64; //WorkGroup size
 const GLuint wgCount = (n + wgSize - 1) / wgSize; //WorkGroup size
 
 const GLuint blockSize = floor(log2f(n));
@@ -25,7 +25,8 @@ public:
 	virtual void OnImGuiRender() override;
 private:
 
-	Shared<SSBO> dataBuffer;
+	Shared<SSBO> inDataBuffer;
+	Shared<SSBO> outDataBuffer;
 	Shared<SSBO> compactSumBuffer;
 	Shared<SSBO> prefixSumBuffer;
 
