@@ -28,9 +28,10 @@ void debugBuffer(SSBO& buffer) {
 	buffer.Unmap();
 
 	Console::info("Buffer") << buffer.name() << " : " << Console::endl << "[";
-	for (GLuint i = 0; i < buf.size() -1; i++) {
+	for (GLuint i = 0; i < ((buf.size()>100) ? 100 : buf.size() -1); i++) {
 		Console::print() << buf[i] << ", ";
 	}
+	if (buf.size() > 100) Console::print() << "..., ";
 	Console::print() << buf[buf.size() -1] << "]" << Console::endl << Console::endl;
 	
 }
@@ -39,9 +40,10 @@ void debugBuffer(SSBO& buffer) {
 template<typename T>
 void debugVector(std::vector<T>& vec) {
 	Console::info("Vector") << " : " << Console::endl << "[";
-	for (GLuint i = 0; i < vec.size() - 1; i++) {
+	for (GLuint i = 0; i < ((vec.size() > 100) ? 100 : vec.size() - 1); i++) {
 		Console::print() << vec[i] << ", ";
 	}
+	if (vec.size() > 100) Console::print() << "..., ";
 	Console::print() << vec[vec.size() - 1] << "]" << Console::endl << Console::endl;
 
 }
@@ -86,62 +88,70 @@ void ExampleLayer::OnAttach(){
 	prefixSumBuffer->Attach(*countingCount, 3);
 	prefixSumBuffer->Allocate<GLuint>(data.size());
 
-	//debugBuffer<GLuint>(*inDataBuffer);
+	debugBuffer<GLuint>(*inDataBuffer);
 
 	Console::info("Sorting") << "Starting..." << Console::endl;
 	double time = (double) glfwGetTime();
 
 	countingCount->Use();
 	countingCount->SetUInt("stage", 0);
-	countingCount->Dispatch(data.size());
+	countingCount->Dispatch(wgCount);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	
+	//debugBuffer<GLuint>(*prefixSumBuffer);
+
 	Console::print() << "Data : " << data.size() << " uint values" << Console::endl;
 	Console::print() << "Parallelizing counting sort over " << blocks << " blocks ( " << blockSize << " values per blocks)" << Console::endl;
 
 	prefixSum->Use();
 	prefixSum->SetUInt("stage", 0);
-	prefixSum->Dispatch(blocks);
+	prefixSum->Dispatch(bwgCount);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	
 	//Binary tree on rightmost element of blocks
 	GLuint steps = blockSize;
 	GLuint space = 1;
 	
-	for (GLuint step = 0; step < blocks; step++) {
+	for (GLuint step = 0; step < blockSize; step++) {
 		// Calls the parallel operation
 		
 		prefixSum->SetUInt("stage", 1);
 		prefixSum->SetUInt("space", space);
-		prefixSum->Dispatch(blocks);
+		prefixSum->Dispatch(bwgCount);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 		prefixSum->SetUInt("stage", 2);
-		prefixSum->Dispatch(blocks);
+		prefixSum->Dispatch(bwgCount);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+		//debugBuffer<GLuint>(*prefixSumBuffer);
 		space *= 2;
 	}
 
 	prefixSum->SetUInt("stage", 3);
-	prefixSum->Dispatch(blocks);
+	prefixSum->Dispatch(bwgCount);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+	//debugBuffer<GLuint>(*prefixSumBuffer);
 
 	countingCount->Use();
 	countingCount->SetUInt("stage", 1);
-	countingCount->Dispatch(data.size());
+	countingCount->Dispatch(wgCount);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 	double detla = (double)glfwGetTime() - time;
 	Console::success("Sorting") << "Computation finished in " << detla << "s (" << detla * 1000.0 << " ms)" << Console::endl;
 
+	debugBuffer<GLuint>(*outDataBuffer);
 
 	time = (double)glfwGetTime();
 	std::sort(data.begin(), data.end());
 	detla = (double)glfwGetTime() - time;
 	Console::success("Sorting") << "CPU Computation finished in " << detla << "s (" << detla * 1000.0 << " ms)" << Console::endl;
 
-	//debugBuffer<GLuint>(*outDataBuffer);
+	debugVector<GLuint>(data);
+
+	
 }
 
 void ExampleLayer::OnDetach(){

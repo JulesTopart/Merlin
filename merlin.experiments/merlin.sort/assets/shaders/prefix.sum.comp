@@ -1,5 +1,7 @@
 #include "common.glsl"
 
+const uint wgSize = 1024; //WorkGroup size
+layout(local_size_x = wgSize) in;
 
 //Return index of the i-th element of a given block
 uint getIndexOf(uint block, uint i){ 
