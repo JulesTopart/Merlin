@@ -154,12 +154,14 @@ void ExampleLayer::InitPhysics() {
 	//scene.Add(particleSystem);
 	//Create the buffer
 	particleBuffer = CreateShared<SSBO>("ParticleBuffer");
-	particleBuffer->SetBindingPoint(1);
+	//particleBuffer->SetBindingPoint(1);
+	particleBuffer->Attach(*solver, 1);
 	particleBuffer->Allocate<FluidParticle>(pThread);
 	particleCPUBuffer.resize(pThread);
 
 	binBuffer = CreateShared<SSBO>("BinBuffer");
-	binBuffer->SetBindingPoint(2);
+	particleBuffer->Attach(*solver, 2);
+	binBuffer->Attach(*prefixSum);
 	binBuffer->Allocate<Bin>(bThread, GL_DYNAMIC_DRAW);
 	binCPUBuffer.resize(bThread);
 
@@ -176,11 +178,6 @@ void ExampleLayer::InitPhysics() {
 
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
-
-	particleBuffer->Bind();
-	particleBuffer->Attach(*solver);
-	binBuffer->Bind();
-	binBuffer->Attach(*solver);
 
 }
 
@@ -330,8 +327,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->SetUInt("stage", 1);
 	particleSystem->Execute(solver, false); //Neighbor
 
-	prefixSum->Use();
-	binBuffer->Attach(*prefixSum); 
+	
 	binSystem->Execute(prefixSum, false);// prefix sum
 
 	solver->Use();
@@ -396,7 +392,7 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	}
 
 	renderer.Clear();
-	heatMap->Bind();
+	
 	renderer.RenderScene(scene, *camera);
 }
 

@@ -139,6 +139,7 @@ void ExampleLayer::OnAttach(){
 	countingCount->Dispatch(wgCount);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+	glFinish();
 	double detla = (double)glfwGetTime() - time;
 	Console::success("Sorting") << "Computation finished in " << detla << "s (" << detla * 1000.0 << " ms)" << Console::endl;
 
