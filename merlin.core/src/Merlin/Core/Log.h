@@ -1,5 +1,4 @@
 #pragma once
-#include "Merlin/Core/Core.h"
 #include "Console.h"
 
 // Client log macros

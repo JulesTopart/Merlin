@@ -30,7 +30,38 @@ namespace Merlin::Tensor {
 		alignas(16) glm::vec4 velocity;      // Velocity (x, y, z) and density (w)
 	};
 
-	class ParticleSystem : public RenderableObject {
+	class GenericParticleSystem : public RenderableObject {
+	public:
+		void Draw(const Shader& shader) const; //Draw the mesh
+
+		inline void SetWorkGroupSize(GLuint t) { m_wkGrpSize = t; }
+		inline void SetActiveInstancesCount(GLuint t) { m_activeInstancesCount = t; }
+		//Meshs
+		inline void SetMesh(Shared<Mesh> geometry) { m_geometry = geometry; }
+		inline Shared<Mesh> GetMesh() const { return m_geometry; }
+
+		inline void SetDisplayMode(ParticleSystemDisplayMode mode) { m_displayMode = mode; }
+		inline ParticleSystemDisplayMode GetDisplayMode() const { return m_displayMode; }
+
+		
+		inline void AddComputeShader(Shared<ComputeShader> cs) { m_shaders.push_back(cs); };
+
+	protected : 
+		GLsizeiptr m_instancesCount;
+		GLsizeiptr m_activeInstancesCount;
+		GLuint m_wkGrpSize = 64;
+
+		//Geometry
+		Shared<Mesh> m_geometry;
+		ParticleSystemDisplayMode m_displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
+
+		//Compute shaders
+		std::vector<Shared<ComputeShader>> m_shaders; //Shader to compute the particle position
+
+	};
+
+	template<class T>
+	class ParticleSystem : public GenericParticleSystem {
 	public:
 		ParticleSystem(std::string name, GLsizeiptr maxCount);
 		~ParticleSystem();
@@ -38,35 +69,12 @@ namespace Merlin::Tensor {
 		void Update(Timestep ts);//Execute all linked compute shader
 		void Execute(Shared<ComputeShader> step, bool autoBind = true); //Execute compute shader once
 
-		void Draw(const Shader& shader) const; //Draw the mesh
-
-		void AddComputeShader(Shared<ComputeShader>);
-		void AddStorageBuffer(Shared<SSBO>);
-
-		inline void SetThread(GLuint t) { _thread = t; }
-		inline void SetActiveInstancesCount(GLuint t) { _activeInstancesCount = t; }
-		//Meshs
-		inline void SetMesh(Shared<Mesh> geometry) { _geometry = geometry; }
-		inline Shared<Mesh> GetMesh() const { return _geometry; }
-
-		inline void SetDisplayMode(ParticleSystemDisplayMode mode) { _displayMode = mode; }
-		inline ParticleSystemDisplayMode GetDisplayMode() const { return _displayMode;}
+		void AddStorageBuffer(SSBO<T>&);
 
 	private:
-		GLsizeiptr _instancesCount;
-		GLsizeiptr _activeInstancesCount;
-		GLuint _thread = 64;
-			
-		//Geometry
-		Shared<Mesh> _geometry;
-		ParticleSystemDisplayMode _displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
-		
-		//Depth buffer
-
-
 		//Buffers & Compute Shaders
-		std::vector<Shared<SSBO>> _buffers; //Buffer to store the particle
-		std::vector<Shared<ComputeShader>> _shaders; //Shader to compute the particle position
+		std::vector<Shared<SSBO<T>>> m_buffers; //Buffer to store the particle
+		
 
 	};
 }

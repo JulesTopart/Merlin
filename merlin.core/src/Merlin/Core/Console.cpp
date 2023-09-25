@@ -75,6 +75,29 @@ namespace Merlin {
 		return ConsoleStream(ConsoleLevel::_NO_HEADER, "");
 	}
 
+	void Console::printBufferLimits() {
+		// query limitations
+		// -----------------
+		int max_ubo;
+		int max_ubo_size;
+		int max_ubo_per_shader;
+		int max_ssbo;
+		int max_ssbo_size;
+
+		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_ubo);
+		glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &max_ubo_size);
+		glGetIntegerv(GL_MAX_VERTEX_UNIFORM_BLOCKS, &max_ubo_per_shader);
+		glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &max_ssbo);
+		glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &max_ssbo_size);
+
+		Console::info("Memory") << "OpenGL Limitations: " << Console::endl;
+		Console::info("Memory") << "Max Uniform buffer object bindings : " << max_ubo << Console::endl;
+		Console::info("Memory") << "Max Uniform buffer object block size : " << max_ubo << Console::endl;
+		Console::info("Memory") << "Max Uniform buffer object per shader " << max_ubo_per_shader << Console::endl;
+		Console::info("Memory") << "Max Shader Storage buffer object bindings : " << max_ssbo << Console::endl;
+		Console::info("Memory") << "Max Shader Storage buffer object block size " << max_ssbo_size << Console::endl;
+	}
+
 	void Console::printProgress(double percentage){
 		int val = (int)(percentage * 100);
 		int lpad = (int)(percentage * PBWIDTH);

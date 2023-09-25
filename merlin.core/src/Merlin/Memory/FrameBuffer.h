@@ -1,7 +1,6 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 
-#include <vector>
 #include "Merlin/Memory/Texture.h"
 #include "Merlin/Memory/TextureMultisampled.h"
 #include "Merlin/Memory/RenderBuffer.h"

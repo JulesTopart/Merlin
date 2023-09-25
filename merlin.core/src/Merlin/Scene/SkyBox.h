@@ -18,21 +18,21 @@ namespace Merlin::Graphics {
 		void Draw() const;
 
 		void LoadCubeMap(std::vector<std::string> paths);
-		inline void SetCubeMap(const Shared<CubeMap> cubemap) { _cubeMap = cubemap; }
+		inline void SetCubeMap(const Shared<CubeMap> cubemap) { m_cubeMap = cubemap; }
 
-		inline bool HasShader() const { return _shader != nullptr; }
-		inline const Shader& GetShader() const { return *_shader; }
-		inline void SetShader(Shared<Shader> shader) { _shader = shader; }
-		inline const std::string& GetShaderName() const { return _shaderName; }
-		inline void SetShader(std::string shaderName) { _shaderName = shaderName; }
+		inline bool HasShader() const { return m_shader != nullptr; }
+		inline const Shader& GetShader() const { return *m_shader; }
+		inline void SetShader(Shared<Shader> shader) { m_shader = shader; }
+		inline const std::string& GetShaderName() const { return m_shaderName; }
+		inline void SetShader(std::string shaderName) { m_shaderName = shaderName; }
 
 		static Shared<SkyBox>Create(std::string name, std::vector<std::string> paths);
 
 	private:
-		Scope<VAO> _vao;
-		Shared<CubeMap> _cubeMap;
-		std::string _shaderName = "default";
-		Shared<Shader> _shader;
+		VAO m_vao;
+		Shared<CubeMap> m_cubeMap;
+		std::string m_shaderName = "default";
+		Shared<Shader> m_shader;
 
 	};
 

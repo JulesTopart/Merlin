@@ -23,7 +23,7 @@ namespace Merlin::Graphics {
 		~Scene() {};
 
 		void Add(Shared<Model>);
-		void Add(Shared<ParticleSystem>);
+		void Add(Shared<GenericParticleSystem>);
 		void Add(Shared<Light>);
 		void Add(Shared<SkyBox>);
 		void Add(Shared<TransformObject> t);

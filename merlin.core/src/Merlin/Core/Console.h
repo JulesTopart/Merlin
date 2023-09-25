@@ -1,6 +1,6 @@
 #pragma once
 #include "Merlin/Core/Core.h"
-#include "glpch.h"
+
 
 #define GLLOG() Console::LogGLError()
 #define GLDEBUG(x) Console::ClearGLError(); x; Console::CheckGLError(__FILENAME__, __LINE__);
@@ -64,11 +64,11 @@ namespace Merlin {
 		static ConsoleStream success(std::string origin = "");
 		static ConsoleStream critical(std::string origin = "");
 
-
 		static std::string alignLeft(const int n, const std::string& x = "");
 		static std::string alignRight(const int n, const std::string& x = "");
 
 		static ConsoleStream print();
+		void printBufferLimits();
 
 		static void printProgress(double percentage);
 

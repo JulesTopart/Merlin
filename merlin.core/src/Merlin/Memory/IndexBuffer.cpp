@@ -6,12 +6,8 @@
 #include <glad/glad.h>
 
 namespace Merlin::Memory {
-	IndexBuffer::IndexBuffer(std::vector<GLuint>& indices) : BufferObject(GL_ELEMENT_ARRAY_BUFFER){
-		Bind();
-		// Give our vertices to OpenGL.
-		Allocate<GLuint>(indices, GL_STATIC_DRAW);
-		Console::trace("IndexBuffer") << "IndexBuffer " << _BufferID << " allocated. " << Console::endl;
-
+	IndexBuffer::IndexBuffer(std::vector<GLuint>& indices) : BufferObject<GLuint>(GL_ELEMENT_ARRAY_BUFFER){
+		LoadData(indices, GL_STATIC_DRAW);
 	}
 
 	IndexBuffer::~IndexBuffer() {}

@@ -51,7 +51,7 @@ namespace Merlin::Graphics {
 	}
 
 
-	void Renderer::RenderParticleSystem(const ParticleSystem& ps, const Camera& camera) {
+	void Renderer::RenderParticleSystem(const GenericParticleSystem& ps, const Camera& camera) {
 		if (ps.GetDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE) {
 			const Shader* shader;
 			//glPointSize(10);
@@ -245,7 +245,7 @@ namespace Merlin::Graphics {
 		else if (const auto ps = std::dynamic_pointer_cast<TransformObject>(object)) {
 			RenderTransformObject(*ps, camera); //Propagate to childrens
 		}
-		else if (const auto ps = std::dynamic_pointer_cast<ParticleSystem>(object)) {
+		else if (const auto ps = std::dynamic_pointer_cast<GenericParticleSystem>(object)) {
 			RenderParticleSystem(*ps, camera); //Propagate to childrens
 		}//The object is a particleSystem node
 		

@@ -112,13 +112,13 @@ private:
 	Shared<ComputeShader> prefixSum;
 
 	
-	Shared<SSBO> binBuffer; //Particle buffer
+	SSBO<Bin> binBuffer; //Particle buffer
 	std::vector<Bin> binCPUBuffer; //Particle buffer
 
-	Shared<SSBO> constraintBuffer; //Index buffer
+	SSBO<Constraint> constraintBuffer; //Index buffer
 	std::vector<Constraint> constraintCPUBuffer; //Particle buffer
 
-	Shared<SSBO> particleBuffer; //Particle buffer
+	SSBO<FluidParticle> particleBuffer; //Particle buffer
 	std::vector<FluidParticle> particleCPUBuffer; //Particle buffer
 
 
@@ -139,7 +139,7 @@ private:
 	Shared<TransformObject>  nozzle;
 
 	//Heat Map
-	Shared<SSBO> heatMap;
+	SSBO<Color> heatMap;
 	int colorCount;
 
 	//Camera

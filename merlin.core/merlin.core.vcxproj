@@ -74,7 +74,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -98,7 +98,7 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -185,11 +185,8 @@
     <ClCompile Include="src\Merlin\Scene\Light.cpp" />
     <ClCompile Include="src\Merlin\Scene\Model.cpp" />
     <ClCompile Include="src\Merlin\Scene\Material.cpp" />
-    <ClCompile Include="src\Merlin\Memory\BufferObject.cpp" />
-    <ClCompile Include="src\Merlin\Memory\UniformBuffer.cpp" />
     <ClCompile Include="src\Merlin\Util\DataStream.cpp" />
     <ClCompile Include="src\Merlin\Graphics\Mesh.cpp" />
-    <ClCompile Include="src\Merlin\Memory\ShaderStorageBuffer.cpp" />
     <ClCompile Include="src\Merlin\Tensor\ParticleSystem.cpp" />
     <ClCompile Include="src\Merlin\Memory\RenderBuffer.cpp" />
     <ClCompile Include="src\Merlin\Memory\FrameBuffer.cpp" />

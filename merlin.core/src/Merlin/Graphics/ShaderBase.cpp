@@ -12,8 +12,10 @@
 
 namespace Merlin::Graphics {
 
+	using namespace Merlin::Memory;
+
 	ShaderBase::ShaderBase(std::string name) {
-		_name = name;
+		m_name = name;
 	}
 
 	ShaderBase::~ShaderBase() {
@@ -21,27 +23,47 @@ namespace Merlin::Graphics {
 	}
 
 	void ShaderBase::Delete() {
-		LOG_TRACE("ShaderBase") << "Shader " << ProgramID << " deleted. " << Console::endl;
-		if (_compiled != 0) {
-			glDeleteProgram(ProgramID);
-			ProgramID = 0;
+		LOG_TRACE("ShaderBase") << "Shader " << m_programID << " deleted. " << Console::endl;
+		if (m_compiled != 0) {
+			glDeleteProgram(m_programID);
+			m_programID = 0;
 		}
 	}
 
 	void ShaderBase::Use() const {
-		LOG_TRACE("Shader") << "Using program : " << ProgramID << Console::endl;
+		LOG_TRACE("Shader") << "Using program : " << m_programID << Console::endl;
 		if (!IsCompiled()) {
 			LOG_ERROR("Shader") << "Failed to bind shader. Program is not compiled" << Console::endl;
 			return;
 		}
-		glUseProgram(ProgramID);
+		glUseProgram(m_programID);
+	}
+
+	void ShaderBase::Attach(GenericBufferObject& buf) {
+		int block_index = glGetProgramResourceIndex(m_programID, GL_SHADER_STORAGE_BLOCK, buf.name().c_str());
+		if (block_index == -1) Console::error("SSBO") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
+		else {
+			GLuint bindingPoint = m_attachedBuffers++;
+			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, buf.id()); //Do this explicitly in your shader !
+		}
+	}
+
+	void ShaderBase::Attach(GenericBufferObject& buf, GLuint bindingPoint) {
+		int block_index = glGetProgramResourceIndex(m_programID, GL_SHADER_STORAGE_BLOCK, buf.name().c_str());
+		if (block_index == -1) Console::error("SSBO") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
+		else {
+			m_attachedBuffers++;
+			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, buf.id()); //Do this explicitly in your shader !
+		}
 	}
 
 	//TODO : Bind the shaders automatically before setting uniforms.
 	GLuint ShaderBase::GetUniformLocation(const char* uniform) const{
 		if (!IsCompiled()) return 0;
-		GLuint uniLoc = glGetUniformLocation(ProgramID, uniform);
-		if (uniLoc == -1) LOG_INFO("Shader") << "(" << _name << ") Invalid Uniform name : " << uniform << ", (or wrong binded shader)" << Console::endl;
+		GLuint uniLoc = glGetUniformLocation(m_programID, uniform);
+		if (uniLoc == -1) LOG_INFO("Shader") << "(" << m_name << ") Invalid Uniform name : " << uniform << ", (or wrong binded shader)" << Console::endl;
 		return uniLoc;
 	}
 

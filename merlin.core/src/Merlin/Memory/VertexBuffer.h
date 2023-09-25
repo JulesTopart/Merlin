@@ -3,20 +3,17 @@
 #include "Merlin/Memory/BufferObject.h"
 #include "Merlin/Memory/Vertex.h"
 
-#include <vector>
-
-
 namespace Merlin::Memory {
 
-	class VertexBuffer : public BufferObject{
+    template<class T = Vertex>
+	class VertexBuffer : public BufferObject<T>{
 	public:
-        VertexBuffer(std::vector<float>& vertices);
-		VertexBuffer(std::vector<Vertex>& vertices);
+        VertexBuffer(std::vector<T>& vertices);
 		~VertexBuffer();
 	};
 
-	typedef VertexBuffer VBO;
-
+    template<class T = Vertex>
+    using VBO = VertexBuffer<T>;//Shorter alias
 
     struct VertexBufferElement {
         unsigned int type;
@@ -39,7 +36,7 @@ namespace Merlin::Memory {
 
         template<typename T>
         void Push(unsigned int count) {
-            static_assert(false);
+            assert(false);
         }
 
         template<>

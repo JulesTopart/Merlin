@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace Merlin::Memory {
-	class IndexBuffer : public BufferObject{
+	class IndexBuffer : public BufferObject<GLuint>{
 	public:
 		IndexBuffer(std::vector<GLuint>& indices);
 		~IndexBuffer();

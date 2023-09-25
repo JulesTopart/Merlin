@@ -6,25 +6,50 @@
 using namespace Merlin::Graphics;
 
 namespace Merlin::Memory {
-	class ShaderStorageBuffer : public BufferObject{
+	template<class T>
+	class ShaderStorageBuffer : public BufferObject<T>{
 	public:
+		ShaderStorageBuffer();
 		ShaderStorageBuffer(std::string name);
 		~ShaderStorageBuffer();
 
-		//void SetBindingPoint(GLuint binding);
-		void Attach(const ShaderBase& sh, GLuint bindingPoint); //Link the program buffer to the right binding point
-
-		//inline GLuint binding() const { return _binding; }
-		inline std::string name() const { return _name; }
-
 		static void copy(Shared<ShaderStorageBuffer> origin, Shared<ShaderStorageBuffer> target, GLsizeiptr size);
-		static Shared<ShaderStorageBuffer> Create(std::string name);
+		static Shared<ShaderStorageBuffer<T>> Create(std::string name);
 
-	private:
-		std::string _name;
-		//GLuint _binding = 0;
 	};
 
-	typedef ShaderStorageBuffer SSBO;
-}
+	template<class T>
+	using SSBO = ShaderStorageBuffer<T>;//Shorter alias
 
+	
+
+	//Implementation
+	template <class T>
+	void ShaderStorageBuffer<T>::copy(Shared<ShaderStorageBuffer> origin, Shared<ShaderStorageBuffer> target, GLsizeiptr size) {
+		//Copy the result in output buffer in the input buffer for next step
+		origin->BindAs(GL_COPY_READ_BUFFER);
+		target->BindAs(GL_COPY_WRITE_BUFFER);
+
+		//Copy the ouput buffer into the input buffer
+		glCopyBufferSubData(
+			GL_COPY_READ_BUFFER,
+			GL_COPY_WRITE_BUFFER,
+			0,
+			0,
+			size
+		);
+	}
+
+	template <class T>
+	ShaderStorageBuffer<T>::ShaderStorageBuffer() : BufferObject<T>(GL_SHADER_STORAGE_BUFFER) {}
+	template <class T>
+	ShaderStorageBuffer<T>::ShaderStorageBuffer(std::string name) : BufferObject<T>(name, GL_SHADER_STORAGE_BUFFER) {}
+
+	template <class T>
+	Shared<ShaderStorageBuffer<T>> ShaderStorageBuffer<T>::Create(std::string name) {
+		return std::make_shared<ShaderStorageBuffer>(name);
+	}
+
+	template <class T>
+	ShaderStorageBuffer<T>::~ShaderStorageBuffer() {}
+}

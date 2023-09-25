@@ -1,5 +1,6 @@
 #include "glpch.h"
 #include "CubeMap.h"
+#include "Merlin/Core/Log.h"
 
 #include <stb_image.h>
 

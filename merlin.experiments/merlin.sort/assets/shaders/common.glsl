@@ -15,8 +15,7 @@ layout(std430) buffer compactSumBuffer {
     uint compactPrefixSum[];
 };
 
-const uint dataSize = 256*256*256; //data size
-
+const uint dataSize = 128; //data size
 
 const uint blockSize = uint(floor(log2(dataSize)));
 const uint blocks = (dataSize + blockSize - 1) / blockSize;

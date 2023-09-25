@@ -19,34 +19,6 @@ ExampleLayer::ExampleLayer(){
 
 ExampleLayer::~ExampleLayer(){}
 
-template<typename T>
-void debugBuffer(SSBO& buffer) {
-	std::vector<T> buf;
-	buffer.Bind();
-	buf.resize(buffer.size() / sizeof(T));
-	memcpy(buf.data(), buffer.Map(), buffer.size());
-	buffer.Unmap();
-
-	Console::info("Buffer") << buffer.name() << " : " << Console::endl << "[";
-	for (GLuint i = 0; i < ((buf.size()>100) ? 100 : buf.size() -1); i++) {
-		Console::print() << buf[i] << ", ";
-	}
-	if (buf.size() > 100) Console::print() << "..., ";
-	Console::print() << buf[buf.size() -1] << "]" << Console::endl << Console::endl;
-	
-}
-
-
-template<typename T>
-void debugVector(std::vector<T>& vec) {
-	Console::info("Vector") << " : " << Console::endl << "[";
-	for (GLuint i = 0; i < ((vec.size() > 100) ? 100 : vec.size() - 1); i++) {
-		Console::print() << vec[i] << ", ";
-	}
-	if (vec.size() > 100) Console::print() << "..., ";
-	Console::print() << vec[vec.size() - 1] << "]" << Console::endl << Console::endl;
-
-}
 
 void ExampleLayer::OnAttach(){
 	EnableGLDebugging();
@@ -64,31 +36,27 @@ void ExampleLayer::OnAttach(){
 	countingCount = ComputeShader::Create( "counting.count", "./assets/shaders/counting.count.comp");
 	prefixSum = ComputeShader::Create( "prefix.sum", "./assets/shaders/prefix.sum.comp");
 
-	inDataBuffer = SSBO::Create("inDataBuffer");
-	inDataBuffer->Bind();
-	inDataBuffer->Attach(*prefixSum, 0);
-	inDataBuffer->Attach(*countingCount, 0);
-	inDataBuffer->Allocate<GLuint>(data);
+	inDataBuffer.Rename("inDataBuffer");
+	inDataBuffer.LoadData(data);
 
-	outDataBuffer = SSBO::Create("outDataBuffer");
-	outDataBuffer->Bind();
-	outDataBuffer->Attach(*prefixSum, 1);
-	outDataBuffer->Attach(*countingCount, 1);
-	outDataBuffer->Allocate<GLuint>(data);
+	outDataBuffer.Rename("outDataBuffer");
+	outDataBuffer.LoadData(data);
 
-	compactSumBuffer = SSBO::Create("compactSumBuffer");
-	compactSumBuffer->Bind();
-	compactSumBuffer->Attach(*prefixSum, 2);
-	compactSumBuffer->Attach(*countingCount, 2);
-	compactSumBuffer->Allocate<GLuint>(blocks);
+	compactSumBuffer.Rename("compactSumBuffer");
+	compactSumBuffer.Allocate(blocks);
 
-	prefixSumBuffer = SSBO::Create("prefixSumBuffer");
-	prefixSumBuffer->Bind();
-	prefixSumBuffer->Attach(*prefixSum, 3);
-	prefixSumBuffer->Attach(*countingCount, 3);
-	prefixSumBuffer->Allocate<GLuint>(data.size());
+	prefixSumBuffer.Rename("compactSumBuffer");
+	prefixSumBuffer.Allocate(data.size());
 
-	debugBuffer<GLuint>(*inDataBuffer);
+	prefixSum->Attach(inDataBuffer);
+	prefixSum->Attach(outDataBuffer);
+	prefixSum->Attach(prefixSumBuffer);
+	prefixSum->Attach(compactSumBuffer);
+
+	countingCount->Attach(inDataBuffer);
+	countingCount->Attach(prefixSumBuffer, 2);
+
+	inDataBuffer.print();
 
 	Console::info("Sorting") << "Starting..." << Console::endl;
 	double time = (double) glfwGetTime();
@@ -98,7 +66,7 @@ void ExampleLayer::OnAttach(){
 	countingCount->Dispatch(wgCount);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	
-	//debugBuffer<GLuint>(*prefixSumBuffer);
+	prefixSumBuffer.print();
 
 	Console::print() << "Data : " << data.size() << " uint values" << Console::endl;
 	Console::print() << "Parallelizing counting sort over " << blocks << " blocks ( " << blockSize << " values per blocks)" << Console::endl;
@@ -124,7 +92,7 @@ void ExampleLayer::OnAttach(){
 		prefixSum->Dispatch(bwgCount);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		//debugBuffer<GLuint>(*prefixSumBuffer);
+		prefixSumBuffer.print();
 		space *= 2;
 	}
 
@@ -132,7 +100,7 @@ void ExampleLayer::OnAttach(){
 	prefixSum->Dispatch(bwgCount);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-	//debugBuffer<GLuint>(*prefixSumBuffer);
+	prefixSumBuffer.print();
 
 	countingCount->Use();
 	countingCount->SetUInt("stage", 1);
@@ -143,7 +111,7 @@ void ExampleLayer::OnAttach(){
 	double detla = (double)glfwGetTime() - time;
 	Console::success("Sorting") << "Computation finished in " << detla << "s (" << detla * 1000.0 << " ms)" << Console::endl;
 
-	debugBuffer<GLuint>(*outDataBuffer);
+	outDataBuffer.print();
 
 	time = (double)glfwGetTime();
 	std::sort(data.begin(), data.end());

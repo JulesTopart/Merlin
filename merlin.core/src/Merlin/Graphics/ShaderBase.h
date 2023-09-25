@@ -1,5 +1,7 @@
 #pragma once
 #include "Merlin/Core/Core.h"
+#include "Merlin/Core/Log.h"
+#include "Merlin/Memory/BufferObject.h"
 
 #include <string>
 #include <memory>
@@ -26,21 +28,25 @@ namespace Merlin::Graphics {
 		void SetMat4(const std::string name, glm::mat4 mat) const;
 		void SetIntArray(const std::string name, GLint* values, uint32_t count) const;
 
-		inline const GLuint id() const { return ProgramID; }
-		inline void SetID(GLuint _id_) { ProgramID = _id_; };
+		void Attach(GenericBufferObject& buf);
+		void Attach(GenericBufferObject& buf, GLuint bindingPoint);
 
-		inline const std::string name() const { return _name; }
-		inline const bool IsCompiled() const { return _compiled; }
+		inline const GLuint id() const { return m_programID; }
+		inline void SetID(GLuint _id_) { m_programID = _id_; };
+
+		inline const std::string name() const { return m_name; }
+		inline const bool IsCompiled() const { return m_compiled; }
 
 		//static std::shared_ptr<ShaderBase> Create(const std::string& name);
 		static std::string ReadSrc(const std::string& filename);
 
 	protected:
+		std::string m_name;
+		bool m_compiled = false;
+		unsigned int m_attachedBuffers = 0;
 
-		std::string _name;
-		bool _compiled = false;
 
 	private:
-		GLuint ProgramID = 0;
+		GLuint m_programID = 0;
 	};
 }

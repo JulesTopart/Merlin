@@ -26,39 +26,39 @@ namespace Merlin::Graphics {
 		void RemoveUnusedVertices();
 		void UpdateVAO();
 
-		inline void SetDrawMode(GLuint mode) { _drawMode = mode; }
-		inline void SetShader(Shared<Shader> shader) { _shader = shader; }
-		inline void SetMaterial(Shared<Material> material) { _material = material; }
-		inline void SetShader(std::string shaderName) { _shaderName = shaderName; }
-		inline void SetMaterial(std::string materialName) { _materialName = materialName; }
+		inline void SetDrawMode(GLuint mode) { m_drawMode = mode; }
+		inline void SetShader(Shared<Shader> shader) { m_shader = shader; }
+		inline void SetMaterial(Shared<Material> material) { m_material = material; }
+		inline void SetShader(std::string shaderName) { m_shaderName = shaderName; }
+		inline void SetMaterial(std::string materialName) { m_materialName = materialName; }
 
-		inline bool HasIndices() const { return _indices.size() > 0; }
-		inline bool HasShader() const { return _shader != nullptr; }
-		inline bool HasMaterial() const { return _material != nullptr; }
+		inline bool HasIndices() const { return m_indices.size() > 0; }
+		inline bool HasShader() const { return m_shader != nullptr; }
+		inline bool HasMaterial() const { return m_material != nullptr; }
 
-		inline GLuint GetDrawMode() const { return _drawMode; }
-		inline const std::vector<Vertex>& GetVertices() const { return _vertices;  }
-		inline const std::vector<GLuint>& GetIndices() const{ return _indices; }
+		inline GLuint GetDrawMode() const { return m_drawMode; }
+		inline const std::vector<Vertex>& GetVertices() const { return m_vertices;  }
+		inline const std::vector<GLuint>& GetIndices() const{ return m_indices; }
 		inline const glm::mat4& GetTransform() const { return _transform; }
-		inline const Shader& GetShader() const { return *_shader; }
-		inline const std::string& GetShaderName() const { return _shaderName; }
-		inline const Material& GetMaterial() const { return *_material; }
-		inline const std::string& GetMaterialName() const { return _materialName; }
+		inline const Shader& GetShader() const { return *m_shader; }
+		inline const std::string& GetShaderName() const { return m_shaderName; }
+		inline const Material& GetMaterial() const { return *m_material; }
+		inline const std::string& GetMaterialName() const { return m_materialName; }
 
 		static Shared<Mesh> Create(std::string name);
 		static Shared<Mesh> Create(std::string name, std::vector<Vertex>& vertices, GLuint mode = GL_TRIANGLES);
 		static Shared<Mesh> Create(std::string name, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode = GL_TRIANGLES);
 
 	private:
-		Scope<VAO> _vao;
-		GLuint _drawMode;
-		std::vector<Vertex> _vertices;
-		std::vector<GLuint> _indices;
+		VAO m_vao;
+		GLuint m_drawMode;
+		std::vector<Vertex> m_vertices;
+		std::vector<GLuint> m_indices;
 
-		std::string _materialName = "default";
-		std::string _shaderName = "default";
+		std::string m_materialName = "default";
+		std::string m_shaderName = "default";
 
-		Shared<Material> _material;
-		Shared<Shader> _shader;
+		Shared<Material> m_material;
+		Shared<Shader> m_shader;
 	};
 }

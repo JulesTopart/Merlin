@@ -5,7 +5,6 @@
 #include <glad/glad.h>
 
 namespace Merlin::Memory{
-
 	VertexBufferLayout Vertex::GetLayout() {
 		VertexBufferLayout layout;
 		layout.Push<float>(3); //Vertex pos
@@ -15,17 +14,12 @@ namespace Merlin::Memory{
 		return layout;
 	}
 
-	VertexBuffer::VertexBuffer(std::vector<float>& vertices) : BufferObject(GL_ARRAY_BUFFER) {
-		Bind();
-		Allocate<float>(vertices, GL_STATIC_DRAW);
-		Console::trace("VertexBuffer") << "VertexBuffer " << _BufferID << " allocated. " << Console::endl;
+	template<class T>
+	VertexBuffer<T>::VertexBuffer(std::vector<T>& vertices) : BufferObject<T>(GL_ARRAY_BUFFER) {
+		LoadData(vertices, GL_STATIC_DRAW);
+		Console::trace("VertexBuffer") << "VertexBuffer " << this->m_bufferID << " allocated. " << Console::endl;
 	}
 
-	VertexBuffer::VertexBuffer(std::vector<Vertex>& vertices) : BufferObject(GL_ARRAY_BUFFER) {
-		Bind();
-		Allocate<Vertex>(vertices, GL_STATIC_DRAW);
-		Console::trace("VertexBuffer") << "VertexBuffer " << _BufferID << " allocated. " << Console::endl;
-	}
-
-	VertexBuffer::~VertexBuffer() {}
+	template<class T>
+	VertexBuffer<T>::~VertexBuffer() {}
 }

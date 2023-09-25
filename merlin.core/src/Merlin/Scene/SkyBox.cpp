@@ -47,16 +47,14 @@ namespace Merlin::Graphics {
 		};
 
 		//Create VAO, VBO
-		_vao = CreateScope<VAO>();
-		_vao->Bind();
 		VBO vbo(skyboxVertices);
 		EBO ebo(skyboxIndices);
 
 		VertexBufferLayout layout;
 		layout.Push<float>(3); //Vertex pos
 
-		_vao->AddBuffer(vbo,layout);
-		_vao->Unbind();
+		m_vao.AddBuffer(vbo,layout);
+		m_vao.Unbind();
 
 	}
 
@@ -97,16 +95,14 @@ namespace Merlin::Graphics {
 		};
 
 		//Create VAO, VBO
-		_vao = CreateScope<VAO>();
-		_vao->Bind();
 		VBO vbo(skyboxVertices);
 		EBO ebo(skyboxIndices);
 
 		VertexBufferLayout layout;
 		layout.Push<float>(3); //Vertex pos
 
-		_vao->AddBuffer(vbo, layout);
-		_vao->Unbind();
+		m_vao.AddBuffer(vbo, layout);
+		m_vao.Unbind();
 
 		LoadCubeMap(paths);
 
@@ -114,20 +110,20 @@ namespace Merlin::Graphics {
 
 	void SkyBox::Draw() const {
 
-		if (_cubeMap)
-			_cubeMap->Bind(0);
+		if (m_cubeMap)
+			m_cubeMap->Bind(0);
 		else Console::error("SkyBox") << "The cubemap is not initialized, Please use skybox.LoadCubeMap(...) of provide an existing cubemap" << Console::endl;
 
 		// Render the skybox cube
-		_vao->Bind();
+		m_vao.Bind();
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-		_vao->Unbind();
-		_cubeMap->Unbind();
+		m_vao.Unbind();
+		m_cubeMap->Unbind();
 
 	}
 
 	void SkyBox::LoadCubeMap(std::vector<std::string> paths){
-		_cubeMap = CreateShared<CubeMap>(paths);
+		m_cubeMap = CreateShared<CubeMap>(paths);
 	}
 
 

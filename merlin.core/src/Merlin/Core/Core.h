@@ -1,7 +1,6 @@
 
 #pragma once
 #include "GL.h"
-#include "Merlin/Core/Log.h"
 #include <memory>
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)

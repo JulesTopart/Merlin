@@ -4,40 +4,35 @@
 
 namespace Merlin::Graphics {
 	Mesh::Mesh(std::string name) : RenderableObject(name) {
-		_drawMode = GL_POINTS;
+		m_drawMode = GL_POINTS;
 		//Create VAO, VBO 
-		_vao = CreateScope<VAO>();
-		Console::trace("Mesh") << "Loaded " << _vertices.size() << " vertices." << Console::endl;
+		Console::trace("Mesh") << "Loaded " << m_vertices.size() << " vertices." << Console::endl;
 	}
 
 	Mesh::Mesh(std::string name, std::vector<Vertex>& vertices, GLuint mode) : RenderableObject(name) {
-		_drawMode = mode;
+		m_drawMode = mode;
 		//Move vertices data
-		_vertices = vertices;
+		m_vertices = vertices;
 
 		//Create VAO, VBO
-		_vao = CreateScope<VAO>();
-		_vao->Bind();
-		VBO vbo(_vertices);
-		_vao->AddBuffer(vbo, Vertex::GetLayout());
-		_vao->Unbind();
+		VBO vbo(m_vertices);
+		m_vao.AddBuffer(vbo, Vertex::GetLayout());
+		m_vao.Unbind();
 
 		Console::info("Mesh") << "Loaded " << vertices.size() << " vertices." << Console::endl;
 	}
 
 	Mesh::Mesh(std::string name, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode) : RenderableObject(name) {
-		_drawMode = mode;
+		m_drawMode = mode;
 		//Move vertices data
-		_vertices = vertices;
-		_indices = indices;
+		m_vertices = vertices;
+		m_indices = indices;
 
 		//Create VAO, VBO
-		_vao = CreateScope<VAO>();
-		_vao->Bind();
-		VBO vbo(_vertices);
-		EBO ebo(_indices);
-		_vao->AddBuffer(vbo, Vertex::GetLayout());
-		_vao->Unbind();
+		VBO vbo(m_vertices);
+		EBO ebo(m_indices);
+		m_vao.AddBuffer(vbo, Vertex::GetLayout());
+		m_vao.Unbind();
 
 		Console::info("Mesh") << "Loaded " << vertices.size() << " vertices." << Console::endl;
 	}
@@ -56,85 +51,82 @@ namespace Merlin::Graphics {
 
 
 	void Mesh::Bind() {
-		_vao->Bind();
+		m_vao.Bind();
 	}
 
 	void Mesh::Unbind() {
-		_vao->Unbind();
+		m_vao.Unbind();
 	}
 
 	void Mesh::Draw() const {
-		_vao->Bind();
-		if (_indices.size() > 0) glDrawElements(_drawMode, _indices.size(), GL_UNSIGNED_INT, nullptr); //Draw elements using EBO
-		else glDrawArrays(_drawMode, 0, _vertices.size()); //Draw
-		_vao->Unbind();
+		m_vao.Bind();
+		if (m_indices.size() > 0) glDrawElements(m_drawMode, m_indices.size(), GL_UNSIGNED_INT, nullptr); //Draw elements using EBO
+		else glDrawArrays(m_drawMode, 0, m_vertices.size()); //Draw
+		m_vao.Unbind();
 	}
 
 	void Mesh::DrawInstanced(GLsizeiptr instances) const {
-		_vao->Bind();
-		if (_indices.size() > 0) glDrawElementsInstanced(_drawMode, _indices.size(), GL_UNSIGNED_INT, nullptr, instances); //Draw elements using EBO
-		else glDrawArraysInstanced(_drawMode, 0, _vertices.size(), instances); //Draw
-		_vao->Unbind();
+		m_vao.Bind();
+		if (m_indices.size() > 0) glDrawElementsInstanced(m_drawMode, m_indices.size(), GL_UNSIGNED_INT, nullptr, instances); //Draw elements using EBO
+		else glDrawArraysInstanced(m_drawMode, 0, m_vertices.size(), instances); //Draw
+		m_vao.Unbind();
 	}
 
 	void Mesh::RecalculateNormals(){
 		// Initialize all normals to zero
-		for (auto& vertex : _vertices) {
+		for (auto& vertex : m_vertices) {
 			vertex.normal = glm::vec3(0);
 		}
 
 		// Calculate the face normal for each triangle and accumulate the normals for each vertex
 		Console::info("Mesh") << "Recomputing Mesh normals.." << Console::endl;
-		for (size_t i = 0; i < _indices.size(); i += 3) {
-			GLuint i0 = _indices[i];
-			GLuint i1 = _indices[i + 1];
-			GLuint i2 = _indices[i + 2];
+		for (size_t i = 0; i < m_indices.size(); i += 3) {
+			GLuint i0 = m_indices[i];
+			GLuint i1 = m_indices[i + 1];
+			GLuint i2 = m_indices[i + 2];
 
-			glm::vec3 v0 = _vertices[i0].position;
-			glm::vec3 v1 = _vertices[i1].position;
-			glm::vec3 v2 = _vertices[i2].position;
+			glm::vec3 v0 = m_vertices[i0].position;
+			glm::vec3 v1 = m_vertices[i1].position;
+			glm::vec3 v2 = m_vertices[i2].position;
 
 			glm::vec3 edge1 = v1 - v0;
 			glm::vec3 edge2 = v2 - v0;
 
 			glm::vec3 faceNormal = glm::normalize(glm::cross(edge1, edge2));
 
-			_vertices[i0].normal += faceNormal;
-			_vertices[i1].normal += faceNormal;
-			_vertices[i2].normal += faceNormal;
-			Console::printProgress(float(i) / float(_indices.size()));
+			m_vertices[i0].normal += faceNormal;
+			m_vertices[i1].normal += faceNormal;
+			m_vertices[i2].normal += faceNormal;
+			Console::printProgress(float(i) / float(m_indices.size()));
 		}
 		Console::print() << Console::endl;
 
 		// Normalize the accumulated normals
-		for (auto& vertex : _vertices) {
+		for (auto& vertex : m_vertices) {
 			vertex.normal = glm::normalize(vertex.normal);
 		}
 
 		//Update VAO, VBO
-		_vao.reset();
-		_vao = CreateScope<VAO>();
-		_vao->Bind();
-		VBO vbo(_vertices);
-		EBO ebo(_indices);
-		_vao->AddBuffer(vbo, Vertex::GetLayout());
-		_vao->Unbind();
+		VBO vbo(m_vertices);
+		EBO ebo(m_indices);
+		m_vao.AddBuffer(vbo, Vertex::GetLayout());
+		m_vao.Unbind();
 	}
 
 	void Mesh::RecalculateIndices(){
 
 		Console::info("Mesh") << "Recomputing Mesh indices.." << Console::endl;
 		int i = 0;
-		for (Vertex v : _vertices) {
+		for (Vertex v : m_vertices) {
 			int j = 0;
-			for (Vertex c : _vertices) {
+			for (Vertex c : m_vertices) {
 				if (v.position == c.position) {
-					_indices[j] = i;
+					m_indices[j] = i;
 				}
 				j++;
 			}
 			i++;
-			Console::printProgress(float(i) / float(_indices.size()));
+			Console::printProgress(float(i) / float(m_indices.size()));
 		}
 		Console::print() << Console::endl;
 
@@ -142,13 +134,10 @@ namespace Merlin::Graphics {
 
 	void Mesh::UpdateVAO() {
 		//Update VAO, VBO
-		_vao.reset();
-		_vao = CreateScope<VAO>();
-		_vao->Bind();
-		VBO vbo(_vertices);
-		EBO ebo(_indices);
-		_vao->AddBuffer(vbo, Vertex::GetLayout());
-		_vao->Unbind();
+		VBO vbo(m_vertices);
+		EBO ebo(m_indices);
+		m_vao.AddBuffer(vbo, Vertex::GetLayout());
+		m_vao.Unbind();
 	}
 
 
@@ -158,10 +147,10 @@ namespace Merlin::Graphics {
 		int i = 0;
 		Vertices newVertices;
 
-		newVertices.reserve(*std::max_element(_indices.begin(), _indices.end()));
+		newVertices.reserve(*std::max_element(m_indices.begin(), m_indices.end()));
 
-		for (size_t i = 0; i < _indices.size(); i++) {
-			newVertices.push_back(_vertices[i]);
+		for (size_t i = 0; i < m_indices.size(); i++) {
+			newVertices.push_back(m_vertices[i]);
 		}
 	}
 
