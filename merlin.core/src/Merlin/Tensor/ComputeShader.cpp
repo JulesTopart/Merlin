@@ -14,9 +14,9 @@
 
 namespace Merlin::Tensor {
 
-	ComputeShader::ComputeShader(std::string n, const std::string cspath) {
-		_name = n;
-		_xWkgrp = _yWkgrp = _zWkgrp = 1;
+	ComputeShader::ComputeShader(const std::string& n, const std::string& cspath) {
+		m_name = n;
+		m_wkgrpLayout = glm::uvec3(1);
 		if (cspath != "") Compile(cspath);
 	}
 
@@ -24,7 +24,7 @@ namespace Merlin::Tensor {
 		Delete();
 	}
 
-	Shared<ComputeShader> ComputeShader::Create(std::string n, const std::string file_path) {
+	Shared<ComputeShader> ComputeShader::Create(const std::string& n, const std::string& file_path) {
 		return std::make_shared<ComputeShader>(n, file_path);
 	}
 
@@ -64,46 +64,63 @@ namespace Merlin::Tensor {
 	}
 
 	void ComputeShader::Dispatch(GLuint x, GLuint y, GLuint z) {
-		_xWkgrp = x;
-		_yWkgrp = y;
-		_zWkgrp = z;
-		Console::trace("ComputeShader") << "Dispatch: " << int(_xWkgrp) << "x" << int(_yWkgrp) << "x" << int(_zWkgrp) << Console::endl;
-		if (!IsCompiled()) return;
-		glDispatchCompute(_xWkgrp, _yWkgrp, _zWkgrp);
+		Console::trace("ComputeShader") << "Dispatch: " << int(x) << "x" << int(y) << "x" << int(z) << Console::endl;
+		if (!IsCompiled()) { Console::error("ComputeShader") << m_name << " is not Compiled" << Console::endl; return; }
+		glDispatchCompute(x, y, z);
 	}
 
-	void ComputeShader::Compile(const std::string shader_file_path) {
-		_compiled = true;
-		ShaderID = glCreateShader(GL_COMPUTE_SHADER);
+	void ComputeShader::Execute() {
+		Dispatch(m_wkgrpLayout.x, m_wkgrpLayout.y, m_wkgrpLayout.z);
+	}
+
+	void ComputeShader::SetWorkgroupLayout(GLuint x, GLuint y, GLuint z) {
+		m_wkgrpLayout = glm::uvec3(x, y, z);
+	}
+
+
+	void ComputeShader::Compile(const std::string& shader_file_path) {
+		m_compiled = true;
+		m_shaderID = glCreateShader(GL_COMPUTE_SHADER);
 
 		// Read the Vertex ComputeShader code from the file
 		LOG_INFO() << "Importing compute shader source... : " << shader_file_path << Console::endl;
-		ShaderSrc = ReadSrc(shader_file_path);
+		m_shaderSrc = ReadSrc(shader_file_path);
+		CompileFromSrc(m_shaderSrc);
+
+	}
+
+
+	void ComputeShader::CompileFromSrc(const std::string& src) {
+		m_compiled = true;
+		m_shaderID = glCreateShader(GL_COMPUTE_SHADER);
+
+		// Read the Vertex ComputeShader code from the file
+		m_shaderSrc = src;
 
 		GLint Result = GL_FALSE;
 		int InfoLogLength;
 
 		// Compile Vertex ComputeShader
 		//LOG << ("Compiling vertex shader...") << Console::endl;
-		const char* ShaderSrcPointer = ShaderSrc.c_str();
-		glShaderSource(ShaderID, 1, &ShaderSrcPointer, NULL);
-		glCompileShader(ShaderID);
+		const char* ShaderSrcPointer = m_shaderSrc.c_str();
+		glShaderSource(m_shaderID, 1, &ShaderSrcPointer, NULL);
+		glCompileShader(m_shaderID);
 
 		// Check Vertex ComputeShader
-		glGetShaderiv(ShaderID, GL_COMPILE_STATUS, &Result);
-		glGetShaderiv(ShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+		glGetShaderiv(m_shaderID, GL_COMPILE_STATUS, &Result);
+		glGetShaderiv(m_shaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
 		if (InfoLogLength > 0) {
 			std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
-			glGetShaderInfoLog(ShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
+			glGetShaderInfoLog(m_shaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
 			Console::error() << &VertexShaderErrorMessage[0];
 			Console::error() << &VertexShaderErrorMessage[0] << Console::endl;
-			_compiled = false;
+			m_compiled = false;
 		}
 
 		// Link the program
 		//printf("Linking program\n");
 		SetID(glCreateProgram());
-		glAttachShader(id(), ShaderID);
+		glAttachShader(id(), m_shaderID);
 		glLinkProgram(id());
 
 		// Check the program
@@ -113,12 +130,58 @@ namespace Merlin::Tensor {
 			std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
 			glGetProgramInfoLog(id(), InfoLogLength, NULL, &ProgramErrorMessage[0]);
 			Console::error() << &ProgramErrorMessage[0] << Console::endl;
-			_compiled = false;
+			m_compiled = false;
 		}
-		Console::success("ComputeShader") << "shader " << shader_file_path << " compiled succesfully" << Console::endl;
-		glDetachShader(id(), ShaderID);
-		glDeleteShader(ShaderID);
+		Console::success("ComputeShader") << "shader " << m_name << " compiled succesfully" << Console::endl;
+		glDetachShader(id(), m_shaderID);
+		glDeleteShader(m_shaderID);
 
+	}
+
+
+	ComputeShaderLibrary::ComputeShaderLibrary() {
+
+		Shared<ComputeShader> defaultShader = CreateShared<ComputeShader>("default");
+
+		std::string defaultSrc = R"( 
+			#version 330 core
+			layout (local_size_x = 1) in;
+			void main() {}
+		)";
+
+		defaultShader->CompileFromSrc(defaultSrc);
+		//defaultShader->noMaterial();
+		Add(defaultShader);
+	}
+
+	void ComputeShaderLibrary::Add(Shared<ComputeShader> shader) {
+		if (Exists(shader->name())) Console::warn("ComputeShaderLibrary") << "Shader already exists ! " << shader->name() << " shader has been overridden." << Console::endl;
+		m_shaders[shader->name()] = shader;
+	}
+
+	void ComputeShaderLibrary::Load(const std::string& name) {
+		auto shader = CreateShared<ComputeShader>(name);
+		Add(shader);
+	}
+
+	const ComputeShader& ComputeShaderLibrary::Get(const std::string& name) {
+		if (!Exists(name)) {
+			Console::error("ComputeShaderLibrary") << "Shader " << name << " not found ! Using default shader instead." << Console::endl;
+			return Get("default");
+		}
+		return *m_shaders[name];
+	}
+
+	bool ComputeShaderLibrary::Exists(const std::string& name) {
+		return m_shaders.find(name) != m_shaders.end();
+	}
+
+	Shared<ComputeShader> ComputeShaderLibrary::Share(const std::string& name) {
+		if (!Exists(name)) {
+			Console::error("ComputeShaderLibrary") << "Shader " << name << " not found ! Using default shader instead." << Console::endl;
+			return Share("default");
+		}
+		return m_shaders[name];
 	}
 
 }

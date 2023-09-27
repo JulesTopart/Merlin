@@ -45,7 +45,7 @@ void ExampleLayer::OnAttach(){
 	compactSumBuffer.Rename("compactSumBuffer");
 	compactSumBuffer.Allocate(blocks);
 
-	prefixSumBuffer.Rename("compactSumBuffer");
+	prefixSumBuffer.Rename("prefixSumBuffer");
 	prefixSumBuffer.Allocate(data.size());
 
 	prefixSum->Attach(inDataBuffer);
@@ -54,7 +54,9 @@ void ExampleLayer::OnAttach(){
 	prefixSum->Attach(compactSumBuffer);
 
 	countingCount->Attach(inDataBuffer);
-	countingCount->Attach(prefixSumBuffer, 2);
+	countingCount->Attach(outDataBuffer);
+	countingCount->Attach(prefixSumBuffer);
+	countingCount->Attach(compactSumBuffer);
 
 	inDataBuffer.print();
 

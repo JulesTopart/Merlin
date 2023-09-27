@@ -43,7 +43,6 @@ namespace Merlin::Tensor {
 		inline void SetDisplayMode(ParticleSystemDisplayMode mode) { m_displayMode = mode; }
 		inline ParticleSystemDisplayMode GetDisplayMode() const { return m_displayMode; }
 
-		
 		inline void AddComputeShader(Shared<ComputeShader> cs) { m_shaders.push_back(cs); };
 
 	protected : 

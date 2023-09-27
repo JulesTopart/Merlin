@@ -1,6 +1,6 @@
 #include "glpch.h"
 #include "ShaderBase.h"
-
+#include "Merlin/Core/Log.h"
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -11,8 +11,6 @@
 #include <glad/glad.h>
 
 namespace Merlin::Graphics {
-
-	using namespace Merlin::Memory;
 
 	ShaderBase::ShaderBase(std::string name) {
 		m_name = name;
@@ -39,20 +37,12 @@ namespace Merlin::Graphics {
 		glUseProgram(m_programID);
 	}
 
-	void ShaderBase::Attach(GenericBufferObject& buf) {
-		int block_index = glGetProgramResourceIndex(m_programID, GL_SHADER_STORAGE_BLOCK, buf.name().c_str());
-		if (block_index == -1) Console::error("SSBO") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
-		else {
-			GLuint bindingPoint = m_attachedBuffers++;
-			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, buf.id()); //Do this explicitly in your shader !
-		}
-	}
 
-	void ShaderBase::Attach(GenericBufferObject& buf, GLuint bindingPoint) {
+	void ShaderBase::Attach(Memory::GenericBufferObject& buf, GLuint bindingPoint) {
 		int block_index = glGetProgramResourceIndex(m_programID, GL_SHADER_STORAGE_BLOCK, buf.name().c_str());
-		if (block_index == -1) Console::error("SSBO") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
+		if (block_index == -1) Console::error("ShaderBase") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
 		else {
+			if (bindingPoint == GLuint(-1)) bindingPoint = m_attachedBuffers++;
 			m_attachedBuffers++;
 			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint);
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, buf.id()); //Do this explicitly in your shader !

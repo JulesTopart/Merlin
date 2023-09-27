@@ -42,7 +42,7 @@ namespace Merlin::Graphics {
 
 	void Shader::Delete() {
 		LOG_TRACE("Shader") << "Destructing Shader " << id() << " deleted. " << Console::endl;
-		if (_compiled != 0) {
+		if (m_compiled != 0) {
 
 			vertexShaderID = 0;
 			fragmentShaderID = 0;
@@ -69,7 +69,7 @@ namespace Merlin::Graphics {
 			glGetShaderInfoLog(id, InfoLogLength, NULL, &ShaderErrorMessage[0]);
 			LOG_ERROR("Shader") << &ShaderErrorMessage[0] << Console::endl;
 			LOG_ERROR("Shader") << name << " shader compilation failed." << Console::endl;
-			_compiled = false;
+			m_compiled = false;
 		}
 		else LOG_OK("Shader") << name << " shader compilation sucessful." << Console::endl;
 	}
@@ -80,7 +80,7 @@ namespace Merlin::Graphics {
 	void Shader::Compile(const std::string& vertex_file_path,
 		const std::string& fragment_file_path,
 		const std::string& geometry_file_path) {
-		_compiled = true;
+		m_compiled = true;
 
 		VertexShaderSrc = "";;
 		FragmentShaderSrc = "";
@@ -106,7 +106,7 @@ namespace Merlin::Graphics {
 	void Shader::CompileFromSrc(const std::string& VertexShaderSrc,
 								const std::string& FragmentShaderSrc,
 								const std::string& GeomShaderSrc) {
-		_compiled = true;
+		m_compiled = true;
 
 		LOG_TRACE() << "Creating shaders... : " << Console::endl;
 		vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -143,7 +143,7 @@ namespace Merlin::Graphics {
 			glGetProgramInfoLog(id(), InfoLogLength, NULL, &ProgramErrorMessage[0]);
 			LOG_ERROR() << &ProgramErrorMessage[0];
 			LOG_ERROR("Shader") << "Shader : " << name() << " program linkage failed." << Console::endl;
-			_compiled = false;
+			m_compiled = false;
 		}
 
 		if (Result == GL_FALSE) Console::error("Shader") << "Shader " << id() << " not linked" << Console::endl;

@@ -128,8 +128,8 @@ private:
 	Shared<Shader> particleShader;
 	Shared<Shader> binShader;
 
-	Shared<ParticleSystem> particleSystem;
-	Shared<ParticleSystem> binSystem;
+	ParticleSystem<FluidParticle> particleSystem;
+	ParticleSystem<FluidParticle> binSystem;
 
 	Renderer renderer;
 	Scene scene;
