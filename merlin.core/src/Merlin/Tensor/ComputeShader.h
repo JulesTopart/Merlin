@@ -13,13 +13,12 @@ namespace Merlin::Tensor{
 		void Compile(const std::string& file_path);
 		void CompileFromSrc(const std::string& src);
 		
-		virtual void Execute(); //Execute using the WorkgroupLayout
-		virtual void Dispatch(GLuint width, GLuint height = 1, GLuint layers = 1); //Execute using the given WorkgroupLayout
+		void Dispatch(); //Execute using the default WorkgroupLayout
+		void Dispatch(GLuint width, GLuint height = 1, GLuint layers = 1); //Execute using the given WorkgroupLayout
 		void SetWorkgroupLayout(GLuint width, GLuint height = 1, GLuint layers = 1); // Set current workgroup Layout
 
 		void PrintLimits();
 
-		static Shared<ComputeShader> Create(const std::string& n, const std::string& file_path = "");
 	protected:
 		glm::uvec3 m_wkgrpLayout;
 		GLuint m_shaderID = 0;
@@ -28,16 +27,23 @@ namespace Merlin::Tensor{
 
 	class StagedComputeShader : public ComputeShader {
 	public:
-		StagedComputeShader(const std::string& n, GLuint numberOfStage, const std::string& file_path = "");
-		~StagedComputeShader();
+		StagedComputeShader(const std::string& n, const std::string& file_path, GLuint numberOfStage);
 
-		void Execute() override; //Execute each stage of the shader using workGroupLayout
-		void Execute(GLuint stage); //Execute a specific stage of the shader using workGroupLayout
-		void Dispatch(GLuint width, GLuint height = 1, GLuint layers = 1) override; //Execute using the given WorkgroupLayout
+		void ExecuteAll();
+		void Execute(GLuint stage);
+		void Execute(GLuint start, GLuint end);
+		void Step();
 
-		static Shared<StagedComputeShader> Create(const std::string& n, const std::string& file_path = "");
+		inline void SetStageCount(GLuint n) { m_stageCount = n; }
+		inline void SetStage(GLuint n) { m_stage = n; }
+		inline void Reset() { m_stage = 0; }
+		inline GLuint GetStage() { return m_stage; }
+		inline GLuint GetStageCount() { return m_stageCount; }
+
 	protected:
 		GLuint m_stage = 0;
+		GLuint m_stageCount = 0;
+
 	};
 
 
@@ -50,7 +56,7 @@ namespace Merlin::Tensor{
 		const ComputeShader& Get(const std::string& name);
 		Shared<ComputeShader> Share(const std::string& name);
 
-		void Execute(const std::string& key);
+		void Dispatch(const std::string& key);
 		void Dispatch(const std::string& key, GLuint width, GLuint height = 1, GLuint layers = 1);
 		bool Exists(const std::string& name);
 
@@ -58,6 +64,8 @@ namespace Merlin::Tensor{
 		std::unordered_map<std::string, Shared<ComputeShader>> m_shaders;
 	};
 
+	typedef Shared<ComputeShader> ComputeShader_Ptr;
+	typedef Shared<StagedComputeShader> StagedComputeShader_Ptr;
 }
 
 

@@ -32,10 +32,12 @@ namespace Merlin::Tensor {
 
 	class GenericParticleSystem : public RenderableObject {
 	public:
+		GenericParticleSystem();
+		GenericParticleSystem(const std::string& name, GLsizeiptr instances);
+
 		void Draw(const Shader& shader) const; //Draw the mesh
 
-		inline void SetWorkGroupSize(GLuint t) { m_wkGrpSize = t; }
-		inline void SetActiveInstancesCount(GLuint t) { m_activeInstancesCount = t; }
+		inline void SetInstancesCount(GLuint t) { m_instancesCount = t; }
 		//Meshs
 		inline void SetMesh(Shared<Mesh> geometry) { m_geometry = geometry; }
 		inline Shared<Mesh> GetMesh() const { return m_geometry; }
@@ -46,9 +48,7 @@ namespace Merlin::Tensor {
 		inline void AddComputeShader(Shared<ComputeShader> cs) { m_shaders.push_back(cs); };
 
 	protected : 
-		GLsizeiptr m_instancesCount;
-		GLsizeiptr m_activeInstancesCount;
-		GLuint m_wkGrpSize = 64;
+		GLsizeiptr m_instancesCount = 1;
 
 		//Geometry
 		Shared<Mesh> m_geometry;
@@ -62,18 +62,44 @@ namespace Merlin::Tensor {
 	template<class T>
 	class ParticleSystem : public GenericParticleSystem {
 	public:
-		ParticleSystem(std::string name, GLsizeiptr maxCount);
-		~ParticleSystem();
+		ParticleSystem();
+		ParticleSystem(std::string name, GLsizeiptr instances);
+		~ParticleSystem(){};
 
-		void Update(Timestep ts);//Execute all linked compute shader
-		void Execute(Shared<ComputeShader> step, bool autoBind = true); //Execute compute shader once
+		//void Update(Timestep ts);//Execute all linked compute shader
+		//void Execute(Shared<ComputeShader> step, bool autoBind = true); //Execute compute shader once
 
-		void AddStorageBuffer(SSBO<T>&);
+		void AddStorageBuffer(Shared<GenericBufferObject>);
+
+		inline static Shared<ParticleSystem<T>> Create(std::string name, GLsizeiptr instances) {
+			return CreateShared<ParticleSystem<T>>(name, instances);
+		};
 
 	private:
 		//Buffers & Compute Shaders
-		std::vector<Shared<SSBO<T>>> m_buffers; //Buffer to store the particle
+		std::vector<Shared<GenericBufferObject>> m_buffers; //Buffer to store the particle
 		
 
 	};
+
+	template<class T>
+	using ParticleSystem_Ptr = Shared<ParticleSystem<T>>;
+
+	template<class T>
+	inline ParticleSystem<T>::ParticleSystem() : GenericParticleSystem() {}
+
+	template<class T>
+	inline ParticleSystem<T>::ParticleSystem(std::string name, GLsizeiptr maxCount) : GenericParticleSystem(name, maxCount) {}
+
+
+	template<class T>
+	inline void ParticleSystem<T>::AddStorageBuffer(Shared<GenericBufferObject> buffer) {
+		m_buffers.push_back(buffer);
+		if (m_shaders.size() == 0) Console::info("ParticleSystem") << "Shader list is empty. Load particle system shader before adding buffer to enable automatic shader attach or attach them manually" << Console::endl;
+		for (Shared<ComputeShader> shader : m_shaders) {
+			buffer->Bind();
+			shader->Attach(*buffer, m_buffers.size() - 1);
+		}
+	}
+
 }

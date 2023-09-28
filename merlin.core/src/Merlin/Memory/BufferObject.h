@@ -19,6 +19,9 @@ namespace Merlin::Memory{
 		void BindAs(GLenum target);
 		void Unbind();
 
+		void* Map();
+		void Unmap();
+
 		void Clear();
 
 		inline GLuint id() const { return m_bufferID; }
@@ -48,15 +51,12 @@ namespace Merlin::Memory{
 		void Allocate(GLsizeiptr size, GLenum usage = GL_STATIC_DRAW, T* data = NULL);
 		void LoadData(std::vector<T>& data, GLenum usage = GL_STATIC_DRAW);
 
-		void* Map();
-		void Unmap();
 		std::vector<T>& Sync(); //Download the GPU Buffer onto host memory
 
 		void FreeMemory(); //Clear the buffer and free device and host memory from content
 		void FreeHostMemory(); //Clear the host memory buffer
 		void FreeDeviceMemory(); //Clear the device memory buffer (You need to allocate it again then)
 		
-
 		void print();
 
 	protected:
@@ -94,18 +94,6 @@ namespace Merlin::Memory{
 		memcpy(m_cpuBuffer.data(), Map(), m_size);
 		Unmap();
 		return m_cpuBuffer;
-	}
-
-	template <class T>
-	void* BufferObject<T>::Map() {
-		// Map the buffer object to a pointer.
-		return glMapBuffer(m_target, GL_READ_WRITE);
-	}
-
-	template <class T>
-	void BufferObject<T>::Unmap() {
-		// Unmap the buffer object.
-		glUnmapBuffer(m_target);
 	}
 
 	template <class T>

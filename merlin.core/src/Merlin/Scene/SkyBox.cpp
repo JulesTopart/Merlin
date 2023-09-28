@@ -10,7 +10,7 @@ namespace Merlin::Graphics {
 	}
 
 
-	SkyBox::SkyBox(std::string name) : RenderableObject(name){
+	SkyBox::SkyBox(std::string name) : RenderableObject(name), m_vao(){
 		std::vector<float> skyboxVertices =
 		{
 			//   Coordinates
@@ -47,6 +47,7 @@ namespace Merlin::Graphics {
 		};
 
 		//Create VAO, VBO
+		m_vao.Bind(); //bind the VAO
 		VBO vbo(skyboxVertices);
 		EBO ebo(skyboxIndices);
 
@@ -58,7 +59,7 @@ namespace Merlin::Graphics {
 
 	}
 
-	SkyBox::SkyBox(std::string name, std::vector<std::string> paths) : RenderableObject(name) {
+	SkyBox::SkyBox(std::string name, std::vector<std::string> paths) : RenderableObject(name), m_vao() {
 		std::vector<float> skyboxVertices =
 		{
 			//   Coordinates
@@ -100,7 +101,7 @@ namespace Merlin::Graphics {
 
 		VertexBufferLayout layout;
 		layout.Push<float>(3); //Vertex pos
-
+		
 		m_vao.AddBuffer(vbo, layout);
 		m_vao.Unbind();
 
@@ -112,7 +113,10 @@ namespace Merlin::Graphics {
 
 		if (m_cubeMap)
 			m_cubeMap->Bind(0);
-		else Console::error("SkyBox") << "The cubemap is not initialized, Please use skybox.LoadCubeMap(...) of provide an existing cubemap" << Console::endl;
+		else {
+			Console::error("SkyBox") << "The cubemap is not initialized, Please use skybox.LoadCubeMap(...) of provide an existing cubemap" << Console::endl;
+			return;
+		}
 
 		// Render the skybox cube
 		m_vao.Bind();

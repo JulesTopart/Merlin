@@ -90,4 +90,6 @@ namespace Merlin::Graphics {
 		float _zoom;
 	};
 
+	typedef Shared<Camera> Camera_Ptr;
+
 }

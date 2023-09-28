@@ -20,6 +20,8 @@ namespace Merlin::Memory {
 
 	template<class T>
 	using SSBO = ShaderStorageBuffer<T>;//Shorter alias
+	template<class T>
+	using SSBO_Ptr = Shared<ShaderStorageBuffer<T>>;//Shorter alias
 
 	
 

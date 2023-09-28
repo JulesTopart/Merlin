@@ -24,11 +24,6 @@ namespace Merlin::Tensor {
 		Delete();
 	}
 
-	Shared<ComputeShader> ComputeShader::Create(const std::string& n, const std::string& file_path) {
-		return std::make_shared<ComputeShader>(n, file_path);
-	}
-
-
 	void ComputeShader::Delete() {
 		Console::trace("ComputeShader") << "Destructing Shader " << id() << Console::endl;
 	}
@@ -69,7 +64,7 @@ namespace Merlin::Tensor {
 		glDispatchCompute(x, y, z);
 	}
 
-	void ComputeShader::Execute() {
+	void ComputeShader::Dispatch() {
 		Dispatch(m_wkgrpLayout.x, m_wkgrpLayout.y, m_wkgrpLayout.z);
 	}
 
@@ -182,6 +177,47 @@ namespace Merlin::Tensor {
 			return Share("default");
 		}
 		return m_shaders[name];
+	}
+
+	void ComputeShaderLibrary::Dispatch(const std::string& key) {
+		if (!Exists(key)) {
+			Console::error("ComputeShaderLibrary") << "Shader " << key << " not found ! Using default shader instead." << Console::endl;
+			return;
+		}
+		m_shaders[key]->Dispatch();
+	}
+	void ComputeShaderLibrary::Dispatch(const std::string& key, GLuint width, GLuint height, GLuint layers) {
+		if (!Exists(key)) {
+			Console::error("ComputeShaderLibrary") << "Shader " << key << " not found ! Using default shader instead." << Console::endl;
+			return;
+		}
+		m_shaders[key]->Dispatch(width, height, layers);
+	}
+
+
+	StagedComputeShader::StagedComputeShader(const std::string& n, const std::string& file_path, GLuint numberOfStage) : ComputeShader(n, file_path) {
+		m_stage = 0;
+		m_stageCount = numberOfStage;
+	}
+
+	void StagedComputeShader::ExecuteAll() {
+		m_stage = 0;
+		while (m_stage < m_stageCount) Step();
+	}
+	void StagedComputeShader::Step() {
+		SetUInt("stage", m_stage);
+		Dispatch(m_wkgrpLayout.x, m_wkgrpLayout.y, m_wkgrpLayout.z);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		m_stage++;
+	}
+	void StagedComputeShader::Execute(GLuint i) {
+		m_stage = i;
+		Step();
+	}
+	void StagedComputeShader::Execute(GLuint s, GLuint e) {
+		m_stage = s;
+		while (m_stage < e)
+			Step();
 	}
 
 }

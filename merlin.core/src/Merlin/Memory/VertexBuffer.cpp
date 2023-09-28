@@ -13,13 +13,4 @@ namespace Merlin::Memory{
 		layout.Push<float>(2); //Texture coordinates
 		return layout;
 	}
-
-	template<class T>
-	VertexBuffer<T>::VertexBuffer(std::vector<T>& vertices) : BufferObject<T>(GL_ARRAY_BUFFER) {
-		LoadData(vertices, GL_STATIC_DRAW);
-		Console::trace("VertexBuffer") << "VertexBuffer " << this->m_bufferID << " allocated. " << Console::endl;
-	}
-
-	template<class T>
-	VertexBuffer<T>::~VertexBuffer() {}
 }

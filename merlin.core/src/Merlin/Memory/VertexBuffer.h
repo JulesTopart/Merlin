@@ -12,6 +12,15 @@ namespace Merlin::Memory {
 		~VertexBuffer();
 	};
 
+    template<class T>
+    inline VertexBuffer<T>::VertexBuffer(std::vector<T>& vertices) : BufferObject<T>(GL_ARRAY_BUFFER) {
+        this->LoadData(vertices, GL_STATIC_DRAW);
+        Console::trace("VertexBuffer") << "VertexBuffer " << this->m_bufferID << " allocated. " << Console::endl;
+    }
+
+    template<class T>
+    inline VertexBuffer<T>::~VertexBuffer() {}
+
     template<class T = Vertex>
     using VBO = VertexBuffer<T>;//Shorter alias
 

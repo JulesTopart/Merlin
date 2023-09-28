@@ -39,7 +39,7 @@ namespace Merlin::Graphics {
 		inline GLuint GetDrawMode() const { return m_drawMode; }
 		inline const std::vector<Vertex>& GetVertices() const { return m_vertices;  }
 		inline const std::vector<GLuint>& GetIndices() const{ return m_indices; }
-		inline const glm::mat4& GetTransform() const { return _transform; }
+		inline const glm::mat4& GetTransform() const { return m_transform; }
 		inline const Shader& GetShader() const { return *m_shader; }
 		inline const std::string& GetShaderName() const { return m_shaderName; }
 		inline const Material& GetMaterial() const { return *m_material; }

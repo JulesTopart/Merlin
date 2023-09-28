@@ -5,17 +5,17 @@ namespace Merlin::Graphics {
 
 
     Model::Model(const std::string& name) : RenderableObject(name){
-        _transform = glm::mat4(1.0f);
+        m_transform = glm::mat4(1.0f);
     }
 
     Model::Model(const std::string& name, const Shared<Mesh>& mesh) : RenderableObject(name) {
-        _meshes.push_back(mesh);
-        _transform = glm::mat4(1.0f);
+        m_meshes.push_back(mesh);
+        m_transform = glm::mat4(1.0f);
     }
 
     Model::Model(const std::string& name, const std::vector<Shared<Mesh>>& meshes) : RenderableObject(name) {
-        _meshes = meshes;
-        _transform = glm::mat4(1.0f);
+        m_meshes = meshes;
+        m_transform = glm::mat4(1.0f);
     }
 
     Shared<Model> Model::Create(std::string name) {
@@ -32,36 +32,36 @@ namespace Merlin::Graphics {
 
 
     void Model::AddMesh(const Shared<Mesh>& mesh) {
-        _meshes.push_back(mesh);
+        m_meshes.push_back(mesh);
     }
 
 	void Model::SetShader(const Shared<Shader>& shader) {
-		for (auto& mesh : _meshes) {
+		for (auto& mesh : m_meshes) {
 			mesh->SetShader(shader);
 		}
 	}
 
 	void Model::SetMaterial(const Shared<Material>& material) {
-		for (auto& mesh : _meshes) {
+		for (auto& mesh : m_meshes) {
 			mesh->SetMaterial(material);
 		}
 	}
 
 	void Model::SetShader(const std::string& shader) {
-		for (auto& mesh : _meshes) {
+		for (auto& mesh : m_meshes) {
 			mesh->SetShader(shader);
 		}
 	}
 
 	void Model::SetMaterial(const std::string& material) {
-		for (auto& mesh : _meshes) {
+		for (auto& mesh : m_meshes) {
 			mesh->SetMaterial(material);
 		}
 	}
 
 
     void Model::Draw(const Camera& camera) const {
-        for (const auto& mesh : _meshes) {
+        for (const auto& mesh : m_meshes) {
             if (mesh->HasMaterial() && mesh->HasShader()) {
 				const Shader* shader = &mesh->GetShader();
 				const Material* mat = &mesh->GetMaterial();

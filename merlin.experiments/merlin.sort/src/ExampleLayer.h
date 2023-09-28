@@ -3,7 +3,7 @@
 #include <Merlin.h>
 using namespace Merlin::Graphics;
 
-const GLuint n =  128; //Number of data
+const GLuint n =  512* 512 * 512; //Number of data
 const GLuint wgSize = 1; //WorkGroup size
 const GLuint wgCount = (n + wgSize - 1) / wgSize; //WorkGroup size
 
@@ -33,6 +33,6 @@ private:
 
 	std::vector<GLuint> data;
 
-	Shared<ComputeShader> prefixSum;
-	Shared<ComputeShader> countingCount;
+	Shared<StagedComputeShader> prefixSum;
+	Shared<StagedComputeShader> countingCount;
 };

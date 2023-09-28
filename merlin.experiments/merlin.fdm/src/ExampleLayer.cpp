@@ -96,8 +96,8 @@ void ExampleLayer::InitGraphics() {
 	scene.Add(floorSurface);
 
 	//Box
-	Shared<Model> box = Model::Create("box", Primitives::CreateQuadCube(300, 200, 250));
-	box->Translate(glm::vec3(0, 0, 250/2.0));
+	Shared<Model> box = Model::Create("box", Primitives::CreateQuadCube(settings.bx, settings.by, settings.bz));
+	box->Translate(glm::vec3(0, 0, settings.bz/2.0));
 	box->SetMaterial("default");
 	box->SetShader(modelShader);
 	box->EnableWireFrameMode();
@@ -119,58 +119,51 @@ void ExampleLayer::InitGraphics() {
 
 void ExampleLayer::InitPhysics() {
 	//Compute Shaders
-	init = ComputeShader::Create("init", "assets/shaders/init.comp");
-	solver = ComputeShader::Create("solver", "assets/shaders/solver.comp");
-	prefixSum = ComputeShader::Create("solver", "assets/shaders/prefix.sum.comp");
-	
-	//Particle System
-	float gridWidth = 1.0f;
+	init = CreateShared<ComputeShader>("init", "assets/shaders/init.comp");
+	solver = CreateShared<StagedComputeShader>("solver", "assets/shaders/solver.comp", 6);
+	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/prefix.sum.comp", 4);
+	init->SetWorkgroupLayout(settings.pWkgCount);
+	solver->SetWorkgroupLayout(settings.pWkgCount);
+	prefixSum->SetWorkgroupLayout(settings.bwgCount);
 
+	
 	//Create particle system
-	particleSystem = CreateShared<ParticleSystem>("ParticleSystem", settings.pThread);
+	particleSystem = ParticleSystem<FluidParticle>::Create("ParticleSystem", settings.pThread);
 	particleSystem->Translate(glm::vec3(0, 0, 0));
 
 	//Define the mesh for instancing (Here a cube)
 	//Shared<Mesh> particle = Primitives::CreateCube(0.05 * 0.15);
 	//Shared<Mesh> particle = Primitives::CreateSphere(0.05*0.15, 10, 10);
 	Shared<Mesh> particle = Primitives::CreatePoint();
-	particle->SetName("particle");
+	particle->Rename("particle");
 	particle->SetShader(particleShader);
 	particleSystem->SetMesh(particle);
 
 	//Create bin system
-	binSystem = CreateShared<ParticleSystem>("BinSystem", settings.bThread);
+	binSystem = ParticleSystem<FluidParticle>::Create("BinSystem", settings.bThread);
 	binSystem->Translate(glm::vec3(0, 0, 0));
 
-	//Define the mesh for instancing (Here a cube)
-	//Shared<Mesh> particle = Primitives::CreateCube(0.05 * 0.15);
-	//Shared<Mesh> particle = Primitives::CreateSphere(0.05*0.15, 10, 10);
+	//Define the mesh for bin instancing (Here a cube)
 	Shared<Mesh> binInstance = Primitives::CreateQuadCube(settings.bWidth, false);
-	binInstance->SetName("bin");
+	binInstance->Rename("bin");
 	binInstance->SetShader(binShader);
 	binSystem->SetMesh(binInstance);
 	binSystem->EnableWireFrameMode();
 
 	//scene.Add(particleSystem);
 	//Create the buffer
-	particleBuffer = CreateShared<SSBO>("ParticleBuffer");
-	//particleBuffer->SetBindingPoint(1);
-	particleBuffer->Attach(*solver, 1);
-	particleBuffer->Allocate<FluidParticle>(pThread);
-	particleCPUBuffer.resize(pThread);
+	particleBuffer = SSBO<FluidParticle>::Create("ParticleBuffer");
+	particleBuffer->Allocate(settings.pThread);
 
-	binBuffer = CreateShared<SSBO>("BinBuffer");
-	particleBuffer->Attach(*solver, 2);
-	binBuffer->Attach(*prefixSum);
-	binBuffer->Allocate<Bin>(bThread, GL_DYNAMIC_DRAW);
-	binCPUBuffer.resize(bThread);
+	binBuffer = SSBO<Bin>::Create("BinBuffer");
+	binBuffer->Allocate(settings.bThread);
 
-	particleSystem->AddStorageBuffer(binBuffer);
-	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddComputeShader(solver);
-
-	binSystem->AddStorageBuffer(binBuffer);
+	particleSystem->AddStorageBuffer(particleBuffer);
+	particleSystem->AddStorageBuffer(binBuffer);
+	
 	binSystem->AddComputeShader(prefixSum);
+	binSystem->AddStorageBuffer(binBuffer);
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
@@ -178,7 +171,6 @@ void ExampleLayer::InitPhysics() {
 
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
-
 }
 
 void ExampleLayer::SetColorGradient() {
@@ -191,9 +183,8 @@ void ExampleLayer::SetColorGradient() {
 	colors.push_back({ glm::vec3(1, 0, 0), 1.0f });     // Red.
 	colorCount = colors.size();
 
-	heatMap = CreateShared<SSBO>("ColorMapBuffer");
-	heatMap->SetBindingPoint(0);
-	heatMap->Allocate<Color>(colors);
+	heatMap = SSBO<Color>::Create("ColorMapBuffer");
+	heatMap->LoadData(colors);
 }
 
 const long lCount = 4;
@@ -258,8 +249,8 @@ glm::vec3 circle() {
 
 void ExampleLayer::ResetSimulation() {
 
-	particleSystem->SetActiveInstancesCount(settings.pThread);
-	particleSystem->Execute(init); //init position using init compute shader
+	particleSystem->SetInstancesCount(settings.pThread);
+	init->Dispatch(); //init position using init compute shader
 	numParticles = 0;
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
@@ -309,7 +300,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	if (timer - lastSpawn > spawnDelay / sim_speed) {
 		numParticles += spawnCount;
-		particleSystem->SetActiveInstancesCount(numParticles);
+		particleSystem->SetInstancesCount(numParticles);
 		lastSpawn = timer;
 	}
 
@@ -320,31 +311,47 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->SetFloat("speed", sim_speed);
 	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
 
-	solver->SetUInt("stage", 0);
-	particleSystem->Execute(solver, false); //Predict
+	solver->Execute(0); //Predict
+	binBuffer->Clear(); //Reset neighbor search data
+	solver->Execute(1); //Place particles in bins
 
-	binBuffer->Clear(); //Clear neighbor search data
-	solver->SetUInt("stage", 1);
-	particleSystem->Execute(solver, false); //Neighbor
+	prefixSum->Use();
+	prefixSum->SetUInt("dataSize", settings.pThread); //data size
+	prefixSum->SetUInt("blockSize", settings.blockSize); //block size
 
-	
-	binSystem->Execute(prefixSum, false);// prefix sum
+	prefixSum->Execute(0);// local prefix sum
+
+	//Binary tree on rightmost element of blocks
+	GLuint steps = settings.blockSize;
+	UniformObject<GLuint> space("space");
+	space.value = 1;
+
+	for (GLuint step = 0; step < steps; step++) {
+		// Calls the parallel operation
+
+		space.Sync(*prefixSum);
+		prefixSum->Execute(1);
+		prefixSum->Execute(2);
+
+		space.value *= 2;
+	}
+	prefixSum->Execute(3);
 
 	solver->Use();
-	solver->SetUInt("stage", 2);
-	particleSystem->Execute(solver, false); //Sort
+	solver->Execute(2); //Sort
 	
 	for (int i = 0; i < solver_iteration; i++) {
-
-		solver->SetUInt("stage", 3);
-		particleSystem->Execute(solver, false); //Compute lambda
-
-		solver->SetUInt("stage", 4);
-		particleSystem->Execute(solver, false); //Position delta
+		solver->Execute(3); //Compute lambda
+		solver->Execute(4); //Position delta
 	}
+	solver->Execute(5); //Apply changes
 
-	solver->SetUInt("stage", 5);
-	particleSystem->Execute(solver, false); //Apply changes
+	/*
+	binBuffer->Sync();
+	particleBuffer->Sync();
+	particleBuffer->Sync();
+	*/
+
 }
 
 void ExampleLayer::OnAttach() {
@@ -353,14 +360,13 @@ void ExampleLayer::OnAttach() {
 	_height = wd->GetHeight();
 	_width = wd->GetWidth();
 
-	Console::SetLevel(ConsoleLevel::_INFO);
+	Console::SetLevel(ConsoleLevel::_TRACE);
 
 	InitGraphics();
 	InitPhysics();
 	SetColorGradient();
 
-	particleSystem->SetThread(settings.thread);
-	binSystem->SetThread(settings.binThread);
+
 	ResetSimulation();
 }
 
@@ -412,12 +418,15 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 	if (paused) {
-		if (ImGui::ArrowButton("Run simulation", 1))
+		if (ImGui::ArrowButton("Run simulation", 1)) {
 			paused = !paused;
+		}
 	}
 	else {
-		if (ImGui::SmallButton("Pause simulation"))
+		if (ImGui::SmallButton("Pause simulation")) {
 			paused = !paused;
+			particleBuffer->print();
+		}
 	}
 
 	if (ImGui::SmallButton("Reset simulation")) {

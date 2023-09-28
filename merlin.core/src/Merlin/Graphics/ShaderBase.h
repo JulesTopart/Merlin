@@ -52,16 +52,13 @@ namespace Merlin::Graphics {
 	template<class T>
 	class UniformObject {
 	public:
-		UniformObject(std::string name);
+		UniformObject(const std::string& name) : m_name(name), value() {};
 		void Sync(Merlin::Graphics::ShaderBase& shader) const;
 
 		T value;
 	protected:
 		std::string m_name;
 	};
-
-	template<class T>
-	inline UniformObject<T>::UniformObject(std::string name) :m_name(name) {}
 
 	template<class T>
 	inline void UniformObject<T>::Sync(Merlin::Graphics::ShaderBase& shader) const {

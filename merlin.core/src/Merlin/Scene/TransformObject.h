@@ -16,5 +16,6 @@ namespace Merlin::Graphics {
         static Shared<TransformObject> Create(std::string name);
     };
 
+    typedef Shared<TransformObject> TransformObject_Ptr;
 
 }

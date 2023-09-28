@@ -45,12 +45,13 @@ void main() {
 	//color = vec4(randomColor(gl_InstanceID), 1);
 
 	uint sampleNNPos = particles[0].binIndex;
-	uint st = bins[sampleNNPos].startIndex;
 	uint ns = bins[sampleNNPos].count;
+	uint st = bins[sampleNNPos].sum - ns;
+	
 	bool test = false;
 
 	for(uint k = st; k < st+ns; k++){
-		uint j = sortedParticleIndices[k];
+		uint j = particles[k].newIndex;
 			if (j == gl_InstanceID) test = true;
 	}
 

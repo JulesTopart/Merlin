@@ -25,7 +25,7 @@ namespace Merlin::Graphics {
         void SetShader(const std::string& shader);
         void SetMaterial(const std::string& material);
 
-        inline const std::vector<Shared<Mesh>>& meshes() const { return _meshes; }
+        inline const std::vector<Shared<Mesh>>& meshes() const { return m_meshes; }
 
         static Shared<Model> Create(std::string name);
         static Shared<Model> Create(const std::string& name, const Shared<Mesh>& mesh);
@@ -34,9 +34,10 @@ namespace Merlin::Graphics {
 
 
     protected:
-        std::vector<Shared<Mesh>> _meshes;
+        std::vector<Shared<Mesh>> m_meshes;
         //TODO : Group Meshes by Shaders and Material to optimize draw call
     };
 
+    typedef Shared<Model> Model_Ptr;
 
 }

@@ -3,6 +3,10 @@
 const uint wgSize = 1; //WorkGroup size
 layout(local_size_x = wgSize) in;
 
+layout(std430) buffer compactSumBuffer {
+    uint compactPrefixSum[];
+};
+
 //Return index of the i-th element of a given block
 uint getIndexOf(uint block, uint i){ 
     return block*blockSize + i;

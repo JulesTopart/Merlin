@@ -9,8 +9,7 @@ namespace Merlin::Memory {
     public:
         VertexArray();
         ~VertexArray();
-
-        void Generate();
+        
         void Bind() const;
         void Unbind() const;
 
@@ -18,7 +17,8 @@ namespace Merlin::Memory {
         void AddBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout);
 
     private:
-        GLuint ArrayID;
+        
+        GLuint ArrayID = -1;
     };
 
     using VAO = VertexArray;
@@ -26,8 +26,6 @@ namespace Merlin::Memory {
 
     template<class T>
     void VertexArray::AddBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout) {
-        Generate(); //Generate if not already exist
-	    Bind(); //Automatically bind the VAO
 	    vb.Bind();
 	    const auto& elements = layout.GetElements();
 	    unsigned int offset = 0;

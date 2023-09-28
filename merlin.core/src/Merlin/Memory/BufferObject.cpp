@@ -52,6 +52,16 @@ namespace Merlin::Memory {
 		m_name = name;
 	}
 
+	void* GenericBufferObject::Map() {
+		// Map the buffer object to a pointer.
+		return glMapBuffer(m_target, GL_READ_WRITE);
+	}
+
+	void GenericBufferObject::Unmap() {
+		// Unmap the buffer object.
+		glUnmapBuffer(m_target);
+	}
+
 	void GenericBufferObject::Generate(bool autoBind) {
 		if (m_bufferID == -1) {
 			// Generate a buffer object if not yet generated.

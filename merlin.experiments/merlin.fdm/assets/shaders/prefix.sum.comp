@@ -1,65 +1,56 @@
 #version 460
-#include "constants.glsl"
-layout(local_size_x = BTHREAD) in;
-#include "common.glsl"
- 
-const uint blockSize = uint(log2(float(binCount)));
-shared uint localPrefixSum[blockSize];
 
-//Return the last element of the given block
-uint getLastIndexOf(uint block){ 
-    return block*blockSize + blockSize-1;
-}
+#include "constants.glsl"
+#include "common.glsl"
+
+layout(local_size_x = 256) in;
+
+uniform uint dataSize;
+uniform uint blockSize;
 
 //Return index of the i-th element of a given block
 uint getIndexOf(uint block, uint i){ 
     return block*blockSize + i;
 }
 
-//Do a sum operation over the right most element of block according to Blelloch
-void globalSum(uint bid, uint space = 1){
-    if (bid >= space)
-        bins[getLastIndexOf(bid)].sum += bins[getLastIndexOf(bid-space)].sum;
+//Return the last element of the given block
+uint getLastIndexOf(uint block){ 
+   return getIndexOf(block, blockSize - 1);
 }
 
-//Sequential sum operation
-void localSum(uint tid){
-    if (tid >= 1)
-        localPrefixSum[tid] += localPrefixSum[tid - 1];
+
+//Do a sum operation over the right most element of block according to Blelloch
+void compactSum(uint bid, uint space){
+    bins[getLastIndexOf(bid)].csum = bins[getLastIndexOf(bid)].sum;
+    if (bid >= space) bins[getLastIndexOf(bid)].csum += bins[getLastIndexOf(bid-space)].sum;
 }
+
+uniform uint stage;
+uniform uint space;
 
 void main(){
     uint bid = gl_GlobalInvocationID.x; //blockID
+    if(bid > uint(dataSize/blockSize)) return;
 
-    //Sequential prefix sum on blocks
-    for (uint i = 0; i < blockSize; i++) { //Load into shared mem
-        localPrefixSum[i] = bins[getIndexOf(bid, i)].sum; 
-        //compute local prefix sum
-        localSum(i);
+    switch(stage){
+    case 0:
+        //Sequential prefix sum on blocks
+        for (uint i = getIndexOf(bid, 0), k = 0; i < getIndexOf(bid, blockSize) && i < dataSize; i++, k++) { //Load into shared mem
+            if (k >= 1 && i < dataSize) bins[i].sum += bins[i-1].sum;
+        }
+    break;
+    case 1:
+        compactSum(bid, space);
+    break;
+    case 2:
+         bins[getLastIndexOf(bid)].sum = bins[getLastIndexOf(bid)].csum;
+    break;
+    case 3: 
+        for (uint i = 0; i < blockSize-1; i++) { //Load into global mem
+            bins[getIndexOf(bid,i)].sum += (bid >= 1 ? bins[getLastIndexOf(bid-1)].csum : 0);
+            bins[getIndexOf(bid,i)].index = bins[getIndexOf(bid,i)].sum; 
+        }
+    break;
     }
-    //Store local sum result into global memory
-    bins[getLastIndexOf(bid)].sum = localPrefixSum[blockSize - 1];
-    barrier();
-
-    //Binary tree on rightmost element of blocks
-    uint steps = blockSize;
-    uint space = 1;
-
-    for (uint step = 0; step < steps; step++) {
-        // Calls the parallel operation
-        globalSum(bid, space);
-
-        space *= 2;
- 
-        // A[i] += A[i - stride]
-        // log N times where N
-        // is array size
-        barrier();
-    }
-
-    for (uint i = 0; i < blockSize; i++) { //Load into shared mem
-        bins[getIndexOf(bid,i)].sum = localPrefixSum[i] + bins[getLastIndexOf(bid)].sum; 
-    }
-
-    barrier();
+    
 }

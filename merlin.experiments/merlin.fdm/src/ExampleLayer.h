@@ -45,14 +45,29 @@ struct FluidParticle {
 	float temperature;		// padding
 	float a;				// empty
 	float b;				// empty
-	float c;				// empty
+	GLuint newIndex;		// sorted index
 	GLuint binIndex;		// bin index
-
 };
+
+
+template<>
+inline void BufferObject<FluidParticle>::print() {
+	Bind();
+	Sync();
+
+	Console::info("Buffer") << m_name << " : " << Console::endl << "[";
+	for (GLuint i = 0; i < ((m_cpuBuffer.size() > 100) ? 100 : m_cpuBuffer.size() - 1); i++) {
+		Console::print() << m_cpuBuffer[i].binIndex << ", ";
+	}
+	if (m_cpuBuffer.size() > 100) Console::print() << "..., ";
+	Console::print() << m_cpuBuffer[m_cpuBuffer.size() - 1].binIndex << "]" << Console::endl << Console::endl;
+}
+
 
 struct Bin {
 	GLuint count;
-	GLuint startIndex;
+	GLuint sum;
+	GLuint index;
 };
 
 //Moving particles
@@ -72,7 +87,7 @@ const struct Settings {
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	float pDiameter = 0.4; //mm
 	GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
-	GLuint pWkgSize = 128; //Number of thread per workgroup
+	GLuint pWkgSize = 256; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
 	GLuint bRes = 64; //Bed width is divided bRes times
@@ -80,6 +95,12 @@ const struct Settings {
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint bWkgSize = bRes; //Number of thread per workgroup
 	GLuint bWkgCount = (bThread + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
+
+	const GLuint blockSize = floor(log2f(pThread));
+	const GLuint blocks = (pThread + blockSize - 1) / blockSize;
+
+	const GLuint bwgSize = 256; //WorkGroup size
+	const GLuint bwgCount = (blocks + bwgSize - 1) / bwgSize; //WorkGroup size
 }settings;
 
 class ExampleLayer : public Merlin::Layer
@@ -107,52 +128,43 @@ private:
 	GLsizei _width = 1080, _height = 720;
 
 	//Simulation
-	Shared<ComputeShader> init;
-	Shared<ComputeShader> solver;
-	Shared<ComputeShader> prefixSum;
+	ComputeShader_Ptr init;
+	StagedComputeShader_Ptr solver;
+	StagedComputeShader_Ptr prefixSum;
 
-	
-	SSBO<Bin> binBuffer; //Particle buffer
-	std::vector<Bin> binCPUBuffer; //Particle buffer
-
-	SSBO<Constraint> constraintBuffer; //Index buffer
-	std::vector<Constraint> constraintCPUBuffer; //Particle buffer
-
-	SSBO<FluidParticle> particleBuffer; //Particle buffer
-	std::vector<FluidParticle> particleCPUBuffer; //Particle buffer
-
+	SSBO_Ptr<Bin> binBuffer; //Particle buffer
+	SSBO_Ptr<Constraint> constraintBuffer; //Index buffer
+	SSBO_Ptr<FluidParticle> particleBuffer; //Particle buffer
 
 	//Shared<UBO> simParameters;
 
-	Shared<Shader> modelShader;
-	Shared<Shader> particleShader;
-	Shared<Shader> binShader;
+	Shader_Ptr modelShader;
+	Shader_Ptr particleShader;
+	Shader_Ptr binShader;
 
-	ParticleSystem<FluidParticle> particleSystem;
-	ParticleSystem<FluidParticle> binSystem;
+	ParticleSystem_Ptr<FluidParticle> particleSystem;
+	ParticleSystem_Ptr<FluidParticle> binSystem;
 
 	Renderer renderer;
 	Scene scene;
 
-	Shared<Model>  light;
-	Shared<Model>  nozzleMdl;
-	Shared<TransformObject>  nozzle;
+	Model_Ptr  light;
+	Model_Ptr  nozzleMdl;
+	TransformObject_Ptr  nozzle;
 
 	//Heat Map
-	SSBO<Color> heatMap;
+	SSBO_Ptr<Color> heatMap;
 	int colorCount;
 
 	//Camera
-	Shared<Camera> camera;
-	Shared<CameraController> cameraController;
+	Camera_Ptr camera;
+	CameraController_Ptr cameraController;
 
+	//Simulation
 	GLuint numParticles = 0;
-
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 	int solver_iteration = 15;
-
 	int sim = 0;
-
 	bool paused = true;
 	float sim_speed = 1;
 	float camera_speed = 1;

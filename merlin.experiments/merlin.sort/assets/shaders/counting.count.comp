@@ -3,6 +3,9 @@
 const uint wgSize = 1; //WorkGroup size
 layout(local_size_x = wgSize) in;
 
+
+
+
 uniform uint stage;
 
 void main(){

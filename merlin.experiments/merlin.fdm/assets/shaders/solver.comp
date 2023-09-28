@@ -44,7 +44,7 @@ float calculateDensity(uint gid, vec3 pposition) {
 				uint ns = bins[particles[gid].binIndex].count;
 				uint st = bins[particles[gid].binIndex].sum - ns;
 				for(uint k = st; k < ns; k++){
-					uint j = sortedParticleIndices[k];
+					uint j = particles[k].newIndex;
 
 					if (j == gid) continue;
 
@@ -116,7 +116,7 @@ float computeLambda(uint gid, vec3 pposition, float density) {
 				uint ns = bins[particles[gid].binIndex].count;
 				uint st = bins[particles[gid].binIndex].sum - ns;
 				for(uint k = st; k < ns; k++){
-					uint j = sortedParticleIndices[k];
+					uint j = particles[k].newIndex;
 
 					if (j == gid) continue;
 		
@@ -198,7 +198,7 @@ vec3 computePositionDelta(uint i) {
 				uint ns = bins[particles[gid].binIndex].count;
 				uint st = bins[particles[gid].binIndex].sum - ns;
 				for(uint k = st; k < ns; k++){
-					uint j = sortedParticleIndices[k];
+					uint j = particles[k].newIndex;
 
 					if (j == i || j == 0) continue;
 		
@@ -247,7 +247,7 @@ vec3 constrainVelocity(uint gid, vec3 velocity) {
 				uint ns = bins[particles[gid].binIndex].count;
 				uint st = bins[particles[gid].binIndex].sum - ns;
 				for(uint k = st; k < ns; k++){
-					uint j = sortedParticleIndices[k];
+					uint j = particles[k].newIndex;
 						if (j == gid) continue;
 
 						vec3 dij = particles[gid].new_position - particles[j].new_position;
@@ -290,7 +290,7 @@ float computeTemperature(uint gid) {
 				uint ns = bins[particles[gid].binIndex].count;
 				uint st = bins[particles[gid].binIndex].sum - ns;
 				for(uint k = st; k < ns; k++){
-					uint j = sortedParticleIndices[k];
+					uint j = particles[k].newIndex;
 						if (j == gid) continue;
 
 						vec3 dij = particles[gid].new_position - particles[j].new_position;
@@ -355,8 +355,8 @@ void XPBDSolve(uint gid, uint simStep) {
 
 	}else if(simStep == 2){ //Particle sort
 		#ifdef USE_NEAREST_NEIGHBORS
-		uint sortedPosition = atomicAdd(bins[p.binIndex].count, -1);
-		sortedParticleIndices[sortedPosition] = gid;
+		uint sortedPosition = atomicAdd(bins[p.binIndex].index, -1);
+		particles[sortedPosition-1].newIndex = gid;
 		#endif
 	}
 	//Solver iteration

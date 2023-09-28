@@ -68,5 +68,7 @@ namespace Merlin::Graphics {
 	private:
 		std::unordered_map<std::string, Shared<Shader>> _shaders;
 	};
+
+	typedef Shared<Shader> Shader_Ptr;
 }
 

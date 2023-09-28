@@ -7,20 +7,25 @@ using namespace Merlin::Memory;
 
 namespace Merlin::Graphics {
 
-	enum class ObjectTypes {
+	enum class ObjectType {
 		GENERIC,
 		SCENE,
 		MODEL,
 		MESH, 
 		SKYBOX,
-		TRANSFORM, 
+		TRANSFORM,
+		PARTICLESYSTEM,
 	};
 
 	class RenderableObject {
 	public:
-		RenderableObject(std::string name, RenderableObject* parent = nullptr);
+		RenderableObject();
+		RenderableObject(std::string name, ObjectType type = ObjectType::GENERIC );
 
-		virtual ObjectTypes GetType() { return ObjectTypes::GENERIC; }
+		ObjectType GetType() { return m_type; }
+		static std::string TypeToString(ObjectType);
+
+		virtual void Draw(){};
 
 		//Transformation
 		void Translate(glm::vec3);
@@ -34,41 +39,42 @@ namespace Merlin::Graphics {
 		//Getters
 		const glm::vec3& position() const;
 		const glm::quat& rotation() const;
-		inline const glm::mat4& transform() const { return _transform; }
-		inline const std::string name() const { return _name; }
-		inline void SetName(std::string n) { _name = n; };
+		inline const glm::mat4& transform() const { return m_transform; }
+		inline const std::string name() const { return m_name; }
+		inline void Rename(std::string n) { m_name = n; };
 
 		//Hierachy
 		void AddChild(const Shared<RenderableObject>& child);
 		void RemoveChild(Shared<RenderableObject> child);
 		void SetParent(RenderableObject* parent);
 
-		inline void Show() { _hidden = false; }
-		inline void Hide() { _hidden = true; }
-		inline bool IsHidden() { return _hidden; }
+		inline void Show() { m_hidden = false; }
+		inline void Hide() { m_hidden = true; }
+		inline bool IsHidden() { return m_hidden; }
 
 		bool HasParent() const;
 		bool HasChildren() const;
 
-		inline bool IsWireFrame() const { return _wireframe; }
-		inline void EnableWireFrameMode() { _wireframe = true; }
-		inline void DisableWireFrameMode() { _wireframe = false; }
+		inline bool IsWireFrame() const { return m_wireframe; }
+		inline void EnableWireFrameMode() { m_wireframe = true; }
+		inline void DisableWireFrameMode() { m_wireframe = false; }
 
 		std::list<Shared<RenderableObject>>& children();
 		RenderableObject* parent();
 
 	protected:
 		static int nextID;
+		int m_ID;
 
-		int _ID;
-		RenderableObject* _parent = nullptr;
-		std::list<Shared<RenderableObject>> _children;
+		bool m_wireframe = false;
+		bool m_hidden = false;
+		std::string m_name;
+		glm::mat4 m_transform;
 
-	protected:
-		std::string _name;
-		glm::mat4 _transform;
-		bool _wireframe = false;
-		bool _hidden = false;
+		RenderableObject* m_parent;
+		ObjectType m_type;
+
+		std::list<Shared<RenderableObject>> m_children;
 	};
 
 

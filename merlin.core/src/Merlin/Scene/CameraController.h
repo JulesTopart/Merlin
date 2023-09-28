@@ -55,4 +55,6 @@ namespace Merlin::Graphics {
 		glm::vec2 _lastMousePos = { 0.0f, 0.0f };
 		glm::vec2 _deltaMousePos = { 0.0f, 0.0f };
 	};
+
+	typedef Shared<CameraController> CameraController_Ptr;
 }
