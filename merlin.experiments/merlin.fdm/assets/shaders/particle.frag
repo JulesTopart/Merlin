@@ -15,7 +15,7 @@ struct Color {
     float value;
 };
 
-layout(std430, binding = 0) buffer ColorMapBuffer {
+layout(std430) buffer ColorMapBuffer {
     Color colors[];
 };
 

@@ -21,11 +21,11 @@ Artificial Viscosity (c): <= 0.01"
 // --- Global ---
 const float scale = 0.4;
 const float G = 1000 * 9.81f; //gravity
-const float EPSILON = 1.0e-5f; //Small error epsilon
+const float EPSILON = 1.0e-4f; //Small error epsilon
 const float particleMass = 1.0;//kg Mass
 const float dt = 0.0016;//s Timestep (16 substeps of a 60hz frame time)
 //const float REST_DENSITY = 6378.0; //WATER ?
-const float REST_DENSITY = 10000.0*933.0; //Metled plastic
+const float REST_DENSITY = 1000.0*933.0; //Metled plastic
 const float INV_REST_DENSITY = 1.0 / REST_DENSITY;
 const float relaxation = 0.0033;
 // --- SPH ---
@@ -51,7 +51,7 @@ const float kPlateau = 3.0;
 
 // --- Artificial Pressure ---
 //Artificial Pressure Strength(s_corr) : 0.0001
-const float pressureStrength = 0.00001; //K
+const float pressureStrength = 0.0001; //K
 //Artificial Pressure Radius (delta q): 0.03m
 const float pressureRadius = 0.03;// m
 ///Artificial Pressure Power(n) : 4
@@ -69,7 +69,7 @@ const float rheo_n = 0.5; // Flow behavior index
 
 
 // --- Domain ---
-const uint binResolution = 64;
+const uint binResolution = 32;
 const vec3 domain = vec3(100, 40, 40);
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);

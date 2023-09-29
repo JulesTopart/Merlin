@@ -29,24 +29,22 @@ vec3 randomColor(uint index){
 	return vec3(0.2) + normalize(vec3(rand(co*0.8738), rand(co*0.321313), rand(0.12354*co)));
 }
 
+uniform int colorCycle;
+
 void main() {
-
-	vec4 water = vec4(0.25, 0.4, 1.0, 0.8);
-	vec4 foam = vec4(1, 1, 1, 0.1);
-
 	vec3 offset = vec3(particles[gl_InstanceID].position*scale);
 	position = vec3(model * vec4((_position) + offset, 1.0f));
 
-	//color = mix(foam, water, particles[gl_InstanceID].density*300.0);
-	//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
-	//color = mix(foam, water, particles[gl_InstanceID].density*200.0 + bins[currentBinIndex].count/32.0);
-	color.w = particles[gl_InstanceID].temperature/nozzleTemperature;
-	color = vec4(randomColor(particles[gl_InstanceID].binIndex), color.w);
 	//color = vec4(randomColor(gl_InstanceID), 1);
+	color = vec4(randomColor(particles[gl_InstanceID].binIndex), 1);
+	//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
+	color.w = particles[gl_InstanceID].temperature/nozzleTemperature;
+	
 
-	uint sampleNNPos = particles[0].binIndex;
+	/*
+	uint sampleNNPos = 208;
 	uint ns = bins[sampleNNPos].count;
-	uint st = bins[sampleNNPos].sum - ns;
+	uint st = bins[sampleNNPos].sum - ns; 
 	
 	bool test = false;
 
@@ -54,14 +52,19 @@ void main() {
 		uint j = particles[k].newIndex;
 			if (j == gl_InstanceID) test = true;
 	}
+	if(test) color = vec4(0,255,0, 1);
+	else color = vec4(0,0,0, 1);
+	*/
 
-	if(test) color = vec4(0,255,0, 0);
-	else color = vec4(0,0,0, 0);
-	
 	normal = _normal;
 	texCoord = _texCoord;
 
-	if(particles[gl_InstanceID].new_position == vec3(0)) gl_Position =  projection * view * vec4(0,0,0,1);
-	else gl_Position = projection * view * vec4(position, 1.0f);
-	gl_PointSize = 100.0/(log(gl_Position.w)*10);
+	if(particles[gl_InstanceID].new_position == vec3(0)){
+		gl_Position =  projection * view * vec4(0,0,0,1);
+		gl_PointSize = 0;
+	}
+	else{
+		gl_Position = projection * view * vec4(position, 1.0f);
+		gl_PointSize = 100.0/(log(gl_Position.w)*10);
+	}
 }

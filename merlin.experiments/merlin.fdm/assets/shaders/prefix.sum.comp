@@ -3,7 +3,7 @@
 #include "constants.glsl"
 #include "common.glsl"
 
-layout(local_size_x = 256) in;
+layout(local_size_x = 64) in;
 
 uniform uint dataSize;
 uniform uint blockSize;
@@ -30,13 +30,16 @@ uniform uint space;
 
 void main(){
     uint bid = gl_GlobalInvocationID.x; //blockID
+
     if(bid > uint(dataSize/blockSize)) return;
 
     switch(stage){
     case 0:
         //Sequential prefix sum on blocks
         for (uint i = getIndexOf(bid, 0), k = 0; i < getIndexOf(bid, blockSize) && i < dataSize; i++, k++) { //Load into shared mem
-            if (k >= 1 && i < dataSize) bins[i].sum += bins[i-1].sum;
+            if (k >= 1 && i < dataSize){
+                bins[i].sum += bins[i-1].sum;
+            }
         }
     break;
     case 1:

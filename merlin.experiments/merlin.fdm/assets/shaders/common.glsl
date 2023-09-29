@@ -11,7 +11,7 @@ struct Particle {
 	uint binIndex;		// spatial hashing
 };
 
-layout(std430, binding = 1) buffer ParticleBuffer {
+layout(std430) buffer ParticleBuffer {
 	Particle particles[];
 };
 
@@ -22,7 +22,7 @@ struct Bin {
 	uint index;
 };
 
-layout(std430, binding = 2) buffer BinBuffer {
+layout(std430) buffer BinBuffer {
 	Bin bins[];
 };
 

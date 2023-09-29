@@ -57,18 +57,32 @@ inline void BufferObject<FluidParticle>::print() {
 
 	Console::info("Buffer") << m_name << " : " << Console::endl << "[";
 	for (GLuint i = 0; i < ((m_cpuBuffer.size() > 100) ? 100 : m_cpuBuffer.size() - 1); i++) {
-		Console::print() << m_cpuBuffer[i].binIndex << ", ";
+		Console::print() << m_cpuBuffer[i].newIndex  << ", ";
 	}
 	if (m_cpuBuffer.size() > 100) Console::print() << "..., ";
-	Console::print() << m_cpuBuffer[m_cpuBuffer.size() - 1].binIndex << "]" << Console::endl << Console::endl;
+	Console::print() << m_cpuBuffer[m_cpuBuffer.size() - 1].newIndex << "]" << Console::endl << Console::endl;
 }
-
 
 struct Bin {
 	GLuint count;
 	GLuint sum;
+	GLuint csum;
 	GLuint index;
 };
+
+template<>
+inline void BufferObject<Bin>::print() {
+	Bind();
+	Sync();
+
+	Console::info("Buffer") << m_name << " : " << Console::endl << "[";
+	for (GLuint i = 0; i < ((m_cpuBuffer.size() > 100) ? 100 : m_cpuBuffer.size() - 1); i++) {
+		Console::print() << m_cpuBuffer[i].sum << ", ";
+	}
+	if (m_cpuBuffer.size() > 100) Console::print() << "..., ";
+	Console::print() << m_cpuBuffer[m_cpuBuffer.size() - 1].sum << "]" << Console::endl << Console::endl;
+}
+
 
 //Moving particles
 struct Constraint {
@@ -90,16 +104,16 @@ const struct Settings {
 	GLuint pWkgSize = 256; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bRes = 64; //Bed width is divided bRes times
+	GLuint bRes = 32; //Bed width is divided bRes times
 	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint bWkgSize = bRes; //Number of thread per workgroup
 	GLuint bWkgCount = (bThread + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
-	const GLuint blockSize = floor(log2f(pThread));
-	const GLuint blocks = (pThread + blockSize - 1) / blockSize;
+	const GLuint blockSize = floor(log2f(bThread));
+	const GLuint blocks = (bThread + blockSize - 1) / blockSize;
 
-	const GLuint bwgSize = 256; //WorkGroup size
+	const GLuint bwgSize = 64; //WorkGroup size
 	const GLuint bwgCount = (blocks + bwgSize - 1) / bwgSize; //WorkGroup size
 }settings;
 
@@ -164,7 +178,7 @@ private:
 	GLuint numParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 	int solver_iteration = 15;
-	int sim = 0;
+	int sim = 2;
 	bool paused = true;
 	float sim_speed = 1;
 	float camera_speed = 1;

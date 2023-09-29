@@ -107,8 +107,8 @@ void ExampleLayer::InitGraphics() {
 	nozzleMdl->SetMaterial("gold");
 	nozzleMdl->SetShader(modelShader);
 	nozzleMdl->Rotate(glm::vec3(3.141592654, 0, 0));
-	nozzleMdl->Translate(glm::vec3(0, 0, -20));
-	nozzleMdl->Scale(0.10);
+	nozzleMdl->Translate(glm::vec3(0, 0, -12));
+	nozzleMdl->Scale(0.30);
 
 	nozzle = TransformObject::Create("nozzleTransform");
 	nozzle->AddChild(nozzleMdl);
@@ -163,7 +163,14 @@ void ExampleLayer::InitPhysics() {
 	particleSystem->AddStorageBuffer(binBuffer);
 	
 	binSystem->AddComputeShader(prefixSum);
+	binSystem->AddStorageBuffer(particleBuffer);
 	binSystem->AddStorageBuffer(binBuffer);
+
+	particleShader->Attach(*particleBuffer);
+	particleShader->Attach(*binBuffer);
+
+	binShader->Attach(*particleBuffer);
+	binShader->Attach(*binBuffer);
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
@@ -187,8 +194,7 @@ void ExampleLayer::SetColorGradient() {
 	heatMap->LoadData(colors);
 }
 
-const long lCount = 4;
-const long spawnCount = lCount * lCount * lCount;
+const long spawnCount = 1;
 long spawnDelay = 1;//iteration old7
 
 long timer = 0;
@@ -196,21 +202,23 @@ long lastSpawn = 0;
 
 float layerHeight = 0.2;
 float firstlayerHeight = 0.1;
-glm::vec3 u(150.0, 0.0, firstlayerHeight);
-const float speed = 2.0; //old 0.8
-glm::vec3 v(speed, 0, 0);
+glm::vec3 startPos(-40, -5.0, firstlayerHeight);
+glm::vec3 u(startPos);
+const float speed = 0.15; //old 0.8
+glm::vec3 v(-speed, 0, 0);
 int line = 0;
-int lineCount = 5;
-glm::vec3 partDim(50, 50, 50);
+glm::vec3 partDim(80, 10, 2);
+int lineCount = partDim.y/0.4;
+
 
 
 glm::vec3 snake() {
-	if (u.x + v.x >= 0.9 * partDim.x || u.x <= 0) {
+	if (u.x + v.x >= 0.9 * partDim.x + startPos.x || u.x <= startPos.x) {
 		v.x = 0;
 		v.y = speed;
 	}
 
-	if (u.y + v.y > (line + 1) * (0.75 * partDim.y / lineCount)) {
+	if (u.y + v.y > (line + 1) * (partDim.y / lineCount)*0.2) {
 		line++;
 		v.x = ((line % 2 == 0) ? speed : -speed);
 		v.y = 0;
@@ -232,9 +240,9 @@ glm::vec3 snake() {
 
 
 float theta = 0.0;
-float radius = 25;
+float radius = 10;
 float segment = 10.0 * 36.0;
-float theta_v = (speed * 3.14159265359 / segment);// *(speed / radius);
+float theta_v = (speed / radius);// *(speed / radius);
 
 glm::vec3 circle() {
 	u = glm::vec3((cos(theta)) * radius, (sin(theta)) * radius, u.z);
@@ -250,7 +258,12 @@ glm::vec3 circle() {
 void ExampleLayer::ResetSimulation() {
 
 	particleSystem->SetInstancesCount(settings.pThread);
+	init->Use();
 	init->Dispatch(); //init position using init compute shader
+
+	binBuffer->Bind();
+	binBuffer->Clear();
+
 	numParticles = 0;
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
@@ -260,7 +273,7 @@ void ExampleLayer::ResetSimulation() {
 	timer = 0;
 	lastSpawn = 0;
 	if (sim == 0) spawnDelay = 1;//iteratinon
-	else spawnDelay = 5;//iteratinon
+	else spawnDelay = 1;//iteratinon
 }
 
 
@@ -298,7 +311,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	timer++;
 	solver->Use();
 
-	if (timer - lastSpawn > spawnDelay / sim_speed) {
+	if (timer - lastSpawn > spawnDelay / sim_speed || true) {
 		numParticles += spawnCount;
 		particleSystem->SetInstancesCount(numParticles);
 		lastSpawn = timer;
@@ -306,21 +319,24 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	if (sim == 0)nozzle->SetPosition(circle());
 	else if (sim == 1)nozzle->SetPosition(snake());
+	else if (sim == 2)nozzle->SetPosition(u);
 
 	solver->SetVec3("sourcePos", u);
 	solver->SetFloat("speed", sim_speed);
 	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
 
 	solver->Execute(0); //Predict
+
+	binBuffer->Bind();
 	binBuffer->Clear(); //Reset neighbor search data
 	solver->Execute(1); //Place particles in bins
 
 	prefixSum->Use();
-	prefixSum->SetUInt("dataSize", settings.pThread); //data size
+	prefixSum->SetUInt("dataSize", settings.bThread); //data size
 	prefixSum->SetUInt("blockSize", settings.blockSize); //block size
 
 	prefixSum->Execute(0);// local prefix sum
-
+	
 	//Binary tree on rightmost element of blocks
 	GLuint steps = settings.blockSize;
 	UniformObject<GLuint> space("space");
@@ -360,7 +376,7 @@ void ExampleLayer::OnAttach() {
 	_height = wd->GetHeight();
 	_width = wd->GetWidth();
 
-	Console::SetLevel(ConsoleLevel::_TRACE);
+	Console::SetLevel(ConsoleLevel::_INFO);
 
 	InitGraphics();
 	InitPhysics();
@@ -426,6 +442,7 @@ void ExampleLayer::OnImGuiRender()
 		if (ImGui::SmallButton("Pause simulation")) {
 			paused = !paused;
 			particleBuffer->print();
+			binBuffer->print();
 		}
 	}
 
@@ -457,6 +474,9 @@ void ExampleLayer::OnImGuiRender()
 	ImGui::DragInt("Solver iteration", &solver_iteration, 0.1, 1, 50); 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->SetPosition(model_matrix_translation);
+	}
+	if (ImGui::SliderFloat3("Nozzle position", &u.x, -50.0f, 50.0f)) {
+		nozzle->SetPosition(u);
 	}
 	if (ImGui::SliderFloat("Camera speed", &camera_speed, 0.0, 50.0f)) {
 		cameraController->SetCameraSpeed(camera_speed);
