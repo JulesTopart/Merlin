@@ -4,17 +4,27 @@
 layout (local_size_x = PTHREAD) in;
 #include "common.glsl"
 
+/* Source */
+float space = 1;
+uint count = 32;
 
 void main() {
-  uint index = gl_GlobalInvocationID.x;
+	uint index = gl_GlobalInvocationID.x;
+	//if(index > 32*32*32) return;
+	if(index > count*count*count) return;
+	/* Source */
+	uint k = index / (count * count);
+	index -= (k * count * count);
+	uint j = index / count;
+	uint i = index % count;
 
-   /* Source */
-  particles[index].position     = vec3(0.0,0.0,0.0);;
-  particles[index].new_position = vec3(0.0);
-  particles[index].velocity = vec3(0.0,0.0,0.0);
-  particles[index].density = 0;
-  particles[index].lambda = 0.0;
-  particles[index].temperature = nozzleTemperature;
+	index = gl_GlobalInvocationID.x;
+	particles[index].position     = vec3(i,j,k);;
+	particles[index].new_position = vec3(0.0);
+	particles[index].velocity = vec3(0.0,0.0,0.0);
+	particles[index].density = 0;
+	particles[index].lambda = 0.0;
+	particles[index].temperature = nozzleTemperature;
 
   
 	

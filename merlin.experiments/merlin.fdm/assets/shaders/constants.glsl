@@ -16,7 +16,7 @@ Artificial Viscosity (c): <= 0.01"
 */
 
 #define BTHREAD 256
-#define PTHREAD 256
+#define PTHREAD 64
 
 // --- Global ---
 const float scale = 0.4;
@@ -42,9 +42,9 @@ const float CMF = 600;//CFM Parameter(epsilon) :
 const float ambientTemperature = 298.15;
 const float floorTemperature = 333.15;
 const float nozzleTemperature = 488.15;
+
 const float kPLA = 0.183;
 const float CpPLA = 400.0;
-
 const float kAmbient = 1.0;
 const float kPlateau = 3.0;
 
@@ -58,7 +58,7 @@ const float pressureRadius = 0.03;// m
 const float pressurePower = 4;// m
 
 //Artificial Viscosity(c) : <= 0.01
-const float artificialViscosity = 0.28;
+const float artificialViscosity = 0.01;
 const float floorFriction = 0.8;
 
 
@@ -69,7 +69,7 @@ const float rheo_n = 0.5; // Flow behavior index
 
 
 // --- Domain ---
-const uint binResolution = 32;
+const uint binResolution = 128;
 const vec3 domain = vec3(100, 40, 40);
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);

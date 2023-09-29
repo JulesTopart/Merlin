@@ -166,12 +166,6 @@ void ExampleLayer::InitPhysics() {
 	binSystem->AddStorageBuffer(particleBuffer);
 	binSystem->AddStorageBuffer(binBuffer);
 
-	particleShader->Attach(*particleBuffer);
-	particleShader->Attach(*binBuffer);
-
-	binShader->Attach(*particleBuffer);
-	binShader->Attach(*binBuffer);
-
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
 	binSystem->Hide();
@@ -264,7 +258,8 @@ void ExampleLayer::ResetSimulation() {
 	binBuffer->Bind();
 	binBuffer->Clear();
 
-	numParticles = 0;
+	numParticles = 32*32*32;
+	//numParticles = 64*64*64;
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
 	u = glm::vec3(0.0, 0.0, firstlayerHeight);
@@ -310,7 +305,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	timer++;
 	solver->Use();
-
+	/*
 	if (timer - lastSpawn > spawnDelay / sim_speed || true) {
 		numParticles += spawnCount;
 		particleSystem->SetInstancesCount(numParticles);
@@ -322,6 +317,10 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	else if (sim == 2)nozzle->SetPosition(u);
 
 	solver->SetVec3("sourcePos", u);
+	*/
+
+
+
 	solver->SetFloat("speed", sim_speed);
 	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
 
@@ -382,6 +381,13 @@ void ExampleLayer::OnAttach() {
 	InitPhysics();
 	SetColorGradient();
 
+	particleShader->Attach(*particleBuffer);
+	particleShader->Attach(*binBuffer);
+	particleShader->Attach(*heatMap);
+
+	binShader->Attach(*particleBuffer);
+	binShader->Attach(*binBuffer);
+	binShader->Attach(*heatMap);
 
 	ResetSimulation();
 }
@@ -414,7 +420,6 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	}
 
 	renderer.Clear();
-	
 	renderer.RenderScene(scene, *camera);
 }
 
@@ -455,6 +460,12 @@ void ExampleLayer::OnImGuiRender()
 	if(ImGui::Checkbox("Show Particles", &Pstate)) {
 		if(Pstate) particleSystem->Show();
 		else particleSystem->Hide();
+	}
+
+	static bool Nstate = true;
+	if (ImGui::Checkbox("Show Nozzle", &Nstate)) {
+		if (Nstate) nozzle->Show();
+		else nozzle->Hide();
 	}
 
 	static bool Bstate = false;

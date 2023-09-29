@@ -101,10 +101,10 @@ const struct Settings {
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	float pDiameter = 0.4; //mm
 	GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
-	GLuint pWkgSize = 256; //Number of thread per workgroup
+	GLuint pWkgSize = 64; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bRes = 32; //Bed width is divided bRes times
+	GLuint bRes = 128; //Bed width is divided bRes times
 	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint bWkgSize = bRes; //Number of thread per workgroup
@@ -113,7 +113,7 @@ const struct Settings {
 	const GLuint blockSize = floor(log2f(bThread));
 	const GLuint blocks = (bThread + blockSize - 1) / blockSize;
 
-	const GLuint bwgSize = 64; //WorkGroup size
+	const GLuint bwgSize = 256; //WorkGroup size
 	const GLuint bwgCount = (blocks + bwgSize - 1) / bwgSize; //WorkGroup size
 }settings;
 
@@ -177,7 +177,7 @@ private:
 	//Simulation
 	GLuint numParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	int solver_iteration = 15;
+	int solver_iteration = 5;
 	int sim = 2;
 	bool paused = true;
 	float sim_speed = 1;

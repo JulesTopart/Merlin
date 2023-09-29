@@ -59,12 +59,12 @@ void main() {
 	normal = _normal;
 	texCoord = _texCoord;
 
-	if(particles[gl_InstanceID].new_position == vec3(0)){
+	if(particles[gl_InstanceID].position == vec3(0)){
 		gl_Position =  projection * view * vec4(0,0,0,1);
 		gl_PointSize = 0;
 	}
 	else{
 		gl_Position = projection * view * vec4(position, 1.0f);
-		gl_PointSize = 100.0/(log(gl_Position.w)*10);
+		gl_PointSize = 200.0/(log(gl_Position.w)*10);
 	}
 }

@@ -54,5 +54,17 @@ uvec3 getBinCoordFromIndex(uint index) {
 	return uvec3(x, y, z);
 }
 
+#define OVERNNS uvec3 binIndexVec = getBinCoord(particles[gid].position); \
+for (uint z = binIndexVec.z - (binIndexVec.z > 0 ? 1 : 0); z <= binIndexVec.z + 1; z++) { \
+	for (uint y = binIndexVec.y - (binIndexVec.y > 0 ? 1 : 0); y <= binIndexVec.y + 1; y++) { \
+		for (uint x = binIndexVec.x - (binIndexVec.x > 0 ? 1 : 0); x <= binIndexVec.x + 1; x++) { \
+			if (x < 0 || y < 0 || z < 0) continue; \
+			if (x > binResolution || y > binResolution || z > binResolution) continue; \
+			uint ns = bins[particles[gid].binIndex].count; \
+			uint st = bins[particles[gid].binIndex].sum - ns; \
+			for (uint k = st; k < st+min(ns, 32); k++) { \
+				uint j = particles[k].newIndex; \
+				if (j == gid || j > numParticles) continue;
 
 
+#define OVERNNS_END }}}}

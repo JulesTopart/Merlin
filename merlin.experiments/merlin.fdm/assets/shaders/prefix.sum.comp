@@ -3,7 +3,7 @@
 #include "constants.glsl"
 #include "common.glsl"
 
-layout(local_size_x = 64) in;
+layout (local_size_x = BTHREAD) in;
 
 uniform uint dataSize;
 uniform uint blockSize;
