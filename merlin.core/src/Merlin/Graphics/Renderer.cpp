@@ -140,6 +140,9 @@ namespace Merlin::Graphics {
 
 	void Renderer::RenderTransformObject(const TransformObject& obj, const Camera& camera) {
 		//TODO Render axis
+		Render(obj.GetXAxisMesh(), camera);
+		Render(obj.GetYAxisMesh(), camera);
+		Render(obj.GetZAxisMesh(), camera);
 	}
 
 	void Renderer::RenderSkyBox(const SkyBox& sky, const Camera& camera) {

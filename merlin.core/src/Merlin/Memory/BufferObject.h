@@ -49,15 +49,18 @@ namespace Merlin::Memory{
 		BufferObject(const std::string& name, GLenum target);
 
 		void Allocate(GLsizeiptr size, GLenum usage = GL_STATIC_DRAW, T* data = NULL);
-		void LoadData(std::vector<T>& data, GLenum usage = GL_STATIC_DRAW);
+		void LoadData(const std::vector<T>& data, GLenum usage = GL_STATIC_DRAW);
 
-		std::vector<T>& Sync(); //Download the GPU Buffer onto host memory
+		std::vector<T>& Download(); //Download the device Buffer onto host memory
+		void Upload(); //Upload the host Buffer onto the device memory
 
 		void FreeMemory(); //Clear the buffer and free device and host memory from content
 		void FreeHostMemory(); //Clear the host memory buffer
 		void FreeDeviceMemory(); //Clear the device memory buffer (You need to allocate it again then)
 		
 		void print();
+
+		inline std::vector<T>& GetDeviceBuffer() { return m_cpuBuffer;}
 
 	protected:
 
@@ -76,24 +79,46 @@ namespace Merlin::Memory{
 	void BufferObject<T>::Allocate(GLsizeiptr count, GLenum usage, T* data) {
 		Generate(); //Generate and bind buffer
 		m_size = count * sizeof(T);
-		Console::info("Buffer") << "allocating " << m_size / 1000000.0 << "Mb of GPU Memory" << Console::endl;
+		float kb = m_size / 1000.0;
+		float mb = m_size / 1000000.0;
+		float gb = m_size / 1000000000.0;
+
+		if(gb > 0.5)		Console::info("Buffer") << "allocating " << gb << "GB of GPU Memory" << Console::endl;
+		else if(mb > 0.5)	Console::info("Buffer") << "allocating " << mb << "MB of GPU Memory" << Console::endl;
+		else if(kb > 0.5)	Console::info("Buffer") << "allocating " << kb << "kB of GPU Memory" << Console::endl;
+		else Console::info("Buffer") << "allocating " << GLuint(m_size) << "bytes of GPU Memory" << Console::endl;
+
+		
 		glBufferData(m_target, m_size, data, usage);
 		if (data == NULL) Clear(); //Initiliaze with zero
 	}
 
 	//Declare template function in the header to initialize when including
 	template<class T>
-	void BufferObject<T>::LoadData(std::vector<T>& data, GLenum usage) {
+	void BufferObject<T>::LoadData(const std::vector<T>& data, GLenum usage) {
 		// Allocate storage for the buffer object.
-		Allocate(data.size(), usage, data.data());
+		m_cpuBuffer = data;
+		Allocate(m_cpuBuffer.size(), usage, m_cpuBuffer.data());
 	}
 
 	template <class T>
-	std::vector<T>& BufferObject<T>::Sync() {
+	std::vector<T>& BufferObject<T>::Download() {
 		m_cpuBuffer.resize(m_size / sizeof(T));
 		memcpy(m_cpuBuffer.data(), Map(), m_size);
 		Unmap();
 		return m_cpuBuffer;
+	}
+
+	template <class T>
+	void BufferObject<T>::Upload() {
+		if (m_cpuBuffer.size() > m_size / sizeof(T)) {
+			Console::error("BufferObject") << "CPU buffer size is larger than device buffer. It can't be uploaded." << Console::endl;
+		}
+		else {
+			
+			memcpy(Map(), m_cpuBuffer.data(), m_cpuBuffer.size()*sizeof(T));
+			Unmap();
+		}
 	}
 
 	template <class T>
@@ -117,7 +142,7 @@ namespace Merlin::Memory{
 	template<typename T>
 	void BufferObject<T>::print() {
 		Bind();
-		Sync();
+		Download();
 
 		Console::info("Buffer") << m_name << " : " << Console::endl << "[";
 		for (GLuint i = 0; i < ((m_cpuBuffer.size() > 100) ? 100 : m_cpuBuffer.size() - 1); i++) {

@@ -145,7 +145,7 @@ namespace Merlin {
 		std::string errorHtml = "\x1B[31m";
 		std::string infoHtml = "\x1B[37m";
 		std::string warnHtml = "\x1B[33m";
-		std::string successHtml = "\x1B[32m";
+		std::string successHtml = "\x1B[1;32m";
 		std::string str;
 
 		switch (lv)
@@ -312,6 +312,18 @@ namespace Merlin {
 			std::string str = this->font();
 			std::stringstream ss;
 			ss << os.rdbuf();
+			str += ss.str() + ConsoleStream::endFont();
+
+			Console::write(str);
+		}
+		return ConsoleStream(*this);
+	}
+
+	ConsoleStream ConsoleStream::operator<<(glm::vec3 v){
+		if (_level >= Console::GetLevel()) {
+			std::string str = this->font();
+			std::stringstream ss;
+			ss << "[" << v.x << ", " << v.y << ", " << v.z << "]";
 			str += ss.str() + ConsoleStream::endFont();
 
 			Console::write(str);

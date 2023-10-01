@@ -9,6 +9,10 @@ using namespace Merlin::Memory;
 
 namespace Merlin::Graphics {
 
+	struct BoundingBox {
+		glm::vec3 min, max;
+	};
+
 	class Mesh : public RenderableObject {
 	public:
 		Mesh(std::string name);
@@ -21,8 +25,9 @@ namespace Merlin::Graphics {
 		void Draw() const;
 		void DrawInstanced(GLsizeiptr instanced) const;
 
-		void RecalculateNormals();
-		void RecalculateIndices();
+		void CalculateBoundingBox();
+		void CalculateNormals();
+		void CalculateIndices();
 		void RemoveUnusedVertices();
 		void UpdateVAO();
 
@@ -45,6 +50,8 @@ namespace Merlin::Graphics {
 		inline const Material& GetMaterial() const { return *m_material; }
 		inline const std::string& GetMaterialName() const { return m_materialName; }
 
+		inline BoundingBox GetBoundingBox() const { return m_bbox; }
+
 		static Shared<Mesh> Create(std::string name);
 		static Shared<Mesh> Create(std::string name, std::vector<Vertex>& vertices, GLuint mode = GL_TRIANGLES);
 		static Shared<Mesh> Create(std::string name, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode = GL_TRIANGLES);
@@ -55,10 +62,14 @@ namespace Merlin::Graphics {
 		std::vector<Vertex> m_vertices;
 		std::vector<GLuint> m_indices;
 
+		BoundingBox m_bbox;
+
 		std::string m_materialName = "default";
 		std::string m_shaderName = "default";
 
 		Shared<Material> m_material;
 		Shared<Shader> m_shader;
 	};
+
+	typedef Shared<Mesh> Mesh_Ptr;
 }

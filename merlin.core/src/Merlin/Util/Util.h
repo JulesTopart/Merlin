@@ -1,6 +1,7 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 #include "Merlin/Core/Log.h"
+#include "Merlin/Graphics/Mesh.h"
 
 namespace Merlin::Utils {
 

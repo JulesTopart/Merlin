@@ -50,6 +50,8 @@ namespace Merlin::Graphics {
 
     };
 
+    typedef Shared<Material> Material_Ptr;
+
     class MaterialLibrary {
     public:
 

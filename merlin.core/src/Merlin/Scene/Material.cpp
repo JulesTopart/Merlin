@@ -272,6 +272,12 @@ namespace Merlin::Graphics {
 		cyan_rubber->SetSpecular(glm::vec3(0.04, 0.7, 0.7));
 		cyan_rubber->SetShininess(0.078125);
 
+		Shared<Material> blue_rubber = CreateShared<Material>("blue rubber");
+		blue_rubber->SetAmbient(glm::vec3(0.0, 0.00, 0.05));
+		blue_rubber->SetDiffuse(glm::vec3(0.3, 0.3, 0.5));
+		blue_rubber->SetSpecular(glm::vec3(0.04, 0.04, 0.7));
+		blue_rubber->SetShininess(0.078125);
+
 		Shared<Material> green_rubber = CreateShared<Material>("green rubber");
 		green_rubber->SetAmbient(glm::vec3(0.0, 0.05, 0.0));
 		green_rubber->SetDiffuse(glm::vec3(0.4, 0.5, 0.4));
@@ -316,10 +322,12 @@ namespace Merlin::Graphics {
 		Add(yellow_plastic);
 		Add(black_rubber);
 		Add(cyan_rubber);
+		Add(blue_rubber);
 		Add(green_rubber);
 		Add(red_rubber);
 		Add(white_rubber);
 		Add(yellow_rubber);
+
 
     }
 

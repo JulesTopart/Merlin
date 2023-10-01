@@ -110,8 +110,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Merlin\Tensor\NearestNeighbors.h" />
-    <ClInclude Include="src\Merlin\Tensor\RadixSort.h" />
     <ClInclude Include="src\Merlin\Graphics\RendererBase.h" />
     <ClInclude Include="src\Merlin\Scene\SkyBox.h" />
     <ClInclude Include="src\Merlin\Graphics\RenderableObject.h" />
@@ -174,8 +172,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Merlin\Memory\BufferObject.cpp" />
-    <ClCompile Include="src\Merlin\Tensor\NearestNeighbors.cpp" />
-    <ClCompile Include="src\Merlin\Tensor\RadixSort.cpp" />
     <ClCompile Include="src\Merlin\Graphics\RendererBase.cpp" />
     <ClCompile Include="src\Merlin\Scene\SkyBox.cpp" />
     <ClCompile Include="src\Merlin\Graphics\RenderableObject.cpp" />

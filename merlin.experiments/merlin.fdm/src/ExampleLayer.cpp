@@ -446,8 +446,8 @@ void ExampleLayer::OnImGuiRender()
 	else {
 		if (ImGui::SmallButton("Pause simulation")) {
 			paused = !paused;
-			particleBuffer->print();
-			binBuffer->print();
+			//particleBuffer->print();
+			//binBuffer->print();
 		}
 	}
 

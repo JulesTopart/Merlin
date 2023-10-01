@@ -22,6 +22,7 @@ namespace Merlin::Utils {
             }
             // Create a Mesh object using the parsed vertex and index data
             auto mesh = Mesh::Create("Mesh", vertices, indices);
+            //mesh->CalculateNormals();
             return Model::Create(Utils::GetFileName(file_path), mesh);
 
         }

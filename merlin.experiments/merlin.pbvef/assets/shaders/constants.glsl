@@ -1,0 +1,104 @@
+
+/*
+Recommended for a traditional dam-break style scenario, similar to the ones in the PBF paper:
+
+Particle mass: 1.0kg
+Kernel radius (h): 0.1m
+Rest density (rho): 6378.0kg/m^2
+Density Iterations: 4
+Time step (dt): 0.0083s (2 substeps of a 60hz frame time)
+CFM Parameter (epsilon): 600
+Artificial Pressure Strength (s_corr): 0.0001
+Artificial Pressure Radius (delta q): 0.03m
+Artificial Pressure Power (n): 4
+Artificial Viscosity (c): <= 0.01"
+
+*/
+
+#define BTHREAD 32
+#define PTHREAD 128
+
+#define UNUSED 0
+#define SOLID 1
+#define LIQUID 2
+
+
+
+
+
+// --- Global ---
+const float scale = 1;
+const float G = 1000.0*9.81f; //gravity
+const float EPSILON = 1.0e-5f; //Small error epsilon
+const float particleMass = 1.0;//kg Mass
+const float dt = 0.0016;//s Timestep (16 substeps of a 60hz frame time)
+//const float REST_DENSITY = 6378.0; //WATER ?
+const float REST_DENSITY = 933.0; // kg/m3 Metled plastic
+const float INV_REST_DENSITY = 1.0 / REST_DENSITY;
+const float relaxation = 0.0033;
+// --- SPH ---
+// SPH Parameters
+const float H = 1.8; // Kernel radius // 5mm
+const float H2 = H * H;
+const float H6 = H * H * H * H * H * H;
+const float H9 = H * H * H * H * H * H * H * H * H;
+const uint densityIteration = 4;// Incompressibility solving
+const float CMF = 600;//CFM Parameter(epsilon) : 
+
+// --- Heat Transfer ---
+const float ambientTemperature = 298.15;
+const float floorTemperature = 333.15;
+const float nozzleTemperature = 488.15;
+
+const float kPLA = 0.183;
+const float CpPLA = 400.0;
+const float kAmbient = 1.0;
+const float kPlateau = 3.0;
+
+
+// --- Artificial Pressure ---
+//Artificial Pressure Strength(s_corr) : 0.0001
+const float pressureStrength = 0.1; //K
+//Artificial Pressure Radius (delta q): 0.03m
+const float pressureRadius = 0.3*H;// m
+///Artificial Pressure Power(n) : 4
+const float pressurePower = 4;// m
+
+//Artificial Viscosity(c) : <= 0.01
+const float alpha = 0.01;
+const float artificialViscosity = 0.28;
+const float floorFriction = 0.2;
+
+
+//Rheological model
+const float rheo_k = 50.0; // Consistency index
+const float rheo_n = 0.5; // Flow behavior index
+
+
+#define MAXNN 512
+// --- Domain ---
+const uint binResolution = 32;
+const vec3 domain = vec3(100, 40, 100);
+const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
+const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);
+
+const float binSize = max(max(domain.x, domain.y), domain.z) / float(binResolution);
+const uvec3 binMax = uvec3(domain / binSize);
+const uint binCount = binMax.x * binMax.y * binMax.z;
+
+// Define boundary
+const float boundaryRestitution = 0.05; // Bounce factor
+const float boundaryRepulsionDistance = 0.03125;
+const float boundaryRepulsionForce = 0.0;
+
+
+
+
+// --- Kernels ---
+// Kernel Functions Precomputed Constants
+const float POLY6_COEFFICIENT = 315.0 / (64.0 * 3.14159265359 * pow(H, 9));
+const float SPIKY_GRAD_COEFFICIENT = -45.0 / (3.14159265359 * pow(H, 6));
+const float VISC_LAPLACE_COEFFICIENT = 45.0 / (3.14159265359 * pow(H, 6));
+#define M_PI 3.14159265358979323846
+#define PI_FAC 0.454728408833987
+

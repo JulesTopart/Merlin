@@ -17,8 +17,6 @@ float calculateDensity(uint gid, vec3 pposition) {
 	float density = 0.0;
 
 	OVERNNS
-		if (j == gid || j > numParticles) continue;
-
 		Particle pj = particles[j];
 		vec3 diff = vec3(pposition) - vec3(pj.position);
 		float rSquared = dot(diff, diff);
@@ -66,26 +64,26 @@ vec3 computePositionDelta(uint gid) {
 	vec3 posDelta = vec3(0.0f, 0.0f, 0.0f);
 
 	OVERNNS
-	float lambda_i = particles[gid].lambda;
-	float lambda_j = particles[j].lambda;
+		float lambda_i = particles[gid].lambda;
+		float lambda_j = particles[j].lambda;
 
-	// Introduce the artificial pressure corrector:
+		// Introduce the artificial pressure corrector:
 
-	vec3 r = particles[gid].new_position - particles[j].position; //This seems to be related to elastisity
-	vec3 gradient = spiky(r);
-	float n = poly6(r);
+		vec3 r = particles[gid].new_position - particles[j].position; //This seems to be related to elastisity
+		vec3 gradient = spiky(r);
+		float n = poly6(r);
 
-	// For the point delta Q, we use p_j->posStar as a starting point, and
-	// add an offset value:
+		// For the point delta Q, we use p_j->posStar as a starting point, and
+		// add an offset value:
 
-	float offset = (0.2f * H);
-	vec3 deltaQ = particles[j].new_position + vec3(offset, offset, offset);
-	float d = poly6(deltaQ);
-	float nd = abs(d) <= EPSILON ? 0.0f : n / d;
+		float offset = (0.2f * H);
+		vec3 deltaQ = particles[j].new_position + vec3(offset, offset, offset);
+		float d = poly6(deltaQ);
+		float nd = abs(d) <= EPSILON ? 0.0f : n / d;
 
-	// Finally, compute the artificial pressure correction:
-	float lambda_corr = -pressureStrength * pow(nd, pressurePower);
-	posDelta += ((lambda_i + lambda_j + lambda_corr) * gradient);
+		// Finally, compute the artificial pressure correction:
+		float lambda_corr = -pressureStrength * pow(nd, pressurePower);
+		posDelta += ((lambda_i + lambda_j + lambda_corr) * gradient);
 	OVERNNS_END
 
 	vec3 final = INV_REST_DENSITY * posDelta;

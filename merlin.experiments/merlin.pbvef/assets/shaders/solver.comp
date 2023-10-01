@@ -1,0 +1,335 @@
+#version 450
+#include "constants.glsl"
+
+layout (local_size_x = PTHREAD) in;
+#include "common.glsl"
+#include "sph.kernels.glsl" 
+
+uniform float speed;
+uniform uint numParticles;
+
+// --- SPH Routines ---
+float calculateSolidDelta(uint gid) {
+	float density = 0.0;
+	Particle pk = particles[gid];
+	
+	OVERNNS
+		Particle pj = particles[j];
+		vec4 diff = vec4(pk.position) - vec4(pj.position);
+		float rSquared = dot(diff, diff);
+		if(pj.phase == SOLID) density += poly6(diff); //Neigbord Solid
+	OVERNNS_END
+	return density;
+}
+
+// SPH_Density_neighbor
+float calculateDensity(uint gid, vec4 pposition) {
+	float density = 0.0;
+	
+	OVERNNS
+		Particle pj = particles[j];
+		vec4 diff = pposition - pj.position;
+		float rSquared = dot(diff, diff);
+		if(pj.phase == LIQUID) density += particleMass * poly6(diff); //Fluid
+		else if(pj.phase == SOLID){
+			float volume_k = 1.0/pj.density;
+			density += REST_DENSITY * volume_k * poly6(diff); //Fluid
+		}
+	OVERNNS_END
+	
+
+	return density;
+}
+
+
+
+
+// Introduce the viscosity constraint and its gradient
+float viscosityConstraint(vec4 p_i, vec4 p_j, float d_ij) {
+    return d_ij - length(p_i - p_j) - alpha * d_ij;
+}
+
+vec4 viscosityConstraintGradient(vec4 p_i, vec4 p_j) {
+    vec4 p_ij = p_i - p_j;
+    return normalize(p_ij);
+}
+
+/*
+// SPH_Lambda_neighbor
+float computeViscosity(uint gid, vec4 pposition, float rho_i) {
+	
+	float C_i = viscosityConstraint(pposition);
+
+	float sum_i = 0;
+	float sum_j = 0;
+
+	vec4 grad_i = vec4(0);
+	OVERNNS
+		Particle pj = particles[j];
+
+		vec4 grad = densityConstraintGradient(pposition, pj.position.xyz);
+		grad_i += grad;
+
+		float lsp = length(-INV_REST_DENSITY * grad);
+		sum_j += lsp * lsp;
+	OVERNNS_END
+
+	sum_i = length(INV_REST_DENSITY * grad_i);
+
+	float gradientSum =  (sum_i*sum_i) + sum_j;
+	
+	if (gradientSum == 0.0f) {
+		gradientSum = EPSILON;
+    }
+
+
+	return -(C_i /((gradientSum + relaxation))); //lamdba Incompressibility
+}
+*/
+
+
+
+
+// Introduce the viscosity constraint and its gradient
+float densityConstraint(float density) {
+    return density * INV_REST_DENSITY - 1.0f;
+}
+
+vec4 densityConstraintGradient(vec4 pi, vec4 pj) {
+	vec4 diff = pi - pj;
+	if (length(diff) > H) return vec4(0.0);//neighbor too far
+	return spiky(diff);
+}
+
+
+// SPH_Lambda_neighbor
+float computeDensityLambda(uint gid, vec4 pposition, float rho_i) {
+	
+	float C_i = densityConstraint(rho_i);
+
+	
+	float sum_i = 0;
+	float sum_j = 0;
+
+	vec4 grad_i = vec4(0);
+	OVERNNS
+		Particle pj = particles[j];
+		
+		vec4 grad = densityConstraintGradient(pposition, pj.position);
+		grad_i += grad;
+
+		if(pj.phase == SOLID){ //Solid particle
+			float lsp = length(-(1.0/pj.density) * grad.xyz);
+			sum_j += lsp * lsp;
+		}else if(pj.phase == LIQUID){ //Fluid particle
+			float lsp = length(-INV_REST_DENSITY * grad.xyz);
+			sum_j += lsp * lsp;
+		}
+
+
+	OVERNNS_END
+
+	sum_i = length(INV_REST_DENSITY * grad_i.xyz);
+
+	float gradientSum =  (sum_i*sum_i) + sum_j;
+	
+	if (gradientSum == 0.0f) {
+		gradientSum = EPSILON;
+    }
+
+
+	return -(C_i /((gradientSum + relaxation))); //lamdba Incompressibility
+}
+
+
+// SPH_Lambda_neighbor
+float computeViscosityLambda(uint gid, vec4 pposition, float density) {
+	
+	float C_i = (density * INV_REST_DENSITY) - 1.0f;
+	vec4 gradient = vec4(0.0);
+
+		OVERNNS
+			Particle pj = particles[j];
+			gradient += viscosityConstraintGradient(pposition, pj.position);
+		OVERNNS_END
+
+	float gv_iLength = length(INV_REST_DENSITY * gradient);
+	float gradientSum = gv_iLength * gv_iLength;
+
+
+	if (gradientSum == 0.0f) {
+		gradientSum = EPSILON;
+    }
+
+	return -(C_i /((gradientSum + relaxation))); //lamdba Incompressibility
+}
+
+//Compute position deltas w neigbor
+vec4 computePositionDelta(uint gid) {
+	vec4 posDelta = vec4(0.0f);
+
+	OVERNNS
+		float lambda_i = particles[gid].lambda;
+		float lambda_j;
+		if(particles[j].phase == LIQUID) lambda_j = particles[j].lambda;
+		else if(particles[j].phase == SOLID) lambda_j = lambda_i;
+
+		// Introduce the artificial pressure corrector:
+
+		vec4 r = particles[gid].position - particles[j].position; //This seems to be related to elastisity
+		vec4 gradient = spiky(r);
+		float n = poly6(r);
+
+		// For the point delta Q, we use p_j->posStar as a starting point, and
+		// add an offset value:
+
+		vec4 deltaQ = particles[j].new_position + vec4(100,0,0,0) * pressureRadius;
+		float d = poly6(deltaQ);
+		float nd = abs(d) <= EPSILON ? 0.0f : n / d;
+
+		// Finally, compute the artificial pressure correction:
+		float lambda_corr = -pressureStrength * pow(nd, pressurePower);
+		posDelta += INV_REST_DENSITY * particleMass * ( (lambda_i + lambda_j /*+ lambda_corr/particleMass*/) * gradient);
+	OVERNNS_END
+
+	vec4 final = INV_REST_DENSITY * posDelta;
+	return final;
+}
+
+
+
+vec4 constrainVelocity(uint gid, vec4 velocity) {
+	OVERNNS
+		vec4 dij = particles[gid].new_position - particles[j].new_position;
+		vec4 vij = particles[j].velocity - particles[gid].velocity;
+						
+		float shearRate = length(vij) / length(dij);
+		float dynamicViscosity = rheo_k * pow(shearRate, rheo_n - 1.0);
+
+		//float dynamicViscosity = artificialViscosity;//max(min(artificialViscosity, artificialViscosity * (particles[gid].temperature / 453.15)), 10*artificialViscosity);
+		//velocity *= dynamicViscosity;// * viscosityLaplacianKernel(length(dij)) * (vij);
+	OVERNNS_END
+
+	
+	if(particles[gid].position.z < H){
+		velocity *= floorFriction;
+	}
+	
+
+	//velocity *= max(min((particles[gid].temperature / (453.15)),0.0),1.0);
+	return velocity;
+}
+
+//calculate Temperature
+float computeTemperature(uint gid) {
+
+	const float Ti = particles[gid].temperature;
+	float temperatureDelta = 0.0;
+	
+	OVERNNS
+		vec4 dij = particles[gid].new_position - particles[j].new_position;
+
+		float Tj = particles[j].temperature;
+		float rhoj = particles[j].density;
+					
+		float w2_pse = viscosityLaplacianKernel(dij.length);
+		float lambda = (kPLA / (CpPLA * particles[gid].density));
+		temperatureDelta += lambda * (Tj-Ti) * w2_pse * dt;
+	OVERNNS_END
+
+	if(particles[gid].position.z < H/2.0){
+		temperatureDelta += kPlateau * (floorTemperature - Ti) * dt;
+	}
+	temperatureDelta += kAmbient*(ambientTemperature - Ti) * dt;
+	return temperatureDelta;
+}
+
+
+vec4 clampToBoundaries(vec4 position)
+{
+	vec4 correctedPosition = position;
+	for (int i = 0; i < 3; i++)
+	{
+		if (correctedPosition[i] < (boundaryMin[i]/scale) + ((H*0.3)))
+		{
+			correctedPosition[i] = (boundaryMin[i]/scale) + ((H*0.3) + EPSILON);
+
+		}
+		else if (correctedPosition[i] > (boundaryMax[i]/scale) - ((H*0.3)))
+		{
+			correctedPosition[i] =  (boundaryMax[i]/scale) - ((H*0.3) + EPSILON);
+		}
+	}
+
+	return correctedPosition;
+}
+
+
+
+void XPBDSolve(uint gid, uint simStep) {
+	Particle p = particles[gid];
+	if(p.phase == SOLID && simStep != 1 && simStep != 2) return;
+
+	if(simStep == 0){ //Integrate
+		//Calculate external force
+		vec4 externalForce = vec4(0,0,-G*particleMass/scale,0);
+
+		//Predict position
+		p.velocity = p.velocity + (externalForce / particleMass) * dt * speed;
+		p.new_position = clampToBoundaries(p.position + p.velocity * dt * speed);
+
+		if(p.phase == SOLID) p.density = calculateSolidDelta(gid);
+		if(p.phase == LIQUID) p.density = calculateDensity(gid, p.new_position);
+
+	}else if(simStep == 1){ //Neighbor search
+		p.binIndex = getBinIndex(p.position);
+		atomicAdd(bins[p.binIndex].count, 1);
+	}else if(simStep == 2){ //Particle sort
+		uint sortedPosition = atomicAdd(bins[p.binIndex].index, -1) -1;
+		particles[sortedPosition].newIndex = gid;
+	}
+	else if(simStep == 3){ //Compute lambda --- 	//Solver iteration
+		p.lambda = computeDensityLambda(gid, p.new_position, p.density); 
+	}else if (simStep == 4){ //position delta
+		vec4 positionDelta = computePositionDelta(gid);
+		p.new_position = clampToBoundaries(p.new_position + positionDelta);
+		//vec4 velocity = (p.new_position - p.position.xyz) / (dt*speed);
+		//velocity = constrainVelocity(gid, velocity);
+		//p.new_position = clampToBoundaries(p.position.xyz + velocity * dt*speed);
+	}else if(simStep == 5){ //Apply changes
+		p.velocity = (p.new_position - p.position) / (dt*speed);
+		p.position = p.new_position;
+		p.temperature += computeTemperature(gid);		
+		p.velocity = constrainVelocity(gid, p.velocity);
+
+		/*
+		int nn = 0;
+		vec4 smoothedVelocity = vec4(0.0);
+		OVERNNS
+			smoothedVelocity += particles[j].velocity;
+			nn++;
+		OVERNNS_END
+
+		p.velocity = artificialViscosity* smoothedVelocity/nn;
+		*/
+		
+	}
+
+
+	if(simStep != 2)particles[gid] = p;
+	//end
+}
+
+
+uniform uint stage;
+uniform vec4 sourcePos;
+// XPBD_Main
+void main() {
+	uint gid = gl_GlobalInvocationID.x;
+	 
+	if (gid < numParticles){
+		if (particles[gid].phase == UNUSED) return;
+		else XPBDSolve(gid, stage);
+	}
+	
+}

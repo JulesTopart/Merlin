@@ -72,7 +72,20 @@ namespace Merlin::Graphics {
 		m_vao.Unbind();
 	}
 
-	void Mesh::RecalculateNormals(){
+	void Mesh::CalculateBoundingBox() {
+		for (Vertex& v : m_vertices) {
+			if (v.position.x > m_bbox.max.x) m_bbox.max.x = v.position.x;
+			if (v.position.y > m_bbox.max.y) m_bbox.max.y = v.position.y;
+			if (v.position.z > m_bbox.max.z) m_bbox.max.z = v.position.z;
+
+			if (v.position.x < m_bbox.min.x) m_bbox.min.x = v.position.x;
+			if (v.position.y < m_bbox.min.y) m_bbox.min.y = v.position.y;
+			if (v.position.z < m_bbox.min.z) m_bbox.min.z = v.position.z;
+		}
+		Console::info("Mesh") << "Bounding box is " << m_bbox.max - m_bbox.min << " starting at " << m_bbox.min << " and ending at " << m_bbox.max << Console::endl;
+	}
+
+	void Mesh::CalculateNormals(){
 		// Initialize all normals to zero
 		for (auto& vertex : m_vertices) {
 			vertex.normal = glm::vec3(0);
@@ -113,7 +126,7 @@ namespace Merlin::Graphics {
 		m_vao.Unbind();
 	}
 
-	void Mesh::RecalculateIndices(){
+	void Mesh::CalculateIndices(){
 
 		Console::info("Mesh") << "Recomputing Mesh indices.." << Console::endl;
 		int i = 0;

@@ -40,11 +40,12 @@ namespace Merlin {
 		ConsoleStream operator<<(const char* i);
 		ConsoleStream operator<<(const void* i);
 		ConsoleStream operator<<(std::ostream os);
+		ConsoleStream operator<<(glm::vec3 v);
 
 		ConsoleLevel level() const { return _level; }
 		std::string font() const { return getFont(_level); }
 
-		static std::string endFont() { return "\033[0m"; };
+		static std::string endFont() { return "\x1b[0m"; };
 		static std::string getHeader(ConsoleLevel lv);
 		static std::string getFont(ConsoleLevel lv);
 
@@ -75,6 +76,8 @@ namespace Merlin {
 		static void ClearGLError();
 		static void LogGLError();
 		static void CheckGLError(std::string file, int line);
+
+		inline static std::string setprecision(int i) { return "\033[0m"; };
 
 		inline static ConsoleLevel GetLevel() { return _level; };
 		inline static void  SetLevel(ConsoleLevel l) { _level = l; };

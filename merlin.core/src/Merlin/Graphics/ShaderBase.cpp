@@ -45,7 +45,7 @@ namespace Merlin::Graphics {
 			if (bindingPoint == GLuint(-1)) bindingPoint = m_attachedBuffers++;
 			m_attachedBuffers++;
 
-			Console::info("ShaderBase") << buf.name() << "( block index " << block_index << ") is now bound to " << name() << " using binding point " << bindingPoint << Console::endl;
+			Console::trace("ShaderBase") << buf.name() << "( block index " << block_index << ") is now bound to " << name() << " using binding point " << bindingPoint << Console::endl;
 			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint);
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, buf.id()); //Do this explicitly in your shader !
 		}
