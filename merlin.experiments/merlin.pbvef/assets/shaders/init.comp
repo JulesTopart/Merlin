@@ -24,6 +24,7 @@ void main() {
 	particles[index].new_position = vec4(0.0);
 	particles[index].velocity = vec4(0.0);
 	particles[index].density = 0;
-	particles[index].lambda = 0.0;
+	particles[index].lambdaD = 0.0;
+	particles[index].lambdaV = 0.0;
 	particles[index].temperature = nozzleTemperature;
 }

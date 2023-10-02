@@ -21,29 +21,29 @@ Artificial Viscosity (c): <= 0.01"
 #define UNUSED 0
 #define SOLID 1
 #define LIQUID 2
-
-
-
-
+#define GAS 3
+#define BOUNDARY 4
 
 // --- Global ---
 const float scale = 1;
 const float G = 1000.0*9.81f; //gravity
-const float EPSILON = 1.0e-5f; //Small error epsilon
-const float particleMass = 1.0;//kg Mass
+const float EPSILON = 1.0e-6f; //Small error epsilon
+
 const float dt = 0.0016;//s Timestep (16 substeps of a 60hz frame time)
 //const float REST_DENSITY = 6378.0; //WATER ?
-const float REST_DENSITY = 933.0; // kg/m3 Metled plastic
-const float INV_REST_DENSITY = 1.0 / REST_DENSITY;
-const float relaxation = 0.0033;
+
+uniform float particleMass = 1.0;//g Mass
+uniform float REST_DENSITY = 1000.0; // g/mm3 Metled plastic
+#define INV_REST_DENSITY 1.0 / REST_DENSITY
+
 // --- SPH ---
 // SPH Parameters
-const float H = 1.8; // Kernel radius // 5mm
-const float H2 = H * H;
-const float H6 = H * H * H * H * H * H;
-const float H9 = H * H * H * H * H * H * H * H * H;
-const uint densityIteration = 4;// Incompressibility solving
-const float CMF = 600;//CFM Parameter(epsilon) : 
+uniform float H = 1.4; // Kernel radius // 5mm
+#define H2 H * H
+#define H6 H * H * H * H * H * H
+#define H9 H * H * H * H * H * H * H * H * H
+
+const float relaxation = 0.0033;
 
 // --- Heat Transfer ---
 const float ambientTemperature = 298.15;
@@ -60,13 +60,14 @@ const float kPlateau = 3.0;
 //Artificial Pressure Strength(s_corr) : 0.0001
 const float pressureStrength = 0.1; //K
 //Artificial Pressure Radius (delta q): 0.03m
-const float pressureRadius = 0.3*H;// m
+#define pressureRadius 0.3*H // m
 ///Artificial Pressure Power(n) : 4
 const float pressurePower = 4;// m
 
 //Artificial Viscosity(c) : <= 0.01
 const float alpha = 0.01;
-const float artificialViscosity = 0.28;
+//const float artificialViscosity = 0.28;
+const float artificialViscosity = 1.0;
 const float floorFriction = 0.2;
 
 
@@ -75,9 +76,9 @@ const float rheo_k = 50.0; // Consistency index
 const float rheo_n = 0.5; // Flow behavior index
 
 
-#define MAXNN 512
+#define MAXNN 256
 // --- Domain ---
-const uint binResolution = 32;
+const uint binResolution = 64;
 const vec3 domain = vec3(100, 40, 100);
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);
@@ -92,13 +93,11 @@ const float boundaryRepulsionDistance = 0.03125;
 const float boundaryRepulsionForce = 0.0;
 
 
-
-
 // --- Kernels ---
 // Kernel Functions Precomputed Constants
-const float POLY6_COEFFICIENT = 315.0 / (64.0 * 3.14159265359 * pow(H, 9));
-const float SPIKY_GRAD_COEFFICIENT = -45.0 / (3.14159265359 * pow(H, 6));
-const float VISC_LAPLACE_COEFFICIENT = 45.0 / (3.14159265359 * pow(H, 6));
+#define POLY6_COEFFICIENT 315.0 / (64.0 * 3.14159265359 * pow(H, 9))
+#define SPIKY_GRAD_COEFFICIENT -45.0 / (3.14159265359 * pow(H, 6))
+#define VISC_LAPLACE_COEFFICIENT 45.0 / (3.14159265359 * pow(H, 6))
 #define M_PI 3.14159265358979323846
 #define PI_FAC 0.454728408833987
 

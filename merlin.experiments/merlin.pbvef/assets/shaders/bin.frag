@@ -62,7 +62,7 @@ uniform int colorCycle;
 void main() {
 	//FragColor = heatMap(color.w)
 
-	if(colorCycle == 1)
+	if(colorCycle == 0)
 	FragColor = color;
 	else
 	FragColor = heatMap(color.w);

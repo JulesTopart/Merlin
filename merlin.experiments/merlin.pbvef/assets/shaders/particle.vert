@@ -58,6 +58,7 @@ vec3 randomColor(uint index){
 }
 
 uniform int colorCycle;
+uniform int showBoundary;
 uniform uint numParticles;
 
 void main() {
@@ -71,13 +72,20 @@ void main() {
 	position = model * (vec4(_position + offset,1));
 
 
-
-	if(particles[gl_InstanceID].phase == SOLID) color = vec4(1,1,1,1);
-	else if( particles[gl_InstanceID].phase == LIQUID ){
-		if(colorCycle == 1){ 
+	
+	if( particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 1 ) color = vec4(0,0,0,1);
+	else {
+		if(colorCycle == 0){ 
 			color = vec4(randomColor(particles[gl_InstanceID].binIndex), 1);
-		}else if(colorCycle == 0) {
+		}else if(colorCycle == 1) {
 			color = heatMap(particles[gl_InstanceID].density / REST_DENSITY);
+			//else color = heatMap(particles[gl_InstanceID].temperature/nozzleTemperature);
+
+			//color = vec4(randomColor(gl_InstanceID), 1);
+			//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
+			
+		}else if(colorCycle == 2) {
+			color = heatMap(particles[gl_InstanceID].temperature / REST_DENSITY);
 			//else color = heatMap(particles[gl_InstanceID].temperature/nozzleTemperature);
 
 			//color = vec4(randomColor(gl_InstanceID), 1);
@@ -100,7 +108,7 @@ void main() {
 		}
 	}
 
-	if(particles[gl_InstanceID].position == vec4(0)){
+	if(particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0) ){
 		gl_Position =  projection * view * vec4(0,0,0,1);
 		gl_PointSize = 0;
 	}

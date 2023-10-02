@@ -8,6 +8,8 @@ using namespace Merlin::Tensor;
 #define UNUSED 0
 #define SOLID 1
 #define LIQUID 2
+#define GAS 3
+#define BOUNDARY 4
 
 //Moving particles
 struct SimpleParticle {
@@ -20,12 +22,13 @@ struct FluidParticle {
 	glm::vec4 new_position;  // predicted position (x, y, z, 0);
 	glm::vec4 velocity;		// velocity			  (vx, vy, vz, 0);
 	GLfloat density;
-	GLfloat lambda;
+	GLfloat lambdaD;
+	GLfloat lambdaV;
 	GLfloat temperature;		// padding
 	GLuint phase;			// phase (liquid, solid...)
 	GLuint newIndex;		// sorted indexy
 	GLuint binIndex;		// bin index
-	GLuint padding[2];		// 8bytes
+	GLuint padding;		// 8bytes
 };
 
 
@@ -69,7 +72,7 @@ struct Constraint {
 	alignas(16) glm::vec4 velocity;      // Velocity (x, y, z) and inverse density (w)
 };
 
-const struct Settings {
+struct Settings {
 	float scale = 0.035 / (4.0);
 
 	//Build Volume dimensions
@@ -84,7 +87,7 @@ const struct Settings {
 	GLuint pWkgSize = 128; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bRes = 32; //Bed width is divided bRes times
+	GLuint bRes = 64; //Bed width is divided bRes times
 	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint bWkgSize = bRes; //Number of thread per workgroup
@@ -95,7 +98,15 @@ const struct Settings {
 
 	const GLuint bwgSize = 32; //WorkGroup size
 	const GLuint bwgCount = (blocks + bwgSize - 1) / bwgSize; //WorkGroup size
-}settings;
+
+
+	// --- SPH ---
+	// SPH Parameters
+	float H = 1.1; // Kernel radius // 5mm
+	float particleMass = 1.0;//g Mass
+	float REST_DENSITY = 1000.0; // g/mm3 Metled plastic
+
+};
 
 class ExampleLayer : public Merlin::Layer
 {
@@ -113,11 +124,18 @@ public:
 	void InitPhysics();
 	void ResetSimulation();
 	void SetColorGradient();
+	
+	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);
 
 	void updateFPS(Merlin::Timestep ts);
 
 private:
+	glm::uvec3 getBinCoord(glm::vec3 position);
+	GLuint getBinIndexFromCoord(glm::uvec3 coord);
+	GLuint getBinIndex(glm::vec3 position);
+	glm::uvec3 getBinCoordFromIndex(GLuint index);
+
 	GLsizei _width = 1080, _height = 720;
 
 	//Simulation
@@ -148,6 +166,8 @@ private:
 	//Camera
 	Camera_Ptr camera;
 	CameraController_Ptr cameraController;
+
+	Settings settings;
 
 	//Simulation
 	GLuint numParticles = 0;

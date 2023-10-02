@@ -4,12 +4,13 @@ struct Particle {
 	vec4 new_position;  // predicted position (x, y, z);
 	vec4 velocity;		// velocity			  (vx, vy, vz);
 	float density;
-	float lambda;
+	float lambdaD;
+	float lambdaV;
 	float temperature;
 	uint phase;			// phase (liquid, solid...)
 	uint newIndex;		// sorted indexy
 	uint binIndex;		// bin index
-	uint padding[2];	//8bytes of paddding
+	uint padding;	//8bytes of paddding
 };
 
 layout(std430) buffer ParticleBuffer {
