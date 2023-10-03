@@ -1,7 +1,7 @@
 #version 450
-
-#include "constants.glsl"
-#include "common.glsl"
+#include "common/uniforms.glsl"
+#include "common/constants.glsl"
+#include "common/buffers.glsl"
 
 layout(location = 0) in vec3 _position;
 layout(location = 1) in vec3 _normal;
@@ -15,7 +15,8 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 model;
 
-
+uniform int colorCycle;
+uniform int showBoundary;
 uniform uint colorCount;
 
 layout(std430) buffer ColorMapBuffer {
@@ -57,9 +58,7 @@ vec3 randomColor(uint index){
 	return vec3(0.2) + normalize(vec3(rand(co*0.8738), rand(co*0.321313), rand(0.12354*co)));
 }
 
-uniform int colorCycle;
-uniform int showBoundary;
-uniform uint numParticles;
+
 
 void main() {
 	if (gl_InstanceID >= numParticles){

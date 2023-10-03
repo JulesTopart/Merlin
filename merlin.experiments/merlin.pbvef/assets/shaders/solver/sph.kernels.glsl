@@ -1,3 +1,15 @@
+#include "common.glsl"
+// --- Kernels ---
+// Kernel Functions Precomputed Constants
+#define H smoothingRadius // Kernel radius
+#define H2 H * H
+#define H6 H * H * H * H * H * H
+#define H9 H * H * H * H * H * H * H * H * H
+#define POLY6_COEFFICIENT 315.0 / (64.0 * 3.14159265359 * pow(H, 9))
+#define SPIKY_GRAD_COEFFICIENT -45.0 / (3.14159265359 * pow(H, 6))
+#define VISC_LAPLACE_COEFFICIENT 45.0 / (3.14159265359 * pow(H, 6))
+#define M_PI 3.14159265358979323846
+#define PI_FAC 0.454728408833987
 
 // --- SPH_Kernels ---
 //Computed the poly6 scalar smoothing kernel
@@ -18,6 +30,7 @@ float poly6(vec4 r)
 
 	return A * (B * B * B);
 }
+#define poly6_0 poly6(vec4(0));
 
 //Computes the spiky smoothing kernel gradient*/
 vec4 spiky(vec4 r)
@@ -37,24 +50,5 @@ vec4 spiky(vec4 r)
 	vec4 outGrad = A * (B * B) * (r / (rBar + EPSILON));
 	return outGrad;
 }
+#define spiky_0 spiky(vec4(0));
 
-// Computes the viscosity Laplacian
-float viscosityLaplacianKernel(float rLength)
-{
-	if (rLength <= H)
-	{
-		return VISC_LAPLACE_COEFFICIENT * (H - rLength);
-	}
-	return 0.0;
-}
-
-// Computes the Pressure Laplacian
-float lapl_pse(vec4 pi, vec4 pj, float hi) {
-	float r = length(pi - pj);
-
-	float h2 = hi*hi;
-	float h4 = h2*h2;
-	float w2_pse  = +4./(h4*M_PI)*exp(-r*r/(h2));
-
-	return w2_pse;
-}

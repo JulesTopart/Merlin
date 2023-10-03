@@ -1,12 +1,10 @@
 #version 450
-#include "constants.glsl"
-
-layout (local_size_x = PTHREAD) in;
-#include "common.glsl"
+#include "../common/uniforms.glsl"
+#include "../common/constants.glsl"
+#include "../common/buffers.glsl"
 #include "sph.kernels.glsl" 
 
-uniform float speed;
-uniform uint numParticles;
+layout (local_size_x = PTHREAD) in;
 
 // SPH_Density_neighbor
 float calculateDensity(uint gid, vec4 pposition) {
@@ -80,8 +78,8 @@ vec4 computePositionDelta(uint gid) {
 	float compliance = REST_DENSITY; // Define the compliance value based on the paper or your requirements
     OVERNNS
 		if(getRestDistance(gid, j) > H) continue;
-        float lambda_i = particles[gid].lambdaD;
-        float lambda_j = particles[j].lambdaD;
+        float lambda_i = particles[gid].lambda;
+        float lambda_j = particles[j].lambda;
         vec4 grad_C_ij = distanceConstraintGradient(particles[gid].new_position, particles[j].position);
         float C_ij = distanceConstraint(particles[gid].new_position, particles[j].position, getRestDistance(gid, j));
         posDelta += (lambda_i + lambda_j) * grad_C_ij + compliance * (lambda_i + lambda_j) / (dt * dt) * C_ij;
@@ -141,7 +139,7 @@ void XPBDSolve(uint gid, uint simStep, inout Particle p) {
 		//Solver iteration
 		case 2 :
 			float deltaLambda = computeLambda(gid, p.new_position);
-			p.lambdaD = deltaLambda;
+			p.lambda = deltaLambda;
 		break;
 
 		case 3 :

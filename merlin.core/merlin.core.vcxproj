@@ -232,6 +232,9 @@
       <Project>{160b8a25-02d8-e430-2bf1-d2d8171d1abf}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="note.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

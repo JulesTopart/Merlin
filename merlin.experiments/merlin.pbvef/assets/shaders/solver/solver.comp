@@ -1,0 +1,198 @@
+#version 450
+#include "sph.kernels.glsl" 
+layout (local_size_x = PTHREAD) in;
+
+// SPH_Density_neighbor
+float computeDensity(uint i) {
+	float density = particleMass * poly6_0;;
+	Particle pi = particles[i];
+
+	OVERNNS
+		Particle pj = particles[j];
+		vec4 diff = pi.position - pj.position;
+		float rSquared = dot(diff, diff);
+		density += pj.mass*poly6(diff); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
+	OVERNNS_END
+	
+	return  density;
+}
+
+// Introduce the viscosity constraint and its gradient
+float densityConstraint(float density) {
+    return density * INV_REST_DENSITY - 1.0f;
+}
+
+vec4 densityConstraintGradient(vec4 pi, vec4 pj) {
+	vec4 diff = pi - pj;
+	if (length(diff) > H) return vec4(0.0);//neighbor too far
+	return spiky(diff);
+}
+
+// Introduce the viscosity constraint and its gradient
+float viscosityConstraint(vec4 p_i, vec4 p_j, float d_ij) {
+    return d_ij - length(p_i - p_j) - alpha * d_ij;
+}
+
+vec4 viscosityConstraintGradient(vec4 p_i, vec4 p_j) {
+    vec4 p_ij = p_i - p_j;
+    return normalize(p_ij);
+}
+
+
+// SPH_Lambda_neighbor
+void computeLambda(uint i, inout Particle pi) {
+	float C_i = max(densityConstraint(pi.density), 0);
+
+	if(C_i != 0){ //constraint is not satisfied
+		float sum_grad_C2 = 0;
+		vec4 gradC_i = vec4(0);
+		OVERNNS
+			Particle pj = particles[j];
+			vec4 gradWij = densityConstraintGradient(pi.new_position, pj.position);
+			vec4 gradC_j = -pj.mass * INV_REST_DENSITY * gradWij;
+			float lsp = length(gradC_j.xyz);
+			sum_grad_C2 += lsp * lsp;
+			gradC_i -= gradC_j;
+		OVERNNS_END
+		sum_grad_C2 += length(gradC_i) * length(gradC_i)  ;
+		pi.lambda = -C_i / (sum_grad_C2 + EPSILON);
+	}else pi.lambda = 0.0;
+}
+
+
+//Compute position deltas w neigbor
+vec4 computePositionDelta(uint i, inout Particle pi) {
+	vec4 posDelta = vec4(0.0f);
+
+	OVERNNS
+		float poly6
+	OVERNNS_END
+
+	vec4 final = INV_REST_DENSITY * posDelta;
+	return final;
+}
+
+
+//calculate Temperature
+float computeTemperature(uint gid) {
+
+	const float Ti = particles[gid].temperature;
+	float temperatureDelta = 0.0;
+	
+	OVERNNS
+		vec4 dij = particles[gid].new_position - particles[j].new_position;
+
+		float Tj = particles[j].temperature;
+		float rhoj = particles[j].density;
+					
+		float w2_pse = viscosityLaplacianKernel(dij.length);
+		float lambda = (kPLA / (CpPLA * particles[gid].density));
+		temperatureDelta += lambda * (Tj-Ti) * w2_pse * dt;
+	OVERNNS_END
+
+	if(particles[gid].position.z < H/2.0){
+		temperatureDelta += kPlateau * (floorTemperature - Ti) * dt;
+	}
+	temperatureDelta += kAmbient*(ambientTemperature - Ti) * dt;
+	return temperatureDelta;
+}
+
+
+vec4 clampToBoundaries(vec4 position)
+{
+	vec4 correctedPosition = position;
+	for (int i = 0; i < 3; i++)
+	{
+		if (correctedPosition[i] <= (boundaryMin[i]/scale) )
+		{
+			correctedPosition[i] = (boundaryMin[i]/scale)+EPSILON;
+
+		}
+		else if (correctedPosition[i] >= (boundaryMax[i]/scale))
+		{
+			correctedPosition[i] =  (boundaryMax[i]/scale)-EPSILON;
+		}
+	}
+
+	return correctedPosition;
+}
+
+
+vec4 constrainVelocity(uint gid, vec4 velocity) {
+
+	vec4 viscosityForce = vec4(0);
+	OVERNNS
+		vec4 rij = particles[gid].position - particles[j].position;
+		vec4 vij = particles[gid].velocity - particles[j].velocity;
+					
+		//float dynamicViscosity = artificialViscosity;//max(min(artificialViscosity, artificialViscosity * (particles[gid].temperature / 453.15)), 10*artificialViscosity);
+		//velocity *= dynamicViscosity;// * viscosityLaplacianKernel(length(dij)) * (vij);
+	OVERNNS_END
+
+
+	//velocity *= max(min((particles[gid].temperature / (453.15)),0.0),1.0);
+	return velocity;
+}
+
+void NNS(uint gid, uint simStep, inout Particle p) {
+	switch(simStep){ //Neighbor search
+		case 0 :
+			//Bin sorting
+			p.binIndex = getBinIndex(p.position);
+			atomicAdd(bins[p.binIndex].count, 1);
+		break;
+		case 1 :
+			uint sortedPosition = atomicAdd(bins[p.binIndex].index, -1) -1;
+			particles[sortedPosition].newIndex = gid;
+		return; //Used to avoid writing back on current particle
+	}
+}
+
+void XPBDSolve(uint i, uint simStep, inout Particle p) {
+	switch(simStep){ 
+		case 0 :
+			//Sympletic euler intergration to predict position
+			p.velocity = p.velocity + p.acceleration * dt * speed;
+			p.new_position = p.position + p.velocity * dt * speed;
+
+			//Reset acceleration to 0 (and gravity)
+			p.acceleration = vec4(0,0,-G,0);
+			p.density = computeDensity(i)
+		break;
+		//Skip step 1 (used for neighboring)
+
+		//Solver iteration
+		case 2 :
+			float deltaLambda = computeLambda(i, p.new_position);
+			p.lambda = deltaLambda;
+		break;
+
+		case 3 :
+			vec4 posDelta = computePositionDelta(i);
+			p.new_position = p.new_position + posDelta;
+			p.new_position = clampToBoundaries(p.new_position);
+		break;
+		//End iteration
+
+		case 4 : //Apply changes
+			p.velocity = (p.new_position - p.position) / (dt*speed);
+			p.position = clampToBoundaries(p.new_position);
+		break;
+
+		default:
+		break;
+	}
+}
+
+
+uniform uint stage;
+uniform vec4 sourcePos;
+// XPBD_Main
+void main() {
+	uint gid = gl_GlobalInvocationID.x;
+	if (gid < numParticles) return;
+	if (particles[gid].phase == UNUSED) return;
+
+	NNS(gid, stage, particles[gid]);
+	XPBDSolve(gid, stage, particles[gid]);
+}

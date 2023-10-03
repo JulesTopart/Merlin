@@ -11,25 +11,20 @@ using namespace Merlin::Tensor;
 #define GAS 3
 #define BOUNDARY 4
 
-//Moving particles
-struct SimpleParticle {
-	glm::vec4 position;      // Position (x, y, z) and mass (w)
-	glm::vec4 velocity;      // Velocity (x, y, z) and inverse density (w)
-};
-
 struct FluidParticle {
-	glm::vec4 initial_position;      // current position   (x, y, z, 0)
-	glm::vec4 position;      // current position   (x, y, z, 0)
-	glm::vec4 new_position;  // predicted position (x, y, z, 0);
-	glm::vec4 velocity;		// velocity			  (vx, vy, vz, 0);
-	GLfloat mass;
-	GLfloat density;
-	GLfloat temperature;
-	GLfloat lambda;		// padding
-	GLuint phase;			// phase (liquid, solid...)
-	GLuint newIndex;		// sorted indexy
-	GLuint binIndex;		// bin index
-	GLuint padding;		// 8bytes
+	glm::vec4 initial_position;	// initial position    x0
+	glm::vec4 position;			// current position    x
+	glm::vec4 new_position;		// predicted position  x*
+	glm::vec4 velocity;			// velocity			   u
+	glm::vec4 acceleration;		// acceleration		   a
+	GLfloat mass;				// mass				   m   (or pseudo mass for boundary particles)
+	GLfloat density;			// density			   rho
+	GLfloat temperature;		// temperature		   T
+	GLfloat lambda;				// lagrange multiplier lambda
+	GLuint phase;				// phase (liquid, solid...)
+	GLuint newIndex;			// sorted indexy
+	GLuint binIndex;			// bin index
+	GLuint padding;			    // padding
 };
 
 

@@ -1,0 +1,36 @@
+#version 450
+#include "sph.kernels.glsl" 
+
+layout (local_size_x = PTHREAD) in;
+
+
+/* Source */
+float space = 1;
+uint numParticle = 32;
+
+void main() {
+	uint i = gl_GlobalInvocationID.x;
+
+	Particle pi = particles[i];
+	if(pi.phase == BOUNDARY){ //Compute pseudo mass of boundary particles
+		
+		float delta = poly6_0;
+		OVERNNS
+			Particle pj = particles[j];
+			vec4 diff = pi.position - pj.position;
+			float rSquared = dot(diff, diff);
+			delta += poly6(diff);
+		OVERNNS_END
+		pi.mass = 1.0* REST_DENSITY * 1.0/delta;
+
+	}else if( pi.phase == LIQUID ){ //Compute intial mass of fluid particles
+		pi.mass = particleMass;
+	}else if( pi.phase == SOLID ){ //User defined mass (Total mass / number of particle in the solid)
+		//solid mass should be stored at genetation
+	}else if( pi.phase == GAS ){
+		//not implemented yet
+	}
+
+
+	particles[i] = pi;
+}

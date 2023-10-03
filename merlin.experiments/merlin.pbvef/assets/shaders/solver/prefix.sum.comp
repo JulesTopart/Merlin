@@ -1,8 +1,5 @@
-#version 460
-
-#include "constants.glsl"
+#version 450
 #include "common.glsl"
-
 layout (local_size_x = BTHREAD) in;
 
 uniform uint dataSize;
@@ -17,7 +14,6 @@ uint getIndexOf(uint block, uint i){
 uint getLastIndexOf(uint block){ 
    return getIndexOf(block, blockSize - 1);
 }
-
 
 //Do a sum operation over the right most element of block according to Blelloch
 void compactSum(uint bid, uint space){
