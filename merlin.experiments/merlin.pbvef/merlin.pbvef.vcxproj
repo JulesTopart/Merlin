@@ -140,6 +140,7 @@
     <None Include="assets\shaders\sph.kernels.glsl" />
     <None Include="assets\shaders\bin.frag" />
     <None Include="assets\shaders\bin.vert" />
+    <None Include="assets\shaders\xpbd.solver.comp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

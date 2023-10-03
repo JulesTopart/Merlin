@@ -17,8 +17,8 @@ ExampleLayer::ExampleLayer() {
 	camera->setNearPlane(0.8f);
 	camera->setFarPlane(3000.0f);
 	camera->setFOV(60); //Use 90.0f as we are using cubemaps
-	camera->SetPosition(glm::vec3(0.0f, -240.0f, 200.0));
-	camera->SetRotation(glm::vec3(0, 40, -270));
+	camera->SetPosition(glm::vec3(0.0f, -140.0f, 40));
+	camera->SetRotation(glm::vec3(0,20, -270));
 	cameraController = CreateShared<CameraController3D>(camera);
 }
 
@@ -128,7 +128,7 @@ void ExampleLayer::InitGraphics() {
 void ExampleLayer::InitPhysics() {
 	//Compute Shaders
 	init = CreateShared<ComputeShader>("init", "assets/shaders/init.comp");
-	solver = CreateShared<StagedComputeShader>("solver", "assets/shaders/solver.comp", 6);
+	solver = CreateShared<StagedComputeShader>("solver", "assets/shaders/xpbd.solver.comp", 6);
 	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/prefix.sum.comp", 4);
 	init->SetWorkgroupLayout(settings.pWkgCount);
 	solver->SetWorkgroupLayout(settings.pWkgCount);
@@ -223,15 +223,36 @@ void ExampleLayer::ResetSimulation() {
 	buf.velocity[2] = 0;
 	buf.density = 0;
 
+	float spacing = 1;
+
+	buf.phase = SOLID; //Rigid cube
+	glm::vec3 cubeSize = glm::vec3(5, 5, 5);
+	for (float x = -cubeSize.x / 2.0; x < cubeSize.x / 2.0; x += spacing) {
+		for (float y = -cubeSize.y / 2.0; y < cubeSize.y / 2.0; y += spacing) {
+			for (float z = 0; z < cubeSize.z; z += spacing) {
+
+				buf.position[0] = x;
+				buf.position[1] = y;
+				buf.position[2] = z + 50;
+				buf.initial_position = buf.position;
+				cpu_particles.push_back(buf);
+
+			}
+		}
+	}
+
+	/*
 	buf.phase = SOLID; //Rigid body
 	for (auto& v : bunny) {
 		buf.position[0] = v.x;
 		buf.position[1] = v.y;
 		buf.position[2] = v.z;
+		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
 	}
+	*/
 	
-
+	/*
 	//Generate sphere above
 	buf.phase = LIQUID; //Fluid body
 	const float height = 10;
@@ -247,10 +268,13 @@ void ExampleLayer::ResetSimulation() {
 		buf.position[0] = r*sin(inclinationAngle) * cos(azimuthalAngle);
 		buf.position[1] = r*sin(inclinationAngle) * sin(azimuthalAngle);
 		buf.position[2] = r*cos(inclinationAngle) + height;
+
+		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
-	}
+	}*/
 	
-	float spacing = 0.4;
+	/*
+	
 	buf.phase = BOUNDARY; //Boundaries body
 	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
 		for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
@@ -282,7 +306,7 @@ void ExampleLayer::ResetSimulation() {
 			cpu_particles.push_back(buf);
 		}
 	}
-
+	*/
 
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
@@ -359,6 +383,8 @@ void ExampleLayer::NeigborSearch() {
 		space.value *= 2;
 	}
 	prefixSum->Execute(3);
+	solver->Use();
+	solver->Execute(1); //Sort
 }
 
 void ExampleLayer::Simulate(Merlin::Timestep ts) {
@@ -369,19 +395,15 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	binBuffer->Bind();
 	binBuffer->Clear(); //Reset neighbor search data
-	solver->Execute(0); //Place particles in bins
+	solver->Execute(0); //Place particles in bins & predict position
 
 	NeigborSearch();
 
-	solver->Use();
-	solver->Execute(1); //Sort
-	solver->Execute(2); //Predict
-
 	for (int i = 0; i < solver_iteration; i++) {
-		solver->Execute(3); //Compute lambda
-		solver->Execute(4); //Position delta
+		solver->Execute(2); //Compute lambda
+		solver->Execute(3); //Position delta
 	}
-	solver->Execute(5); //Apply changes
+	solver->Execute(4); //Apply changes
 }
 
 void ExampleLayer::OnAttach() {
@@ -516,14 +538,16 @@ void ExampleLayer::OnImGuiRender()
 		solver->SetFloat("particleMass", settings.particleMass); // Kernel radius // 5mm
 	}
 
-	
 	static int colorMode = 1;
-	if (ImGui::SliderInt("Color Mode", &colorMode, 0.0, 3.0f)) {
+	static const char* options[] = { "Bin index", "Density", "Temperature", "Lambda", "Neighbors" };
+	if (ImGui::ListBox("Colored field", &colorMode, options, 5)){
 		particleShader->Use();
 		particleShader->SetInt("colorCycle", colorMode);
 		binShader->Use();
 		binShader->SetInt("colorCycle", colorMode);
 	}
+
+
 
 	ImGui::End();
 

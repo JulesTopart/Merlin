@@ -10,6 +10,12 @@ namespace Merlin::Graphics {
         y_axis = Primitives::CreateCylinder(0.1, 5, 10);
         z_axis = Primitives::CreateCylinder(0.1, 5, 10);
 
+        /*
+        x_axis->CalculateNormals();
+        y_axis->CalculateNormals();
+        z_axis->CalculateNormals();
+        */
+
         Material_Ptr xMaterial = CreateShared<Material>("xMaterial");
         Material_Ptr yMaterial = CreateShared<Material>("yMaterial");
         Material_Ptr zMaterial = CreateShared<Material>("zMaterial");
@@ -33,7 +39,12 @@ namespace Merlin::Graphics {
         y_axis->SetMaterial(yMaterial);
         z_axis->SetMaterial(zMaterial);
 
-        y_axis->Rotate(glm::vec3(3.1415926/2.0,0,0));
+        /*
+        x_axis->SetShader("model");
+        y_axis->SetShader("model");
+        z_axis->SetShader("model");
+        */
+        y_axis->Rotate(glm::vec3(-3.1415926/2.0,0,0));
         x_axis->Rotate(glm::vec3(0,3.1415926/2.0,0));
 
     }

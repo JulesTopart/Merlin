@@ -91,6 +91,13 @@ void main() {
 			//color = vec4(randomColor(gl_InstanceID), 1);
 			//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
 			
+		}else if(colorCycle == 3) {
+			color = heatMap(particles[gl_InstanceID].);
+			//else color = heatMap(particles[gl_InstanceID].temperature/nozzleTemperature);
+
+			//color = vec4(randomColor(gl_InstanceID), 1);
+			//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
+			
 		}else{ //NNS Test
 			color = vec4(0,0,0, 1);
 			if(particles[gl_InstanceID].binIndex == particles[2000].binIndex) color = vec4(1,0,0, 1);

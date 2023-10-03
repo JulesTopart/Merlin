@@ -33,12 +33,13 @@ const float dt = 0.0016;//s Timestep (16 substeps of a 60hz frame time)
 //const float REST_DENSITY = 6378.0; //WATER ?
 
 uniform float particleMass = 1.0;//g Mass
+uniform float particleRadius = 1.0;//g Mass
 uniform float REST_DENSITY = 1000.0; // g/mm3 Metled plastic
 #define INV_REST_DENSITY 1.0 / REST_DENSITY
 
 // --- SPH ---
 // SPH Parameters
-uniform float H = 1.4; // Kernel radius // 5mm
+uniform float H = 4*particleRadius; // Kernel radius // 5mm
 #define H2 H * H
 #define H6 H * H * H * H * H * H
 #define H9 H * H * H * H * H * H * H * H * H

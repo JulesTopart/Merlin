@@ -18,13 +18,14 @@ struct SimpleParticle {
 };
 
 struct FluidParticle {
+	glm::vec4 initial_position;      // current position   (x, y, z, 0)
 	glm::vec4 position;      // current position   (x, y, z, 0)
 	glm::vec4 new_position;  // predicted position (x, y, z, 0);
 	glm::vec4 velocity;		// velocity			  (vx, vy, vz, 0);
+	GLfloat mass;
 	GLfloat density;
-	GLfloat lambdaD;
-	GLfloat lambdaV;
-	GLfloat temperature;		// padding
+	GLfloat temperature;
+	GLfloat lambda;		// padding
 	GLuint phase;			// phase (liquid, solid...)
 	GLuint newIndex;		// sorted indexy
 	GLuint binIndex;		// bin index

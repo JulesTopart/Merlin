@@ -7,8 +7,8 @@ in vec3 color;
 in vec2 texCoord;
 
 uniform vec3 viewPos;
-uniform vec3 lightPos;
-uniform vec4 lightColor;
+uniform vec3 lightPos = vec3(10);
+uniform vec4 lightColor = vec4(1);
 
 uniform vec3 ambient;
 uniform vec3 diffuse;
