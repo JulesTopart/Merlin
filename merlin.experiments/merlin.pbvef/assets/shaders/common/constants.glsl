@@ -3,7 +3,7 @@
 
 #define UNUSED 0
 #define SOLID 1
-#define LIQUID 2
+#define FLUID 2
 #define GAS 3
 #define BOUNDARY 4
 
@@ -35,9 +35,8 @@ const float pressureStrength = 0.1; //K
 const float pressurePower = 4;// m
 
 //Artificial Viscosity(c) : <= 0.01
-const float alpha = 0.01;
 //const float artificialViscosity = 0.28;
-const float artificialViscosity = 1.0;
+const float artificialViscosity = 0.01;
 const float floorFriction = 0.2;
 
 
@@ -46,9 +45,9 @@ const float rheo_k = 50.0; // Consistency index
 const float rheo_n = 0.5; // Flow behavior index
 
 
-#define MAXNN 256
+#define MAXNN 512
 // --- Domain ---
-const uint binResolution = 64;
+const uint binResolution = 128;
 const vec3 domain = vec3(100, 40, 100);
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);

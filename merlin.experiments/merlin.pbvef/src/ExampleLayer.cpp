@@ -127,9 +127,9 @@ void ExampleLayer::InitGraphics() {
 
 void ExampleLayer::InitPhysics() {
 	//Compute Shaders
-	init = CreateShared<ComputeShader>("init", "assets/shaders/init.comp");
-	solver = CreateShared<StagedComputeShader>("solver", "assets/shaders/xpbd.solver.comp", 6);
-	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/prefix.sum.comp", 4);
+	init = CreateShared<ComputeShader>("init", "assets/shaders/solver/init.comp");
+	solver = CreateShared<StagedComputeShader>("solver", "assets/shaders/solver/solver.comp", 6);
+	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 	init->SetWorkgroupLayout(settings.pWkgCount);
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bwgCount);
@@ -218,14 +218,17 @@ void ExampleLayer::ResetSimulation() {
 	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
 
 	FluidParticle buf;
+	buf.acceleration[0] = 0;
+	buf.acceleration[1] = 0;
+	buf.acceleration[2] = 0;
 	buf.velocity[0] = 0;
 	buf.velocity[1] = 0;
 	buf.velocity[2] = 0;
 	buf.density = 0;
 
 	float spacing = 1;
-
-	buf.phase = SOLID; //Rigid cube
+	/*
+	buf.phase = FLUID; //Rigid cube
 	glm::vec3 cubeSize = glm::vec3(5, 5, 5);
 	for (float x = -cubeSize.x / 2.0; x < cubeSize.x / 2.0; x += spacing) {
 		for (float y = -cubeSize.y / 2.0; y < cubeSize.y / 2.0; y += spacing) {
@@ -239,10 +242,10 @@ void ExampleLayer::ResetSimulation() {
 
 			}
 		}
-	}
+	}*/
 
-	/*
-	buf.phase = SOLID; //Rigid body
+	
+	buf.phase = FLUID; //Rigid body
 	for (auto& v : bunny) {
 		buf.position[0] = v.x;
 		buf.position[1] = v.y;
@@ -250,11 +253,11 @@ void ExampleLayer::ResetSimulation() {
 		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
 	}
-	*/
+	
 	
 	/*
 	//Generate sphere above
-	buf.phase = LIQUID; //Fluid body
+	buf.phase = FLUID; //Fluid body
 	const float height = 10;
 	//const float height = 80;
 	const float goldenRatio = (1.0 + sqrt(5.0)) / 2.0;
@@ -273,7 +276,6 @@ void ExampleLayer::ResetSimulation() {
 		cpu_particles.push_back(buf);
 	}*/
 	
-	/*
 	
 	buf.phase = BOUNDARY; //Boundaries body
 	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
@@ -306,30 +308,39 @@ void ExampleLayer::ResetSimulation() {
 			cpu_particles.push_back(buf);
 		}
 	}
-	*/
+	
 
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
 
-
 	binBuffer->Bind();
 	binBuffer->Clear();
-
 	numParticles = cpu_particles.size();
 	particleSystem->SetInstancesCount(numParticles);
 
-
+	init->Use();
+	init->SetUInt("numParticles", numParticles);
+	init->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
+	init->SetFloat("particleMass", settings.particleMass); // Kernel radius // 5mm
+	init->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
+	
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
-
-	// --- SPH ---
-	// SPH Parameters
-	solver->SetFloat("H",settings.H); // Kernel radius // 5mm
+	solver->SetFloat("smoothingRadius",settings.H); // Kernel radius // 5mm
 	solver->SetFloat("particleMass",settings.particleMass); // Kernel radius // 5mm
 	solver->SetFloat("REST_DENSITY",settings.REST_DENSITY); // Kernel radius // 5mm
 
 	particleShader->Use();
 	particleShader->SetUInt("numParticles", numParticles);
+
+	solver->Use();
+	solver->Execute(0); //Place particles in bins & predict position
+	NeigborSearch();
+	solver->Use();
+	solver->Execute(1); //Sort
+
+	init->Use();
+	init->Dispatch();
 }
 
 
@@ -383,14 +394,12 @@ void ExampleLayer::NeigborSearch() {
 		space.value *= 2;
 	}
 	prefixSum->Execute(3);
-	solver->Use();
-	solver->Execute(1); //Sort
+
 }
 
 void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->Use();
-	solver->SetFloat("speed", sim_speed);
 	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
 
 	binBuffer->Bind();
@@ -399,11 +408,15 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	NeigborSearch();
 
+	solver->Use();
+	solver->Execute(1); //Sort
+	solver->Execute(2); //Calculate density
+
 	for (int i = 0; i < solver_iteration; i++) {
-		solver->Execute(2); //Compute lambda
-		solver->Execute(3); //Position delta
+		solver->Execute(3); //Compute lambda
+		solver->Execute(4); //Position delta
 	}
-	solver->Execute(4); //Apply changes
+	solver->Execute(5); //Apply changes
 }
 
 void ExampleLayer::OnAttach() {
@@ -520,12 +533,14 @@ void ExampleLayer::OnImGuiRender()
 		cameraController->SetCameraSpeed(camera_speed);
 	}
 	if (ImGui::SliderFloat("Simulation speed", &sim_speed, 0.0, 5.0f)) {
+		solver->Use();
+		solver->SetFloat("speed", sim_speed);
 	}
 
 
 	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 0.5, 10.0)) {
 		solver->Use();
-		solver->SetFloat("H", settings.H); // Kernel radius // 5mm
+		solver->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 	}
 
 	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 10, 5000)) {
@@ -539,8 +554,8 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 	static int colorMode = 1;
-	static const char* options[] = { "Bin index", "Density", "Temperature", "Lambda", "Neighbors" };
-	if (ImGui::ListBox("Colored field", &colorMode, options, 5)){
+	static const char* options[] = { "Bin index", "Density", "Temperature", "Lambda", "Mass", "Neighbors"};
+	if (ImGui::ListBox("Colored field", &colorMode, options, 6)){
 		particleShader->Use();
 		particleShader->SetInt("colorCycle", colorMode);
 		binShader->Use();
@@ -581,6 +596,17 @@ void ExampleLayer::OnImGuiRender()
 		binBuffer->Bind();
 		binBuffer->Download();
 
+		std::vector<bool> sorted;
+		sorted.resize(particleBuffer->GetDeviceBuffer().size());
+
+		for (int i = 0; i < particleBuffer->GetDeviceBuffer().size(); i++) {
+			sorted[particleBuffer->GetDeviceBuffer()[i].newIndex] = true;
+		}
+
+
+
+
+		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;
 	}
 	ImGui::End();

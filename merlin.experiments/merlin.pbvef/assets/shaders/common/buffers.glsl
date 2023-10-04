@@ -62,9 +62,10 @@ for (int z = int(binIndexVec.z) - 1; z <= int(binIndexVec.z) + 1; z++) { \
 		for (int x = int(binIndexVec.x) - 1; x <= int(binIndexVec.x) + 1; x++) { \
 			if (x < 0 || y < 0 || z < 0) continue; \
 			if (x >= binMax.x || y >= binMax.y || z >= binMax.z) continue; \
-			if (bins[getBinIndexFromCoord(uvec3(x,y,z))].count == 0) continue; \
-			uint ns = bins[getBinIndexFromCoord(uvec3(x,y,z))].count; \
-			uint st = bins[getBinIndexFromCoord(uvec3(x,y,z))].index; \
+			uint cindex = getBinIndexFromCoord(uvec3(x, y, z)); \
+			if (bins[cindex].count == 0) continue; \
+			uint ns = bins[cindex].count; \
+			uint st = bins[cindex].index - 1; \
 			for (uint k = st; k < st+min(ns, MAXNN); k++) { \
 				uint j = particles[k].newIndex; \
 				if (j == i || j >= numParticles) continue;

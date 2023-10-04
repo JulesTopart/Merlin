@@ -72,47 +72,32 @@ void main() {
 
 
 	
-	if( particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 1 ) color = vec4(0,0,0,1);
-	else {
-		if(colorCycle == 0){ 
-			color = vec4(randomColor(particles[gl_InstanceID].binIndex), 1);
-		}else if(colorCycle == 1) {
-			color = heatMap(particles[gl_InstanceID].density / REST_DENSITY);
-			//else color = heatMap(particles[gl_InstanceID].temperature/nozzleTemperature);
 
-			//color = vec4(randomColor(gl_InstanceID), 1);
-			//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
+	if(colorCycle == 0){ 
+		color = vec4(randomColor(particles[gl_InstanceID].binIndex), 1);
+	}else if(colorCycle == 1) {
+		color = heatMap(particles[gl_InstanceID].density / REST_DENSITY);
+	}else if(colorCycle == 2) {
+		color = heatMap(particles[gl_InstanceID].temperature / nozzleTemperature);
+	}else if(colorCycle == 3) {
+		color = heatMap(particles[gl_InstanceID].lambda);
+	}else if(colorCycle == 4) {
+		color = heatMap(particles[gl_InstanceID].mass/10.0);		
+	}else{ //NNS Test
+		if(particles[gl_InstanceID].binIndex == particles[2000].binIndex) color = vec4(1,0,0, 1);
 			
-		}else if(colorCycle == 2) {
-			color = heatMap(particles[gl_InstanceID].temperature / REST_DENSITY);
-			//else color = heatMap(particles[gl_InstanceID].temperature/nozzleTemperature);
+		bool test = false;
+		uint i = 2000;
+		OVERNNS
+			if(gl_InstanceID == j) test = true;
+		OVERNNS_END
 
-			//color = vec4(randomColor(gl_InstanceID), 1);
-			//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
+		if(test) color = vec4(0,1,0, 1);
+		else color = vec4(0,0,0, 1);
 			
-		}else if(colorCycle == 3) {
-			color = heatMap(particles[gl_InstanceID].);
-			//else color = heatMap(particles[gl_InstanceID].temperature/nozzleTemperature);
-
-			//color = vec4(randomColor(gl_InstanceID), 1);
-			//color = vec3(length(particles[gl_InstanceID].velocity)/100.0);
-			
-		}else{ //NNS Test
-			color = vec4(0,0,0, 1);
-			if(particles[gl_InstanceID].binIndex == particles[2000].binIndex) color = vec4(1,0,0, 1);
-			
-			bool test = false;
-			uint gid = 2000;
-			OVERNNS
-				if(gl_InstanceID == j) test = true;
-			OVERNNS_END
-
-			if(test) color = vec4(0,1,0, 1);
-			else color = vec4(0,0,0, 1);
-			
-			if(gl_InstanceID == 2000) color = vec4(0,0,1, 1);
-		}
+		if(gl_InstanceID == 2000) color = vec4(0,0,1, 1);
 	}
+	
 
 	if(particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0) ){
 		gl_Position =  projection * view * vec4(0,0,0,1);

@@ -55,7 +55,7 @@ namespace Merlin::Graphics {
 	GLuint ShaderBase::GetUniformLocation(const char* uniform) const{
 		if (!IsCompiled()) return 0;
 		GLuint uniLoc = glGetUniformLocation(m_programID, uniform);
-		if (uniLoc == -1) LOG_INFO("Shader") << "(" << m_name << ") Invalid Uniform name : " << uniform << ", (or wrong binded shader)" << Console::endl;
+		if (uniLoc == -1) LOG_WARN("Shader") << "(" << m_name << ") Invalid Uniform name : " << uniform << ", (or wrong binded shader)" << Console::endl;
 		return uniLoc;
 	}
 
@@ -127,7 +127,9 @@ namespace Merlin::Graphics {
 
 			while (std::regex_search(contents, includeMatch, includeRegex)) {
 				std::string includeFile = includeMatch[1].str();
-				std::string includeContent = ReadSrc(path + "/" + includeFile); // Recursive call to load included file's content
+				std::string absPath = path + "/" + includeFile;
+
+				std::string includeContent = ReadSrc(absPath); // Recursive call to load included file's content
 				contents = std::regex_replace(contents, includeRegex, includeContent, std::regex_constants::format_first_only);
 			}
 

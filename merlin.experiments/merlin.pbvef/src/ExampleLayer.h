@@ -7,7 +7,7 @@ using namespace Merlin::Tensor;
 
 #define UNUSED 0
 #define SOLID 1
-#define LIQUID 2
+#define FLUID 2
 #define GAS 3
 #define BOUNDARY 4
 
@@ -83,7 +83,7 @@ struct Settings {
 	GLuint pWkgSize = 128; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bRes = 64; //Bed width is divided bRes times
+	GLuint bRes = 128; //Bed width is divided bRes times
 	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint bWkgSize = bRes; //Number of thread per workgroup
@@ -98,7 +98,7 @@ struct Settings {
 
 	// --- SPH ---
 	// SPH Parameters
-	float H = 1.1; // Kernel radius // 5mm
+	float H = 2; // Kernel radius // 5mm
 	float particleMass = 1.0;//g Mass
 	float REST_DENSITY = 1000.0; // g/mm3 Metled plastic
 
