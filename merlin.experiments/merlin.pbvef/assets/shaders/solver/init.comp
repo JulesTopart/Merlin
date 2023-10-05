@@ -26,7 +26,7 @@ void main() {
 	}else if( pi.phase == GAS ){
 		//not implemented yet
 	}
-	pi.newIndex = i;
+	//pi.newIndex = i;
 
 	particles[i] = pi;
 }

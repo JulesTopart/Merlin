@@ -163,7 +163,8 @@ void NNS(uint i, uint simStep) {
 			atomicAdd(bins[particles[i].binIndex].count, 1);
 		break;
 		case 1 :
-			particles[atomicAdd(bins[particles[i].binIndex].index, -1) -1].newIndex = i;
+			uint newID = atomicAdd(bins[particles[i].binIndex].index, -1) - 1;
+			if(newID < numParticles) particles[newID].newIndex = i;
 		break;
 	}
 }

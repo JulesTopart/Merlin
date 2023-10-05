@@ -80,7 +80,7 @@ struct Settings {
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
 	GLuint pThread = 64*64*64; //Max Number of particles (thread)
-	GLuint pWkgSize = 128; //Number of thread per workgroup
+	GLuint pWkgSize = 1; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
 	GLuint bRes = 128; //Bed width is divided bRes times
@@ -89,11 +89,11 @@ struct Settings {
 	GLuint bWkgSize = bRes; //Number of thread per workgroup
 	GLuint bWkgCount = (bThread + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
-	const GLuint blockSize = floor(log2f(bThread));
-	const GLuint blocks = (bThread + blockSize - 1) / blockSize;
+	GLuint blockSize = floor(log2f(bThread));
+	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 
-	const GLuint bwgSize = 32; //WorkGroup size
-	const GLuint bwgCount = (blocks + bwgSize - 1) / bwgSize; //WorkGroup size
+	GLuint bwgSize = 32; //WorkGroup size
+	GLuint bwgCount = (blocks + bwgSize - 1) / bwgSize; //WorkGroup size
 
 
 	// --- SPH ---
@@ -101,7 +101,6 @@ struct Settings {
 	float H = 2; // Kernel radius // 5mm
 	float particleMass = 1.0;//g Mass
 	float REST_DENSITY = 1000.0; // g/mm3 Metled plastic
-
 };
 
 class ExampleLayer : public Merlin::Layer
@@ -120,6 +119,7 @@ public:
 	void InitPhysics();
 	void ResetSimulation();
 	void SetColorGradient();
+	void UpdateBufferSettings();
 	
 	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);

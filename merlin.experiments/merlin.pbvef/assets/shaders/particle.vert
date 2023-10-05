@@ -16,6 +16,7 @@ uniform mat4 projection;
 uniform mat4 model;
 
 uniform int colorCycle;
+uniform uint particleTest = 2000;
 uniform int showBoundary;
 uniform uint colorCount;
 
@@ -72,6 +73,8 @@ void main() {
 
 
 	
+	bool binTest = true;
+	bool test = particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0);
 
 	if(colorCycle == 0){ 
 		color = vec4(randomColor(particles[gl_InstanceID].binIndex), 1);
@@ -84,22 +87,33 @@ void main() {
 	}else if(colorCycle == 4) {
 		color = heatMap(particles[gl_InstanceID].mass/10.0);		
 	}else{ //NNS Test
-		if(particles[gl_InstanceID].binIndex == particles[2000].binIndex) color = vec4(1,0,0, 1);
-			
-		bool test = false;
-		uint i = 2000;
+		
+		binTest = false;;
+		uvec3 binIndexVec2 = getBinCoordFromIndex(particles[particleTest].binIndex);
+		for (int z = int(binIndexVec2.z) - 1; z <= int(binIndexVec2.z) + 1; z++) {
+			for (int y = int(binIndexVec2.y) - 1; y <= int(binIndexVec2.y) + 1; y++) {
+				for (int x = int(binIndexVec2.x) - 1; x <= int(binIndexVec2.x) + 1; x++) {
+					if (x < 0 || y < 0 || z < 0) continue;
+					if (x >= binMax.x || y >= binMax.y || z >= binMax.z) continue; 
+
+					if (getBinIndexFromCoord(uvec3(x,y,z)) == particles[gl_InstanceID].binIndex) binTest = true;
+				}
+			}
+		}
+
+		bool nnTest = false;
+		uint i = particleTest;
 		OVERNNS
-			if(gl_InstanceID == j) test = true;
+			if(gl_InstanceID == j) nnTest = true;
 		OVERNNS_END
 
-		if(test) color = vec4(0,1,0, 1);
+		if(nnTest) color = vec4(0,1,0, 1);
 		else color = vec4(0,0,0, 1);
 			
-		if(gl_InstanceID == 2000) color = vec4(0,0,1, 1);
+		if(gl_InstanceID == particleTest) color = vec4(0,0,1, 1);
 	}
-	
 
-	if(particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0) ){
+	if( test || !binTest){
 		gl_Position =  projection * view * vec4(0,0,0,1);
 		gl_PointSize = 0;
 	}

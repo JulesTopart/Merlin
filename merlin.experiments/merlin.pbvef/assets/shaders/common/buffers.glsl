@@ -14,6 +14,15 @@ struct Particle {
 	uint padding;			// bin index
 };
 
+//binIndex	1459	unsigned int
+/*
++ [1099] {47410 1028 }	FluidParticle
++ [1100] {47410 2000 }	FluidParticle
++ [1101] {53938 1487 }	FluidParticle
++ [1102] {53938 32093 }	FluidParticle
++ [1103] {60466 2546 }	FluidParticle
+*/
+
 layout(std430) buffer ParticleBuffer {
 	Particle particles[];
 };
@@ -65,7 +74,7 @@ for (int z = int(binIndexVec.z) - 1; z <= int(binIndexVec.z) + 1; z++) { \
 			uint cindex = getBinIndexFromCoord(uvec3(x, y, z)); \
 			if (bins[cindex].count == 0) continue; \
 			uint ns = bins[cindex].count; \
-			uint st = bins[cindex].index - 1; \
+			uint st = bins[cindex].index; \
 			for (uint k = st; k < st+min(ns, MAXNN); k++) { \
 				uint j = particles[k].newIndex; \
 				if (j == i || j >= numParticles) continue;

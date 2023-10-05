@@ -32,6 +32,7 @@ namespace Merlin::Memory {
 	GenericBufferObject::GenericBufferObject(GLenum target) {
 		m_target = target;
 		m_size = 0;
+		m_bufferSize = 0;
 		m_name = "buffer" + std::to_string(instances++);
 		m_bufferID = -1;
 	}
@@ -39,6 +40,7 @@ namespace Merlin::Memory {
 	GenericBufferObject::GenericBufferObject(const std::string& name, GLenum target) {
 		m_target = target;
 		m_size = 0;
+		m_bufferSize = 0;
 		m_name = name;
 		m_bufferID = -1;
 	}
@@ -75,7 +77,7 @@ namespace Merlin::Memory {
 		if (m_bufferID != -1) {
 			// Delete buffer object if exist.
 			glDeleteBuffers(1, &m_bufferID);
-			Console::trace("BufferObject") << TypeToString() << "Object" << m_bufferID << " deleted. Freed " << m_size / 1000000.0 << "Mb of device Memory" << Console::endl;
+			Console::trace("BufferObject") << TypeToString() << "Object" << m_bufferID << " deleted. Freed " << m_bufferSize / 1000000.0 << "Mb of device Memory" << Console::endl;
 		}
 	}
 

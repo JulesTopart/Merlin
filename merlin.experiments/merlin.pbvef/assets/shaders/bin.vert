@@ -16,6 +16,9 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 model;
 
+uniform uint particleTest = 2000;
+uniform uint binTest = 1459;
+
 float rand(vec2 co){
     return 0.00001*abs(fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453));
 }
@@ -87,10 +90,10 @@ void main() {
 		color = heatMap(float(bins[gl_InstanceID].count)/(MAXNN));
 	}else {
 		
-		if(gl_InstanceID == particles[2000].binIndex) color = vec4(1,0,0,1);
+		if(gl_InstanceID == binTest) color = vec4(1,0,0,1);
 		else{
 			test = false;
-			uvec3 binIndexVec = getBinCoordFromIndex(particles[2000].binIndex);
+			uvec3 binIndexVec = getBinCoordFromIndex(particles[particleTest].binIndex);
 			for (int z = int(binIndexVec.z) - 1; z <= int(binIndexVec.z) + 1; z++) {
 				for (int y = int(binIndexVec.y) - 1; y <= int(binIndexVec.y) + 1; y++) {
 					for (int x = int(binIndexVec.x) - 1; x <= int(binIndexVec.x) + 1; x++) {

@@ -9,6 +9,25 @@ using namespace Merlin::Graphics;
 
 #include "Bunny.h"
 
+void ExampleLayer::UpdateBufferSettings() {
+	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
+	settings.bWidth = max(settings.bx, max(settings.by, settings.bz)) / float(settings.bRes); //Width of a single bin in mm
+	settings.bThread = int(settings.bx / (settings.bWidth)) * int(settings.by / (settings.bWidth)) * int(settings.bz / (settings.bWidth)); //Total number of bin (thread)
+	settings.bWkgSize = settings.bRes; //Number of thread per workgroup
+	settings.bWkgCount = (settings.bThread + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
+
+	settings.blockSize = floor(log2f(settings.bThread));
+	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
+	settings.bwgCount = (settings.blocks + settings.bwgSize - 1) / settings.bwgSize; //WorkGroup size
+
+	init->SetWorkgroupLayout(settings.pWkgCount);
+	solver->SetWorkgroupLayout(settings.pWkgCount);
+	prefixSum->SetWorkgroupLayout(settings.bwgCount);
+
+	particleBuffer->Resize(settings.pThread);
+	binBuffer->Resize(settings.bThread);
+}
+
 ExampleLayer::ExampleLayer() {
 	Window* w = &Application::Get().GetWindow();
 	int height = w->GetHeight();
@@ -130,10 +149,6 @@ void ExampleLayer::InitPhysics() {
 	init = CreateShared<ComputeShader>("init", "assets/shaders/solver/init.comp");
 	solver = CreateShared<StagedComputeShader>("solver", "assets/shaders/solver/solver.comp", 6);
 	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
-	init->SetWorkgroupLayout(settings.pWkgCount);
-	solver->SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum->SetWorkgroupLayout(settings.bwgCount);
-
 	
 	//Create particle system
 	particleSystem = ParticleSystem<FluidParticle>::Create("ParticleSystem", settings.pThread);
@@ -161,7 +176,9 @@ void ExampleLayer::InitPhysics() {
 	binSystem->SetMesh(binInstance);
 	binSystem->EnableWireFrameMode();
 
-	//scene.Add(particleSystem);
+	init->SetWorkgroupLayout(settings.pWkgCount);
+	solver->SetWorkgroupLayout(settings.pWkgCount);
+	prefixSum->SetWorkgroupLayout(settings.bwgCount);
 	//Create the buffer
 	particleBuffer = SSBO<FluidParticle>::Create("ParticleBuffer");
 	particleBuffer->Allocate(settings.pThread);
@@ -180,9 +197,6 @@ void ExampleLayer::InitPhysics() {
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
 	binSystem->Hide();
-
-	solver->Use();
-	solver->SetUInt("numParticles", numParticles);
 }
 
 void ExampleLayer::SetColorGradient() {
@@ -225,6 +239,8 @@ void ExampleLayer::ResetSimulation() {
 	buf.velocity[1] = 0;
 	buf.velocity[2] = 0;
 	buf.density = 0;
+	buf.binIndex = 0;
+	buf.newIndex = 0;
 
 	float spacing = 1;
 	/*
@@ -255,7 +271,7 @@ void ExampleLayer::ResetSimulation() {
 	}
 	
 	
-	/*
+	
 	//Generate sphere above
 	buf.phase = FLUID; //Fluid body
 	const float height = 10;
@@ -274,7 +290,7 @@ void ExampleLayer::ResetSimulation() {
 
 		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
-	}*/
+	}
 	
 	
 	buf.phase = BOUNDARY; //Boundaries body
@@ -309,7 +325,6 @@ void ExampleLayer::ResetSimulation() {
 		}
 	}
 	
-
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
 
@@ -341,6 +356,7 @@ void ExampleLayer::ResetSimulation() {
 
 	init->Use();
 	init->Dispatch();
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 }
 
 
@@ -562,7 +578,34 @@ void ExampleLayer::OnImGuiRender()
 		binShader->SetInt("colorCycle", colorMode);
 	}
 
+	static int particleTest = 2000;
+	static int binTest = 1459;
+	if (colorMode == 5) {
+		if (ImGui::DragInt("Particle to test", &particleTest)) {
+			particleShader->Use();
+			particleShader->SetUInt("particleTest", particleTest);
+			binShader->Use();
+			binShader->SetUInt("particleTest", particleTest);
+		}
 
+		ImGui::LabelText("Bin selector", "");
+
+		bool changed = false;
+
+		ImGui::LabelText("Current Bin", std::to_string(binTest).c_str());
+
+		if (ImGui::SmallButton("X+")) { binTest++; changed = true; }
+		if (ImGui::SmallButton("X-")){binTest--; changed = true;}
+		if (ImGui::SmallButton("Y+")){binTest += (settings.bx / settings.bWidth); changed = true;}
+		if (ImGui::SmallButton("Y-")){binTest -= (settings.bx / settings.bWidth); changed = true;}
+		if (ImGui::SmallButton("Z+")){binTest += int(settings.by / settings.bWidth) * int(settings.bx / settings.bWidth); changed = true;}
+		if (ImGui::SmallButton("Z-")){binTest -= int(settings.by / settings.bWidth) * int(settings.bx / settings.bWidth); changed = true;}
+
+		if (changed) {
+			binShader->Use();
+			binShader->SetUInt("binTest", binTest);
+		}
+	}
 
 	ImGui::End();
 
@@ -599,9 +642,15 @@ void ExampleLayer::OnImGuiRender()
 		std::vector<bool> sorted;
 		sorted.resize(particleBuffer->GetDeviceBuffer().size());
 
-		for (int i = 0; i < particleBuffer->GetDeviceBuffer().size(); i++) {
+		std::vector<FluidParticle> bugged;
+		for (int i = 0; i < numParticles; i++) {
 			sorted[particleBuffer->GetDeviceBuffer()[i].newIndex] = true;
+			
 		}
+		for (int i = 0; i < numParticles; i++) {
+			if (sorted[i] == false) bugged.push_back(particleBuffer->GetDeviceBuffer()[i]);
+		}
+
 
 
 
