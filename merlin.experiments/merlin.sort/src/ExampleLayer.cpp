@@ -25,11 +25,55 @@ void ExampleLayer::OnAttach(){
 	Console::SetLevel(ConsoleLevel::_INFO);
 
 	Console::print() << "Generating data..." << Console::endl;
-	for (GLuint i = 0; i < n; i++) data.push_back(i);
-	//debugVector(data);
+	for (GLuint i = 0; i < n - 20; i++) {
+		if(i == 3);
+		else if (i == 675);
+		else if (i == 22512);
+		else if (i == 98465);
+		else if (i == 5441);
+		else if (i == 3216842);
+		else if (i == 354644);
+		else if (i == 5) {
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+			data.push_back(5);
+		}else if (i == 422) {
+			data.push_back(422);
+			data.push_back(422);
+			data.push_back(422);
+		}
+		else if (i == 18051) {
+			data.push_back(18051);
+			data.push_back(18051);
+			data.push_back(18051);
+		}else data.push_back(i);
+	}
 
+	//debugVector(data);
+	std::vector<GLuint> unsorted = data;
 	Console::print() << "Shuffling data..." << Console::endl;
-	std::shuffle(data.begin(), data.end(), std::default_random_engine());
+	std::shuffle(unsorted.begin(), unsorted.end(), std::default_random_engine());
 	//debugVector(data);
 
 	//Init buffers
@@ -39,10 +83,10 @@ void ExampleLayer::OnAttach(){
 	countingCount->SetWorkgroupLayout(wgCount);
 
 	inDataBuffer.Rename("inDataBuffer");
-	inDataBuffer.LoadData(data);
+	inDataBuffer.LoadData(unsorted);
 
 	outDataBuffer.Rename("outDataBuffer");
-	outDataBuffer.LoadData(data);
+	outDataBuffer.LoadData(unsorted);
 
 	prefixSumBuffer.Rename("prefixSumBuffer");
 	prefixSumBuffer.Allocate(data.size());
@@ -69,7 +113,7 @@ void ExampleLayer::OnAttach(){
 	
 	prefixSumBuffer.print();
 
-	Console::print() << "Data : " << data.size() << " uint values" << Console::endl;
+	Console::print() << "Data : " << unsorted.size() << " uint values" << Console::endl;
 	Console::print() << "Parallelizing counting sort over " << blocks << " blocks ( " << blockSize << " values per blocks)" << Console::endl;
 
 	prefixSum->Use();
@@ -100,6 +144,16 @@ void ExampleLayer::OnAttach(){
 	double detla = (double)glfwGetTime() - time;
 	Console::success("Sorting") << "Computation finished in " << detla << "s (" << detla * 1000.0 << " ms)" << Console::endl;
 	outDataBuffer.print();
+
+	std::vector<GLuint> buf = outDataBuffer.Download();
+	GLuint check = 0;
+	GLuint error = 0;
+	for (GLuint i : buf) {
+		if (i != data[check]) error++;
+		check++;
+	}
+	Console::success("Checking result") << "got" << error <<  " errors " << Console::endl;
+
 
 	time = (double)glfwGetTime();
 	std::sort(data.begin(), data.end());

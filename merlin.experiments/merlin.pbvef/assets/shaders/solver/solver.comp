@@ -215,6 +215,6 @@ void main() {
 	if (i >= numParticles) return;
 	if (particles[i].phase == UNUSED) return;
 
-	if(particles[i].phase != BOUNDARY) XPBDSolve(i, stage, particles[i]);
+	//if(particles[i].phase != BOUNDARY) XPBDSolve(i, stage, particles[i]);
 	NNS(i, stage);
 }

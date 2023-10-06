@@ -80,21 +80,17 @@ struct Settings {
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
 	GLuint pThread = 64*64*64; //Max Number of particles (thread)
-	GLuint pWkgSize = 1; //Number of thread per workgroup
+	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bRes = 128; //Bed width is divided bRes times
+	GLuint bRes = 64; //Bed width is divided bRes times
 	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
-	GLuint bWkgSize = bRes; //Number of thread per workgroup
-	GLuint bWkgCount = (bThread + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
-
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 
-	GLuint bwgSize = 32; //WorkGroup size
-	GLuint bwgCount = (blocks + bwgSize - 1) / bwgSize; //WorkGroup size
-
+	GLuint bWkgSize = 64; //Number of thread per workgroup
+	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
 	// --- SPH ---
 	// SPH Parameters

@@ -4,13 +4,13 @@
 using namespace Merlin::Graphics;
 
 const GLuint n =  512* 512 * 512; //Number of data
-const GLuint wgSize = 1; //WorkGroup size
+const GLuint wgSize = 512; //WorkGroup size
 const GLuint wgCount = (n + wgSize - 1) / wgSize; //WorkGroup size
 
 const GLuint blockSize = floor(log2f(n));
 const GLuint blocks = (n + blockSize - 1) / blockSize;
 
-const GLuint bwgSize = 1; //WorkGroup size
+const GLuint bwgSize = 64; //WorkGroup size
 const GLuint bwgCount = (blocks + bwgSize - 1) / bwgSize; //WorkGroup size
 
 class ExampleLayer : public Merlin::Layer

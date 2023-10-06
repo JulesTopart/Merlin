@@ -13,16 +13,13 @@ void ExampleLayer::UpdateBufferSettings() {
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
 	settings.bWidth = max(settings.bx, max(settings.by, settings.bz)) / float(settings.bRes); //Width of a single bin in mm
 	settings.bThread = int(settings.bx / (settings.bWidth)) * int(settings.by / (settings.bWidth)) * int(settings.bz / (settings.bWidth)); //Total number of bin (thread)
-	settings.bWkgSize = settings.bRes; //Number of thread per workgroup
-	settings.bWkgCount = (settings.bThread + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
-
 	settings.blockSize = floor(log2f(settings.bThread));
 	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
-	settings.bwgCount = (settings.blocks + settings.bwgSize - 1) / settings.bwgSize; //WorkGroup size
+	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
 
 	init->SetWorkgroupLayout(settings.pWkgCount);
 	solver->SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum->SetWorkgroupLayout(settings.bwgCount);
+	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
 	particleBuffer->Resize(settings.pThread);
 	binBuffer->Resize(settings.bThread);
@@ -178,7 +175,7 @@ void ExampleLayer::InitPhysics() {
 
 	init->SetWorkgroupLayout(settings.pWkgCount);
 	solver->SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum->SetWorkgroupLayout(settings.bwgCount);
+	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 	//Create the buffer
 	particleBuffer = SSBO<FluidParticle>::Create("ParticleBuffer");
 	particleBuffer->Allocate(settings.pThread);
@@ -333,6 +330,8 @@ void ExampleLayer::ResetSimulation() {
 	numParticles = cpu_particles.size();
 	particleSystem->SetInstancesCount(numParticles);
 
+	settings.pThread = numParticles;
+
 	init->Use();
 	init->SetUInt("numParticles", numParticles);
 	init->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
@@ -347,6 +346,8 @@ void ExampleLayer::ResetSimulation() {
 
 	particleShader->Use();
 	particleShader->SetUInt("numParticles", numParticles);
+
+	UpdateBufferSettings();
 
 	solver->Use();
 	solver->Execute(0); //Place particles in bins & predict position
@@ -639,21 +640,13 @@ void ExampleLayer::OnImGuiRender()
 		binBuffer->Bind();
 		binBuffer->Download();
 
-		std::vector<bool> sorted;
+		std::vector<FluidParticle> sorted;
 		sorted.resize(particleBuffer->GetDeviceBuffer().size());
 
 		std::vector<FluidParticle> bugged;
 		for (int i = 0; i < numParticles; i++) {
-			sorted[particleBuffer->GetDeviceBuffer()[i].newIndex] = true;
-			
+			sorted[particleBuffer->GetDeviceBuffer()[i].newIndex] = particleBuffer->GetDeviceBuffer()[i];
 		}
-		for (int i = 0; i < numParticles; i++) {
-			if (sorted[i] == false) bugged.push_back(particleBuffer->GetDeviceBuffer()[i]);
-		}
-
-
-
-
 
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;
