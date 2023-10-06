@@ -74,6 +74,8 @@ void main() {
 
 	
 	bool binTest = true;
+	bool nnTest = false;
+
 	bool test = particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0);
 
 	if(colorCycle == 0){ 
@@ -88,7 +90,7 @@ void main() {
 		color = heatMap(particles[gl_InstanceID].mass/10.0);		
 	}else{ //NNS Test
 		
-		binTest = false;;
+		binTest = false;
 		uvec3 binIndexVec2 = getBinCoordFromIndex(particles[particleTest].binIndex);
 		for (int z = int(binIndexVec2.z) - 1; z <= int(binIndexVec2.z) + 1; z++) {
 			for (int y = int(binIndexVec2.y) - 1; y <= int(binIndexVec2.y) + 1; y++) {
@@ -107,7 +109,10 @@ void main() {
 			if(gl_InstanceID == j) nnTest = true;
 		OVERNNS_END
 
-		if(nnTest) color = vec4(0,1,0, 1);
+		if(nnTest){
+			if(length(particles[particleTest].position - particles[gl_InstanceID].position) > smoothingRadius) color =vec4(1,0.2,0,0.2);
+			else color = vec4(0,1,0, 1);
+		}
 		else color = vec4(0,0,0, 1);
 			
 		if(gl_InstanceID == particleTest) color = vec4(0,0,1, 1);
@@ -119,6 +124,8 @@ void main() {
 	}
 	else{
 		gl_Position = projection * view * position;
-		gl_PointSize = 200.0/(log(gl_Position.w)*10);
+		gl_PointSize = 280.0/(gl_Position.w);
+		if(colorCycle == 5 && length(particles[particleTest].position - particles[gl_InstanceID].position) > smoothingRadius) gl_PointSize = 100.0/(gl_Position.w);
+		
 	}
 }

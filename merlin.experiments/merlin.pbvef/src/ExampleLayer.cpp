@@ -276,7 +276,7 @@ void ExampleLayer::ResetSimulation() {
 	const float goldenRatio = (1.0 + sqrt(5.0)) / 2.0;
 	const float angleIncrement = 3.1415926 * 2.0 * goldenRatio;
 	const int radius = 8;
-	for (float r = 0.1; r < radius; r+=0.1)
+	for (float r = 0.5; r < radius; r+=0.5)
 	for (int i = 0; i < 4*3.1415926 * r * r; ++i) {
 		float t = float(i) / float(4 * 3.1415926 * r * r);
 		float inclinationAngle = acos(1 - 2 * t);  // polar angle

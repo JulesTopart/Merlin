@@ -2,6 +2,7 @@
 #include "sph.kernels.glsl" 
 layout (local_size_x = PTHREAD) in;
 
+
 // SPH_Density_neighbor
 float computeDensity(uint i) {
 	float density = 0;
@@ -169,21 +170,21 @@ void NNS(uint i, uint simStep) {
 	}
 }
 
-void XPBDSolve(uint i, uint simStep, inout Particle pi) {
+void XPBDSolve(uint i, uint simStep) {
 	switch(simStep){ 
 		case 0 :
 			//Sympletic euler intergration to predict position
-			pi.velocity += pi.acceleration * dt * speed;
+			particles[i].velocity += particles[i].acceleration * dt * speed;
 			//pi.new_position = pi.position + pi.velocity * dt * speed;
 
 			//Reset acceleration to 0 (and gravity)
-			pi.acceleration = vec4(0,0,-G,0);
+			particles[i].acceleration = vec4(0,0,-G,0);
 		break;
 		//case 1:
 		//Skip step 1 (used for neighboring sort)
 		//break;
 		case 2 :
-			pi.density = computeDensity(i);
+			particles[i].density = computeDensity(i);
 		break;
 
 		//Pressure solver iteration
@@ -215,6 +216,6 @@ void main() {
 	if (i >= numParticles) return;
 	if (particles[i].phase == UNUSED) return;
 
-	//if(particles[i].phase != BOUNDARY) XPBDSolve(i, stage, particles[i]);
+	if(particles[i].phase != BOUNDARY) XPBDSolve(i, stage);
 	NNS(i, stage);
 }

@@ -14,7 +14,7 @@ void main() {
 			Particle pj = particles[j];
 			vec4 diff = pi.position - pj.position;
 			float rSquared = dot(diff, diff);
-			if(pi.phase == BOUNDARY) delta += poly6(diff);
+			if(particles[i].phase == BOUNDARY) delta += poly6(diff);
 		OVERNNS_END
 		if(delta < EPSILON) pi.mass = 0.0;
 		else pi.mass = REST_DENSITY / delta;
