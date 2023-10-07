@@ -68,7 +68,7 @@ void main() {
 		return;
 	}
 
-	vec3 offset = particles[gl_InstanceID].position.xyz*scale;
+	vec3 offset = particles[gl_InstanceID].position.xyz;
 	position = model * (vec4(_position + offset,1));
 
 
@@ -81,9 +81,9 @@ void main() {
 	if(colorCycle == 0){ 
 		color = vec4(randomColor(particles[gl_InstanceID].binIndex), 1);
 	}else if(colorCycle == 1) {
-		color = heatMap(particles[gl_InstanceID].density / REST_DENSITY);
+		color = heatMap(map(particles[gl_InstanceID].density, colorScale.density));
 	}else if(colorCycle == 2) {
-		color = heatMap(particles[gl_InstanceID].temperature / nozzleTemperature);
+		color = heatMap(map(particles[gl_InstanceID].temperature, colorScale.temperature));
 	}else if(colorCycle == 3) {
 		color = heatMap(particles[gl_InstanceID].lambda);
 	}else if(colorCycle == 4) {

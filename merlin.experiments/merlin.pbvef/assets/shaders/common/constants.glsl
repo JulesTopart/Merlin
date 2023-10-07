@@ -8,7 +8,6 @@
 #define BOUNDARY 4
 
 // --- Global ---
-const float scale = 1;
 const float EPSILON = 1.0e-6f; //Small error epsilon
 #define INV_REST_DENSITY 1.0 / REST_DENSITY
 
@@ -47,7 +46,7 @@ const float rheo_n = 0.5; // Flow behavior index
 
 #define MAXNN 512
 // --- Domain ---
-const uint binResolution = 64;
+const uint binResolution = 48;
 const vec3 domain = vec3(100, 40, 100);
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);

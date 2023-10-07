@@ -92,20 +92,13 @@ void ExampleLayer::InitGraphics() {
 	scene.Add(sky);
 
 	Shared<Model> floor = ModelLoader::LoadModel("./assets/models/bed.stl");
-	floor->Translate(glm::vec3(0, 0, -0.1));
-
-	Shared<Material> floorMat = CreateShared<Material>("floorMat");
-	floorMat->SetAmbient(glm::vec3(0.1));
-	floorMat->SetDiffuse(glm::vec3(0.6));
-	floorMat->SetSpecular(glm::vec3(0.2));
-	floorMat->SetShininess(0.8);
-
+	floor->Translate(glm::vec3(0.75, -0.25, -0.05));
 	floor->SetMaterial("chrome");
 	floor->SetShader("model");
 	scene.Add(floor);
 
-	Shared<Model> floorSurface = Model::Create("floorSurface", Primitives::CreateRectangle(300, 200));
-	//floorSurface->Translate(glm::vec3(0, 0, 0));
+	Shared<Model> floorSurface = Model::Create("floorSurface", Primitives::CreateRectangle(316, 216));
+	floorSurface->Translate(glm::vec3(0.75, -0.25, 0));
 
 	Shared<Material> floorMat2 = CreateShared<Material>("floorMat2");
 	floorMat2->SetAmbient(glm::vec3(0.4));
@@ -138,6 +131,9 @@ void ExampleLayer::InitGraphics() {
 
 	origin = TransformObject::Create("origin");
 	scene.Add(origin);
+
+
+	//scene.Add(Model::Create("cube",Primitives::CreateCube(20)));
 
 }
 
@@ -183,13 +179,18 @@ void ExampleLayer::InitPhysics() {
 	binBuffer = SSBO<Bin>::Create("BinBuffer");
 	binBuffer->Allocate(settings.bThread);
 
+	colorScaleBuffer = SSBO<ColorScale>::Create("ColorScaleBuffer");
+	colorScaleBuffer->Allocate(1);
+
 	particleSystem->AddComputeShader(solver);
 	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddStorageBuffer(binBuffer);
+	particleSystem->AddStorageBuffer(colorScaleBuffer);
 	
 	binSystem->AddComputeShader(prefixSum);
 	binSystem->AddStorageBuffer(particleBuffer);
 	binSystem->AddStorageBuffer(binBuffer);
+	//binSystem->AddStorageBuffer(colorScaleBuffer);
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
@@ -239,7 +240,7 @@ void ExampleLayer::ResetSimulation() {
 	buf.binIndex = 0;
 	buf.newIndex = 0;
 
-	float spacing = 1;
+	float spacing = 10;
 	/*
 	buf.phase = FLUID; //Rigid cube
 	glm::vec3 cubeSize = glm::vec3(5, 5, 5);
@@ -346,6 +347,9 @@ void ExampleLayer::ResetSimulation() {
 
 	particleShader->Use();
 	particleShader->SetUInt("numParticles", numParticles);
+	particleShader->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
+	particleShader->SetFloat("particleMass", settings.particleMass); // Kernel radius // 5mm
+	particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 
 	UpdateBufferSettings();
 
@@ -427,6 +431,9 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->Use();
 	solver->Execute(1); //Sort
+
+	colorScaleBuffer->Bind();
+	colorScaleBuffer->Clear();
 	solver->Execute(2); //Calculate density
 
 	for (int i = 0; i < solver_iteration; i++) {
@@ -450,6 +457,7 @@ void ExampleLayer::OnAttach() {
 
 	particleShader->Attach(*particleBuffer);
 	particleShader->Attach(*binBuffer);
+	particleShader->Attach(*colorScaleBuffer);
 	particleShader->Attach(*heatMap);
 
 	binShader->Attach(*particleBuffer);
@@ -554,20 +562,18 @@ void ExampleLayer::OnImGuiRender()
 		solver->SetFloat("speed", sim_speed);
 	}
 
-
 	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 0.5, 10.0)) {
 		solver->Use();
 		solver->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
+		particleShader->Use();
+		particleShader->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 	}
 
 	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 10, 5000)) {
 		solver->Use();
 		solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
-	}
-
-	if (ImGui::SliderFloat("mass", &settings.particleMass, 0.0, 10.0f)) {
-		solver->Use();
-		solver->SetFloat("particleMass", settings.particleMass); // Kernel radius // 5mm
+		particleShader->Use();
+		particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 	}
 
 	static int colorMode = 1;
@@ -639,14 +645,17 @@ void ExampleLayer::OnImGuiRender()
 		particleBuffer->Download();
 		binBuffer->Bind();
 		binBuffer->Download();
+		colorScaleBuffer->Bind();
+		colorScaleBuffer->Download();
 
+		/*
 		std::vector<FluidParticle> sorted;
 		sorted.resize(particleBuffer->GetDeviceBuffer().size());
 
 		std::vector<FluidParticle> bugged;
 		for (int i = 0; i < numParticles; i++) {
 			sorted[particleBuffer->GetDeviceBuffer()[i].newIndex] = particleBuffer->GetDeviceBuffer()[i];
-		}
+		}*/
 
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;

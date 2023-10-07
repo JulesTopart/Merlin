@@ -14,15 +14,6 @@ struct Particle {
 	uint padding;			// bin index
 };
 
-//binIndex	1459	unsigned int
-/*
-+ [1099] {47410 1028 }	FluidParticle
-+ [1100] {47410 2000 }	FluidParticle
-+ [1101] {53938 1487 }	FluidParticle
-+ [1102] {53938 32093 }	FluidParticle
-+ [1103] {60466 2546 }	FluidParticle
-*/
-
 layout(std430) buffer ParticleBuffer {
 	Particle particles[];
 };
@@ -38,8 +29,44 @@ layout(std430) buffer BinBuffer {
 	Bin bins[];
 };
 
+struct ColorScale {
+	ivec2 density;
+	ivec2 temperature;
+	ivec2 position;
+	ivec2 velocity;
+};
+
+layout(std430) buffer ColorScaleBuffer {
+	ColorScale colorScale;
+};
+
+#define DENSITY_FIELD 1
+#define TEMPERATURE_FIELD 2
+#define VELOCITY_FIELD 3
+
+void updateMinMax(int field, in float value){
+	switch(field){
+	case DENSITY_FIELD : 
+		atomicMax(colorScale.density.y, int(value*1000.0));
+		atomicMin(colorScale.density.x, int(value*1000.0));
+	break;
+	case TEMPERATURE_FIELD : 
+		atomicMax(colorScale.temperature.y, int(value*1000.0));
+		atomicMin(colorScale.temperature.x, int(value*1000.0));
+	break;
+	case VELOCITY_FIELD : 
+		atomicMax(colorScale.velocity.y, int(value*1000.0));
+		atomicMin(colorScale.velocity.x, int(value*1000.0));
+	break;
+	}
+
+}
+
+float map(float value, ivec2 range){
+	return (value - (float(range.x)))/(float(range.y - range.x));
+}
+
 uvec3 getBinCoord(vec4 position) {
-	position *= scale;
 	position.xyz -= boundaryMin;
 	uvec3 bin3D = uvec3(position / binSize);
 	bin3D.x = max(        min(bin3D.x, binMax.x - 1), 0);

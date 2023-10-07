@@ -48,6 +48,13 @@ struct Bin {
 	GLuint index;
 };
 
+struct ColorScale {
+	glm::vec2 density;
+	glm::vec2 temperature;
+	glm::vec2 position;
+	glm::vec2 velocity;
+};
+
 template<>
 inline void BufferObject<Bin>::print() {
 	Bind();
@@ -83,7 +90,7 @@ struct Settings {
 	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bRes = 64; //Bed width is divided bRes times
+	GLuint bRes = 48; //Bed width is divided bRes times
 	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint blockSize = floor(log2f(bThread));
@@ -138,6 +145,7 @@ private:
 	SSBO_Ptr<Bin> binBuffer; //Particle buffer
 	SSBO_Ptr<Constraint> constraintBuffer; //Index buffer
 	SSBO_Ptr<FluidParticle> particleBuffer; //Particle buffer
+	SSBO_Ptr<ColorScale> colorScaleBuffer; //Particle buffer
 
 	Shader_Ptr modelShader;
 	Shader_Ptr particleShader;

@@ -27,6 +27,6 @@ void main() {
 		//not implemented yet
 	}
 	//pi.newIndex = i;
-
+	pi.density = 0;
 	particles[i] = pi;
 }

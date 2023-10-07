@@ -5,16 +5,15 @@ layout (local_size_x = PTHREAD) in;
 
 // SPH_Density_neighbor
 float computeDensity(uint i) {
-	float density = 0;
+	float density = 1;
 	Particle pi = particles[i];
 
 	OVERNNS
 		Particle pj = particles[j];
 		vec4 diff = pi.position - pj.position;
 		float rSquared = dot(diff, diff);
-		density += pj.mass*poly6(diff); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
+		density += 1.0;//pj.mass*poly6(diff); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
 	OVERNNS_END
-	
 	return  density;
 }
 
@@ -93,44 +92,44 @@ void solveViscosity(uint i, inout Particle pi) {
 	pi.velocity += artificialViscosity * smoothedVelocity;
 }
 
-/*
-//calculate Temperature
-float computeTemperature(uint i, inout Particle pi) {
 
-	const float Ti = pi.temperature;
+//calculate Temperature
+float computeTemperature(uint i) {
+
+	const float Ti = particles[i].temperature;
 	float temperatureDelta = 0.0;
 	
 	OVERNNS
-		vec4 dij = pi.new_position - particles[j].new_position;
+		vec4 dij = particles[i].new_position - particles[j].new_position;
 
 		float Tj = particles[j].temperature;
 		float rhoj = particles[j].density;
 
 		float w2_pse = poly6_lapl(dij);
-		float lambda = (kPLA / (CpPLA * pi.density));
+		float lambda = (kPLA / (CpPLA * particles[i].density));
 		temperatureDelta += lambda * (Tj-Ti) * w2_pse * dt;
 	OVERNNS_END
 
-	if(pi.position.z < H/2.0){
+	if(particles[i].position.z < H/2.0){
 		temperatureDelta += kPlateau * (floorTemperature - Ti) * dt;
 	}
 	temperatureDelta += kAmbient*(ambientTemperature - Ti) * dt;
 	return temperatureDelta;
 }
-*/
+
 /*
 vec4 clampToBoundaries(vec4 position){
 	vec4 correctedPosition = position;
 	for (int i = 0; i < 3; i++)
 	{
-		if (correctedPosition[i] <= (boundaryMin[i]/scale) )
+		if (correctedPosition[i] <= (boundaryMin[i]) )
 		{
-			correctedPosition[i] = (boundaryMin[i]/scale)+EPSILON;
+			correctedPosition[i] = (boundaryMin[i])+EPSILON;
 
 		}
-		else if (correctedPosition[i] >= (boundaryMax[i]/scale))
+		else if (correctedPosition[i] >= (boundaryMax[i]))
 		{
-			correctedPosition[i] =  (boundaryMax[i]/scale)-EPSILON;
+			correctedPosition[i] =  (boundaryMax[i])-EPSILON;
 		}
 	}
 
@@ -175,9 +174,9 @@ void XPBDSolve(uint i, uint simStep) {
 		case 0 :
 			//Sympletic euler intergration to predict position
 			particles[i].velocity += particles[i].acceleration * dt * speed;
-			//pi.new_position = pi.position + pi.velocity * dt * speed;
+			//particles[i].position = particles[i].position + particles[i].velocity * dt * speed;
 
-			//Reset acceleration to 0 (and gravity)
+			//Reset acceleration to 0 (and gravity)z
 			particles[i].acceleration = vec4(0,0,-G,0);
 		break;
 		//case 1:
@@ -185,6 +184,10 @@ void XPBDSolve(uint i, uint simStep) {
 		//break;
 		case 2 :
 			particles[i].density = computeDensity(i);
+			updateMinMax(DENSITY_FIELD, particles[i].density);
+
+			particles[i].temperature += computeTemperature(i);
+			updateMinMax(TEMPERATURE_FIELD, particles[i].temperature);
 		break;
 
 		//Pressure solver iteration
@@ -202,6 +205,8 @@ void XPBDSolve(uint i, uint simStep) {
 			//solveViscosity(i, pi); // compute the viscosity forces (XSPH) for all particles 
 			//pi.position = clampToBoundaries(pi.new_position);
 			//pi.position = pi.new_position; //apply new position
+
+			updateMinMax(VELOCITY_FIELD, length(particles[i].velocity));
 		break;
 	}
 }
