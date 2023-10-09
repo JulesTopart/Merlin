@@ -81,9 +81,10 @@ void main() {
 	if(colorCycle == 0){ 
 		color = vec4(randomColor(particles[gl_InstanceID].binIndex), 1);
 	}else if(colorCycle == 1) {
-		color = heatMap(map(particles[gl_InstanceID].density, colorScale.density));
+		if(colorScale[DENSITY_FIELD].maxValue == 0) color = vec4(1);
+		else color = heatMap(map(int(particles[gl_InstanceID].density), colorScale[DENSITY_FIELD]));
 	}else if(colorCycle == 2) {
-		color = heatMap(map(particles[gl_InstanceID].temperature, colorScale.temperature));
+		color = heatMap(map(int(particles[gl_InstanceID].temperature), colorScale[TEMPERATURE_FIELD]));
 	}else if(colorCycle == 3) {
 		color = heatMap(particles[gl_InstanceID].lambda);
 	}else if(colorCycle == 4) {

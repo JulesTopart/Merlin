@@ -30,40 +30,29 @@ layout(std430) buffer BinBuffer {
 };
 
 struct ColorScale {
-	ivec2 density;
-	ivec2 temperature;
-	ivec2 position;
-	ivec2 velocity;
+	int minValue;
+	int maxValue;
 };
 
 layout(std430) buffer ColorScaleBuffer {
-	ColorScale colorScale;
+	ColorScale colorScale[];
 };
 
+#define DEFAULT_FIELD 0
 #define DENSITY_FIELD 1
 #define TEMPERATURE_FIELD 2
 #define VELOCITY_FIELD 3
+#define MAX_FIELD 3
 
-void updateMinMax(int field, in float value){
-	switch(field){
-	case DENSITY_FIELD : 
-		atomicMax(colorScale.density.y, int(value*1000.0));
-		atomicMin(colorScale.density.x, int(value*1000.0));
-	break;
-	case TEMPERATURE_FIELD : 
-		atomicMax(colorScale.temperature.y, int(value*1000.0));
-		atomicMin(colorScale.temperature.x, int(value*1000.0));
-	break;
-	case VELOCITY_FIELD : 
-		atomicMax(colorScale.velocity.y, int(value*1000.0));
-		atomicMin(colorScale.velocity.x, int(value*1000.0));
-	break;
-	}
+void updateMinMax(int field, int value){
+	if(field > MAX_FIELD) field = 0;
 
+	atomicMax(colorScale[field].maxValue, value);
+	atomicMin(colorScale[field].minValue, value);
 }
 
-float map(float value, ivec2 range){
-	return (value - (float(range.x)))/(float(range.y - range.x));
+float map(int value, ColorScale range){
+	return (float(value) - (float(range.minValue)))/(float(range.maxValue - range.minValue));
 }
 
 uvec3 getBinCoord(vec4 position) {

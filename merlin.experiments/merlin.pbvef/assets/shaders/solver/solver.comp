@@ -184,10 +184,10 @@ void XPBDSolve(uint i, uint simStep) {
 		//break;
 		case 2 :
 			particles[i].density = computeDensity(i);
-			updateMinMax(DENSITY_FIELD, particles[i].density);
+			updateMinMax(DENSITY_FIELD, int(particles[i].density*100));
 
 			particles[i].temperature += computeTemperature(i);
-			updateMinMax(TEMPERATURE_FIELD, particles[i].temperature);
+			//updateMinMax(TEMPERATURE_FIELD, particles[i].temperature);
 		break;
 
 		//Pressure solver iteration
@@ -206,7 +206,7 @@ void XPBDSolve(uint i, uint simStep) {
 			//pi.position = clampToBoundaries(pi.new_position);
 			//pi.position = pi.new_position; //apply new position
 
-			updateMinMax(VELOCITY_FIELD, length(particles[i].velocity));
+			//updateMinMax(VELOCITY_FIELD, length(particles[i].velocity));
 		break;
 	}
 }

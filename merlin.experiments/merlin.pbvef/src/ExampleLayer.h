@@ -49,10 +49,8 @@ struct Bin {
 };
 
 struct ColorScale {
-	glm::vec2 density;
-	glm::vec2 temperature;
-	glm::vec2 position;
-	glm::vec2 velocity;
+	GLint maxValue;
+	GLint minValue;
 };
 
 template<>

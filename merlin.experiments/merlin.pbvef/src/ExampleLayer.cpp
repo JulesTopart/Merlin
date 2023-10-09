@@ -179,9 +179,16 @@ void ExampleLayer::InitPhysics() {
 	binBuffer = SSBO<Bin>::Create("BinBuffer");
 	binBuffer->Allocate(settings.bThread);
 
-	colorScaleBuffer = SSBO<ColorScale>::Create("ColorScaleBuffer");
-	colorScaleBuffer->Allocate(1);
 
+	colorScaleBuffer = SSBO<ColorScale>::Create("ColorScaleBuffer");
+	std::vector<ColorScale> scales;
+	scales.push_back({ 0,1 });
+	scales.push_back({ 0,100 });
+	scales.push_back({ 0,400 });
+	scales.push_back({ 0,50 });
+	colorScaleBuffer->LoadData(scales);
+
+	particleSystem->AddComputeShader(init);
 	particleSystem->AddComputeShader(solver);
 	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddStorageBuffer(binBuffer);
@@ -190,7 +197,7 @@ void ExampleLayer::InitPhysics() {
 	binSystem->AddComputeShader(prefixSum);
 	binSystem->AddStorageBuffer(particleBuffer);
 	binSystem->AddStorageBuffer(binBuffer);
-	//binSystem->AddStorageBuffer(colorScaleBuffer);
+	binSystem->AddStorageBuffer(colorScaleBuffer);
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
@@ -210,16 +217,9 @@ void ExampleLayer::SetColorGradient() {
 	heatMap->LoadData(colors);
 }
 
-
-void AddSphere() {
-
-}
-
 void ExampleLayer::ResetSimulation() {
 
 	particleSystem->SetInstancesCount(settings.pThread);
-	//init->Use();
-	//init->Dispatch(); //init position using init compute shader
 	particleBuffer->Bind();
 	particleBuffer->Clear();
 	particleBuffer->FreeHostMemory();
@@ -462,6 +462,7 @@ void ExampleLayer::OnAttach() {
 
 	binShader->Attach(*particleBuffer);
 	binShader->Attach(*binBuffer);
+	binShader->Attach(*colorScaleBuffer);
 	binShader->Attach(*heatMap);
 
 	ResetSimulation();
