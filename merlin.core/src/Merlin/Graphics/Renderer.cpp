@@ -56,8 +56,6 @@ namespace Merlin::Graphics {
 			const Shader* shader;
 			//glPointSize(10);
 			glEnable(GL_PROGRAM_POINT_SIZE);
-
-
 			if (ps.GetMesh()->HasShader())
 				shader = &ps.GetMesh()->GetShader();
 			else
@@ -74,6 +72,7 @@ namespace Merlin::Graphics {
 			const Shader* shader;
 			//glPointSize(10);
 			glEnable(GL_PROGRAM_POINT_SIZE);
+			glEnable(0x8861);//WTF
 			glDisable(GL_DEPTH_TEST);
 
 			if (ps.GetMesh()->HasShader())
@@ -90,6 +89,7 @@ namespace Merlin::Graphics {
 
 			glEnable(GL_DEPTH_TEST);
 			glDisable(GL_PROGRAM_POINT_SIZE);
+			glDisable(0x8861);//WTF
 		}else if (ps.GetDisplayMode() == ParticleSystemDisplayMode::MESH) {
 			const Shader* shader;
 			const Material* mat;

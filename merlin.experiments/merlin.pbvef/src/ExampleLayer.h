@@ -88,7 +88,7 @@ struct Settings {
 	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bRes = 48; //Bed width is divided bRes times
+	GLuint bRes = 32; //Bed width is divided bRes times
 	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint blockSize = floor(log2f(bThread));
@@ -99,9 +99,10 @@ struct Settings {
 
 	// --- SPH ---
 	// SPH Parameters
-	float H = 2; // Kernel radius // 5mm
-	float particleMass = 1.0;//g Mass
-	float REST_DENSITY = 1000.0; // g/mm3 Metled plastic
+	float particleRadius = 1; // mm
+	float H = 4 * particleRadius; // Kernel radius // 4 x particleRadius mm
+	float REST_DENSITY = 1000.0; // kg/m3 Metled plastic
+	float particleMass = 1000.0 * pow(particleRadius * 2.0e-3 ,3.0) * (REST_DENSITY);//g Mass
 };
 
 class ExampleLayer : public Merlin::Layer
@@ -169,6 +170,7 @@ private:
 
 	//Simulation
 	GLuint numParticles = 0;
+	GLuint numBoundaryParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 	int solver_iteration = 5;
 

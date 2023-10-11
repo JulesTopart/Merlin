@@ -44,6 +44,9 @@ void ExampleLayer::InitGraphics() {
 	// Init OpenGL stuff
 	renderer.Initialize();
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
+	renderer.EnableTransparency();
+	renderer.EnableSampleShading();
+
 
 	//Shaders
 	modelShader = Shader::Create("model", "assets/shaders/model.vert", "assets/shaders/model.frag");
@@ -72,8 +75,7 @@ void ExampleLayer::InitGraphics() {
 	renderer.AddShader(particleShader);
 	renderer.AddShader(binShader);
 
-	//renderer.EnableTransparency();
-	renderer.EnableSampleShading();
+
 
 
 	//SkyBox
@@ -155,7 +157,7 @@ void ExampleLayer::InitPhysics() {
 	particle->SetShader(particleShader);
 	particleSystem->SetMesh(particle);
 	particleSystem->Translate(glm::vec3(0, 0, -0.5));
-	particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
+	particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
 
 	//Create bin system
 	Console::info("Memory") << "size of FluidParticle is " << sizeof(FluidParticle) << Console::endl;
@@ -226,7 +228,10 @@ void ExampleLayer::ResetSimulation() {
 
 	Console::info() << "Generating particles..." << Console::endl;
 
-	std::vector<glm::vec3> bunny = GenerateVoxelBunny(0.5);
+
+	float spacing = 0.4;
+
+	std::vector<glm::vec3> bunny = GenerateVoxelBunny(spacing);
 	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
 
 	FluidParticle buf;
@@ -237,10 +242,11 @@ void ExampleLayer::ResetSimulation() {
 	buf.velocity[1] = 0;
 	buf.velocity[2] = 0;
 	buf.density = 0;
+	buf.temperature = 298.15;//ambient
 	buf.binIndex = 0;
 	buf.newIndex = 0;
 
-	float spacing = 10;
+	
 	/*
 	buf.phase = FLUID; //Rigid cube
 	glm::vec3 cubeSize = glm::vec3(5, 5, 5);
@@ -272,12 +278,11 @@ void ExampleLayer::ResetSimulation() {
 	
 	//Generate sphere above
 	buf.phase = FLUID; //Fluid body
-	const float height = 10;
-	//const float height = 80;
+	const float height = 80;
 	const float goldenRatio = (1.0 + sqrt(5.0)) / 2.0;
 	const float angleIncrement = 3.1415926 * 2.0 * goldenRatio;
 	const int radius = 8;
-	for (float r = 0.5; r < radius; r+=0.5)
+	for (float r = spacing; r < radius; r+= spacing)
 	for (int i = 0; i < 4*3.1415926 * r * r; ++i) {
 		float t = float(i) / float(4 * 3.1415926 * r * r);
 		float inclinationAngle = acos(1 - 2 * t);  // polar angle
@@ -290,7 +295,7 @@ void ExampleLayer::ResetSimulation() {
 		cpu_particles.push_back(buf);
 	}
 	
-	
+	buf.temperature = 400.15;//ambient
 	buf.phase = BOUNDARY; //Boundaries body
 	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
 		for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
@@ -332,12 +337,6 @@ void ExampleLayer::ResetSimulation() {
 	particleSystem->SetInstancesCount(numParticles);
 
 	settings.pThread = numParticles;
-
-	init->Use();
-	init->SetUInt("numParticles", numParticles);
-	init->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
-	init->SetFloat("particleMass", settings.particleMass); // Kernel radius // 5mm
-	init->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 	
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
@@ -358,10 +357,6 @@ void ExampleLayer::ResetSimulation() {
 	NeigborSearch();
 	solver->Use();
 	solver->Execute(1); //Sort
-
-	init->Use();
-	init->Dispatch();
-	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 }
 
 
@@ -454,16 +449,17 @@ void ExampleLayer::OnAttach() {
 	InitGraphics();
 	InitPhysics();
 	SetColorGradient();
+	particleShader->Use();
+	particleShader->Attach(*particleBuffer, 0);
+	particleShader->Attach(*binBuffer, 1);
+	particleShader->Attach(*colorScaleBuffer, 2);
+	particleShader->Attach(*heatMap, 3);
 
-	particleShader->Attach(*particleBuffer);
-	particleShader->Attach(*binBuffer);
-	particleShader->Attach(*colorScaleBuffer);
-	particleShader->Attach(*heatMap);
-
-	binShader->Attach(*particleBuffer);
-	binShader->Attach(*binBuffer);
-	binShader->Attach(*colorScaleBuffer);
-	binShader->Attach(*heatMap);
+	binShader->Use();
+	binShader->Attach(*particleBuffer, 0);
+	binShader->Attach(*binBuffer, 1);
+	binShader->Attach(*colorScaleBuffer, 2);
+	binShader->Attach(*heatMap, 3);
 
 	ResetSimulation();
 }
@@ -570,11 +566,16 @@ void ExampleLayer::OnImGuiRender()
 		particleShader->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 	}
 
-	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 10, 5000)) {
+	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 0.1, 500)) {
 		solver->Use();
 		solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 		particleShader->Use();
 		particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
+	}
+
+	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.1, 200.0)) {
+		solver->Use();
+		solver->SetFloat("particleMass", settings.particleMass);
 	}
 
 	static int colorMode = 1;

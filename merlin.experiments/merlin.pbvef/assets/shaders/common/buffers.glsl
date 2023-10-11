@@ -14,7 +14,7 @@ struct Particle {
 	uint padding;			// bin index
 };
 
-layout(std430) buffer ParticleBuffer {
+layout(std430, binding = 0) buffer ParticleBuffer {
 	Particle particles[];
 };
 
@@ -25,7 +25,7 @@ struct Bin {
 	uint index;
 };
 
-layout(std430) buffer BinBuffer {
+layout(std430, binding = 1) buffer BinBuffer {
 	Bin bins[];
 };
 
@@ -34,19 +34,18 @@ struct ColorScale {
 	int maxValue;
 };
 
-layout(std430) buffer ColorScaleBuffer {
+layout(std430, binding = 2) buffer ColorScaleBuffer {
 	ColorScale colorScale[];
 };
 
-#define DEFAULT_FIELD 0
+#define LAMBDA_FIELD 0
 #define DENSITY_FIELD 1
 #define TEMPERATURE_FIELD 2
 #define VELOCITY_FIELD 3
 #define MAX_FIELD 3
 
 void updateMinMax(int field, int value){
-	if(field > MAX_FIELD) field = 0;
-
+	if(field > MAX_FIELD) return;
 	atomicMax(colorScale[field].maxValue, value);
 	atomicMin(colorScale[field].minValue, value);
 }

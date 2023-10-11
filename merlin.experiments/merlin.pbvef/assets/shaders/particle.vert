@@ -7,6 +7,7 @@ layout(location = 0) in vec3 _position;
 layout(location = 1) in vec3 _normal;
 
 out vec4 position;
+out vec4 screen_position;
 out vec4 normal;
 out vec4 color;
 out vec2 texCoord;
@@ -20,7 +21,7 @@ uniform uint particleTest = 2000;
 uniform int showBoundary;
 uniform uint colorCount;
 
-layout(std430) buffer ColorMapBuffer {
+layout(std430, binding = 3) buffer ColorMapBuffer {
     vec4 colors[];
 };
 
@@ -45,6 +46,42 @@ vec4 heatMap(const float value) {
 		}
 	}
 	color = colors[colorCount - 1];
+	return color;
+}
+
+vec4 stableMap(const float value) {
+	float minValue = 0.0f;
+	float maxValue = 1.0f;
+	float v = (value - minValue)/(maxValue - minValue);
+	vec4 color;
+	color.a = 1.0f;
+	if (colorCount == 0) return vec4(0,0,0,1);
+		
+		vec4 prevC = vec4(0,0,1,0.0);
+		vec4 currC = vec4(1,1,1,0.5);
+		
+		if (v <= currC.w) {
+			float valueDiff = (prevC.w - currC.w);
+			float fractBetween = (valueDiff == 0) ? 0 : (v - currC.w) / valueDiff;
+			color.r = (prevC.r - currC.r) * fractBetween + currC.r;
+			color.g = (prevC.g - currC.g) * fractBetween + currC.g;
+			color.b = (prevC.b - currC.b) * fractBetween + currC.b;
+			return color;
+		}
+
+		prevC = currC;
+		currC = vec4(1,0,0,1.0);
+		
+		if (v <= currC.w) {
+			float valueDiff = (prevC.w - currC.w);
+			float fractBetween = (valueDiff == 0) ? 0 : (v - currC.w) / valueDiff;
+			color.r = (prevC.r - currC.r) * fractBetween + currC.r;
+			color.g = (prevC.g - currC.g) * fractBetween + currC.g;
+			color.b = (prevC.b - currC.b) * fractBetween + currC.b;
+			return color;
+		}
+	
+	color = vec4(0.0);
 	return color;
 }
 
@@ -81,14 +118,24 @@ void main() {
 	if(colorCycle == 0){ 
 		color = vec4(randomColor(particles[gl_InstanceID].binIndex), 1);
 	}else if(colorCycle == 1) {
-		if(colorScale[DENSITY_FIELD].maxValue == 0) color = vec4(1);
-		else color = heatMap(map(int(particles[gl_InstanceID].density), colorScale[DENSITY_FIELD]));
+		ColorScale rest;
+		rest.minValue = 0;
+		rest.maxValue = int(1*REST_DENSITY);
+
+		color = stableMap(map(int(particles[gl_InstanceID].density), rest ));
+		//color = heatMap(map(int(particles[gl_InstanceID].density), rest ));
+		//color = heatMap(map(int(particles[gl_InstanceID].density), colorScale[DENSITY_FIELD]));
 	}else if(colorCycle == 2) {
-		color = heatMap(map(int(particles[gl_InstanceID].temperature), colorScale[TEMPERATURE_FIELD]));
+		ColorScale trest;
+		trest.minValue = int(ambientTemperature);
+		trest.maxValue = int(nozzleTemperature);
+
+		color = heatMap(map(int(particles[gl_InstanceID].temperature), trest));
+		//color = heatMap(map(int(particles[gl_InstanceID].temperature), colorScale[TEMPERATURE_FIELD]));
 	}else if(colorCycle == 3) {
-		color = heatMap(particles[gl_InstanceID].lambda);
+		color = heatMap(map(int(particles[gl_InstanceID].lambda), colorScale[LAMBDA_FIELD]));
 	}else if(colorCycle == 4) {
-		color = heatMap(particles[gl_InstanceID].mass/10.0);		
+		color = heatMap(map(int(particles[gl_InstanceID].mass), colorScale[VELOCITY_FIELD]));
 	}else{ //NNS Test
 		
 		binTest = false;
@@ -120,12 +167,14 @@ void main() {
 	}
 
 	if( test || !binTest){
-		gl_Position =  projection * view * vec4(0,0,0,1);
+		screen_position = projection * view * vec4(0,0,0,1);
+		gl_Position = screen_position;
 		gl_PointSize = 0;
 	}
 	else{
-		gl_Position = projection * view * position;
-		gl_PointSize = 280.0/(gl_Position.w);
+		screen_position = projection * view * position;
+		gl_Position = screen_position;
+		gl_PointSize = 2.0*particleRadius*400.0/(gl_Position.w);
 		if(colorCycle == 5 && length(particles[particleTest].position - particles[gl_InstanceID].position) > smoothingRadius) gl_PointSize = 100.0/(gl_Position.w);
 		
 	}
