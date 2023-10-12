@@ -19,10 +19,15 @@ const float ambientTemperature = 298.15;
 const float floorTemperature = 333.15;
 const float nozzleTemperature = 488.15;
 
-const float kPLA = 0.183*1000.0;
-const float CpPLA = 400.0;
-const float kAmbient = 1.0;
-const float kPlateau = 3.0;
+const float kPLA = 1.83e-4;// W / mm.K
+const float CpPLA = 4.0; // J / g.K
+
+const float kAmbient = 1.0e-4;
+const float kPlateau = 3.0e-4;
+
+const float kWater = 6.06e-4; // W / mm.K
+const float CpWater = 4.18; // J /g.K
+
 
 
 // --- Artificial Pressure ---

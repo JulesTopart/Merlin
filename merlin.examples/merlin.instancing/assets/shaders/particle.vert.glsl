@@ -1,5 +1,5 @@
 
-#version 460 core
+#version 450 core
 
 struct Particle {
 	vec3 position;      // position (x, y, z)
@@ -18,7 +18,7 @@ struct Particle {
 	float strain;		// strain (Pa)
 };
 
-layout(std430, binding = 1) buffer ParticleBuffer {
+layout(std430, binding = 0) buffer ParticleBuffer {
 	Particle particles[];
 };
 

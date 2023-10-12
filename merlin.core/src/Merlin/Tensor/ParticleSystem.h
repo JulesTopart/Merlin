@@ -59,7 +59,7 @@ namespace Merlin::Tensor {
 
 	};
 
-	template<class T>
+	template<class T = DefaultParticle>
 	class ParticleSystem : public GenericParticleSystem {
 	public:
 		ParticleSystem();
@@ -82,7 +82,7 @@ namespace Merlin::Tensor {
 
 	};
 
-	template<class T>
+	template<class T = DefaultParticle>
 	using ParticleSystem_Ptr = Shared<ParticleSystem<T>>;
 
 	template<class T>

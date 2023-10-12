@@ -35,6 +35,7 @@ public:
 
 	void InitGraphics();
 	void InitPhysics();
+	void Simulate(Merlin::Timestep ts);
 
 	virtual void OnAttach() override;
 	virtual void OnDetach() override;
@@ -48,10 +49,11 @@ private:
 	GLsizei _width = 1080, _height = 720;
 
 	//Mesh instancing
+	std::shared_ptr<Shader> particleShader;
 	std::shared_ptr<ComputeShader> init;
 	std::shared_ptr<ComputeShader> physics;
 
-	Shared<ParticleSystem> particleSystem;
+	ParticleSystem_Ptr<TVEParticle> particleSystem;
 
 	Renderer renderer;
 	Scene scene;

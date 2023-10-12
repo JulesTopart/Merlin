@@ -1,4 +1,4 @@
-#version 460
+#version 450
 
 layout (local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
@@ -19,7 +19,7 @@ struct Particle {
 	float strain;		// strain (Pa)
 };
 
-layout (std430, binding = 1) buffer ParticleBuffer {
+layout (std430) buffer ParticleBuffer {
   Particle particles[];
 };
 
@@ -43,6 +43,7 @@ float voxel(float x, float y, float z) {
 
 void main() {
   uint index = gl_GlobalInvocationID.x;
+  if (index > 32 * 32 * 32) return;
   // Calculate the indices for each dimension using div and mod
   
   uint i = index / (grid * grid);

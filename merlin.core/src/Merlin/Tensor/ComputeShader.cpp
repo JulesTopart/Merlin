@@ -68,6 +68,14 @@ namespace Merlin::Tensor {
 		Dispatch(m_wkgrpLayout.x, m_wkgrpLayout.y, m_wkgrpLayout.z);
 	}
 
+	void ComputeShader::Wait() {
+		glFinish();
+	}
+
+	void ComputeShader::Barrier(GLbitfield barrier) {
+		glMemoryBarrier(barrier);
+	}
+
 	void ComputeShader::SetWorkgroupLayout(GLuint x, GLuint y, GLuint z) {
 		m_wkgrpLayout = glm::uvec3(x, y, z);
 	}

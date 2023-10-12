@@ -20,11 +20,11 @@ struct FluidParticle {
 	GLfloat mass;				// mass				   m   (or pseudo mass for boundary particles)
 	GLfloat density;			// density			   rho
 	GLfloat temperature;		// temperature		   T
+	GLfloat temperatureDelta;	// temperature		   T
 	GLfloat lambda;				// lagrange multiplier lambda
 	GLuint phase;				// phase (liquid, solid...)
 	GLuint newIndex;			// sorted indexy
 	GLuint binIndex;			// bin index
-	GLuint padding;			    // padding
 };
 
 
@@ -74,8 +74,7 @@ struct Constraint {
 };
 
 struct Settings {
-	float scale = 0.035 / (4.0);
-
+	
 	//Build Volume dimensions
 	float bx = 100;//mm
 	float by = 40;//mm
@@ -99,10 +98,10 @@ struct Settings {
 
 	// --- SPH ---
 	// SPH Parameters
-	float particleRadius = 1; // mm
-	float H = 4 * particleRadius; // Kernel radius // 4 x particleRadius mm
-	float REST_DENSITY = 1000.0; // kg/m3 Metled plastic
-	float particleMass = 1000.0 * pow(particleRadius * 2.0e-3 ,3.0) * (REST_DENSITY);//g Mass
+	float particleRadius = 1.2; // mm
+	float H = 1.6; // Kernel radius mm
+	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
+	float particleMass = 1.0;//g Mass
 };
 
 class ExampleLayer : public Merlin::Layer
@@ -172,8 +171,9 @@ private:
 	GLuint numParticles = 0;
 	GLuint numBoundaryParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	int solver_iteration = 5;
+	int solver_iteration = 1;
 
+	float elapsedTime = 0;
 	bool paused = true;
 	float sim_speed = 1;
 	float camera_speed = 1;

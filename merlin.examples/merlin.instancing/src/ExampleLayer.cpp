@@ -22,7 +22,7 @@ ExampleLayer::ExampleLayer() {
 
 ExampleLayer::~ExampleLayer(){}
 
-GLsizeiptr count = 1;
+GLsizeiptr count = 64*64*64;
 
 
 void ExampleLayer::InitGraphics() {
@@ -39,7 +39,7 @@ void ExampleLayer::InitGraphics() {
 
 	//Shaders
 	Shared<Shader> modelShader = std::make_shared<Shader>("model", "assets/shaders/model.vert.glsl", "assets/shaders/model.frag.glsl");
-	Shared<Shader> particleShader = std::make_shared<Shader>("particle", "assets/shaders/particle.vert.glsl", "assets/shaders/particle.frag.glsl");
+	particleShader = std::make_shared<Shader>("particle", "assets/shaders/particle.vert.glsl", "assets/shaders/particle.frag.glsl");
 	particleShader->noTexture();
 	particleShader->noMaterial();
 
@@ -102,13 +102,13 @@ void ExampleLayer::InitPhysics() {
 	float gridWidth = 1.0f;
 
 	//Create particle system
-	particleSystem = CreateShared<ParticleSystem>("ParticleSystem", partCount);
+	particleSystem = ParticleSystem<TVEParticle>::Create("ParticleSystem", partCount);
 	particleSystem->Translate(glm::vec3(-1, -0.75, -0.71));
 
 	//Define the mesh for instancing (Here a cube)
 	//Shared<Mesh> cube = Primitives::CreateCube(0.05f);
 	Shared<Mesh> cube = Primitives::CreateSphere(gridWidth / (2.0f * float(gridSize)), 5, 5);
-	cube->SetName("particle");
+	cube->Rename("particle");
 	cube->SetMaterial("cyan plastic");
 	//cube->SetShader(modelShader);
 	cube->SetShader("particle");
@@ -118,27 +118,45 @@ void ExampleLayer::InitPhysics() {
 
 
 	//Create the buffer
-	Shared<SSBO> buffer = CreateShared<SSBO>("ParticleBuffer");
-	buffer->SetBindingPoint(1);
-	buffer->Allocate<TVEParticle>(partCount);
-	particleSystem->AddStorageBuffer(buffer);
+	SSBO_Ptr<TVEParticle> buffer = SSBO<TVEParticle>::Create("ParticleBuffer");
+	buffer->Allocate(partCount);
 	particleSystem->AddComputeShader(physics);
+	particleSystem->AddStorageBuffer(buffer);
+
+
+	physics->Use();
+	physics->SetInt("numParticles", partCount);
+	physics->SetFloat("dt", 0.016);
+
+	particleShader->Attach(*buffer, 1);
 
 	init->Use();
 	init->SetUInt("grid", gridSize);
 	init->SetFloat("gridSpacing", gridWidth / float(gridSize));
 
+
+	GLuint pThread = partCount; //Max Number of particles (thread)
+	GLuint pWkgSize = 128; //Number of thread per workgroup
+	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
+
+	init->SetWorkgroupLayout(pWkgCount);
+	physics->SetWorkgroupLayout(pWkgCount);
+	init->Dispatch();
+	init->Barrier();
+}
+
+
+void ExampleLayer::Simulate(Timestep ts) {
+
 	physics->Use();
-	physics->SetInt("numParticles", partCount);
-
-
-	particleSystem->SetThread(128);
-	particleSystem->Execute(init);
+	physics->SetFloat("speed", sim_speed);
+	physics->Dispatch();
+	physics->Barrier();
 }
 
 void ExampleLayer::OnAttach(){
 	InitGraphics();
-	InitPhysics();	
+	InitPhysics();
 }
 
 void ExampleLayer::OnDetach(){}
@@ -158,16 +176,13 @@ void ExampleLayer::OnEvent(Event& event) {
 }
 
 
-
 void ExampleLayer::OnUpdate(Timestep ts) {
 
 	cameraController->OnUpdate(ts);
 	updateFPS(ts);
-	physics->Use();
-	physics->SetFloat("speed", sim_speed);
 
 	if (!paused) {
-		particleSystem->Update(0.016);
+		Simulate(0.016);
 	}
 
 	renderer.Clear();
@@ -199,8 +214,9 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 	if (ImGui::SmallButton("Reset simulation")) {
-		particleSystem->Execute(init); //init position using init compute shader
-		count = 1;
+		init->Use();
+		init->Dispatch(); //init position using init compute shader
+		count = 64*64*64;
 	}
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->SetPosition(model_matrix_translation);

@@ -22,10 +22,11 @@ namespace Merlin::Graphics {
 		tex->SyncTextureUnit(m_shader, "screen");
 		m_vao.Bind(); //Bind empty geometry
 		
-
+		glDisable(GL_DEPTH_TEST);
 		glDrawArrays(GL_TRIANGLES, 0, 6); //Draw a screen squad
 		tex->Unbind(); //Unind Texture
 		m_vao.Unbind(); //Unind geometry
+		glEnable(GL_DEPTH_TEST);
 	}
 
 }

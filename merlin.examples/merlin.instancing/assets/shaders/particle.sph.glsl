@@ -20,7 +20,7 @@ struct Particle {
 	float strain;		// strain (Pa)
 };
 
-layout(std430, binding = 1) buffer ParticleBuffer {
+layout(std430) buffer ParticleBuffer {
 	Particle particles[];
 };
 
@@ -136,7 +136,23 @@ void updateDensity(uint gid)
 	particles[gid].density = max(density, 0.1); //Update density
 }
 
+// SPH_Update
+vec3 smoothVelocity(uint gid)
+{
+	vec3 velocity = vec3(0.0);
+	Particle p = particles[gid];
 
+	for (uint j = 0; j < numParticles; j++) {
+		if (j == gid) continue;
+
+		Particle pj = particles[j];
+		vec3 diff = p.position - pj.position;
+		float rSquared = dot(diff, diff);
+
+		velocity += pj.velocity * poly6Kernel(rSquared);
+	}
+	return velocity;
+}
 
 // SPH_Viscosity
 void updateDensityGrid(uint gid)
@@ -347,6 +363,7 @@ void handleBoundaryCollision(uint gid)
 {
 	vec3 position = particles[gid].position;
 	vec3 velocity = particles[gid].velocity;
+	//vec3 velocity = smoothVelocity(gid);;
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -382,8 +399,7 @@ void main()
 	//updateDensityGrid(gid);
 
 	// Calculate pressure and viscosity forces
-	vec3 pressureForce = calculatePressureForce(gid);//calculatePressureForce(gid);
-	//vec3 pressureForce = calculatePressureForceGrid(gid);//calculatePressureForce(gid);
+	vec3 pressureForce = calculatePressureForce(gid);
 	vec3 viscosityForce = calculateViscosityForce(gid);
 
 	// Calculate viscoelasticity forces
@@ -397,65 +413,10 @@ void main()
 	// Integrate particle positions and velocities
 	integrate(gid, totalForce, dt * speed);
 	handleBoundaryCollision(gid);
+	
 
 }
 
 
 
-/*
-void main() {
-	uint index = gl_GlobalInvocationID.x;
 
-	// Compute density and pressure forces
-	vec3 pressureForce = vec3(0);
-	vec3 viscosityForce = vec3(0);
-	float density = 0;
-	for (int i = 0; i < numParticles; ++i) {
-		if (i == index) continue;
-		vec3 r = particles[index].position.xyz - particles[i].position.xyz;
-		float r2 = dot(r, r);
-		if (r2 < h * h) {
-			float rlen = sqrt(r2);
-			density += particles[i].position.w * Wpoly6(r2);
-			vec3 grad = WspikyGrad(r, rlen);
-			pressureForce += -grad * particles[i].position.w * k * (particles[index].velocity.w - restDensity) * (particles[i].velocity.w - restDensity);
-			viscosityForce += (particles[i].velocity.xyz - particles[index].velocity.xyz) * particles[i].position.w / particles[i].velocity.w;
-		}
-	}
-	density = min(restDensity, density);
-
-	particles[index].velocity.w = density;
-
-
-	// Integrate forces and update positions
-	vec3 accel = vec3(0, 0, -9.81*1000.0) + pressureForce / density + viscosityForce;
-
-	particles[index].velocity += vec4(accel * dt * speed,0);
-	particles[index].position += vec4(particles[index].velocity.xyz * dt * speed,0);
-
-
-	// Floor collision detection and response
-	float floorZ = -1.0;  // Set the floor's z-value
-		float particleRadius = 0.1; // Set the particle's radius
-
-		if (particles[index].position.z - particleRadius <= floorZ) {
-		// Set the particle position to be slightly above the floor to avoid interpenetration
-		particles[index].position.z = floorZ + particleRadius;
-
-		// Reflect the velocity and apply a damping factor to simulate energy loss during collision
-		float dampingFactor = 0.4; // Set the damping factor (0.4 means 40% of the velocity is retained)
-		particles[index].velocity.z = -particles[index].velocity.z * dampingFactor;
-	}
-
-		particles[index].position.x = min(particles[index].position.x, 5);
-		particles[index].position.y = min(particles[index].position.y, 5);
-		particles[index].position.z = min(particles[index].position.z, 5);
-
-		particles[index].position.x = max(particles[index].position.x, 0);
-		particles[index].position.y = max(particles[index].position.y, 0);
-		particles[index].position.z = max(particles[index].position.z, 0);
-
-
-}
-
-*/

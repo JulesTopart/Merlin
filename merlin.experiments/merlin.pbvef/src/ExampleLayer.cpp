@@ -158,6 +158,7 @@ void ExampleLayer::InitPhysics() {
 	particleSystem->SetMesh(particle);
 	particleSystem->Translate(glm::vec3(0, 0, -0.5));
 	particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
+	//particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 
 	//Create bin system
 	Console::info("Memory") << "size of FluidParticle is " << sizeof(FluidParticle) << Console::endl;
@@ -226,10 +227,12 @@ void ExampleLayer::ResetSimulation() {
 	particleBuffer->Clear();
 	particleBuffer->FreeHostMemory();
 
+	elapsedTime = 0;
+
 	Console::info() << "Generating particles..." << Console::endl;
 
 
-	float spacing = 0.4;
+	float spacing = 1.0;
 
 	std::vector<glm::vec3> bunny = GenerateVoxelBunny(spacing);
 	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
@@ -242,7 +245,8 @@ void ExampleLayer::ResetSimulation() {
 	buf.velocity[1] = 0;
 	buf.velocity[2] = 0;
 	buf.density = 0;
-	buf.temperature = 298.15;//ambient
+	buf.temperature = 400.0;//ambient
+	//buf.temperature = 298.15;//ambient
 	buf.binIndex = 0;
 	buf.newIndex = 0;
 
@@ -361,7 +365,6 @@ void ExampleLayer::ResetSimulation() {
 
 
 glm::uvec3 ExampleLayer::getBinCoord(glm::vec3 position) {
-	position *= settings.scale;
 	position += glm::vec3(150,100,125);
 	glm::uvec3 bin3D = glm::uvec3(position / settings.bWidth);
 	bin3D.x = max(min(bin3D.x, (settings.bx / (settings.bWidth)) - 1), 0);
@@ -414,6 +417,8 @@ void ExampleLayer::NeigborSearch() {
 }
 
 void ExampleLayer::Simulate(Merlin::Timestep ts) {
+
+	elapsedTime += ts;
 
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
@@ -488,7 +493,7 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	updateFPS(ts);
 
 	if (!paused) {
-		Simulate(ts);
+		Simulate(0.016);
 	}
 
 	renderer.Clear();
@@ -504,6 +509,7 @@ void ExampleLayer::OnImGuiRender()
 
 	ImGui::LabelText(std::to_string(numParticles).c_str(), "particles");
 	ImGui::LabelText(std::to_string(settings.bThread).c_str(), "bins");
+	ImGui::LabelText(std::to_string(elapsedTime).c_str(), "s");
 
 	if (FPS_sample > 0) {
 		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS / FPS_sample)).c_str());
@@ -559,21 +565,27 @@ void ExampleLayer::OnImGuiRender()
 		solver->SetFloat("speed", sim_speed);
 	}
 
-	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 0.5, 10.0)) {
+	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 0.75, 3.0)) {
 		solver->Use();
 		solver->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 		particleShader->Use();
 		particleShader->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 	}
+	if (ImGui::SliderFloat("particle radius", &settings.particleRadius, 0.75, 10.0)) {
+		solver->Use();
+		solver->SetFloat("particleRadius", settings.particleRadius);
+		particleShader->Use();
+		particleShader->SetFloat("particleRadius", settings.particleRadius); // Kernel radius // 5mm
+	}
 
-	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 0.1, 500)) {
+	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 0.1, 2.0)) {
 		solver->Use();
 		solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 		particleShader->Use();
 		particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 	}
 
-	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.1, 200.0)) {
+	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.1, 2.0)) {
 		solver->Use();
 		solver->SetFloat("particleMass", settings.particleMass);
 	}

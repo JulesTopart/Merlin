@@ -76,22 +76,60 @@ namespace Merlin::Memory {
         textures.push_back(tex);
         // Attach the texture to the framebuffer as a color attachment
         tex->Bind();
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + textures.size()-1, tex->GetTarget(), tex->id(), 0);
+        m_attatchments.push_back(GL_COLOR_ATTACHMENT0 + textures.size() - 1);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, m_attatchments.back(), tex->GetTarget(), tex->id(), 0);
         CheckErrors("Error creating GL_COLOR_ATTACHMENT");
     }
 
     void FrameBuffer::AddDepthStencilAttachment(Shared<RenderBuffer> rbo) {
         if (depth_stencil_rbo) {
-            Console::error("FrameBuffer") << "GL_DEPTH_STENCIL_ATTACHMENT already set !" << Console::endl;
+            Console::error("FrameBuffer") << "GL_DEPTH_STENCIL_ATTACHMENT already set as a RBO !" << Console::endl;
             return;
         }
+
+        if (depth_texture) {
+            Console::error("FrameBuffer") << "GL_DEPTH_ATTACHMENT already set as a Texture !" << Console::endl;
+            return;
+        }
+
         depth_stencil_rbo = rbo;
         // Attach the renderbuffer to the framebuffer as a depth attachment
         rbo->Bind();
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo->id());
 
+
+
         // Check that the framebuffer is complete
         CheckErrors("Error creating GL_DEPTH_STENCIL_ATTACHMENT");
+    }
+
+    void FrameBuffer::AddDepthStencilAttachment(Shared<TextureBase> tex) {
+        if (depth_stencil_rbo) {
+            Console::error("FrameBuffer") << "GL_DEPTH_STENCIL_ATTACHMENT already set as a RBO !" << Console::endl;
+            return;
+        }
+
+        if (depth_texture) {
+            Console::error("FrameBuffer") << "GL_DEPTH_ATTACHMENT already set as a Texture !" << Console::endl;
+            return;
+        }
+        // Create Framebuffer Texture
+        depth_texture = tex;
+        depth_texture->Bind();
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture->id(), 0);
+
+        // Check that the framebuffer is complete
+        CheckErrors("Error creating GL_DEPTH_STENCIL_ATTACHMENT");
+    }
+
+    void FrameBuffer::RenderAttachement(GLuint id) {
+        Bind(GL_READ_FRAMEBUFFER);
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + id);
+        //fbo->Bind(GL_DRAW_FRAMEBUFFER);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        // Copy the multisampled framebuffer to the non-multisampled framebuffer, applying multisample resolve filters as needed
+        glBlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        Bind();
     }
 
     std::shared_ptr<RenderBuffer> FrameBuffer::CreateRenderBufferAttachment(GLenum format, GLuint samples){
@@ -128,6 +166,24 @@ namespace Merlin::Memory {
 
     std::shared_ptr<TextureBase> FrameBuffer::GetColorAttachment(GLsizei id) {
         return textures[id];
+    }
+
+    std::shared_ptr<TextureBase> FrameBuffer::GetDepthAttachement() {
+        return depth_texture;
+    }
+
+    void FrameBuffer::SetDrawBuffer(std::vector<unsigned int> buffers) {
+
+        if (buffers.size() == 0) {
+            buffers = m_attatchments;
+        }
+        else {
+            for (unsigned int i = 0; i < buffers.size(); i++) {
+                if (buffers[i] < 0 || buffers[i] >= m_attatchments.size()) Console::error("FrameBuffer") << "Given attachement not found in current fbo : GL_COLOR_ATTACHMENT" << buffers[i] << Console::endl;
+                else buffers[i] = m_attatchments[buffers[i]];
+            }
+        }
+        glDrawBuffers(buffers.size(), buffers.data());
     }
 
 }

@@ -174,8 +174,6 @@ void ExampleLayer::OnAttach(){
 	_height = w->GetHeight();
 	_width = w->GetWidth();
 
-
-
 	EnableGLDebugging();
 	Console::SetLevel(ConsoleLevel::_INFO);
 
@@ -183,19 +181,7 @@ void ExampleLayer::OnAttach(){
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
 
 	renderer.EnableSampleShading();
-
-
 	screen = std::make_shared<ScreenQuadRenderer>();
-
-	/*
-	test = CreateShared<Texture>();
-	test->Bind();
-	test->LoadFromFile("./assets/textures/wall.jpg");
-	test->SetUnit(0);
-	test->SetRepeatMode(GL_REPEAT);
-	test->SetInterpolationMode(GL_LINEAR);
-	*/
-
 	
 	// Create MSAA Frame Buffer Object
 	msaa_fbo = std::make_shared<FBO>(_width, _height );

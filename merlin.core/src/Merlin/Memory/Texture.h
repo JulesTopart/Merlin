@@ -22,12 +22,14 @@ namespace Merlin::Memory {
 		void BindImage(GLuint unit);
 		void Unbind();
 
+
 		void SetUnit(GLuint unit);
 		void SyncTextureUnit(const ShaderBase& shader, const std::string uniform);
 
 		virtual void Allocate(int width, int height, GLenum format = GL_RGBA, GLenum internalformat = GL_INVALID_ENUM) = 0;
 		virtual void Resize(GLsizei width, GLsizei height) = 0;
 
+		inline const GLenum GetFormat() const { return _format; }
 		inline const GLenum GetTarget() const { return _Target; }
 		inline const TextureType type() const { return _type; }
 		std::string typeToString() const;

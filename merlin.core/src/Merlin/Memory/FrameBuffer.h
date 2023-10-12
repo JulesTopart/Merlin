@@ -22,9 +22,14 @@ namespace Merlin::Memory {
 
         inline GLuint const id() { return _FrameBufferID; }
 
+        void SetDrawBuffer(std::vector<unsigned int> buffers = std::vector<unsigned int>());
         std::shared_ptr<TextureBase> GetColorAttachment(GLsizei id);
-        void AddColorAttachment(std::shared_ptr<TextureBase> tex);
-        void AddDepthStencilAttachment(std::shared_ptr<RenderBuffer> rbo);
+        std::shared_ptr<TextureBase> GetDepthAttachement();
+        void AddColorAttachment(Shared<TextureBase> tex);
+        void AddDepthStencilAttachment(Shared<RenderBuffer> rbo);
+        void AddDepthStencilAttachment(Shared<TextureBase> tex);
+
+        void RenderAttachement(GLuint id);
 
         std::shared_ptr<TextureBase> CreateTextureAttachment(GLenum format, GLuint samples = 0);
         std::shared_ptr<RenderBuffer> CreateRenderBufferAttachment(GLenum format, GLuint samples = 0);
@@ -35,8 +40,11 @@ namespace Merlin::Memory {
 
         void CheckErrors(std::string prefix) const;
 
+        std::vector<GLuint> m_attatchments;
         std::vector<std::shared_ptr<TextureBase>> textures;
+
         std::shared_ptr<RenderBuffer> depth_stencil_rbo;
+        std::shared_ptr<TextureBase> depth_texture;
 
         static GLint MaxColorAttachement;
 

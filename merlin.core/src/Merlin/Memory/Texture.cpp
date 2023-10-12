@@ -198,7 +198,7 @@ namespace Merlin::Memory {
 		_width = width;
 		_height = height;
 		_format = format;
-		_internalFormat = GL_RGBA32F;
+		_internalFormat = _format == GL_RGBA ? GL_RGBA32F : format;
 
 		glTexImage2D(GetTarget(), 0, _internalFormat, _width, _height, 0, _format, GL_UNSIGNED_BYTE, data);
 	}

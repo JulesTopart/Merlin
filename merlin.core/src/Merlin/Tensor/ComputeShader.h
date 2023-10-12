@@ -17,6 +17,9 @@ namespace Merlin::Tensor{
 		void Dispatch(GLuint width, GLuint height = 1, GLuint layers = 1); //Execute using the given WorkgroupLayout
 		void SetWorkgroupLayout(GLuint width, GLuint height = 1, GLuint layers = 1); // Set current workgroup Layout
 
+		void Wait();
+		void Barrier(GLbitfield barrier = GL_ALL_BARRIER_BITS);
+
 		void PrintLimits();
 
 	protected:

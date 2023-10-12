@@ -7,11 +7,11 @@ struct Particle {
 	float mass;				// mass				   m   (or pseudo mass for boundary particles)
 	float density;			// density			   rho
 	float temperature;		// temperature		   T
+	float temperatureDelta;	// temperature		   T
 	float lambda;			// lagrange multiplier lambda
 	uint phase;				// phase (liquid, solid...)
 	uint newIndex;			// sorted indexy
 	uint binIndex;			// bin index
-	uint padding;			// bin index
 };
 
 layout(std430, binding = 0) buffer ParticleBuffer {
@@ -44,14 +44,14 @@ layout(std430, binding = 2) buffer ColorScaleBuffer {
 #define VELOCITY_FIELD 3
 #define MAX_FIELD 3
 
-void updateMinMax(int field, int value){
+void updateMinMax(int field, float value){
 	if(field > MAX_FIELD) return;
-	atomicMax(colorScale[field].maxValue, value);
-	atomicMin(colorScale[field].minValue, value);
+	atomicMax(colorScale[field].maxValue, int(value*100.0));
+	atomicMin(colorScale[field].minValue, int(value*100));
 }
 
-float map(int value, ColorScale range){
-	return (float(value) - (float(range.minValue)))/(float(range.maxValue - range.minValue));
+float map(float value, ColorScale range){
+	return (value*100.0 - (float(range.minValue)))/(float(range.maxValue - range.minValue));
 }
 
 uvec3 getBinCoord(vec4 position) {

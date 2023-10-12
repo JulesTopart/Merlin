@@ -12,7 +12,7 @@ float computeDensity(uint i) {
 		Particle pj = particles[j];
 		if( pj.phase != FLUID) continue;
 		vec4 diff = pi.position - pj.position;
-		density += (pj.mass)*poly6(diff); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
+		density += pj.mass*poly6(diff); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
 	OVERNNS_END
 	return  density;
 }
@@ -102,26 +102,44 @@ vec4 solveViscosity(uint i) {
 float computeTemperature(uint i) {
 
 	const float Ti = particles[i].temperature;
+	float temperature = 0.0;
+	
+	OVERNNS
+		vec4 dij = particles[i].position - particles[j].position;
+		temperature += poly6(dij) * particles[j].temperature;
+	OVERNNS_END
+
+	return temperature;
+}
+
+//calculate Temperature
+float computeTemperatureDelta(uint i) {
+
+	const float Ti = particles[i].temperature;
 	float temperatureDelta = 0.0;
 	
 	OVERNNS
 		vec4 dij = particles[i].position - particles[j].position;
 
 		float Tj = particles[j].temperature;
-		float rhoj = REST_DENSITY;
+		float rhoj;
+		
+		if(particles[j].phase == FLUID) rhoj = particles[j].density;
+		else rhoj = particles[i].density;
 
 		float w2_pse = poly6(dij);
-		float lambda = (kPLA / (CpPLA * REST_DENSITY));
-		temperatureDelta += 80.0*w2_pse * (Tj-Ti) * dt * speed;
+		float lambda = (kWater / (CpWater * rhoj));
+		temperatureDelta += lambda * w2_pse * (Tj-Ti);
 	OVERNNS_END
 
 	/*
 	if(particles[i].position.z < H/2.0){
-		temperatureDelta += kPlateau * (floorTemperature - Ti) * dt;
+		temperatureDelta += kPlateau * (floorTemperature - Ti);
 	}*/
-	temperatureDelta += kAmbient*(ambientTemperature - Ti) * dt * speed;
-	return temperatureDelta;
+	temperatureDelta += kAmbient*(ambientTemperature - Ti);
+	return temperatureDelta /** dt * speed*/;
 }
+
 
 vec4 clampToBoundaries(vec4 position){
 	vec4 correctedPosition = position;
@@ -172,22 +190,20 @@ void XPBDSolvefluid(uint i, uint simStep) {
 		//break;
 		case 2 :
 			particles[i].density = computeDensity(i);
-			updateMinMax(DENSITY_FIELD, int(particles[i].density));
+			
 
-			particles[i].temperature += computeTemperature(i);
-			updateMinMax(TEMPERATURE_FIELD, int(particles[i].temperature));
+			//particles[i].temperature += computeTemperature(i);
+			
 		break;
 
-
-		/*
-		//Pressure solver iteration
 		case 3 :
 			//particles[i].lambda = computeLambda(i);
-			
-			particles[i].lambda = ((pressureStrength * REST_DENSITY) / pressurePower) * (pow(particles[i].density / REST_DENSITY, pressurePower)-1);
-			updateMinMax(LAMBDA_FIELD, int(particles[i].lambda));
-		break;
+			particles[i].temperatureDelta = computeTemperatureDelta(i);
 
+			//particles[i].lambda = ((pressureStrength * REST_DENSITY) / pressurePower) * (pow(particles[i].density / REST_DENSITY, pressurePower)-1);
+			//updateMinMax(LAMBDA_FIELD, int(particles[i].lambda));
+		break;
+		/*
 		case 4 :
 
 			vec4 sumP = vec4(0);
@@ -207,20 +223,25 @@ void XPBDSolvefluid(uint i, uint simStep) {
 			//particles[i].new_position += computePositionDelta(i);
 		break;
 		//End iteration
-
+		*/
 		case 5 : //Apply changes
 
-			particles[i].velocity += particles[i].acceleration * dt * speed;
-			particles[i].velocity -= solveViscosity(i); // compute the viscosity forces (XSPH) for all particles 
-			//particles[i].velocity = (particles[i].new_position - particles[i].position) / (dt*speed);
-			particles[i].new_position = particles[i].position + particles[i].velocity * dt * speed;
+			particles[i].temperature += particles[i].temperatureDelta;
 			
-			particles[i].position = clampToBoundaries(particles[i].new_position);
+			//particles[i].velocity += particles[i].acceleration * dt * speed;
+			//particles[i].velocity -= solveViscosity(i); // compute the viscosity forces (XSPH) for all particles 
+			//particles[i].velocity = (particles[i].new_position - particles[i].position) / (dt*speed);
+			//particles[i].new_position = particles[i].position + particles[i].velocity * dt * speed;
+			
+			//particles[i].position = clampToBoundaries(particles[i].new_position);
 			//particles[i].position = particles[i].new_position; //apply new position
 
 			
-		break;*/
+		break;
 	}
+	updateMinMax(DENSITY_FIELD, particles[i].density);
+	updateMinMax(VELOCITY_FIELD, particles[i].mass);
+	updateMinMax(TEMPERATURE_FIELD, particles[i].temperature);
 }
 
 
@@ -240,7 +261,7 @@ void XPBDSolveSolid(uint i, uint simStep) {
 				if(particles[j].phase == BOUNDARY) delta += poly6(diff);
 			OVERNNS_END
 			if(delta < EPSILON) particles[i].mass = particleMass;
-			else particles[i].mass = (REST_DENSITY / delta)/1000.0;
+			else particles[i].mass = (REST_DENSITY / delta);
 
 
 		break;
@@ -270,5 +291,5 @@ void main() {
 	else XPBDSolveSolid(i, stage);
 	NNS(i, stage);
 
-	updateMinMax(VELOCITY_FIELD, int(particles[i].mass));
+
 }
