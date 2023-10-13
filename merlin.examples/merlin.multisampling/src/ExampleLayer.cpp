@@ -188,9 +188,9 @@ void ExampleLayer::OnAttach(){
 	msaa_fbo->Bind();
 
 	//Create Texture  attachement
-	msaa_fbo->AddColorAttachment(msaa_fbo->CreateTextureAttachment(GL_RGB, 8));
+	msaa_fbo->AddColorAttachment(msaa_fbo->CreateTextureAttachment(GL_RGB, 16));
 	// Create Render Buffer Object
-	msaa_fbo->AddDepthStencilAttachment(msaa_fbo->CreateRenderBufferAttachment(GL_DEPTH24_STENCIL8, 8));
+	msaa_fbo->AddDepthStencilAttachment(msaa_fbo->CreateRenderBufferAttachment(GL_DEPTH24_STENCIL8, 16));
 
 	// Create non MSAA Frame Buffer Object
 	fbo = std::make_shared<FBO>(_width, _height);
@@ -239,7 +239,7 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	t += ts;
 	float x = light->position().x;
 	float y = light->position().y;
-	light->Translate(glm::vec3(cos(t) - x, sin(t) - y, 0.0));
+	light->Translate(glm::vec3(cos(t)*10 - x, sin(t)*10 - y, 0.0));
 	modelShader->Use();
 	modelShader->SetVec3("lightPos", light->position());
 
@@ -249,18 +249,18 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	if (msaa) {
 		// Bind the custom framebuffer
 		msaa_fbo->Bind();
-		glEnable(GL_DEPTH_TEST);
+		//glEnable(GL_DEPTH_TEST);
 		msaa_fbo->Bind(GL_READ_FRAMEBUFFER);
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
-		//fbo->Bind(GL_DRAW_FRAMEBUFFER);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		fbo->Bind(GL_DRAW_FRAMEBUFFER);
+		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		// Copy the multisampled framebuffer to the non-multisampled framebuffer, applying multisample resolve filters as needed
-		glBlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 		// Bind the default framebuffer
-		//msaa_fbo->Unbind();
+	    msaa_fbo->Unbind();
 		glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
 
-		//screen->Render(fbo->GetColorAttachment(0));
+		screen->Render(fbo->GetColorAttachment(0));
 
 		glEnable(GL_DEPTH_TEST);
 	}

@@ -116,7 +116,7 @@ namespace Merlin::Memory {
         // Create Framebuffer Texture
         depth_texture = tex;
         depth_texture->Bind();
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture->id(), 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_texture->GetTarget(), depth_texture->id(), 0);
 
         // Check that the framebuffer is complete
         CheckErrors("Error creating GL_DEPTH_STENCIL_ATTACHMENT");

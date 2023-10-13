@@ -16,9 +16,10 @@ namespace Merlin::Graphics {
 	}
 
 	void ScreenQuadRenderer::Render(const Shared<TextureBase>& tex) {
-
-		m_shader.Use(); //Activate shader
 		tex->Bind(); //Bind texture
+		m_shader.Use(); //Activate shader
+		m_shader.SetInt("mode", tex->GetFormat() == GL_DEPTH_COMPONENT); //Activate shader
+		
 		tex->SyncTextureUnit(m_shader, "screen");
 		m_vao.Bind(); //Bind empty geometry
 		

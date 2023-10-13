@@ -56,8 +56,9 @@ namespace Merlin::Memory {
 		_width = width;
 		_height = height;
 		_format = format;
+		//_internalFormat = _format == GL_RGBA ? GL_RGBA32F : format;
 
-		glTexImage2DMultisample(GetTarget(), _samples, format, _width, _height, GL_TRUE);
+		glTexImage2DMultisample(GetTarget(), _samples, _internalFormat, _width, _height, GL_TRUE);
 	}
 
 }

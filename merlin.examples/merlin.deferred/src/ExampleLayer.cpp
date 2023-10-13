@@ -13,8 +13,8 @@ ExampleLayer::ExampleLayer(){
 	int height = w->GetHeight();
 	int width = w->GetWidth();
 	camera = CreateShared<Camera>(width, height, Projection::Perspective);
-	camera->setNearPlane(0.001f);
-	camera->setFarPlane(3000.0f);
+	camera->setNearPlane(0.1f);
+	camera->setFarPlane(50.0f);
 	camera->setFOV(45.0f); //Use 90.0f as we are using cubemaps
 	camera->SetPosition(glm::vec3(-2.0f, 0.0f, 1.0f));
 	cameraController = CreateShared<CameraController3D>(camera);
@@ -100,6 +100,7 @@ void ExampleLayer::OnAttach(){
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
 
 	renderer.EnableDepthTest();
+	renderer.EnableMultisampling();
 	renderer.EnableSampleShading();
 	screen = std::make_shared<ScreenQuadRenderer>();
 
@@ -108,11 +109,11 @@ void ExampleLayer::OnAttach(){
 	fbo->Bind();
 
 	//Create Texture  attachement
-	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 0));//Position
-	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 0));//Normal
-	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 0));	 //Color + Specular
-	//fbo->AddDepthStencilAttachment(fbo->CreateRenderBufferAttachment(GL_DEPTH24_STENCIL8, 0));	 ////Depth
-	fbo->AddDepthStencilAttachment(fbo->CreateTextureAttachment(GL_DEPTH_COMPONENT, 0));	 //Depth
+	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 4));//Position
+	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 4));//Normal
+	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 4));	 //Color + Specular
+	//fbo->AddDepthStencilAttachment(fbo->CreateRenderBufferAttachment(GL_DEPTH24_STENCIL8, 4));	 ////Depth
+	fbo->AddDepthStencilAttachment(fbo->CreateTextureAttachment(GL_DEPTH_COMPONENT, 4));	 //Depth
 	fbo->SetDrawBuffer();
 	fbo->Unbind();
 
@@ -147,10 +148,11 @@ void ExampleLayer::OnUpdate(Timestep ts){
 	renderer.RenderScene(scene, *camera);
 
 	fbo->Unbind();
-	if (bufferID < 3) screen->Render(fbo->GetColorAttachment(bufferID));//fbo->RenderAttachement(bufferID);
+	if (bufferID < 3) screen->Render(fbo->GetColorAttachment(bufferID));/*/fbo->RenderAttachement(bufferID);*/
 	else if (bufferID == 3) {
 		screen->Render(fbo->GetDepthAttachement());
 	}
+	fbo->Unbind();
 
 }
 
