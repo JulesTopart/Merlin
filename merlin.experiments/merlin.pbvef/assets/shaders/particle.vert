@@ -91,7 +91,7 @@ float rand(vec2 co){
 }
 
 vec3 randomColor(uint index){
-	float v = float(index)/5000.0;
+	float v = float(index)/500.0;
 	vec2 co = vec2(v, v*v);
 	return vec3(0.2) + normalize(vec3(rand(co*0.8738), rand(co*0.321313), rand(0.12354*co)));
 }
@@ -112,6 +112,7 @@ void main() {
 	
 	bool binTest = true;
 	bool nnTest = false;
+	bool hTest = false;
 
 	bool test = particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0);
 
@@ -134,12 +135,12 @@ void main() {
 		color = heatMap(map(particles[gl_InstanceID].temperature, trest));
 		//color = heatMap(map(int(particles[gl_InstanceID].temperature), colorScale[TEMPERATURE_FIELD]));
 	}else if(colorCycle == 3) {
-		color = heatMap(map(particles[gl_InstanceID].lambda, colorScale[LAMBDA_FIELD]));
+		color = heatMap(map(abs(particles[gl_InstanceID].lambda), colorScale[LAMBDA_FIELD]));
 	}else if(colorCycle == 4) {
 		color = heatMap(map(particles[gl_InstanceID].mass, colorScale[VELOCITY_FIELD]));
 	}else{ //NNS Test
 		
-		binTest = false;
+		binTest = true;
 		uvec3 binIndexVec2 = getBinCoordFromIndex(particles[particleTest].binIndex);
 		for (int z = int(binIndexVec2.z) - 1; z <= int(binIndexVec2.z) + 1; z++) {
 			for (int y = int(binIndexVec2.y) - 1; y <= int(binIndexVec2.y) + 1; y++) {
@@ -152,19 +153,18 @@ void main() {
 			}
 		}
 
-		bool nnTest = false;
 		uint i = particleTest;
 		OVERNNS
-			if(gl_InstanceID == j) nnTest = true;
+			if(gl_InstanceID == j){
+				nnTest = true;
+				if(length(particles[particleTest].position - particles[j].position) <= smoothingRadius) hTest = true;
+			}
 		OVERNNS_END
 
-		if(nnTest){
-			if(length(particles[particleTest].position - particles[gl_InstanceID].position) > smoothingRadius) color =vec4(1,0.2,0,0.2);
-			else color = vec4(0,1,0, 1);
-		}
-		else color = vec4(0,0,0, 1);
-			
-		if(gl_InstanceID == particleTest) color = vec4(0,0,1, 1);
+		color = vec4(0,0,0, 1);
+		if(nnTest) color = vec4(0,0,1, 1);
+		if(hTest) color = vec4(0,1,0, 1);
+		if(gl_InstanceID == particleTest) color = vec4(1,0,0, 1);
 	}
 
 	if( test || !binTest){
@@ -176,7 +176,7 @@ void main() {
 		screen_position = projection * view * position;
 		gl_Position = screen_position;
 		gl_PointSize = 2.0*particleRadius*400.0/(gl_Position.w);
-		if(colorCycle == 5 && length(particles[particleTest].position - particles[gl_InstanceID].position) > smoothingRadius) gl_PointSize = 100.0/(gl_Position.w);
+		if(colorCycle == 5 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = 100.0/(gl_Position.w);
 		
 	}
 }

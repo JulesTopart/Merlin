@@ -2,8 +2,8 @@
 layout(location = 0) out vec4 o_Color;
 
 in vec2 texCoord;
-//uniform sampler2D screen;
-uniform sampler2DMS  screen;
+uniform sampler2D screen;
+//uniform sampler2DMS  screen;
 uniform int mode = 0;
 void main() {
 	if (mode == 1) {

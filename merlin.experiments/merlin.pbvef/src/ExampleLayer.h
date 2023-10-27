@@ -84,7 +84,7 @@ struct Settings {
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
 	GLuint pThread = 64*64*64; //Max Number of particles (thread)
-	GLuint pWkgSize = 512; //Number of thread per workgroup
+	GLuint pWkgSize = 1; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
 	GLuint bRes = 32; //Bed width is divided bRes times
@@ -93,7 +93,7 @@ struct Settings {
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 
-	GLuint bWkgSize = 64; //Number of thread per workgroup
+	GLuint bWkgSize = 1; //Number of thread per workgroup
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
 	// --- SPH ---
@@ -175,6 +175,7 @@ private:
 
 	float elapsedTime = 0;
 	bool paused = true;
+	bool integrate = true;
 	float sim_speed = 1;
 	float camera_speed = 1;
 	float FPS = 0;

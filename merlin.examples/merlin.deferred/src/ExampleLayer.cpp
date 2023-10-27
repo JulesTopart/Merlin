@@ -109,11 +109,11 @@ void ExampleLayer::OnAttach(){
 	fbo->Bind();
 
 	//Create Texture  attachement
-	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 4));//Position
-	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 4));//Normal
-	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 4));	 //Color + Specular
+	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 0));//Position
+	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 0));//Normal
+	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGBA, 0));	 //Color + Specular
 	//fbo->AddDepthStencilAttachment(fbo->CreateRenderBufferAttachment(GL_DEPTH24_STENCIL8, 4));	 ////Depth
-	fbo->AddDepthStencilAttachment(fbo->CreateTextureAttachment(GL_DEPTH_COMPONENT, 4));	 //Depth
+	fbo->AddDepthStencilAttachment(fbo->CreateTextureAttachment(GL_DEPTH_COMPONENT, 0));	 //Depth
 	fbo->SetDrawBuffer();
 	fbo->Unbind();
 

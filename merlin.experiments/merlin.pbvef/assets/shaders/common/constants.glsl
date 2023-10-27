@@ -1,5 +1,5 @@
-#define BTHREAD 64
-#define PTHREAD 512
+#define BTHREAD 1
+#define PTHREAD 1
 
 #define UNUSED 0
 #define SOLID 1

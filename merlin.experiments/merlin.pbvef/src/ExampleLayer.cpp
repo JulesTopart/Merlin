@@ -251,36 +251,37 @@ void ExampleLayer::ResetSimulation() {
 	buf.newIndex = 0;
 
 	
-	/*
+	
 	buf.phase = FLUID; //Rigid cube
-	glm::vec3 cubeSize = glm::vec3(5, 5, 5);
+	glm::vec3 cubeSize = glm::vec3(20, 20, 20);
 	for (float x = -cubeSize.x / 2.0; x < cubeSize.x / 2.0; x += spacing) {
 		for (float y = -cubeSize.y / 2.0; y < cubeSize.y / 2.0; y += spacing) {
 			for (float z = 0; z < cubeSize.z; z += spacing) {
 
 				buf.position[0] = x;
 				buf.position[1] = y;
-				buf.position[2] = z + 50;
+				buf.position[2] = z + 10;
 				buf.initial_position = buf.position;
 				cpu_particles.push_back(buf);
 
 			}
 		}
-	}*/
+	}
 
-	
-	buf.phase = FLUID; //Rigid body
+	/*
+	buf.phase = FLUID; //Rigid bunny
 	for (auto& v : bunny) {
 		buf.position[0] = v.x;
 		buf.position[1] = v.y;
 		buf.position[2] = v.z;
 		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
-	}
+	}*/
 	
 	
 	
 	//Generate sphere above
+	/*
 	buf.phase = FLUID; //Fluid body
 	const float height = 80;
 	const float goldenRatio = (1.0 + sqrt(5.0)) / 2.0;
@@ -298,7 +299,10 @@ void ExampleLayer::ResetSimulation() {
 		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
 	}
-	
+	*/
+
+
+	/*
 	buf.temperature = 400.15;//ambient
 	buf.phase = BOUNDARY; //Boundaries body
 	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
@@ -331,7 +335,8 @@ void ExampleLayer::ResetSimulation() {
 			cpu_particles.push_back(buf);
 		}
 	}
-	
+	*/
+
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
 
@@ -417,9 +422,7 @@ void ExampleLayer::NeigborSearch() {
 }
 
 void ExampleLayer::Simulate(Merlin::Timestep ts) {
-
-	elapsedTime += ts;
-
+	
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
 
@@ -428,19 +431,28 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->Execute(0); //Place particles in bins & predict position
 
 	NeigborSearch();
-
+	
 	solver->Use();
 	solver->Execute(1); //Sort
 
-	colorScaleBuffer->Bind();
-	colorScaleBuffer->Clear();
-	solver->Execute(2); //Calculate density
+	renderer.Clear();
+	renderer.RenderScene(scene, *camera);
 
-	for (int i = 0; i < solver_iteration; i++) {
-		solver->Execute(3); //Compute lambda
-		solver->Execute(4); //Position delta
+	solver->Use();
+
+	if (!paused) {
+		elapsedTime += ts;
+		
+		colorScaleBuffer->Bind();
+		colorScaleBuffer->Clear();
+		solver->Execute(2); //Calculate density
+
+		for (int i = 0; i < solver_iteration; i++) {
+			solver->Execute(3); //Compute lambda
+			solver->Execute(4); //Position delta
+		}
+		if(integrate) solver->Execute(5); //Apply changes
 	}
-	solver->Execute(5); //Apply changes
 }
 
 void ExampleLayer::OnAttach() {
@@ -492,12 +504,12 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	cameraController->OnUpdate(ts);
 	updateFPS(ts);
 
-	if (!paused) {
+	//if (!paused) {
 		Simulate(0.016);
-	}
-
+	//}
+	/*
 	renderer.Clear();
-	renderer.RenderScene(scene, *camera);
+	renderer.RenderScene(scene, *camera);*/
 }
 
 void ExampleLayer::OnImGuiRender()
@@ -528,6 +540,15 @@ void ExampleLayer::OnImGuiRender()
 			//binBuffer->print();
 		}
 	}
+
+	
+	static bool transparency = true;
+	if (ImGui::Checkbox("Particle transparency", &transparency)) {
+		if(transparency) particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
+		else particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
+	}
+
+	ImGui::Checkbox("Integrate", &integrate);
 
 	if (ImGui::SmallButton("Reset simulation")) {
 		ResetSimulation();
@@ -571,7 +592,7 @@ void ExampleLayer::OnImGuiRender()
 		particleShader->Use();
 		particleShader->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 	}
-	if (ImGui::SliderFloat("particle radius", &settings.particleRadius, 0.75, 10.0)) {
+	if (ImGui::SliderFloat("particle radius", &settings.particleRadius, 0.1, 3.0)) {
 		solver->Use();
 		solver->SetFloat("particleRadius", settings.particleRadius);
 		particleShader->Use();
@@ -581,8 +602,20 @@ void ExampleLayer::OnImGuiRender()
 	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 0.1, 2.0)) {
 		solver->Use();
 		solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
-		particleShader->Use();
-		particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
+		/*particleShader->Use();
+		particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm*/
+	}
+
+	static float pressureM = 100000;
+	if (ImGui::SliderFloat("Pressure multiplier", &pressureM, -10000, 10000.0)) {
+		solver->Use();
+		solver->SetFloat("pressureMultiplier", pressureM); // Kernel radius // 5mm
+	}
+
+	static float visco = 10;
+	if (ImGui::SliderFloat("Viscosity", &visco, -100, 100.0)) {
+		solver->Use();
+		solver->SetFloat("alphaVisco", visco); // Kernel radius // 5mm
 	}
 
 	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.1, 2.0)) {

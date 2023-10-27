@@ -24,7 +24,7 @@ float rand(vec2 co){
 }
 
 vec3 randomColor(uint index){
-	float v = float(index)/5000.0;
+	float v = float(index)/500.0;
 	vec2 co = vec2(v, v*v);
 	return vec3(0.2) + normalize(vec3(rand(co*0.8738), rand(co*0.321313), rand(0.12354*co)));
 }
