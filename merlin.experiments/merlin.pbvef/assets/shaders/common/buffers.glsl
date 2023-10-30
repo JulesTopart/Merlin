@@ -3,11 +3,12 @@ struct Particle {
 	vec4 position;			// current position    x
 	vec4 new_position;		// predicted position  x*
 	vec4 velocity;			// velocity			   u
+	vec4 new_velocity;		// velocity			   u*
 	vec4 acceleration;		// acceleration		   a
 	float mass;				// mass				   m   (or pseudo mass for boundary particles)
 	float density;			// density			   rho
 	float temperature;		// temperature		   T
-	float temperatureDelta;	// temperature		   T
+	float pressure;			// pressure			   P
 	float lambda;			// lagrange multiplier lambda
 	uint phase;				// phase (liquid, solid...)
 	uint newIndex;			// sorted indexy

@@ -1,5 +1,5 @@
-#define BTHREAD 1
-#define PTHREAD 1
+#define BTHREAD 32
+#define PTHREAD 512
 
 #define UNUSED 0
 #define SOLID 1
@@ -49,7 +49,7 @@ const float rheo_k = 50.0; // Consistency index
 const float rheo_n = 0.5; // Flow behavior index
 
 
-#define MAXNN 4096
+#define MAXNN 1024
 // --- Domain ---
 const uint binResolution = 32;
 const vec3 domain = vec3(100, 40, 100);

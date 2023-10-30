@@ -253,7 +253,7 @@ void ExampleLayer::ResetSimulation() {
 	
 	
 	buf.phase = FLUID; //Rigid cube
-	glm::vec3 cubeSize = glm::vec3(20, 20, 20);
+	glm::vec3 cubeSize = glm::vec3(32, 32, 32);
 	for (float x = -cubeSize.x / 2.0; x < cubeSize.x / 2.0; x += spacing) {
 		for (float y = -cubeSize.y / 2.0; y < cubeSize.y / 2.0; y += spacing) {
 			for (float z = 0; z < cubeSize.z; z += spacing) {
@@ -302,7 +302,7 @@ void ExampleLayer::ResetSimulation() {
 	*/
 
 
-	/*
+	
 	buf.temperature = 400.15;//ambient
 	buf.phase = BOUNDARY; //Boundaries body
 	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
@@ -335,7 +335,7 @@ void ExampleLayer::ResetSimulation() {
 			cpu_particles.push_back(buf);
 		}
 	}
-	*/
+	
 
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
@@ -602,8 +602,8 @@ void ExampleLayer::OnImGuiRender()
 	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 0.1, 2.0)) {
 		solver->Use();
 		solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
-		/*particleShader->Use();
-		particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm*/
+		particleShader->Use();
+		particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 	}
 
 	static float pressureM = 100000;
@@ -612,8 +612,8 @@ void ExampleLayer::OnImGuiRender()
 		solver->SetFloat("pressureMultiplier", pressureM); // Kernel radius // 5mm
 	}
 
-	static float visco = 10;
-	if (ImGui::SliderFloat("Viscosity", &visco, -100, 100.0)) {
+	static float visco = 0.001;
+	if (ImGui::SliderFloat("Viscosity", &visco, 0.0, 100000.0)) {
 		solver->Use();
 		solver->SetFloat("alphaVisco", visco); // Kernel radius // 5mm
 	}

@@ -16,6 +16,7 @@ struct FluidParticle {
 	glm::vec4 position;			// current position    x
 	glm::vec4 new_position;		// predicted position  x*
 	glm::vec4 velocity;			// velocity			   u
+	glm::vec4 new_velocity;		// velocity			   u*
 	glm::vec4 acceleration;		// acceleration		   a
 	GLfloat mass;				// mass				   m   (or pseudo mass for boundary particles)
 	GLfloat density;			// density			   rho
@@ -84,7 +85,7 @@ struct Settings {
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
 	GLuint pThread = 64*64*64; //Max Number of particles (thread)
-	GLuint pWkgSize = 1; //Number of thread per workgroup
+	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
 	GLuint bRes = 32; //Bed width is divided bRes times
@@ -93,7 +94,7 @@ struct Settings {
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 
-	GLuint bWkgSize = 1; //Number of thread per workgroup
+	GLuint bWkgSize = 32; //Number of thread per workgroup
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
 	// --- SPH ---

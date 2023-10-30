@@ -120,8 +120,8 @@ void main() {
 		color = vec4(randomColor(particles[gl_InstanceID].binIndex), 1);
 	}else if(colorCycle == 1) {
 		ColorScale rest;
-		rest.minValue = 0;
-		rest.maxValue = int(2*REST_DENSITY);
+		rest.minValue = int(0);
+		rest.maxValue = int(2.0);
 
 		//color = stableMap(map(int(particles[gl_InstanceID].density), colorScale[DENSITY_FIELD] ));
 		//color = stableMap(map(int(particles[gl_InstanceID].density), rest ));
