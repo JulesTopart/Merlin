@@ -79,7 +79,7 @@ struct Settings {
 	//Build Volume dimensions
 	float bx = 100;//mm
 	float by = 40;//mm
-	float bz = 100;//mm
+	float bz = 60;//mm
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	//float pDiameter = 1; //mm
@@ -88,19 +88,19 @@ struct Settings {
 	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bRes = 32; //Bed width is divided bRes times
+	GLuint bRes = 64; //Bed width is divided bRes times
 	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 
-	GLuint bWkgSize = 32; //Number of thread per workgroup
+	GLuint bWkgSize = 256; //Number of thread per workgroup
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
 	// --- SPH ---
 	// SPH Parameters
 	float particleRadius = 1.2; // mm
-	float H = 1.6; // Kernel radius mm
+	float H = 1.7; // Kernel radius mm
 	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
 	float particleMass = 1.0;//g Mass
 };
@@ -172,7 +172,7 @@ private:
 	GLuint numParticles = 0;
 	GLuint numBoundaryParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	int solver_iteration = 1;
+	int solver_iteration = 15;
 
 	float elapsedTime = 0;
 	bool paused = true;

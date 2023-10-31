@@ -302,7 +302,7 @@ void ExampleLayer::ResetSimulation() {
 	*/
 
 
-	
+	/*
 	buf.temperature = 400.15;//ambient
 	buf.phase = BOUNDARY; //Boundaries body
 	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
@@ -335,7 +335,7 @@ void ExampleLayer::ResetSimulation() {
 			cpu_particles.push_back(buf);
 		}
 	}
-	
+	*/
 
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;

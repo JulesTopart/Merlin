@@ -96,3 +96,16 @@ for (int z = int(binIndexVec.z) - 1; z <= int(binIndexVec.z) + 1; z++) { \
 
 
 #define OVERNNS_END }}}}}
+
+#define OVERNNS_I {uvec3 binIndexVec = getBinCoordFromIndex(particles[i].binIndex); \
+for (int z = int(binIndexVec.z) - 1; z <= int(binIndexVec.z) + 1; z++) { \
+	for (int y = int(binIndexVec.y) - 1; y <= int(binIndexVec.y) + 1; y++) { \
+		for (int x = int(binIndexVec.x) - 1; x <= int(binIndexVec.x) + 1; x++) { \
+			if (x < 0 || y < 0 || z < 0   ||    x >= binMax.x || y >= binMax.y || z >= binMax.z) continue; \
+			uint cindex = getBinIndexFromCoord(uvec3(x, y, z)); \
+			if (bins[cindex].count == 0) continue; \
+			uint ns = bins[cindex].count; \
+			uint st = bins[cindex].sum - bins[cindex].count; \
+			for (uint k = st; k < st+min(ns, MAXNN); k++) { \
+				uint j = particles[k].newIndex; \
+				if (j >= numParticles) continue;
