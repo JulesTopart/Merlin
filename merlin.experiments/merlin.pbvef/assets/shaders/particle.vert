@@ -122,7 +122,6 @@ void main() {
 		ColorScale rest;
 		rest.minValue = int(0);
 		rest.maxValue = int(2.0);
-
 		//color = stableMap(map(int(particles[gl_InstanceID].density), colorScale[DENSITY_FIELD] ));
 		//color = stableMap(map(int(particles[gl_InstanceID].density), rest ));
 		//color = heatMap(map(int(particles[gl_InstanceID].density), rest ));
@@ -132,8 +131,8 @@ void main() {
 		trest.minValue = int(ambientTemperature*100.0);
 		trest.maxValue = int(nozzleTemperature*100.0);
 
-		color = heatMap(map(particles[gl_InstanceID].temperature, trest));
-		//color = heatMap(map(int(particles[gl_InstanceID].temperature), colorScale[TEMPERATURE_FIELD]));
+		//color = heatMap(map(particles[gl_InstanceID].temperature, trest));
+		color = heatMap(map(int(particles[gl_InstanceID].temperature), colorScale[TEMPERATURE_FIELD]));
 	}else if(colorCycle == 3) {
 		color = heatMap(map(abs(particles[gl_InstanceID].lambda), colorScale[LAMBDA_FIELD]));
 	}else if(colorCycle == 4) {

@@ -254,7 +254,7 @@ void ExampleLayer::ResetSimulation() {
 	
 	buf.phase = FLUID; //Rigid cube
 	glm::vec3 cubeSize = glm::vec3(32, 32, 32);
-	for (float x = -cubeSize.x / 2.0; x < cubeSize.x / 2.0; x += spacing) {
+	for (float x = settings.bx/2.0 - cubeSize.x ; x < settings.bx/2.0; x += spacing) {
 		for (float y = -cubeSize.y / 2.0; y < cubeSize.y / 2.0; y += spacing) {
 			for (float z = 0; z < cubeSize.z; z += spacing) {
 
@@ -441,7 +441,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->Use();
 
 	if (!paused) {
-		elapsedTime += ts;
+		elapsedTime += 0.016;
 		
 		colorScaleBuffer->Bind();
 		colorScaleBuffer->Clear();
@@ -606,19 +606,19 @@ void ExampleLayer::OnImGuiRender()
 		particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 	}
 
-	static float pressureM = 100000;
-	if (ImGui::SliderFloat("Pressure multiplier", &pressureM, -10000, 10000.0)) {
+	static float pressureM = 0.5;
+	if (ImGui::SliderFloat("Pressure multiplier", &pressureM, 0.0, 100.0)) {
 		solver->Use();
-		solver->SetFloat("pressureMultiplier", pressureM); // Kernel radius // 5mm
+		solver->SetFloat("pressureMultiplier", pressureM * 0.001); // Kernel radius // 5mm
 	}
 
-	static float visco = 0.001;
-	if (ImGui::SliderFloat("Viscosity", &visco, 0.0, 100000.0)) {
+	static float visco = 0.5;
+	if (ImGui::SliderFloat("Viscosity", &visco, 0.0, 100.0)) {
 		solver->Use();
-		solver->SetFloat("alphaVisco", visco); // Kernel radius // 5mm
+		solver->SetFloat("alphaVisco", visco * 0.001); // Kernel radius // 5mm
 	}
 
-	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.1, 2.0)) {
+	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.0001, 2.0)) {
 		solver->Use();
 		solver->SetFloat("particleMass", settings.particleMass);
 	}

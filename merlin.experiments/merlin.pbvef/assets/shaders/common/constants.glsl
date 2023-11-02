@@ -49,10 +49,10 @@ const float rheo_k = 50.0; // Consistency index
 const float rheo_n = 0.5; // Flow behavior index
 
 
-#define MAXNN 256
+#define MAXNN 128
 // --- Domain ---
-const uint binResolution = 64;
-const vec3 domain = vec3(100, 40, 60);
+const uint binResolution = 42;
+const vec3 domain = vec3(100, 35, 60);
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);
 
@@ -61,8 +61,6 @@ const uvec3 binMax = uvec3(domain / binSize);
 const uint binCount = binMax.x * binMax.y * binMax.z;
 
 // Define boundary
-const float boundaryRestitution = 0.05; // Bounce factor
-const float boundaryRepulsionDistance = 0.03125;
-const float boundaryRepulsionForce = 0.0;
+const float boundaryDamping = -0.2; // Bounce factor
 
 
