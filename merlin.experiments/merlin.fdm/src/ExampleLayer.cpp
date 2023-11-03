@@ -7,6 +7,24 @@ using namespace Merlin::Graphics;
 #include <iostream>
 #include <iomanip>
 
+#include "Bunny.h"
+
+void ExampleLayer::UpdateBufferSettings() {
+	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
+	settings.bWidth = max(settings.bx, max(settings.by, settings.bz)) / float(settings.bRes); //Width of a single bin in mm
+	settings.bThread = int(settings.bx / (settings.bWidth)) * int(settings.by / (settings.bWidth)) * int(settings.bz / (settings.bWidth)); //Total number of bin (thread)
+	settings.blockSize = floor(log2f(settings.bThread));
+	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
+	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
+
+	init->SetWorkgroupLayout(settings.pWkgCount);
+	solver->SetWorkgroupLayout(settings.pWkgCount);
+	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
+
+	particleBuffer->Resize(settings.pThread);
+	binBuffer->Resize(settings.bThread);
+}
+
 ExampleLayer::ExampleLayer() {
 	Window* w = &Application::Get().GetWindow();
 	int height = w->GetHeight();
@@ -15,8 +33,8 @@ ExampleLayer::ExampleLayer() {
 	camera->setNearPlane(0.8f);
 	camera->setFarPlane(3000.0f);
 	camera->setFOV(60); //Use 90.0f as we are using cubemaps
-	camera->SetPosition(glm::vec3(0.0f, -240.0f, 200.0));
-	camera->SetRotation(glm::vec3(0, 40, -270));
+	camera->SetPosition(glm::vec3(0.0f, -140.0f, 40));
+	camera->SetRotation(glm::vec3(0,20, -270));
 	cameraController = CreateShared<CameraController3D>(camera);
 }
 
@@ -26,6 +44,9 @@ void ExampleLayer::InitGraphics() {
 	// Init OpenGL stuff
 	renderer.Initialize();
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
+	renderer.EnableTransparency();
+	renderer.EnableSampleShading();
+
 
 	//Shaders
 	modelShader = Shader::Create("model", "assets/shaders/model.vert", "assets/shaders/model.frag");
@@ -45,12 +66,16 @@ void ExampleLayer::InitGraphics() {
 	binShader->SetVec4("lightColor", glm::vec4(1));
 	binShader->SetVec3("lightPos", glm::vec3(0, 0, 100));
 
+	particleShader->Use();
+	particleShader->SetInt("colorCycle", 1);
+	binShader->Use();
+	binShader->SetInt("colorCycle", 1);
+
 	renderer.AddShader(modelShader);
 	renderer.AddShader(particleShader);
 	renderer.AddShader(binShader);
 
-	//renderer.EnableTransparency();
-	renderer.EnableSampleShading();
+
 
 
 	//SkyBox
@@ -69,20 +94,13 @@ void ExampleLayer::InitGraphics() {
 	scene.Add(sky);
 
 	Shared<Model> floor = ModelLoader::LoadModel("./assets/models/bed.stl");
-	floor->Translate(glm::vec3(0, 0, -0.2));
-
-	Shared<Material> floorMat = CreateShared<Material>("floorMat");
-	floorMat->SetAmbient(glm::vec3(0.1));
-	floorMat->SetDiffuse(glm::vec3(0.6));
-	floorMat->SetSpecular(glm::vec3(0.2));
-	floorMat->SetShininess(0.8);
-
+	floor->Translate(glm::vec3(0.75, -0.25, -0.05));
 	floor->SetMaterial("chrome");
 	floor->SetShader("model");
 	scene.Add(floor);
 
-	Shared<Model> floorSurface = Model::Create("floorSurface", Primitives::CreateRectangle(300, 200));
-	floorSurface->Translate(glm::vec3(0, 0, -0.025));
+	Shared<Model> floorSurface = Model::Create("floorSurface", Primitives::CreateRectangle(316, 216));
+	floorSurface->Translate(glm::vec3(0.75, -0.25, 0));
 
 	Shared<Material> floorMat2 = CreateShared<Material>("floorMat2");
 	floorMat2->SetAmbient(glm::vec3(0.4));
@@ -94,6 +112,15 @@ void ExampleLayer::InitGraphics() {
 	floorSurface->SetMaterial(floorMat2);
 	floorSurface->SetShader("model");
 	scene.Add(floorSurface);
+	 
+	/*
+	Shared<Model> bunny = ModelLoader::LoadModel("./assets/models/bunny.stl");
+	bunny->Translate(glm::vec3(-1, -4, -0.7));
+	bunny->Scale(0.118);
+	bunny->Rotate(glm::vec3(0,0,3.1415926/2));
+	bunny->SetMaterial("jade");
+	bunny->SetShader("model");
+	scene.Add(bunny);*/
 
 	//Box
 	Shared<Model> box = Model::Create("box", Primitives::CreateQuadCube(settings.bx, settings.by, settings.bz));
@@ -103,43 +130,38 @@ void ExampleLayer::InitGraphics() {
 	box->EnableWireFrameMode();
 	scene.Add(box);
 
-	nozzleMdl = ModelLoader::LoadModel("./assets/models/nozzle.stl");
-	nozzleMdl->SetMaterial("gold");
-	nozzleMdl->SetShader(modelShader);
-	nozzleMdl->Rotate(glm::vec3(3.141592654, 0, 0));
-	nozzleMdl->Translate(glm::vec3(0, 0, -12));
-	nozzleMdl->Scale(0.30);
 
-	nozzle = TransformObject::Create("nozzleTransform");
-	nozzle->AddChild(nozzleMdl);
-	nozzle->Translate(glm::vec3(0, 0, 0));
-	scene.Add(nozzle);
+	origin = TransformObject::Create("origin");
+	scene.Add(origin);
+
+
+	//scene.Add(Model::Create("cube",Primitives::CreateCube(20)));
 
 }
 
 void ExampleLayer::InitPhysics() {
 	//Compute Shaders
-	init = CreateShared<ComputeShader>("init", "assets/shaders/init.comp");
-	solver = CreateShared<StagedComputeShader>("solver", "assets/shaders/solver.comp", 6);
-	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/prefix.sum.comp", 4);
-	init->SetWorkgroupLayout(settings.pWkgCount);
-	solver->SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum->SetWorkgroupLayout(settings.bwgCount);
-
+	init = CreateShared<ComputeShader>("init", "assets/shaders/solver/init.comp");
+	solver = CreateShared<StagedComputeShader>("solver", "assets/shaders/solver/solver.comp", 6);
+	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 	
 	//Create particle system
 	particleSystem = ParticleSystem<FluidParticle>::Create("ParticleSystem", settings.pThread);
-	particleSystem->Translate(glm::vec3(0, 0, 0));
+	particleSystem->Translate(glm::vec3(0, 0, 0.5));
 
 	//Define the mesh for instancing (Here a cube)
-	//Shared<Mesh> particle = Primitives::CreateCube(0.05 * 0.15);
+	//Shared<Mesh> particle = Primitives::CreateCube(0.5);
 	//Shared<Mesh> particle = Primitives::CreateSphere(0.05*0.15, 10, 10);
 	Shared<Mesh> particle = Primitives::CreatePoint();
 	particle->Rename("particle");
 	particle->SetShader(particleShader);
 	particleSystem->SetMesh(particle);
+	particleSystem->Translate(glm::vec3(0, 0, -0.5));
+	particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
+	//particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 
 	//Create bin system
+	Console::info("Memory") << "size of FluidParticle is " << sizeof(FluidParticle) << Console::endl;
 	binSystem = ParticleSystem<FluidParticle>::Create("BinSystem", settings.bThread);
 	binSystem->Translate(glm::vec3(0, 0, 0));
 
@@ -150,7 +172,9 @@ void ExampleLayer::InitPhysics() {
 	binSystem->SetMesh(binInstance);
 	binSystem->EnableWireFrameMode();
 
-	//scene.Add(particleSystem);
+	init->SetWorkgroupLayout(settings.pWkgCount);
+	solver->SetWorkgroupLayout(settings.pWkgCount);
+	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 	//Create the buffer
 	particleBuffer = SSBO<FluidParticle>::Create("ParticleBuffer");
 	particleBuffer->Allocate(settings.pThread);
@@ -158,122 +182,194 @@ void ExampleLayer::InitPhysics() {
 	binBuffer = SSBO<Bin>::Create("BinBuffer");
 	binBuffer->Allocate(settings.bThread);
 
+
+	colorScaleBuffer = SSBO<ColorScale>::Create("ColorScaleBuffer");
+	std::vector<ColorScale> scales;
+	scales.push_back({ 0,1 });
+	scales.push_back({ 0,100 });
+	scales.push_back({ 0,400 });
+	scales.push_back({ 0,50 });
+	colorScaleBuffer->LoadData(scales);
+
+	particleSystem->AddComputeShader(init);
 	particleSystem->AddComputeShader(solver);
 	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddStorageBuffer(binBuffer);
+	particleSystem->AddStorageBuffer(colorScaleBuffer);
 	
 	binSystem->AddComputeShader(prefixSum);
 	binSystem->AddStorageBuffer(particleBuffer);
 	binSystem->AddStorageBuffer(binBuffer);
+	binSystem->AddStorageBuffer(colorScaleBuffer);
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
 	binSystem->Hide();
-
-	solver->Use();
-	solver->SetUInt("numParticles", numParticles);
 }
 
 void ExampleLayer::SetColorGradient() {
-
-	std::vector<Color> colors;
-	colors.push_back({ glm::vec3(0, 0, 1), 0.0f });     // Blue.
-	colors.push_back({ glm::vec3(0, 1, 1), 0.25f });     // Cyan.
-	colors.push_back({ glm::vec3(0, 1, 0), 0.5f });     // Green.
-	colors.push_back({ glm::vec3(1, 1, 0), 0.75f });     // Yellow.
-	colors.push_back({ glm::vec3(1, 0, 0), 1.0f });     // Red.
+	std::vector<glm::vec4> colors;
+	colors.push_back( glm::vec4(0, 0, 1,0.0f));     // Blue.
+	colors.push_back( glm::vec4(0, 1, 1,0.25f));     // Cyan.
+	colors.push_back( glm::vec4(0, 1, 0,0.5f));     // Green.
+	colors.push_back( glm::vec4(1, 1, 0,0.75f));     // Yellow.
+	colors.push_back( glm::vec4(1, 0, 0,1.0f));     // Red.
 	colorCount = colors.size();
 
-	heatMap = SSBO<Color>::Create("ColorMapBuffer");
+	heatMap = SSBO<glm::vec4>::Create("ColorMapBuffer");
 	heatMap->LoadData(colors);
 }
-
-const long spawnCount = 1;
-long spawnDelay = 1;//iteration old7
-
-long timer = 0;
-long lastSpawn = 0;
-
-float layerHeight = 0.2;
-float firstlayerHeight = 0.1;
-glm::vec3 startPos(-40, -5.0, firstlayerHeight);
-glm::vec3 u(startPos);
-const float speed = 0.15; //old 0.8
-glm::vec3 v(-speed, 0, 0);
-int line = 0;
-glm::vec3 partDim(80, 10, 2);
-int lineCount = partDim.y/0.4;
-
-
-
-glm::vec3 snake() {
-	if (u.x + v.x >= 0.9 * partDim.x + startPos.x || u.x <= startPos.x) {
-		v.x = 0;
-		v.y = speed;
-	}
-
-	if (u.y + v.y > (line + 1) * (partDim.y / lineCount)*0.2) {
-		line++;
-		v.x = ((line % 2 == 0) ? speed : -speed);
-		v.y = 0;
-	}
-
-	if (u.y + v.y >= 0.75 * partDim.y) {
-		line = 0;
-		u.y = 0;
-		u.x = speed;
-		v.y = 0;
-		v.x = speed;
-		u += glm::vec3(0, 0, (layerHeight));
-	}
-
-
-	u += v;
-	return u;
-}
-
-
-float theta = 0.0;
-float radius = 10;
-float segment = 10.0 * 36.0;
-float theta_v = (speed / radius);// *(speed / radius);
-
-glm::vec3 circle() {
-	u = glm::vec3((cos(theta)) * radius, (sin(theta)) * radius, u.z);
-	theta += theta_v;
-	if (theta >= 2.0 * 3.14159265359) {
-		theta -= 2.0 * 3.14159265359;
-		u.z += layerHeight;
-	}
-	return u;
-}
-
 
 void ExampleLayer::ResetSimulation() {
 
 	particleSystem->SetInstancesCount(settings.pThread);
-	init->Use();
-	init->Dispatch(); //init position using init compute shader
+	particleBuffer->Bind();
+	particleBuffer->Clear();
+	particleBuffer->FreeHostMemory();
+
+	elapsedTime = 0;
+
+	Console::info() << "Generating particles..." << Console::endl;
+
+
+	float spacing = 1.0;
+
+	std::vector<glm::vec3> bunny = GenerateVoxelBunny(spacing);
+	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
+
+	FluidParticle buf;
+	buf.acceleration[0] = 0;
+	buf.acceleration[1] = 0;
+	buf.acceleration[2] = 0;
+	buf.velocity[0] = 0;
+	buf.velocity[1] = 0;
+	buf.velocity[2] = 0;
+	buf.density = 0;
+	buf.temperature = 400.0;//ambient
+	//buf.temperature = 298.15;//ambient
+	buf.binIndex = 0;
+	buf.newIndex = 0;
+
+	
+	
+	buf.phase = FLUID; //Rigid cube
+	glm::vec3 cubeSize = glm::vec3(32, 32, 32);
+	for (float x = settings.bx/2.0 - cubeSize.x ; x < settings.bx/2.0; x += spacing) {
+		for (float y = -cubeSize.y / 2.0; y < cubeSize.y / 2.0; y += spacing) {
+			for (float z = 0; z < cubeSize.z; z += spacing) {
+
+				buf.position[0] = x;
+				buf.position[1] = y;
+				buf.position[2] = z + 10;
+				buf.initial_position = buf.position;
+				cpu_particles.push_back(buf);
+
+			}
+		}
+	}
+
+	/*
+	buf.phase = FLUID; //Rigid bunny
+	for (auto& v : bunny) {
+		buf.position[0] = v.x;
+		buf.position[1] = v.y;
+		buf.position[2] = v.z;
+		buf.initial_position = buf.position;
+		cpu_particles.push_back(buf);
+	}*/
+	
+	
+	
+	//Generate sphere above
+	/*
+	buf.phase = FLUID; //Fluid body
+	const float height = 80;
+	const float goldenRatio = (1.0 + sqrt(5.0)) / 2.0;
+	const float angleIncrement = 3.1415926 * 2.0 * goldenRatio;
+	const int radius = 8;
+	for (float r = spacing; r < radius; r+= spacing)
+	for (int i = 0; i < 4*3.1415926 * r * r; ++i) {
+		float t = float(i) / float(4 * 3.1415926 * r * r);
+		float inclinationAngle = acos(1 - 2 * t);  // polar angle
+		float azimuthalAngle = angleIncrement * i;  // azimuthal angle
+		buf.position[0] = r*sin(inclinationAngle) * cos(azimuthalAngle);
+		buf.position[1] = r*sin(inclinationAngle) * sin(azimuthalAngle);
+		buf.position[2] = r*cos(inclinationAngle) + height;
+
+		buf.initial_position = buf.position;
+		cpu_particles.push_back(buf);
+	}
+	*/
+
+
+	/*
+	buf.temperature = 400.15;//ambient
+	buf.phase = BOUNDARY; //Boundaries body
+	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
+		for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
+			buf.position[0] = x;
+			buf.position[1] = y;
+			buf.position[2] = 0;
+			cpu_particles.push_back(buf);
+			buf.position[2] = settings.bz;
+			cpu_particles.push_back(buf);
+		}
+	}
+	for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
+		for (float z = 0; z < settings.bz; z += spacing) {
+			buf.position[0] = -settings.bx / 2.0;
+			buf.position[1] = y;
+			buf.position[2] = z;
+			cpu_particles.push_back(buf);
+			buf.position[0] = settings.bx / 2.0;
+			cpu_particles.push_back(buf);
+		}
+	}
+	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
+		for (float z = 0; z < settings.bz; z += spacing) {
+			buf.position[0] = x;
+			buf.position[1] = -settings.by / 2.0;
+			buf.position[2] = z;
+			cpu_particles.push_back(buf);
+			buf.position[1] = settings.by / 2.0;
+			cpu_particles.push_back(buf);
+		}
+	}
+	*/
+
+	particleBuffer->Upload();
+	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
 
 	binBuffer->Bind();
 	binBuffer->Clear();
+	numParticles = cpu_particles.size();
+	particleSystem->SetInstancesCount(numParticles);
 
-	numParticles = 32*32*32;
-	//numParticles = 64*64*64;
+	settings.pThread = numParticles;
+	
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
-	u = glm::vec3(0.0, 0.0, firstlayerHeight);
-	v = glm::vec3(speed, 0, 0);
-	line = 0;
-	timer = 0;
-	lastSpawn = 0;
-	if (sim == 0) spawnDelay = 1;//iteratinon
-	else spawnDelay = 1;//iteratinon
+	solver->SetFloat("smoothingRadius",settings.H); // Kernel radius // 5mm
+	solver->SetFloat("particleMass",settings.particleMass); // Kernel radius // 5mm
+	solver->SetFloat("REST_DENSITY",settings.REST_DENSITY); // Kernel radius // 5mm
+
+	particleShader->Use();
+	particleShader->SetUInt("numParticles", numParticles);
+	particleShader->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
+	particleShader->SetFloat("particleMass", settings.particleMass); // Kernel radius // 5mm
+	particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
+
+	UpdateBufferSettings();
+
+	solver->Use();
+	solver->Execute(0); //Place particles in bins & predict position
+	NeigborSearch();
+	solver->Use();
+	solver->Execute(1); //Sort
 }
 
 
-glm::uvec3 getBinCoord(glm::vec3 position) {
-	position *= settings.scale;
+glm::uvec3 ExampleLayer::getBinCoord(glm::vec3 position) {
 	position += glm::vec3(150,100,125);
 	glm::uvec3 bin3D = glm::uvec3(position / settings.bWidth);
 	bin3D.x = max(min(bin3D.x, (settings.bx / (settings.bWidth)) - 1), 0);
@@ -282,16 +378,16 @@ glm::uvec3 getBinCoord(glm::vec3 position) {
 	return bin3D;
 }
 
-GLuint getBinIndexFromCoord(glm::uvec3 coord) {
+GLuint ExampleLayer::getBinIndexFromCoord(glm::uvec3 coord) {
 	return (coord.z * (settings.bx / (settings.bWidth)) * (settings.by / (settings.bWidth))) + (coord.y * (settings.bx / (settings.bWidth))) + coord.x;
 }
 
-GLuint getBinIndex(glm::vec3 position) {
+GLuint ExampleLayer::getBinIndex(glm::vec3 position) {
 	glm::uvec3 bin3D = getBinCoord(position);
 	return getBinIndexFromCoord(bin3D);
 }
 
-glm::uvec3 getBinCoordFromIndex(GLuint index) {
+glm::uvec3 ExampleLayer::getBinCoordFromIndex(GLuint index) {
 	GLuint z = index / ((settings.bx / (settings.bWidth)) * (settings.by / (settings.bWidth)));
 	index -= (z * (settings.bx/ (settings.bWidth)) * (settings.by / (settings.bWidth)));
 	GLuint y = index / (settings.bx / (settings.bWidth));
@@ -300,42 +396,13 @@ glm::uvec3 getBinCoordFromIndex(GLuint index) {
 }
 
 
-
-void ExampleLayer::Simulate(Merlin::Timestep ts) {
-
-	timer++;
-	solver->Use();
-	/*
-	if (timer - lastSpawn > spawnDelay / sim_speed || true) {
-		numParticles += spawnCount;
-		particleSystem->SetInstancesCount(numParticles);
-		lastSpawn = timer;
-	}
-
-	if (sim == 0)nozzle->SetPosition(circle());
-	else if (sim == 1)nozzle->SetPosition(snake());
-	else if (sim == 2)nozzle->SetPosition(u);
-
-	solver->SetVec3("sourcePos", u);
-	*/
-
-
-
-	solver->SetFloat("speed", sim_speed);
-	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
-
-	solver->Execute(0); //Predict
-
-	binBuffer->Bind();
-	binBuffer->Clear(); //Reset neighbor search data
-	solver->Execute(1); //Place particles in bins
-
+void ExampleLayer::NeigborSearch() {
 	prefixSum->Use();
 	prefixSum->SetUInt("dataSize", settings.bThread); //data size
 	prefixSum->SetUInt("blockSize", settings.blockSize); //block size
 
 	prefixSum->Execute(0);// local prefix sum
-	
+
 	//Binary tree on rightmost element of blocks
 	GLuint steps = settings.blockSize;
 	UniformObject<GLuint> space("space");
@@ -352,21 +419,40 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	}
 	prefixSum->Execute(3);
 
-	solver->Use();
-	solver->Execute(2); //Sort
+}
+
+void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	
-	for (int i = 0; i < solver_iteration; i++) {
-		solver->Execute(3); //Compute lambda
-		solver->Execute(4); //Position delta
+	solver->Use();
+	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
+
+	binBuffer->Bind();
+	binBuffer->Clear(); //Reset neighbor search data
+	solver->Execute(0); //Place particles in bins & predict position
+
+	NeigborSearch();
+	
+	solver->Use();
+	solver->Execute(1); //Sort
+
+	renderer.Clear();
+	renderer.RenderScene(scene, *camera);
+
+	solver->Use();
+
+	if (!paused) {
+		elapsedTime += 0.016;
+		
+		colorScaleBuffer->Bind();
+		colorScaleBuffer->Clear();
+		solver->Execute(2); //Calculate density
+
+		for (int i = 0; i < solver_iteration; i++) {
+			solver->Execute(3); //Compute lambda
+			solver->Execute(4); //Position delta
+		}
+		if(integrate) solver->Execute(5); //Apply changes
 	}
-	solver->Execute(5); //Apply changes
-
-	/*
-	binBuffer->Sync();
-	particleBuffer->Sync();
-	particleBuffer->Sync();
-	*/
-
 }
 
 void ExampleLayer::OnAttach() {
@@ -380,14 +466,17 @@ void ExampleLayer::OnAttach() {
 	InitGraphics();
 	InitPhysics();
 	SetColorGradient();
+	particleShader->Use();
+	particleShader->Attach(*particleBuffer, 0);
+	particleShader->Attach(*binBuffer, 1);
+	particleShader->Attach(*colorScaleBuffer, 2);
+	particleShader->Attach(*heatMap, 3);
 
-	particleShader->Attach(*particleBuffer);
-	particleShader->Attach(*binBuffer);
-	particleShader->Attach(*heatMap);
-
-	binShader->Attach(*particleBuffer);
-	binShader->Attach(*binBuffer);
-	binShader->Attach(*heatMap);
+	binShader->Use();
+	binShader->Attach(*particleBuffer, 0);
+	binShader->Attach(*binBuffer, 1);
+	binShader->Attach(*colorScaleBuffer, 2);
+	binShader->Attach(*heatMap, 3);
 
 	ResetSimulation();
 }
@@ -415,12 +504,12 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	cameraController->OnUpdate(ts);
 	updateFPS(ts);
 
-	if (!paused) {
-		Simulate(ts);
-	}
-
+	//if (!paused) {
+		Simulate(0.016);
+	//}
+	/*
 	renderer.Clear();
-	renderer.RenderScene(scene, *camera);
+	renderer.RenderScene(scene, *camera);*/
 }
 
 void ExampleLayer::OnImGuiRender()
@@ -432,6 +521,7 @@ void ExampleLayer::OnImGuiRender()
 
 	ImGui::LabelText(std::to_string(numParticles).c_str(), "particles");
 	ImGui::LabelText(std::to_string(settings.bThread).c_str(), "bins");
+	ImGui::LabelText(std::to_string(elapsedTime).c_str(), "s");
 
 	if (FPS_sample > 0) {
 		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS / FPS_sample)).c_str());
@@ -451,6 +541,15 @@ void ExampleLayer::OnImGuiRender()
 		}
 	}
 
+	
+	static bool transparency = true;
+	if (ImGui::Checkbox("Particle transparency", &transparency)) {
+		if(transparency) particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
+		else particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
+	}
+
+	ImGui::Checkbox("Integrate", &integrate);
+
 	if (ImGui::SmallButton("Reset simulation")) {
 		ResetSimulation();
 		//count = 1;
@@ -462,49 +561,151 @@ void ExampleLayer::OnImGuiRender()
 		else particleSystem->Hide();
 	}
 
-	static bool Nstate = true;
-	if (ImGui::Checkbox("Show Nozzle", &Nstate)) {
-		if (Nstate) nozzle->Show();
-		else nozzle->Hide();
-	}
-
 	static bool Bstate = false;
 	if (ImGui::Checkbox("Show Bins", &Bstate)) {
 		if (Bstate) binSystem->Show();
 		else binSystem->Hide();
 	}
 
-	static bool Cstate = false;
-	if (ImGui::Checkbox("Color cycling", &Cstate)) {
+	static bool BBstate = false;
+	if (ImGui::Checkbox("Show Boundaries", &BBstate)) {
 		particleShader->Use();
-		particleShader->SetInt("colorCycle", Cstate ? 1 : 0);
-		binShader->Use();
-		binShader->SetInt("colorCycle", Cstate ? 1 : 0);
+		particleShader->SetInt("showBoundary", BBstate);
 	}
 
 	ImGui::DragInt("Solver iteration", &solver_iteration, 0.1, 1, 50); 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->SetPosition(model_matrix_translation);
 	}
-	if (ImGui::SliderFloat3("Nozzle position", &u.x, -50.0f, 50.0f)) {
-		nozzle->SetPosition(u);
-	}
+
 	if (ImGui::SliderFloat("Camera speed", &camera_speed, 0.0, 50.0f)) {
 		cameraController->SetCameraSpeed(camera_speed);
 	}
 	if (ImGui::SliderFloat("Simulation speed", &sim_speed, 0.0, 5.0f)) {
+		solver->Use();
+		solver->SetFloat("speed", sim_speed);
 	}
 
-	if (ImGui::Button("Circular Path")) {
-		sim = 0;
-		ResetSimulation();
+	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 0.75, 3.0)) {
+		solver->Use();
+		solver->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
+		particleShader->Use();
+		particleShader->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
+	}
+	if (ImGui::SliderFloat("particle radius", &settings.particleRadius, 0.1, 3.0)) {
+		solver->Use();
+		solver->SetFloat("particleRadius", settings.particleRadius);
+		particleShader->Use();
+		particleShader->SetFloat("particleRadius", settings.particleRadius); // Kernel radius // 5mm
 	}
 
-	if (ImGui::Button("Snake Path")) {
-		sim = 1;
-		ResetSimulation();
+	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 0.1, 2.0)) {
+		solver->Use();
+		solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
+		particleShader->Use();
+		particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 	}
 
+	static float pressureM = 0.5;
+	if (ImGui::SliderFloat("Pressure multiplier", &pressureM, 0.0, 100.0)) {
+		solver->Use();
+		solver->SetFloat("pressureMultiplier", pressureM * 0.001); // Kernel radius // 5mm
+	}
 
+	static float visco = 0.5;
+	if (ImGui::SliderFloat("Viscosity", &visco, 0.0, 100.0)) {
+		solver->Use();
+		solver->SetFloat("alphaVisco", visco * 0.001); // Kernel radius // 5mm
+	}
+
+	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.0001, 2.0)) {
+		solver->Use();
+		solver->SetFloat("particleMass", settings.particleMass);
+	}
+
+	static int colorMode = 1;
+	static const char* options[] = { "Bin index", "Density", "Temperature", "Lambda", "Mass", "Neighbors"};
+	if (ImGui::ListBox("Colored field", &colorMode, options, 6)){
+		particleShader->Use();
+		particleShader->SetInt("colorCycle", colorMode);
+		binShader->Use();
+		binShader->SetInt("colorCycle", colorMode);
+	}
+
+	static int particleTest = 2000;
+	static int binTest = 1459;
+	if (colorMode == 5) {
+		if (ImGui::DragInt("Particle to test", &particleTest)) {
+			particleShader->Use();
+			particleShader->SetUInt("particleTest", particleTest);
+			binShader->Use();
+			binShader->SetUInt("particleTest", particleTest);
+		}
+
+		ImGui::LabelText("Bin selector", "");
+
+		bool changed = false;
+
+		ImGui::LabelText("Current Bin", std::to_string(binTest).c_str());
+
+		if (ImGui::SmallButton("X+")) { binTest++; changed = true; }
+		if (ImGui::SmallButton("X-")){binTest--; changed = true;}
+		if (ImGui::SmallButton("Y+")){binTest += (settings.bx / settings.bWidth); changed = true;}
+		if (ImGui::SmallButton("Y-")){binTest -= (settings.bx / settings.bWidth); changed = true;}
+		if (ImGui::SmallButton("Z+")){binTest += int(settings.by / settings.bWidth) * int(settings.bx / settings.bWidth); changed = true;}
+		if (ImGui::SmallButton("Z-")){binTest -= int(settings.by / settings.bWidth) * int(settings.bx / settings.bWidth); changed = true;}
+
+		if (changed) {
+			binShader->Use();
+			binShader->SetUInt("binTest", binTest);
+		}
+	}
+
+	ImGui::End();
+
+
+
+	ImGui::Begin("Compute Shader");
+	ImGui::LabelText("Solver", "");
+	static int stepSolver = 0;
+	ImGui::SliderInt("Solver Step", &stepSolver, 0.0, 5.0f);
+	if (ImGui::Button("Execute Solver")) {
+		solver->Use();
+		solver->Execute(stepSolver);
+	}
+
+	ImGui::LabelText("PrefixSum", "");
+	static int stepPrefix = 0;
+	ImGui::LabelText("Solver", "");
+	ImGui::SliderInt("PrefixSum Step", &stepPrefix, 0.0, 3.0f);
+	if (ImGui::Button("Execute PrefixSum Step")) {
+		prefixSum->Use();
+		prefixSum->Execute(stepPrefix);
+	}
+
+	if (ImGui::Button("Step Simulation")) {
+		Simulate(0.016);
+	}
+
+	if (ImGui::Button("Debug")) {
+		particleBuffer->Bind();
+		particleBuffer->Download();
+		binBuffer->Bind();
+		binBuffer->Download();
+		colorScaleBuffer->Bind();
+		colorScaleBuffer->Download();
+
+		/*
+		std::vector<FluidParticle> sorted;
+		sorted.resize(particleBuffer->GetDeviceBuffer().size());
+
+		std::vector<FluidParticle> bugged;
+		for (int i = 0; i < numParticles; i++) {
+			sorted[particleBuffer->GetDeviceBuffer()[i].newIndex] = particleBuffer->GetDeviceBuffer()[i];
+		}*/
+
+		throw("DEBUG");
+		Console::info() << "DEBUG" << Console::endl;
+	}
 	ImGui::End();
 }

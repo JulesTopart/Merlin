@@ -63,6 +63,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.pbvef", "merlin.expe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.deferred", "merlin.examples\merlin.deferred\merlin.deferred.vcxproj", "{FE01D074-94AD-4AB1-95CE-078C7F2E5A64}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "merlin.xpbd", "merlin.experiments\merlin.xpbd\merlin.xpbd.vcxproj", "{DB339D36-B7E7-4B34-B9A5-B2AFC9069838}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -144,6 +146,7 @@ Global
 		{644303D7-F964-41CB-97F6-6EC4231B7C12}.Release|x86.ActiveCfg = Release|x64
 		{644303D7-F964-41CB-97F6-6EC4231B7C12}.Release|x86.Build.0 = Release|x64
 		{AB0B3689-BA96-4C2E-BF48-14D7213412D8}.Debug|x64.ActiveCfg = Debug|x64
+		{AB0B3689-BA96-4C2E-BF48-14D7213412D8}.Debug|x64.Build.0 = Debug|x64
 		{AB0B3689-BA96-4C2E-BF48-14D7213412D8}.Debug|x86.ActiveCfg = Debug|x64
 		{AB0B3689-BA96-4C2E-BF48-14D7213412D8}.Debug|x86.Build.0 = Debug|x64
 		{AB0B3689-BA96-4C2E-BF48-14D7213412D8}.Release|x64.ActiveCfg = Release|x64
@@ -180,6 +183,14 @@ Global
 		{FE01D074-94AD-4AB1-95CE-078C7F2E5A64}.Release|x64.Build.0 = Release|x64
 		{FE01D074-94AD-4AB1-95CE-078C7F2E5A64}.Release|x86.ActiveCfg = Release|x64
 		{FE01D074-94AD-4AB1-95CE-078C7F2E5A64}.Release|x86.Build.0 = Release|x64
+		{DB339D36-B7E7-4B34-B9A5-B2AFC9069838}.Debug|x64.ActiveCfg = Debug|x64
+		{DB339D36-B7E7-4B34-B9A5-B2AFC9069838}.Debug|x64.Build.0 = Debug|x64
+		{DB339D36-B7E7-4B34-B9A5-B2AFC9069838}.Debug|x86.ActiveCfg = Debug|x64
+		{DB339D36-B7E7-4B34-B9A5-B2AFC9069838}.Debug|x86.Build.0 = Debug|x64
+		{DB339D36-B7E7-4B34-B9A5-B2AFC9069838}.Release|x64.ActiveCfg = Release|x64
+		{DB339D36-B7E7-4B34-B9A5-B2AFC9069838}.Release|x64.Build.0 = Release|x64
+		{DB339D36-B7E7-4B34-B9A5-B2AFC9069838}.Release|x86.ActiveCfg = Release|x64
+		{DB339D36-B7E7-4B34-B9A5-B2AFC9069838}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -200,6 +211,7 @@ Global
 		{117D8D50-E6A4-4723-A4AC-7CFFBDCB5C46} = {DFE19DA6-0229-4BAE-A2FF-D9834EF111F5}
 		{4DB10B35-628C-471F-88CF-86009C844199} = {DFE19DA6-0229-4BAE-A2FF-D9834EF111F5}
 		{FE01D074-94AD-4AB1-95CE-078C7F2E5A64} = {D1D60AC2-73CD-450E-870C-D9D66BA549C1}
+		{DB339D36-B7E7-4B34-B9A5-B2AFC9069838} = {DFE19DA6-0229-4BAE-A2FF-D9834EF111F5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08CE0857-BD26-4581-B676-934B26490A92}

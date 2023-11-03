@@ -101,9 +101,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Bunny.h" />
     <ClInclude Include="src\ExampleLayer.h" />
+    <ClInclude Include="src\settings.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Bunny.cpp" />
     <ClCompile Include="src\ExampleApp.cpp" />
     <ClCompile Include="src\ExampleLayer.cpp" />
   </ItemGroup>
@@ -122,20 +125,22 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\shaders\common\buffers.glsl" />
+    <None Include="assets\shaders\common\constants.glsl" />
+    <None Include="assets\shaders\common\uniforms.glsl" />
     <None Include="assets\shaders\model.frag" />
     <None Include="assets\shaders\model.vert" />
-    <None Include="assets\shaders\prefix.sum.comp" />
     <None Include="assets\shaders\skybox.frag" />
     <None Include="assets\shaders\skybox.vert" />
-    <None Include="assets\shaders\solver.comp" />
-    <None Include="assets\shaders\common.glsl" />
-    <None Include="assets\shaders\constants.glsl" />
     <None Include="assets\shaders\box.frag" />
     <None Include="assets\shaders\box.vert" />
     <None Include="assets\shaders\particle.frag" />
-    <None Include="assets\shaders\init.comp" />
     <None Include="assets\shaders\particle.vert" />
-    <None Include="assets\shaders\sph.kernels.glsl" />
+    <None Include="assets\shaders\solver\common.glsl" />
+    <None Include="assets\shaders\solver\init.comp" />
+    <None Include="assets\shaders\solver\prefix.sum.comp" />
+    <None Include="assets\shaders\solver\solver.comp" />
+    <None Include="assets\shaders\solver\sph.kernels.glsl" />
     <None Include="assets\shaders\bin.frag" />
     <None Include="assets\shaders\bin.vert" />
   </ItemGroup>

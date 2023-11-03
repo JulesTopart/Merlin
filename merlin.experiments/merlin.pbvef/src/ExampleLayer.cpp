@@ -112,15 +112,6 @@ void ExampleLayer::InitGraphics() {
 	floorSurface->SetMaterial(floorMat2);
 	floorSurface->SetShader("model");
 	scene.Add(floorSurface);
-	 
-	/*
-	Shared<Model> bunny = ModelLoader::LoadModel("./assets/models/bunny.stl");
-	bunny->Translate(glm::vec3(-1, -4, -0.7));
-	bunny->Scale(0.118);
-	bunny->Rotate(glm::vec3(0,0,3.1415926/2));
-	bunny->SetMaterial("jade");
-	bunny->SetShader("model");
-	scene.Add(bunny);*/
 
 	//Box
 	Shared<Model> box = Model::Create("box", Primitives::CreateQuadCube(settings.bx, settings.by, settings.bz));
@@ -252,7 +243,7 @@ void ExampleLayer::ResetSimulation() {
 
 	
 	
-	buf.phase = FLUID; //Rigid cube
+	buf.phase = SOLID; //Rigid cube
 	glm::vec3 cubeSize = glm::vec3(32, 32, 32);
 	for (float x = settings.bx/2.0 - cubeSize.x ; x < settings.bx/2.0; x += spacing) {
 		for (float y = -cubeSize.y / 2.0; y < cubeSize.y / 2.0; y += spacing) {
@@ -267,75 +258,7 @@ void ExampleLayer::ResetSimulation() {
 			}
 		}
 	}
-
-	/*
-	buf.phase = FLUID; //Rigid bunny
-	for (auto& v : bunny) {
-		buf.position[0] = v.x;
-		buf.position[1] = v.y;
-		buf.position[2] = v.z;
-		buf.initial_position = buf.position;
-		cpu_particles.push_back(buf);
-	}*/
 	
-	
-	
-	//Generate sphere above
-	/*
-	buf.phase = FLUID; //Fluid body
-	const float height = 80;
-	const float goldenRatio = (1.0 + sqrt(5.0)) / 2.0;
-	const float angleIncrement = 3.1415926 * 2.0 * goldenRatio;
-	const int radius = 8;
-	for (float r = spacing; r < radius; r+= spacing)
-	for (int i = 0; i < 4*3.1415926 * r * r; ++i) {
-		float t = float(i) / float(4 * 3.1415926 * r * r);
-		float inclinationAngle = acos(1 - 2 * t);  // polar angle
-		float azimuthalAngle = angleIncrement * i;  // azimuthal angle
-		buf.position[0] = r*sin(inclinationAngle) * cos(azimuthalAngle);
-		buf.position[1] = r*sin(inclinationAngle) * sin(azimuthalAngle);
-		buf.position[2] = r*cos(inclinationAngle) + height;
-
-		buf.initial_position = buf.position;
-		cpu_particles.push_back(buf);
-	}
-	*/
-
-
-	/*
-	buf.temperature = 400.15;//ambient
-	buf.phase = BOUNDARY; //Boundaries body
-	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
-		for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
-			buf.position[0] = x;
-			buf.position[1] = y;
-			buf.position[2] = 0;
-			cpu_particles.push_back(buf);
-			buf.position[2] = settings.bz;
-			cpu_particles.push_back(buf);
-		}
-	}
-	for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
-		for (float z = 0; z < settings.bz; z += spacing) {
-			buf.position[0] = -settings.bx / 2.0;
-			buf.position[1] = y;
-			buf.position[2] = z;
-			cpu_particles.push_back(buf);
-			buf.position[0] = settings.bx / 2.0;
-			cpu_particles.push_back(buf);
-		}
-	}
-	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
-		for (float z = 0; z < settings.bz; z += spacing) {
-			buf.position[0] = x;
-			buf.position[1] = -settings.by / 2.0;
-			buf.position[2] = z;
-			cpu_particles.push_back(buf);
-			buf.position[1] = settings.by / 2.0;
-			cpu_particles.push_back(buf);
-		}
-	}
-	*/
 
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
