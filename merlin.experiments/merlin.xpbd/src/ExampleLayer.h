@@ -70,16 +70,18 @@ inline void BufferObject<Bin>::print() {
 
 //Moving particles
 struct Constraint {
-	alignas(16) glm::vec4 position;      // Position (x, y, z) and mass (w)
-	alignas(16) glm::vec4 velocity;      // Velocity (x, y, z) and inverse density (w)
+	GLuint a;
+	GLuint b;
+	GLfloat stress;
+	GLfloat strain;
 };
 
 struct Settings {
 	
 	//Build Volume dimensions
-	float bx = 100;//mm
+	float bx = 120;//mm
 	float by = 35;//mm
-	float bz = 60;//mm
+	float bz = 40;//mm
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	//float pDiameter = 1; //mm
@@ -151,7 +153,8 @@ private:
 	Shader_Ptr binShader;
 
 	ParticleSystem_Ptr<FluidParticle> particleSystem;
-	ParticleSystem_Ptr<FluidParticle> binSystem;
+	ParticleSystem_Ptr<Bin> binSystem;
+	ParticleSystem_Ptr<Constraint> constraintSystem;
 
 	Renderer renderer;
 	Scene scene;

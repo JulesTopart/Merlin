@@ -34,7 +34,7 @@ ExampleLayer::ExampleLayer() {
 	camera->setFarPlane(3000.0f);
 	camera->setFOV(60); //Use 90.0f as we are using cubemaps
 	camera->SetPosition(glm::vec3(0.0f, -140.0f, 40));
-	camera->SetRotation(glm::vec3(0,20, -270));
+	camera->SetRotation(glm::vec3(0, 20, -270));
 	cameraController = CreateShared<CameraController3D>(camera);
 }
 
@@ -112,19 +112,10 @@ void ExampleLayer::InitGraphics() {
 	floorSurface->SetMaterial(floorMat2);
 	floorSurface->SetShader("model");
 	scene.Add(floorSurface);
-	 
-	/*
-	Shared<Model> bunny = ModelLoader::LoadModel("./assets/models/bunny.stl");
-	bunny->Translate(glm::vec3(-1, -4, -0.7));
-	bunny->Scale(0.118);
-	bunny->Rotate(glm::vec3(0,0,3.1415926/2));
-	bunny->SetMaterial("jade");
-	bunny->SetShader("model");
-	scene.Add(bunny);*/
 
 	//Box
 	Shared<Model> box = Model::Create("box", Primitives::CreateQuadCube(settings.bx, settings.by, settings.bz));
-	box->Translate(glm::vec3(0, 0, settings.bz/2.0));
+	box->Translate(glm::vec3(0, 0, settings.bz / 2.0));
 	box->SetMaterial("default");
 	box->SetShader(modelShader);
 	box->EnableWireFrameMode();
@@ -144,7 +135,7 @@ void ExampleLayer::InitPhysics() {
 	init = CreateShared<ComputeShader>("init", "assets/shaders/solver/init.comp");
 	solver = CreateShared<StagedComputeShader>("solver", "assets/shaders/solver/solver.comp", 6);
 	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
-	
+
 	//Create particle system
 	particleSystem = ParticleSystem<FluidParticle>::Create("ParticleSystem", settings.pThread);
 	particleSystem->Translate(glm::vec3(0, 0, 0.5));
@@ -162,7 +153,7 @@ void ExampleLayer::InitPhysics() {
 
 	//Create bin system
 	Console::info("Memory") << "size of FluidParticle is " << sizeof(FluidParticle) << Console::endl;
-	binSystem = ParticleSystem<FluidParticle>::Create("BinSystem", settings.bThread);
+	binSystem = ParticleSystem<Bin>::Create("BinSystem", settings.bThread);
 	binSystem->Translate(glm::vec3(0, 0, 0));
 
 	//Define the mesh for bin instancing (Here a cube)
@@ -178,6 +169,9 @@ void ExampleLayer::InitPhysics() {
 	//Create the buffer
 	particleBuffer = SSBO<FluidParticle>::Create("ParticleBuffer");
 	particleBuffer->Allocate(settings.pThread);
+
+	constraintBuffer = SSBO<Constraint>::Create("ConstraintBuffer");
+	constraintBuffer->Allocate(settings.pThread);
 
 	binBuffer = SSBO<Bin>::Create("BinBuffer");
 	binBuffer->Allocate(settings.bThread);
@@ -196,7 +190,7 @@ void ExampleLayer::InitPhysics() {
 	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddStorageBuffer(binBuffer);
 	particleSystem->AddStorageBuffer(colorScaleBuffer);
-	
+
 	binSystem->AddComputeShader(prefixSum);
 	binSystem->AddStorageBuffer(particleBuffer);
 	binSystem->AddStorageBuffer(binBuffer);
@@ -209,11 +203,11 @@ void ExampleLayer::InitPhysics() {
 
 void ExampleLayer::SetColorGradient() {
 	std::vector<glm::vec4> colors;
-	colors.push_back( glm::vec4(0, 0, 1,0.0f));     // Blue.
-	colors.push_back( glm::vec4(0, 1, 1,0.25f));     // Cyan.
-	colors.push_back( glm::vec4(0, 1, 0,0.5f));     // Green.
-	colors.push_back( glm::vec4(1, 1, 0,0.75f));     // Yellow.
-	colors.push_back( glm::vec4(1, 0, 0,1.0f));     // Red.
+	colors.push_back(glm::vec4(0, 0, 1, 0.0f));     // Blue.
+	colors.push_back(glm::vec4(0, 1, 1, 0.25f));     // Cyan.
+	colors.push_back(glm::vec4(0, 1, 0, 0.5f));     // Green.
+	colors.push_back(glm::vec4(1, 1, 0, 0.75f));     // Yellow.
+	colors.push_back(glm::vec4(1, 0, 0, 1.0f));     // Red.
 	colorCount = colors.size();
 
 	heatMap = SSBO<glm::vec4>::Create("ColorMapBuffer");
@@ -236,6 +230,7 @@ void ExampleLayer::ResetSimulation() {
 
 	std::vector<glm::vec3> bunny = GenerateVoxelBunny(spacing);
 	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
+	auto& cpu_constraint = constraintBuffer->GetDeviceBuffer();
 
 	FluidParticle buf;
 	buf.acceleration[0] = 0;
@@ -250,92 +245,45 @@ void ExampleLayer::ResetSimulation() {
 	buf.binIndex = 0;
 	buf.newIndex = 0;
 
-	
-	
-	buf.phase = FLUID; //Rigid cube
-	glm::vec3 cubeSize = glm::vec3(32, 32, 32);
-	for (float x = settings.bx/2.0 - cubeSize.x ; x < settings.bx/2.0; x += spacing) {
-		for (float y = -cubeSize.y / 2.0; y < cubeSize.y / 2.0; y += spacing) {
-			for (float z = 0; z < cubeSize.z; z += spacing) {
+	Constraint bufConstraint;
+	bufConstraint.strain = 0.0;
+	bufConstraint.stress = 0.0;
+
+	buf.phase = SOLID; //Rigid cube
+	glm::vec3 cubeSize = glm::vec3(100, 10, 5);
+	glm::uvec3 icubeSize = glm::vec3(cubeSize.x/spacing, cubeSize.y / spacing, cubeSize.y / spacing);
+	for (int xi = 0, float x = -cubeSize.x / 2.0; x < cubeSize.x / 2.0; xi++, x += spacing) {
+		for (int yi = 0, float y = -cubeSize.y / 2.0; y < cubeSize.y / 2.0; yi++, y += spacing) {
+			for (int zi = 0, float z = 0; z < cubeSize.z; zi++, z += spacing) {
 
 				buf.position[0] = x;
 				buf.position[1] = y;
-				buf.position[2] = z + 10;
+				buf.position[2] = z + 0;
 				buf.initial_position = buf.position;
 				cpu_particles.push_back(buf);
 
+				GLuint i = xi + yi * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
+
+				if (x != 0) {
+					bufConstraint.a = i; bufConstraint.b = i-1;
+					cpu_constraint.push_back(bufConstraint);
+				}
+
+				if (y != 0) {
+					GLuint j = xi + (yi - 1) * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
+					bufConstraint.a = i; bufConstraint.b = j;
+					cpu_constraint.push_back(bufConstraint);
+				}
+
+				if (z != 0) {
+					GLuint j = xi + yi * (icubeSize.x) + (zi - 1) * (icubeSize.x * icubeSize.y);
+					bufConstraint.a = i; bufConstraint.b = j;
+					cpu_constraint.push_back(bufConstraint);
+				}
 			}
 		}
 	}
 
-	/*
-	buf.phase = FLUID; //Rigid bunny
-	for (auto& v : bunny) {
-		buf.position[0] = v.x;
-		buf.position[1] = v.y;
-		buf.position[2] = v.z;
-		buf.initial_position = buf.position;
-		cpu_particles.push_back(buf);
-	}*/
-	
-	
-	
-	//Generate sphere above
-	/*
-	buf.phase = FLUID; //Fluid body
-	const float height = 80;
-	const float goldenRatio = (1.0 + sqrt(5.0)) / 2.0;
-	const float angleIncrement = 3.1415926 * 2.0 * goldenRatio;
-	const int radius = 8;
-	for (float r = spacing; r < radius; r+= spacing)
-	for (int i = 0; i < 4*3.1415926 * r * r; ++i) {
-		float t = float(i) / float(4 * 3.1415926 * r * r);
-		float inclinationAngle = acos(1 - 2 * t);  // polar angle
-		float azimuthalAngle = angleIncrement * i;  // azimuthal angle
-		buf.position[0] = r*sin(inclinationAngle) * cos(azimuthalAngle);
-		buf.position[1] = r*sin(inclinationAngle) * sin(azimuthalAngle);
-		buf.position[2] = r*cos(inclinationAngle) + height;
-
-		buf.initial_position = buf.position;
-		cpu_particles.push_back(buf);
-	}
-	*/
-
-
-	
-	buf.temperature = 400.15;//ambient
-	buf.phase = BOUNDARY; //Boundaries body
-	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
-		for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
-			buf.position[0] = x;
-			buf.position[1] = y;
-			buf.position[2] = 0;
-			cpu_particles.push_back(buf);
-			buf.position[2] = settings.bz;
-			cpu_particles.push_back(buf);
-		}
-	}
-	for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
-		for (float z = 0; z < settings.bz; z += spacing) {
-			buf.position[0] = -settings.bx / 2.0;
-			buf.position[1] = y;
-			buf.position[2] = z;
-			cpu_particles.push_back(buf);
-			buf.position[0] = settings.bx / 2.0;
-			cpu_particles.push_back(buf);
-		}
-	}
-	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
-		for (float z = 0; z < settings.bz; z += spacing) {
-			buf.position[0] = x;
-			buf.position[1] = -settings.by / 2.0;
-			buf.position[2] = z;
-			cpu_particles.push_back(buf);
-			buf.position[1] = settings.by / 2.0;
-			cpu_particles.push_back(buf);
-		}
-	}
-	
 
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
@@ -346,12 +294,12 @@ void ExampleLayer::ResetSimulation() {
 	particleSystem->SetInstancesCount(numParticles);
 
 	settings.pThread = numParticles;
-	
+
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
-	solver->SetFloat("smoothingRadius",settings.H); // Kernel radius // 5mm
-	solver->SetFloat("particleMass",settings.particleMass); // Kernel radius // 5mm
-	solver->SetFloat("REST_DENSITY",settings.REST_DENSITY); // Kernel radius // 5mm
+	solver->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
+	solver->SetFloat("particleMass", settings.particleMass); // Kernel radius // 5mm
+	solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 
 	particleShader->Use();
 	particleShader->SetUInt("numParticles", numParticles);
@@ -370,7 +318,7 @@ void ExampleLayer::ResetSimulation() {
 
 
 glm::uvec3 ExampleLayer::getBinCoord(glm::vec3 position) {
-	position += glm::vec3(150,100,125);
+	position += glm::vec3(150, 100, 125);
 	glm::uvec3 bin3D = glm::uvec3(position / settings.bWidth);
 	bin3D.x = max(min(bin3D.x, (settings.bx / (settings.bWidth)) - 1), 0);
 	bin3D.y = max(min(bin3D.y, (settings.by / (settings.bWidth)) - 1), 0);
@@ -389,7 +337,7 @@ GLuint ExampleLayer::getBinIndex(glm::vec3 position) {
 
 glm::uvec3 ExampleLayer::getBinCoordFromIndex(GLuint index) {
 	GLuint z = index / ((settings.bx / (settings.bWidth)) * (settings.by / (settings.bWidth)));
-	index -= (z * (settings.bx/ (settings.bWidth)) * (settings.by / (settings.bWidth)));
+	index -= (z * (settings.bx / (settings.bWidth)) * (settings.by / (settings.bWidth)));
 	GLuint y = index / (settings.bx / (settings.bWidth));
 	GLuint x = index % int(settings.bx / (settings.bWidth));
 	return glm::uvec3(x, y, z);
@@ -422,7 +370,7 @@ void ExampleLayer::NeigborSearch() {
 }
 
 void ExampleLayer::Simulate(Merlin::Timestep ts) {
-	
+
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
 
@@ -431,7 +379,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->Execute(0); //Place particles in bins & predict position
 
 	NeigborSearch();
-	
+
 	solver->Use();
 	solver->Execute(1); //Sort
 
@@ -442,7 +390,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	if (!paused) {
 		elapsedTime += 0.016;
-		
+
 		colorScaleBuffer->Bind();
 		colorScaleBuffer->Clear();
 		solver->Execute(2); //Calculate density
@@ -451,7 +399,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 			solver->Execute(3); //Compute lambda
 			solver->Execute(4); //Position delta
 		}
-		if(integrate) solver->Execute(5); //Apply changes
+		if (integrate) solver->Execute(5); //Apply changes
 	}
 }
 
@@ -505,7 +453,7 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	updateFPS(ts);
 
 	//if (!paused) {
-		Simulate(0.016);
+	Simulate(0.016);
 	//}
 	/*
 	renderer.Clear();
@@ -541,10 +489,10 @@ void ExampleLayer::OnImGuiRender()
 		}
 	}
 
-	
+
 	static bool transparency = true;
 	if (ImGui::Checkbox("Particle transparency", &transparency)) {
-		if(transparency) particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
+		if (transparency) particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
 		else particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 	}
 
@@ -556,8 +504,8 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 	static bool Pstate = true;
-	if(ImGui::Checkbox("Show Particles", &Pstate)) {
-		if(Pstate) particleSystem->Show();
+	if (ImGui::Checkbox("Show Particles", &Pstate)) {
+		if (Pstate) particleSystem->Show();
 		else particleSystem->Hide();
 	}
 
@@ -573,7 +521,7 @@ void ExampleLayer::OnImGuiRender()
 		particleShader->SetInt("showBoundary", BBstate);
 	}
 
-	ImGui::DragInt("Solver iteration", &solver_iteration, 0.1, 1, 50); 
+	ImGui::DragInt("Solver iteration", &solver_iteration, 0.1, 1, 50);
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->SetPosition(model_matrix_translation);
 	}
@@ -624,8 +572,8 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 	static int colorMode = 1;
-	static const char* options[] = { "Bin index", "Density", "Temperature", "Lambda", "Mass", "Neighbors"};
-	if (ImGui::ListBox("Colored field", &colorMode, options, 6)){
+	static const char* options[] = { "Bin index", "Density", "Temperature", "Lambda", "Mass", "Neighbors" };
+	if (ImGui::ListBox("Colored field", &colorMode, options, 6)) {
 		particleShader->Use();
 		particleShader->SetInt("colorCycle", colorMode);
 		binShader->Use();
@@ -649,11 +597,11 @@ void ExampleLayer::OnImGuiRender()
 		ImGui::LabelText("Current Bin", std::to_string(binTest).c_str());
 
 		if (ImGui::SmallButton("X+")) { binTest++; changed = true; }
-		if (ImGui::SmallButton("X-")){binTest--; changed = true;}
-		if (ImGui::SmallButton("Y+")){binTest += (settings.bx / settings.bWidth); changed = true;}
-		if (ImGui::SmallButton("Y-")){binTest -= (settings.bx / settings.bWidth); changed = true;}
-		if (ImGui::SmallButton("Z+")){binTest += int(settings.by / settings.bWidth) * int(settings.bx / settings.bWidth); changed = true;}
-		if (ImGui::SmallButton("Z-")){binTest -= int(settings.by / settings.bWidth) * int(settings.bx / settings.bWidth); changed = true;}
+		if (ImGui::SmallButton("X-")) { binTest--; changed = true; }
+		if (ImGui::SmallButton("Y+")) { binTest += (settings.bx / settings.bWidth); changed = true; }
+		if (ImGui::SmallButton("Y-")) { binTest -= (settings.bx / settings.bWidth); changed = true; }
+		if (ImGui::SmallButton("Z+")) { binTest += int(settings.by / settings.bWidth) * int(settings.bx / settings.bWidth); changed = true; }
+		if (ImGui::SmallButton("Z-")) { binTest -= int(settings.by / settings.bWidth) * int(settings.bx / settings.bWidth); changed = true; }
 
 		if (changed) {
 			binShader->Use();
