@@ -83,6 +83,8 @@ struct Settings {
 	float by = 35;//mm
 	float bz = 40;//mm
 
+	GLuint maxNNS = 64;
+
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
@@ -150,6 +152,7 @@ private:
 
 	Shader_Ptr modelShader;
 	Shader_Ptr particleShader;
+	Shader_Ptr constraintShader;
 	Shader_Ptr binShader;
 
 	ParticleSystem_Ptr<FluidParticle> particleSystem;

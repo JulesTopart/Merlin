@@ -127,6 +127,8 @@
     <None Include="assets\shaders\model.frag" />
     <None Include="assets\shaders\model.vert" />
     <None Include="assets\shaders\common\uniforms.glsl" />
+    <None Include="assets\shaders\constraint.frag" />
+    <None Include="assets\shaders\constraint.vert" />
     <None Include="assets\shaders\solver\prefix.sum.comp" />
     <None Include="assets\shaders\skybox.frag" />
     <None Include="assets\shaders\skybox.vert" />

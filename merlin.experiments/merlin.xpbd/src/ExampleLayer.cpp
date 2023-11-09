@@ -56,15 +56,16 @@ void ExampleLayer::InitGraphics() {
 	particleShader->noTexture();
 	particleShader->noMaterial();
 	particleShader->SetUInt("colorCount", 5);
-	particleShader->SetVec4("lightColor", glm::vec4(1));
-	particleShader->SetVec3("lightPos", glm::vec3(0, 0, 100));
 
 	binShader = Shader::Create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
 	binShader->noTexture();
 	binShader->noMaterial();
 	binShader->SetUInt("colorCount", 5);
-	binShader->SetVec4("lightColor", glm::vec4(1));
-	binShader->SetVec3("lightPos", glm::vec3(0, 0, 100));
+
+	constraintShader = Shader::Create("particle", "assets/shaders/constraint.vert", "assets/shaders/constraint.frag");
+	constraintShader->noTexture();
+	constraintShader->noMaterial();
+	constraintShader->SetUInt("colorCount", 5);
 
 	particleShader->Use();
 	particleShader->SetInt("colorCycle", 1);
@@ -149,19 +150,24 @@ void ExampleLayer::InitPhysics() {
 	particleSystem->SetMesh(particle);
 	particleSystem->Translate(glm::vec3(0, 0, -0.5));
 	particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
-	//particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
-
-	//Create bin system
 	Console::info("Memory") << "size of FluidParticle is " << sizeof(FluidParticle) << Console::endl;
-	binSystem = ParticleSystem<Bin>::Create("BinSystem", settings.bThread);
-	binSystem->Translate(glm::vec3(0, 0, 0));
 
-	//Define the mesh for bin instancing (Here a cube)
 	Shared<Mesh> binInstance = Primitives::CreateQuadCube(settings.bWidth, false);
 	binInstance->Rename("bin");
 	binInstance->SetShader(binShader);
+	binSystem = ParticleSystem<Bin>::Create("BinSystem", settings.bThread);
+	binSystem->Translate(glm::vec3(0, 0, 0));
 	binSystem->SetMesh(binInstance);
 	binSystem->EnableWireFrameMode();
+
+	Shared<Mesh> constraint = Primitives::CreateLine(1.0f, glm::vec3(1,1,1));
+	constraint->Rename("constraint");
+	constraint->SetShader(constraintShader);
+	constraintSystem = ParticleSystem<Constraint>::Create("ConstraintSystem", settings.pThread * settings.maxNNS);
+	constraintSystem->SetMesh(constraint);
+	
+
+
 
 	init->SetWorkgroupLayout(settings.pWkgCount);
 	solver->SetWorkgroupLayout(settings.pWkgCount);
@@ -189,11 +195,13 @@ void ExampleLayer::InitPhysics() {
 	particleSystem->AddComputeShader(solver);
 	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddStorageBuffer(binBuffer);
+	particleSystem->AddStorageBuffer(constraintBuffer);
 	particleSystem->AddStorageBuffer(colorScaleBuffer);
 
 	binSystem->AddComputeShader(prefixSum);
 	binSystem->AddStorageBuffer(particleBuffer);
 	binSystem->AddStorageBuffer(binBuffer);
+	binSystem->AddStorageBuffer(constraintBuffer);
 	binSystem->AddStorageBuffer(colorScaleBuffer);
 
 	scene.Add(particleSystem);
@@ -252,39 +260,63 @@ void ExampleLayer::ResetSimulation() {
 	buf.phase = SOLID; //Rigid cube
 	glm::vec3 cubeSize = glm::vec3(100, 10, 5);
 	glm::uvec3 icubeSize = glm::vec3(cubeSize.x/spacing, cubeSize.y / spacing, cubeSize.y / spacing);
-	for (int xi = 0, float x = -cubeSize.x / 2.0; x < cubeSize.x / 2.0; xi++, x += spacing) {
-		for (int yi = 0, float y = -cubeSize.y / 2.0; y < cubeSize.y / 2.0; yi++, y += spacing) {
-			for (int zi = 0, float z = 0; z < cubeSize.z; zi++, z += spacing) {
 
-				buf.position[0] = x;
-				buf.position[1] = y;
-				buf.position[2] = z + 0;
-				buf.initial_position = buf.position;
-				cpu_particles.push_back(buf);
+	for (int xi = 0; xi < cubeSize.x / spacing; xi++)
+	for (int yi = 0; yi < cubeSize.y / spacing; yi++)
+	for (int zi = 0; zi < cubeSize.z / spacing; zi++) {
+		float x = (xi*spacing) - (cubeSize.x / 2.0);
+		float y = (yi*spacing) - (cubeSize.y / 2.0);
+		float z = (zi*spacing);
 
-				GLuint i = xi + yi * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
+		buf.position[0] = x;
+		buf.position[1] = y;
+		buf.position[2] = z + 0;
+		buf.initial_position = buf.position;
+		cpu_particles.push_back(buf);
 
-				if (x != 0) {
-					bufConstraint.a = i; bufConstraint.b = i-1;
-					cpu_constraint.push_back(bufConstraint);
-				}
+		GLuint i = xi + yi * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
 
-				if (y != 0) {
-					GLuint j = xi + (yi - 1) * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
-					bufConstraint.a = i; bufConstraint.b = j;
-					cpu_constraint.push_back(bufConstraint);
-				}
+		if (x > 0) {//kx
+			bufConstraint.a = i; bufConstraint.b = i-1;
+			cpu_constraint.push_back(bufConstraint);
+		}
 
-				if (z != 0) {
-					GLuint j = xi + yi * (icubeSize.x) + (zi - 1) * (icubeSize.x * icubeSize.y);
-					bufConstraint.a = i; bufConstraint.b = j;
-					cpu_constraint.push_back(bufConstraint);
-				}
-			}
+		if (y > 0) {//ky
+			GLuint j = xi + (yi - 1) * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
+			bufConstraint.a = i; bufConstraint.b = j;
+			cpu_constraint.push_back(bufConstraint);
+		}
+
+		if (z > 0) {//kz
+			GLuint j = xi + yi * (icubeSize.x) + (zi - 1) * (icubeSize.x * icubeSize.y);
+			bufConstraint.a = i; bufConstraint.b = j;
+			cpu_constraint.push_back(bufConstraint);
+		}
+
+		if (x > 0 && y > 0) {//kxy
+			i = (xi - 1) + yi * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
+			GLuint j = xi + (yi - 1) * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
+			bufConstraint.a = i; bufConstraint.b = j;
+			cpu_constraint.push_back(bufConstraint);
+		}
+
+		if (y > 0 && z > 0) {//kyz
+			i = xi + (yi - 1) * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
+			GLuint j = xi + yi * (icubeSize.x) + (zi - 1) * (icubeSize.x * icubeSize.y);
+			bufConstraint.a = i; bufConstraint.b = j;
+			cpu_constraint.push_back(bufConstraint);
+		}
+
+		if (z > 0 && x > 0) {//kzx
+			i = xi + yi * (icubeSize.x) + (zi - 1) * (icubeSize.x * icubeSize.y);
+			GLuint j = (xi-1) + yi * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
+			bufConstraint.a = i; bufConstraint.b = j;
+			cpu_constraint.push_back(bufConstraint);
 		}
 	}
 
 
+	constraintBuffer->Upload();
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
 
@@ -417,14 +449,16 @@ void ExampleLayer::OnAttach() {
 	particleShader->Use();
 	particleShader->Attach(*particleBuffer, 0);
 	particleShader->Attach(*binBuffer, 1);
-	particleShader->Attach(*colorScaleBuffer, 2);
-	particleShader->Attach(*heatMap, 3);
+	particleShader->Attach(*constraintBuffer, 2);
+	particleShader->Attach(*colorScaleBuffer, 3);
+	particleShader->Attach(*heatMap, 4);
 
 	binShader->Use();
 	binShader->Attach(*particleBuffer, 0);
 	binShader->Attach(*binBuffer, 1);
-	binShader->Attach(*colorScaleBuffer, 2);
-	binShader->Attach(*heatMap, 3);
+	binShader->Attach(*constraintBuffer, 2);
+	binShader->Attach(*colorScaleBuffer, 3);
+	binShader->Attach(*heatMap, 4);
 
 	ResetSimulation();
 }

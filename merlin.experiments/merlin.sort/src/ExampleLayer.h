@@ -3,7 +3,7 @@
 #include <Merlin.h>
 using namespace Merlin::Graphics;
 
-const GLuint n =  512* 512 * 512; //Number of data
+const GLuint n = 512 *512 * 512; //Number of data
 const GLuint wgSize = 512; //WorkGroup size
 const GLuint wgCount = (n + wgSize - 1) / wgSize; //WorkGroup size
 

@@ -48,7 +48,7 @@ namespace Merlin::Memory {
 	ShaderStorageBuffer<T>::ShaderStorageBuffer(std::string name) : BufferObject<T>(name, GL_SHADER_STORAGE_BUFFER) {}
 
 	template <class T>
-	Shared<ShaderStorageBuffer<T>> ShaderStorageBuffer<T>::Create(std::string name) {
+	SSBO_Ptr<T> ShaderStorageBuffer<T>::Create(std::string name) {
 		return std::make_shared<ShaderStorageBuffer>(name);
 	}
 
