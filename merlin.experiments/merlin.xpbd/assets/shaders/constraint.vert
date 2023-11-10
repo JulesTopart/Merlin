@@ -74,10 +74,16 @@ float LinearizeDepth(float depth)
 uniform int colorCycle;
 
 void main() {
-	vec3 offset = (vec3(getBinCoordFromIndex(gl_InstanceID)) * binSize);
+	vec3 offset;
+	if(length(_position) == 0){
+		offset = (vec3(particles[constraints[gl_InstanceID].a].position));
+	}else{
+		offset = (vec3(particles[constraints[gl_InstanceID].b].position));
+	}
+	
 	position = vec3(model * vec4(_position*0.95 + offset + boundaryMin, 1.0f));
 	normal = _normal;
-
+	
 	bool test = bins[gl_InstanceID].count > 0;
 
 	color = vec4(1);

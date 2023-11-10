@@ -165,7 +165,7 @@ void ExampleLayer::InitPhysics() {
 	constraint->SetShader(constraintShader);
 	constraintSystem = ParticleSystem<Constraint>::Create("ConstraintSystem", settings.pThread * settings.maxNNS);
 	constraintSystem->SetMesh(constraint);
-	
+	constraintSystem->Translate(glm::vec3(0, 0, -0.5));
 
 
 
@@ -206,6 +206,7 @@ void ExampleLayer::InitPhysics() {
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
+	scene.Add(constraintSystem);
 	binSystem->Hide();
 }
 
@@ -459,6 +460,13 @@ void ExampleLayer::OnAttach() {
 	binShader->Attach(*constraintBuffer, 2);
 	binShader->Attach(*colorScaleBuffer, 3);
 	binShader->Attach(*heatMap, 4);
+
+	constraintShader->Use();
+	constraintShader->Attach(*particleBuffer, 0);
+	constraintShader->Attach(*binBuffer, 1);
+	constraintShader->Attach(*constraintBuffer, 2);
+	constraintShader->Attach(*colorScaleBuffer, 3);
+	constraintShader->Attach(*heatMap, 4);
 
 	ResetSimulation();
 }
