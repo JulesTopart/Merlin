@@ -31,7 +31,7 @@ ExampleLayer::ExampleLayer() {
 	int width = w->GetWidth();
 	camera = CreateShared<Camera>(width, height, Projection::Perspective);
 	camera->setNearPlane(0.8f);
-	camera->setFarPlane(3000.0f);
+	camera->setFarPlane(800.0f);
 	camera->setFOV(60); //Use 90.0f as we are using cubemaps
 	camera->SetPosition(glm::vec3(0.0f, -140.0f, 40));
 	camera->SetRotation(glm::vec3(0, 20, -270));
@@ -165,7 +165,7 @@ void ExampleLayer::InitPhysics() {
 	constraint->SetShader(constraintShader);
 	constraintSystem = ParticleSystem<Constraint>::Create("ConstraintSystem", settings.pThread * settings.maxNNS);
 	constraintSystem->SetMesh(constraint);
-	constraintSystem->Translate(glm::vec3(0, 0, -0.5));
+	constraintSystem->Translate(glm::vec3(0, 0, -0.0));
 
 
 
@@ -316,7 +316,7 @@ void ExampleLayer::ResetSimulation() {
 		}
 	}
 
-
+	numConstraint = cpu_constraint.size();
 	constraintBuffer->Upload();
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
@@ -325,6 +325,7 @@ void ExampleLayer::ResetSimulation() {
 	binBuffer->Clear();
 	numParticles = cpu_particles.size();
 	particleSystem->SetInstancesCount(numParticles);
+	constraintSystem->SetInstancesCount(numConstraint);
 
 	settings.pThread = numParticles;
 

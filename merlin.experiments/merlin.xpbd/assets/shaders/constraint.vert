@@ -31,7 +31,7 @@ struct Color {
     float value;
 };
 
-layout(std430, binding = 0) buffer ColorMapBuffer {
+layout(std430, binding = 4) buffer ColorMapBuffer {
     Color colors[];
 };
 
@@ -74,28 +74,20 @@ float LinearizeDepth(float depth)
 uniform int colorCycle;
 
 void main() {
-	vec3 offset;
+	vec3 offset = vec3(0);
+	
+	
 	if(length(_position) == 0){
-		offset = (vec3(particles[constraints[gl_InstanceID].a].position));
-	}else{
-		offset = (vec3(particles[constraints[gl_InstanceID].b].position));
-	}
+		offset = (vec3(particles[0].position));
+	}/*else{
+		//offset = (vec3(particles[constraints[gl_InstanceID].a].position));
+		offset = vec3(particles[1].position);
+	}*/
 	
-	position = vec3(model * vec4(_position*0.95 + offset + boundaryMin, 1.0f));
+	position = vec3(model * vec4(_position + offset + boundaryMin, 1.0f));
 	normal = _normal;
-	
-	bool test = bins[gl_InstanceID].count > 0;
 
 	color = vec4(1);
-	if(colorCycle == 0){
-		color = vec4(randomColor(gl_InstanceID), 1);
-	}else if(colorCycle != 5){
-		color = heatMap(float(bins[gl_InstanceID].count)/(MAXNN));
-	}else {
-		
 
-	}
-
-	if(!test)gl_Position = vec4(0);
-	else gl_Position = projection * view * vec4(position, 1.0f);
+	gl_Position = projection * view * vec4(position, 1.0f);
 }
