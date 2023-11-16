@@ -44,6 +44,13 @@ namespace Merlin::Graphics {
 		m_ID = nextID++;
 	}
 
+	Shared<RenderableObject> RenderableObject::GetChild(std::string name) {
+		for (auto child : m_children) {
+			if (child->name() == name) return child;
+		}
+		return nullptr;
+	}
+
 	void RenderableObject::AddChild(const Shared<RenderableObject>& child) {
 		if (child != nullptr) {
 			m_children.push_back(child);

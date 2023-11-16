@@ -95,6 +95,7 @@ void ExampleLayer::InitGraphics() {
 	scene.Add(sky);
 
 	Shared<Model> floor = ModelLoader::LoadModel("./assets/models/bed.stl");
+	floor->Rename("bed");
 	floor->Translate(glm::vec3(0.75, -0.25, -0.05));
 	floor->SetMaterial("chrome");
 	floor->SetShader("model");
@@ -537,6 +538,15 @@ void ExampleLayer::OnImGuiRender()
 	if (ImGui::Checkbox("Particle transparency", &transparency)) {
 		if (transparency) particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
 		else particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
+	}
+
+	static bool showbed = true;
+	if (ImGui::Checkbox("Show build plate", &showbed)) {
+		auto bedRef = scene.GetChild("bed");
+		if (bedRef) {
+			if (showbed) scene.GetChild("bed")->Show();
+			else scene.GetChild("bed")->Hide();
+		}
 	}
 
 	ImGui::Checkbox("Integrate", &integrate);

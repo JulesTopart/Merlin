@@ -60,6 +60,7 @@ namespace Merlin::Graphics {
 		inline void DisableWireFrameMode() { m_wireframe = false; }
 
 		std::list<Shared<RenderableObject>>& children();
+		Shared<RenderableObject> GetChild(std::string name);
 		RenderableObject* parent();
 
 	protected:

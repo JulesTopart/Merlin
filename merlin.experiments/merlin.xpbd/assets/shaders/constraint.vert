@@ -76,13 +76,11 @@ uniform int colorCycle;
 void main() {
 	vec3 offset = vec3(0);
 	
-	
 	if(length(_position) == 0){
 		offset = (vec3(particles[0].position));
-	}/*else{
-		//offset = (vec3(particles[constraints[gl_InstanceID].a].position));
+	}else{
 		offset = vec3(particles[1].position);
-	}*/
+	}
 	
 	position = vec3(model * vec4(_position + offset + boundaryMin, 1.0f));
 	normal = _normal;
