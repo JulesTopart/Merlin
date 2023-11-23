@@ -52,14 +52,14 @@ private:
 	Shared<Shader> modelShader;
 
 	//Heat Map
-	Shared<SSBO> heatMap;
+	SSBO_Ptr<Color> heatMap;
 	int colorCount;
 
 	//Buffers
-	Shared<SSBO> grid;
-	Shared<SSBO> newGrid;
+	SSBO_Ptr<FieldProperty> grid;
+	SSBO_Ptr<FieldProperty> newGrid;
 
-	Shared<ParticleSystem> streamlines;
+	ParticleSystem_Ptr<FieldProperty> streamlines;
 
 	//Camera
 	Shared<Camera> camera;

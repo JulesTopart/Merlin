@@ -139,7 +139,7 @@ void ExampleLayer::InitPhysics() {
 	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 
 	//Create particle system
-	particleSystem = ParticleSystem<FluidParticle>::Create("ParticleSystem", settings.pThread);
+	particleSystem = ParticleSystem::Create("ParticleSystem", settings.pThread);
 	particleSystem->Translate(glm::vec3(0, 0, 0.5));
 
 	//Define the mesh for instancing (Here a cube)
@@ -156,7 +156,7 @@ void ExampleLayer::InitPhysics() {
 	Shared<Mesh> binInstance = Primitives::CreateQuadCube(settings.bWidth, false);
 	binInstance->Rename("bin");
 	binInstance->SetShader(binShader);
-	binSystem = ParticleSystem<Bin>::Create("BinSystem", settings.bThread);
+	binSystem = ParticleSystem::Create("BinSystem", settings.bThread);
 	binSystem->Translate(glm::vec3(0, 0, 0));
 	binSystem->SetMesh(binInstance);
 	binSystem->EnableWireFrameMode();
@@ -164,7 +164,7 @@ void ExampleLayer::InitPhysics() {
 	Shared<Mesh> constraint = Primitives::CreateLine(1.0f, glm::vec3(1,1,1));
 	constraint->Rename("constraint");
 	constraint->SetShader(constraintShader);
-	constraintSystem = ParticleSystem<Constraint>::Create("ConstraintSystem", settings.pThread * settings.maxNNS);
+	constraintSystem = ParticleSystem::Create("ConstraintSystem", settings.pThread * settings.maxNNS);
 	constraintSystem->SetMesh(constraint);
 	constraintSystem->Translate(glm::vec3(0, 0, -0.0));
 
@@ -260,7 +260,7 @@ void ExampleLayer::ResetSimulation() {
 	bufConstraint.stress = 0.0;
 
 	buf.phase = SOLID; //Rigid cube
-	glm::vec3 cubeSize = glm::vec3(100, 10, 5);
+	glm::vec3 cubeSize = glm::vec3(10, 5, 100);
 	glm::uvec3 icubeSize = glm::vec3(cubeSize.x/spacing, cubeSize.y / spacing, cubeSize.y / spacing);
 
 	for (int xi = 0; xi < cubeSize.x / spacing; xi++)
@@ -268,7 +268,7 @@ void ExampleLayer::ResetSimulation() {
 	for (int zi = 0; zi < cubeSize.z / spacing; zi++) {
 		float x = (xi*spacing) - (cubeSize.x / 2.0);
 		float y = (yi*spacing) - (cubeSize.y / 2.0);
-		float z = (zi*spacing);
+		float z = (zi*spacing)/*+ 0.1 * xi*/;
 
 		buf.position[0] = x;
 		buf.position[1] = y;

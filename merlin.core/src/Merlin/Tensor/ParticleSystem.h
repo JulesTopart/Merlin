@@ -59,46 +59,37 @@ namespace Merlin::Tensor {
 
 	};
 
-	template<class T = DefaultParticle>
+
 	class ParticleSystem : public GenericParticleSystem {
 	public:
-		ParticleSystem();
-		ParticleSystem(std::string name, GLsizeiptr instances);
-		~ParticleSystem(){};
+		
+
+
+		ParticleSystem() : GenericParticleSystem() {}
+		ParticleSystem(std::string name, GLsizeiptr maxCount) : GenericParticleSystem(name, maxCount) {}
+		~ParticleSystem() {};
 
 		//void Update(Timestep ts);//Execute all linked compute shader
 		//void Execute(Shared<ComputeShader> step, bool autoBind = true); //Execute compute shader once
 
-		void AddStorageBuffer(Shared<GenericBufferObject>);
-
-		inline static Shared<ParticleSystem<T>> Create(std::string name, GLsizeiptr instances) {
-			return CreateShared<ParticleSystem<T>>(name, instances);
+		inline static Shared<ParticleSystem> Create(std::string name, GLsizeiptr instances) {
+			return CreateShared<ParticleSystem>(name, instances);
 		};
+
+		inline void AddStorageBuffer(Shared<GenericBufferObject> buffer) {
+			m_buffers.push_back(buffer);
+			if (m_shaders.size() == 0) Console::info("ParticleSystem") << "Shader list is empty. Load particle system shader before adding buffer to enable automatic shader attach or attach them manually" << Console::endl;
+			for (Shared<ComputeShader> shader : m_shaders) {
+				shader->Attach(*buffer, m_buffers.size() - 1);
+			}
+		}
 
 	private:
 		//Buffers & Compute Shaders
 		std::vector<Shared<GenericBufferObject>> m_buffers; //Buffer to store the particle
 		
-
 	};
 
-	template<class T = DefaultParticle>
-	using ParticleSystem_Ptr = Shared<ParticleSystem<T>>;
-
-	template<class T>
-	inline ParticleSystem<T>::ParticleSystem() : GenericParticleSystem() {}
-
-	template<class T>
-	inline ParticleSystem<T>::ParticleSystem(std::string name, GLsizeiptr maxCount) : GenericParticleSystem(name, maxCount) {}
-
-
-	template<class T>
-	inline void ParticleSystem<T>::AddStorageBuffer(Shared<GenericBufferObject> buffer) {
-		m_buffers.push_back(buffer);
-		if (m_shaders.size() == 0) Console::info("ParticleSystem") << "Shader list is empty. Load particle system shader before adding buffer to enable automatic shader attach or attach them manually" << Console::endl;
-		for (Shared<ComputeShader> shader : m_shaders) {
-			shader->Attach(*buffer, m_buffers.size() - 1);
-		}
-	}
+	typedef Shared<ParticleSystem> ParticleSystem_Ptr;
 
 }

@@ -79,9 +79,9 @@ struct Constraint {
 struct Settings {
 	
 	//Build Volume dimensions
-	float bx = 120;//mm
+	float bx = 100;//mm 120
 	float by = 35;//mm
-	float bz = 40;//mm
+	float bz = 100;//mm 40
 
 	GLuint maxNNS = 64;
 
@@ -155,9 +155,9 @@ private:
 	Shader_Ptr constraintShader;
 	Shader_Ptr binShader;
 
-	ParticleSystem_Ptr<FluidParticle> particleSystem;
-	ParticleSystem_Ptr<Bin> binSystem;
-	ParticleSystem_Ptr<Constraint> constraintSystem;
+	ParticleSystem_Ptr particleSystem;
+	ParticleSystem_Ptr binSystem;
+	ParticleSystem_Ptr constraintSystem;
 
 	Renderer renderer;
 	Scene scene;

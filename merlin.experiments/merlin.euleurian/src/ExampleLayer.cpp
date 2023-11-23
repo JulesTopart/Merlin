@@ -93,7 +93,7 @@ void ExampleLayer::InitGraphics() {
 	streamMesh->SetDrawMode(GL_LINES);
 	streamMesh->SetShader("streamlines");
 
-	streamlines = CreateShared<ParticleSystem>("streamlines", gridSize);
+	streamlines = ParticleSystem<FluidParticle>::Create("BinSystem", settings.bThread);
 	streamlines->SetMesh(streamMesh);
 
 	scene.Add(streamlines);

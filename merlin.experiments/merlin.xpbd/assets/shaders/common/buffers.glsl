@@ -77,7 +77,7 @@ uvec3 getBinCoord(vec4 position) {
 
 uint getBinIndexFromCoord(uvec3 coord) {
 	return (coord.z * binMax.x * binMax.y) + (coord.y * binMax.x) + coord.x;
-}
+}   
 
 uint getBinIndex(vec4 position) {
 	uvec3 bin3D = getBinCoord(position);
