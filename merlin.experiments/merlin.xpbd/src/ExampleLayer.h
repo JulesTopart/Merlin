@@ -179,7 +179,7 @@ private:
 	GLuint numConstraint = 0;
 	GLuint numBoundaryParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	int solver_iteration = 15;
+	int solver_iteration = 20;
 
 	float elapsedTime = 0;
 	bool paused = true;

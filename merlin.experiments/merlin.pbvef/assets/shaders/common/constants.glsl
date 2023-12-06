@@ -52,7 +52,7 @@ const float rheo_n = 0.5; // Flow behavior index
 #define MAXNN 128
 // --- Domain ---
 const uint binResolution = 42;
-const vec3 domain = vec3(120, 35, 40);
+const vec3 domain = vec3(100, 35, 60);
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);
 

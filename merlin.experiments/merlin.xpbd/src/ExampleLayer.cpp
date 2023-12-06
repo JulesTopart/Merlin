@@ -428,10 +428,11 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 		colorScaleBuffer->Bind();
 		colorScaleBuffer->Clear();
-		solver->Execute(2); //Calculate density
+		
 
 		for (int i = 0; i < solver_iteration; i++) {
-			solver->Execute(3); //Compute lambda
+			solver->Execute(2); //Predict position
+			solver->Execute(3); //Solve constraint
 			solver->Execute(4); //Position delta
 		}
 		if (integrate) solver->Execute(5); //Apply changes

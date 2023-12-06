@@ -93,7 +93,7 @@ void ExampleLayer::InitGraphics() {
 	streamMesh->SetDrawMode(GL_LINES);
 	streamMesh->SetShader("streamlines");
 
-	streamlines = ParticleSystem<FluidParticle>::Create("BinSystem", settings.bThread);
+	streamlines = ParticleSystem::Create("StreamLineSystem", 1);
 	streamlines->SetMesh(streamMesh);
 
 	scene.Add(streamlines);
@@ -113,19 +113,17 @@ void ExampleLayer::InitPhysics() {
 	physics->SetUInt("grid", gridResolution);
 	physics->SetFloat("h", 20.0f / float(gridResolution));
 
-	grid = CreateShared<SSBO>("FieldBuffer");
-	grid->SetBindingPoint(1);
-	grid->Allocate<FieldProperty>(gridSize);
+	grid = SSBO<FieldProperty>::Create("FieldBuffer");
+	grid->Allocate(gridSize);
 
-	newGrid = CreateShared<SSBO>("NewFieldBuffer");
-	newGrid->SetBindingPoint(2);
-	newGrid->Allocate<FieldProperty>(gridSize);
+	newGrid = SSBO<FieldProperty>::Create("NewFieldBuffer");
+	newGrid->Allocate(gridSize);
 
 	streamlines->AddComputeShader(physics);
 	streamlines->AddStorageBuffer(grid);
 	streamlines->AddStorageBuffer(newGrid);
-	streamlines->SetThread(128);
-	streamlines->Execute(init);
+	streamlines->SetInstancesCount(128);
+
 }
 
 void ExampleLayer::SetColorGradient() {
@@ -138,11 +136,8 @@ void ExampleLayer::SetColorGradient() {
 	colors.push_back({ glm::vec3(1, 0, 0), 1.0f });     // Red.
 	colorCount = colors.size();
 
-	heatMap = CreateShared<SSBO>("ColorMapBuffer");
-	heatMap->SetBindingPoint(3);
-	heatMap->Allocate<Color>(colors);
-
-	//streamlines->AddStorageBuffer(heatMap);
+	heatMap = SSBO<Color>::Create("ColorMapBuffer");
+	heatMap->LoadData(colors);
 }
 
 
@@ -177,7 +172,6 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 		physics->Use();
 		physics->SetFloat("dt", ts);
 		physics->SetFloat("speed", sim_speed);
-		streamlines->Execute(physics);
 		//newGrid->BindAs(GL_COPY_READ_BUFFER);
 		//grid->BindAs(GL_COPY_WRITE_BUFFER);
 		//glCopyNamedBufferSubData(newGrid->id(), grid->id(), 0, 0, gridSize);
@@ -212,7 +206,7 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 	if (ImGui::SmallButton("Reset simulation")) {
-		streamlines->Execute(init);
+		
 	}
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->SetPosition(model_matrix_translation);

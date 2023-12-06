@@ -356,82 +356,59 @@ void XPBDSolveSolid(uint i, uint simStep) {
 		//case 1:
 		//Skip step 1 (used for neighboring sort)
 		//break;
-		case 2 :
 
-		vec4 forces = vec4(0);
-
-
-		vec4 elasticForceSum = vec4(0);
-		OVERNNS
-			Particle pj = particles[j];
-			vec4 restDiff = particles[i].initial_position - pj.initial_position;
-			vec4 diff = particles[i].position - pj.position;
-			vec4 dir = normalize(diff);
-
-			float restLength = length(restDiff);
-			float currentLength = length(diff);
-
-			float constraintValue = (restLength - currentLength);
-
-			float Wij = poly6(diff);
-			elasticForceSum += 100000 * constraintValue * dir;
-			/*
-			float lambdaDelta = constraintValue / (p1.invMass + p2.invMass + (compliance/(dt*dt)));
-			lambda += lambdaDelta;
-			lambda*=0.98;
-			PVector correction = delta.mult(lambda / (p1.invMass + p2.invMass));*/
-		OVERNNS_END
-		forces += elasticForceSum;
-
-		
-		vec4 viscoSum = vec4(0);
-		OVERNNS
-			Particle pj = particles[j];
-			vec4 dist = particles[i].position - particles[j].position;
-			vec4 Vij = particles[j].velocity - particles[i].velocity;
-			float Wij = poly6_lapl(dist);
-			if(pj.phase == FLUID) viscoSum += 0.8 * Vij * Wij * particles[j].density;
-		OVERNNS_END
-
-		forces += viscoSum;
-
-
-		/*
-		vec4 sumP = vec4(0);
-		OVERNNS
-			Particle pj = particles[j];
-
-			float PI = particles[i].pressure / (particles[i].density * particles[i].density);
-			float PJ = particles[j].pressure / (particles[j].density * particles[j].density);
-
-			vec4 Wij = spiky_grad(particles[i].position - particles[j].position);
-
-			if(pj.phase == FLUID) sumP -= pj.mass * (PI + PJ) * Wij;
-			//else if(pj.phase == SOLID || pj.phase == BOUNDARY) sumP -= REST_DENSITY * pj.mass * (PI * 2.0) * Wij;
-		OVERNNS_END
-		*/
-		//particles[i].acceleration += sumP;
-
-
-		particles[i].acceleration += forces/particleMass;
-
-		break;
 		//Pressure solver iteration
+		case 2 :
+			particles[i].velocity += particles[i].acceleration*dt;
+			particles[i].new_position = particles[i].position + particles[i].velocity * dt;
+		break;
+
 		case 3 :
+			
+			OVERNNS
+				Particle pj = particles[j];
+				vec4 restDiff = pj.initial_position - particles[i].initial_position;
+				if(length(restDiff) >= H) continue;
+				vec4 diff = particles[j].position - particles[i].new_position;
+				vec4 dir = normalize(diff);
 
+				float restLength = length(restDiff);
+				float currentLength = length(diff);
 
+				// Calculate the constraint violation
+				float C = currentLength - restLength;
+
+				// Calculate the gradient of the constraint function
+				vec4 gradC_p1 = dir;
+				vec4 gradC_p2 = -1.0 * dir;
+
+				// Calculate the effective mass matrix
+				float sumInverseMass = (1.0/particles[i].mass) + (1.0/pj.mass);
+
+				float stiffness = 10000;
+				float compliance = 1.0/stiffness; // Compliance of the constraints
+				float gamma = compliance / (dt * dt);
+				float beta = 1.0f / (sumInverseMass + gamma);
+
+				// Calculate the Lagrange multiplier delta
+				float deltaLambda = -C * beta;
+
+				// Calculate and apply the position corrections
+				vec4 correctionP1 = gradC_p1 * deltaLambda * (1.0/particles[i].mass);
+				particles[i].new_position -= correctionP1;
+			OVERNNS_END
 
 		break;
-
+		
 		case 4 :
+			particles[i].velocity = (particles[i].new_position - particles[i].position)/dt;
+			//particles[i].new_position = particles[i].position + (particles[i].velocity * dt * speed);
+			particles[i].position = particles[i].new_position;
+			clampToBoundaries(particles[i].position, particles[i].velocity);
 		break;
-		//End iteration
 
 		case 5 : //Apply changes
-		particles[i].velocity += particles[i].acceleration * dt * speed; //Predict velocity
-		particles[i].new_position = particles[i].position + (particles[i].velocity * dt * speed);
-		particles[i].position = particles[i].new_position;
-		clampToBoundaries(particles[i].position, particles[i].velocity);
+
 
 		
 		break;

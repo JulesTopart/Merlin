@@ -146,7 +146,7 @@ void ExampleLayer::InitPhysics() {
 	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 	
 	//Create particle system
-	particleSystem = ParticleSystem<FluidParticle>::Create("ParticleSystem", settings.pThread);
+	particleSystem = ParticleSystem::Create("ParticleSystem", settings.pThread);
 	particleSystem->Translate(glm::vec3(0, 0, 0.5));
 
 	//Define the mesh for instancing (Here a cube)
@@ -162,7 +162,7 @@ void ExampleLayer::InitPhysics() {
 
 	//Create bin system
 	Console::info("Memory") << "size of FluidParticle is " << sizeof(FluidParticle) << Console::endl;
-	binSystem = ParticleSystem<FluidParticle>::Create("BinSystem", settings.bThread);
+	binSystem = ParticleSystem::Create("BinSystem", settings.bThread);
 	binSystem->Translate(glm::vec3(0, 0, 0));
 
 	//Define the mesh for bin instancing (Here a cube)

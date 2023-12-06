@@ -59,7 +59,7 @@ private:
 	SSBO_Ptr<FieldProperty> grid;
 	SSBO_Ptr<FieldProperty> newGrid;
 
-	ParticleSystem_Ptr<FieldProperty> streamlines;
+	ParticleSystem_Ptr streamlines;
 
 	//Camera
 	Shared<Camera> camera;
