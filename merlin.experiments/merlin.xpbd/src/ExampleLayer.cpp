@@ -9,6 +9,66 @@ using namespace Merlin::Graphics;
 
 #include "Bunny.h"
 
+ExampleLayer::ExampleLayer() {
+	Window* w = &Application::Get().GetWindow();
+	int height = w->GetHeight();
+	int width = w->GetWidth();
+	camera = CreateShared<Camera>(width, height, Projection::Perspective);
+	camera->setNearPlane(0.8f);
+	camera->setFarPlane(800.0f);
+	camera->setFOV(60); //Use 90.0f as we are using cubemaps
+	camera->SetPosition(glm::vec3(0.0f, -140.0f, 40));
+	camera->SetRotation(glm::vec3(0, 20, -270));
+	cameraController = CreateShared<CameraController3D>(camera);
+}
+
+ExampleLayer::~ExampleLayer() {}
+
+void ExampleLayer::OnAttach() {
+	EnableGLDebugging();
+	Window* wd = &Application::Get().GetWindow();
+	_height = wd->GetHeight();
+	_width = wd->GetWidth();
+
+	Console::SetLevel(ConsoleLevel::_INFO);
+
+	InitGraphics();
+	InitPhysics();
+	SetColorGradient();
+	particleShader->Use();
+	particleShader->Attach(*particleBuffer, 0);
+	particleShader->Attach(*binBuffer, 1);
+	particleShader->Attach(*colorScaleBuffer, 2);
+	particleShader->Attach(*heatMap, 3);
+
+	binShader->Use();
+	binShader->Attach(*particleBuffer, 0);
+	binShader->Attach(*binBuffer, 1);
+	binShader->Attach(*colorScaleBuffer, 2);
+	binShader->Attach(*heatMap, 3);
+
+	ResetSimulation();
+}
+
+void ExampleLayer::OnDetach() {}
+
+void ExampleLayer::OnEvent(Event& event) {
+	camera->OnEvent(event);
+	cameraController->OnEvent(event);
+}
+
+void ExampleLayer::OnUpdate(Timestep ts) {
+	cameraController->OnUpdate(ts);
+	updateFPS(ts);
+
+	if (!paused) {
+		Simulate(0.016);
+	}
+
+	renderer.Clear();
+	renderer.RenderScene(scene, *camera);
+}
+
 void ExampleLayer::UpdateBufferSettings() {
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
 	settings.bWidth = max(settings.bx, max(settings.by, settings.bz)) / float(settings.bRes); //Width of a single bin in mm
@@ -24,21 +84,6 @@ void ExampleLayer::UpdateBufferSettings() {
 	particleBuffer->Resize(settings.pThread);
 	binBuffer->Resize(settings.bThread);
 }
-
-ExampleLayer::ExampleLayer() {
-	Window* w = &Application::Get().GetWindow();
-	int height = w->GetHeight();
-	int width = w->GetWidth();
-	camera = CreateShared<Camera>(width, height, Projection::Perspective);
-	camera->setNearPlane(0.8f);
-	camera->setFarPlane(800.0f);
-	camera->setFOV(60); //Use 90.0f as we are using cubemaps
-	camera->SetPosition(glm::vec3(0.0f, -140.0f, 40));
-	camera->SetRotation(glm::vec3(0, 20, -270));
-	cameraController = CreateShared<CameraController3D>(camera);
-}
-
-ExampleLayer::~ExampleLayer() {}
 
 void ExampleLayer::InitGraphics() {
 	// Init OpenGL stuff
@@ -61,11 +106,6 @@ void ExampleLayer::InitGraphics() {
 	binShader->noTexture();
 	binShader->noMaterial();
 	binShader->SetUInt("colorCount", 5);
-
-	constraintShader = Shader::Create("particle", "assets/shaders/constraint.vert", "assets/shaders/constraint.frag");
-	constraintShader->noTexture();
-	constraintShader->noMaterial();
-	constraintShader->SetUInt("colorCount", 5);
 
 	particleShader->Use();
 	particleShader->SetInt("colorCycle", 1);
@@ -161,24 +201,12 @@ void ExampleLayer::InitPhysics() {
 	binSystem->SetMesh(binInstance);
 	binSystem->EnableWireFrameMode();
 
-	Shared<Mesh> constraint = Primitives::CreateLine(1.0f, glm::vec3(1,1,1));
-	constraint->Rename("constraint");
-	constraint->SetShader(constraintShader);
-	constraintSystem = ParticleSystem::Create("ConstraintSystem", settings.pThread * settings.maxNNS);
-	constraintSystem->SetMesh(constraint);
-	constraintSystem->Translate(glm::vec3(0, 0, -0.0));
-
-
-
 	init->SetWorkgroupLayout(settings.pWkgCount);
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 	//Create the buffer
 	particleBuffer = SSBO<FluidParticle>::Create("ParticleBuffer");
 	particleBuffer->Allocate(settings.pThread);
-
-	constraintBuffer = SSBO<Constraint>::Create("ConstraintBuffer");
-	constraintBuffer->Allocate(settings.pThread);
 
 	binBuffer = SSBO<Bin>::Create("BinBuffer");
 	binBuffer->Allocate(settings.bThread);
@@ -196,18 +224,16 @@ void ExampleLayer::InitPhysics() {
 	particleSystem->AddComputeShader(solver);
 	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddStorageBuffer(binBuffer);
-	particleSystem->AddStorageBuffer(constraintBuffer);
 	particleSystem->AddStorageBuffer(colorScaleBuffer);
 
 	binSystem->AddComputeShader(prefixSum);
 	binSystem->AddStorageBuffer(particleBuffer);
 	binSystem->AddStorageBuffer(binBuffer);
-	binSystem->AddStorageBuffer(constraintBuffer);
 	binSystem->AddStorageBuffer(colorScaleBuffer);
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
-	scene.Add(constraintSystem);
+	//scene.Add(constraintSystem);
 	binSystem->Hide();
 }
 
@@ -226,13 +252,16 @@ void ExampleLayer::SetColorGradient() {
 
 void ExampleLayer::ResetSimulation() {
 
+	settings.pThread = numParticles;
 	particleSystem->SetInstancesCount(settings.pThread);
+
 	particleBuffer->Bind();
 	particleBuffer->Clear();
 	particleBuffer->FreeHostMemory();
 
-	elapsedTime = 0;
 
+
+	elapsedTime = 0;
 	Console::info() << "Generating particles..." << Console::endl;
 
 
@@ -240,7 +269,6 @@ void ExampleLayer::ResetSimulation() {
 
 	std::vector<glm::vec3> bunny = GenerateVoxelBunny(spacing);
 	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
-	auto& cpu_constraint = constraintBuffer->GetDeviceBuffer();
 
 	FluidParticle buf;
 	buf.acceleration[0] = 0;
@@ -254,10 +282,6 @@ void ExampleLayer::ResetSimulation() {
 	//buf.temperature = 298.15;//ambient
 	buf.binIndex = 0;
 	buf.newIndex = 0;
-
-	Constraint bufConstraint;
-	bufConstraint.strain = 0.0;
-	bufConstraint.stress = 0.0;
 
 	buf.phase = SOLID; //Rigid cube
 	glm::vec3 cubeSize = glm::vec3(10, 5, 100);
@@ -275,50 +299,8 @@ void ExampleLayer::ResetSimulation() {
 		buf.position[2] = z + 0;
 		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
-
-		GLuint i = xi + yi * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
-
-		if (x > 0) {//kx
-			bufConstraint.a = i; bufConstraint.b = i-1;
-			cpu_constraint.push_back(bufConstraint);
-		}
-
-		if (y > 0) {//ky
-			GLuint j = xi + (yi - 1) * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
-			bufConstraint.a = i; bufConstraint.b = j;
-			cpu_constraint.push_back(bufConstraint);
-		}
-
-		if (z > 0) {//kz
-			GLuint j = xi + yi * (icubeSize.x) + (zi - 1) * (icubeSize.x * icubeSize.y);
-			bufConstraint.a = i; bufConstraint.b = j;
-			cpu_constraint.push_back(bufConstraint);
-		}
-
-		if (x > 0 && y > 0) {//kxy
-			i = (xi - 1) + yi * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
-			GLuint j = xi + (yi - 1) * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
-			bufConstraint.a = i; bufConstraint.b = j;
-			cpu_constraint.push_back(bufConstraint);
-		}
-
-		if (y > 0 && z > 0) {//kyz
-			i = xi + (yi - 1) * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
-			GLuint j = xi + yi * (icubeSize.x) + (zi - 1) * (icubeSize.x * icubeSize.y);
-			bufConstraint.a = i; bufConstraint.b = j;
-			cpu_constraint.push_back(bufConstraint);
-		}
-
-		if (z > 0 && x > 0) {//kzx
-			i = xi + yi * (icubeSize.x) + (zi - 1) * (icubeSize.x * icubeSize.y);
-			GLuint j = (xi-1) + yi * (icubeSize.x) + zi * (icubeSize.x * icubeSize.y);
-			bufConstraint.a = i; bufConstraint.b = j;
-			cpu_constraint.push_back(bufConstraint);
-		}
 	}
 
-	numConstraint = cpu_constraint.size();
-	constraintBuffer->Upload();
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
 
@@ -326,7 +308,6 @@ void ExampleLayer::ResetSimulation() {
 	binBuffer->Clear();
 	numParticles = cpu_particles.size();
 	particleSystem->SetInstancesCount(numParticles);
-	constraintSystem->SetInstancesCount(numConstraint);
 
 	settings.pThread = numParticles;
 
@@ -418,9 +399,6 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->Use();
 	solver->Execute(1); //Sort
 
-	renderer.Clear();
-	renderer.RenderScene(scene, *camera);
-
 	solver->Use();
 
 	if (!paused) {
@@ -439,43 +417,6 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	}
 }
 
-void ExampleLayer::OnAttach() {
-	EnableGLDebugging();
-	Window* wd = &Application::Get().GetWindow();
-	_height = wd->GetHeight();
-	_width = wd->GetWidth();
-
-	Console::SetLevel(ConsoleLevel::_INFO);
-
-	InitGraphics();
-	InitPhysics();
-	SetColorGradient();
-	particleShader->Use();
-	particleShader->Attach(*particleBuffer, 0);
-	particleShader->Attach(*binBuffer, 1);
-	particleShader->Attach(*constraintBuffer, 2);
-	particleShader->Attach(*colorScaleBuffer, 3);
-	particleShader->Attach(*heatMap, 4);
-
-	binShader->Use();
-	binShader->Attach(*particleBuffer, 0);
-	binShader->Attach(*binBuffer, 1);
-	binShader->Attach(*constraintBuffer, 2);
-	binShader->Attach(*colorScaleBuffer, 3);
-	binShader->Attach(*heatMap, 4);
-
-	constraintShader->Use();
-	constraintShader->Attach(*particleBuffer, 0);
-	constraintShader->Attach(*binBuffer, 1);
-	constraintShader->Attach(*constraintBuffer, 2);
-	constraintShader->Attach(*colorScaleBuffer, 3);
-	constraintShader->Attach(*heatMap, 4);
-
-	ResetSimulation();
-}
-
-void ExampleLayer::OnDetach() {}
-
 void ExampleLayer::updateFPS(Timestep ts) {
 	if (FPS_sample == 0) {
 		FPS = ts;
@@ -486,24 +427,6 @@ void ExampleLayer::updateFPS(Timestep ts) {
 	FPS_sample++;
 }
 
-void ExampleLayer::OnEvent(Event& event) {
-	camera->OnEvent(event);
-	cameraController->OnEvent(event);
-}
-
-
-
-void ExampleLayer::OnUpdate(Timestep ts) {
-	cameraController->OnUpdate(ts);
-	updateFPS(ts);
-
-	//if (!paused) {
-	Simulate(0.016);
-	//}
-	/*
-	renderer.Clear();
-	renderer.RenderScene(scene, *camera);*/
-}
 
 void ExampleLayer::OnImGuiRender()
 {

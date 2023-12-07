@@ -30,23 +30,12 @@ layout(std430, binding = 1) buffer BinBuffer {
 	Bin bins[];
 };
 
-struct Constraint {
-	uint a;
-	uint b;
-	float stress;
-	float strain;
-};
-
-layout(std430, binding = 2) buffer ConstraintBuffer {
-	Constraint constraints[];
-};
-
 struct ColorScale {
 	int minValue;
 	int maxValue;
 };
 
-layout(std430, binding = 3) buffer ColorScaleBuffer {
+layout(std430, binding = 2) buffer ColorScaleBuffer {
 	ColorScale colorScale[];
 };
 

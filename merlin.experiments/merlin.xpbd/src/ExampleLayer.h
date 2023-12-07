@@ -146,18 +146,15 @@ private:
 	StagedComputeShader_Ptr prefixSum;
 
 	SSBO_Ptr<Bin> binBuffer; //Particle buffer
-	SSBO_Ptr<Constraint> constraintBuffer; //Index buffer
 	SSBO_Ptr<FluidParticle> particleBuffer; //Particle buffer
 	SSBO_Ptr<ColorScale> colorScaleBuffer; //Particle buffer
 
 	Shader_Ptr modelShader;
 	Shader_Ptr particleShader;
-	Shader_Ptr constraintShader;
 	Shader_Ptr binShader;
 
 	ParticleSystem_Ptr particleSystem;
 	ParticleSystem_Ptr binSystem;
-	ParticleSystem_Ptr constraintSystem;
 
 	Renderer renderer;
 	Scene scene;
@@ -179,7 +176,7 @@ private:
 	GLuint numConstraint = 0;
 	GLuint numBoundaryParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	int solver_iteration = 20;
+	int solver_iteration = 40;
 
 	float elapsedTime = 0;
 	bool paused = true;

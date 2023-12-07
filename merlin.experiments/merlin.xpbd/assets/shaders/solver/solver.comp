@@ -369,7 +369,7 @@ void XPBDSolveSolid(uint i, uint simStep) {
 				Particle pj = particles[j];
 				vec4 restDiff = pj.initial_position - particles[i].initial_position;
 				if(length(restDiff) >= H) continue;
-				vec4 diff = particles[j].position - particles[i].new_position;
+				vec4 diff = particles[j].new_position - particles[i].new_position;
 				vec4 dir = normalize(diff);
 
 				float restLength = length(restDiff);
@@ -385,7 +385,7 @@ void XPBDSolveSolid(uint i, uint simStep) {
 				// Calculate the effective mass matrix
 				float sumInverseMass = (1.0/particles[i].mass) + (1.0/pj.mass);
 
-				float stiffness = 10000;
+				float stiffness = 100000;
 				float compliance = 1.0/stiffness; // Compliance of the constraints
 				float gamma = compliance / (dt * dt);
 				float beta = 1.0f / (sumInverseMass + gamma);
