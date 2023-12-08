@@ -107,6 +107,7 @@ struct Settings {
 	float H = 1.7; // Kernel radius mm
 	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
 	float particleMass = 1.0;//g Mass
+	float timeStep = 0.0016;//g Mass
 };
 
 class ExampleLayer : public Merlin::Layer
@@ -176,7 +177,8 @@ private:
 	GLuint numConstraint = 0;
 	GLuint numBoundaryParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	int solver_iteration = 40;
+	int solver_substep = 100;
+	int solver_iteration = 4;
 
 	float elapsedTime = 0;
 	bool paused = true;

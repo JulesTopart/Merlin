@@ -56,7 +56,7 @@ std::vector<glm::vec3> GenerateVoxelBunny(float voxel_size) {
 	for(float x = 0; x < 32; x++)
 	for(float y = 0; y < 32; y++)
 	for(float z = 0; z < 32; z++) {
-		if ( sampleBunny(glm::vec3(x / 32.0, y / 32.0, z / 32.0)) > 0.0 || true) {
+		if ( sampleBunny(glm::vec3(x / 32.0, y / 32.0, z / 32.0)) > 0.0) {
 			data.push_back(vec3(x * voxel_size - 16, y * voxel_size - 16, z * voxel_size) + vec3(1));
 		}
 	}

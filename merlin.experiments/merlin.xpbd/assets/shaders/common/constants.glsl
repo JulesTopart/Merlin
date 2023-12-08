@@ -61,6 +61,6 @@ const uvec3 binMax = uvec3(domain / binSize);
 const uint binCount = binMax.x * binMax.y * binMax.z;
 
 // Define boundary
-const float boundaryDamping = -0.01; // Bounce factor
+const float boundaryDamping = -0.001; // Bounce factor
 
 

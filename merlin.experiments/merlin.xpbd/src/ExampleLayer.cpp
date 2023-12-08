@@ -190,7 +190,7 @@ void ExampleLayer::InitPhysics() {
 	particle->SetShader(particleShader);
 	particleSystem->SetMesh(particle);
 	particleSystem->Translate(glm::vec3(0, 0, -0.5));
-	particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
+	particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 	Console::info("Memory") << "size of FluidParticle is " << sizeof(FluidParticle) << Console::endl;
 
 	Shared<Mesh> binInstance = Primitives::CreateQuadCube(settings.bWidth, false);
@@ -283,6 +283,17 @@ void ExampleLayer::ResetSimulation() {
 	buf.binIndex = 0;
 	buf.newIndex = 0;
 
+
+	buf.phase = SOLID; //Rigid bunny
+	for (auto& v : bunny) {
+		buf.position[0] = v.x;
+		buf.position[1] = v.y;
+		buf.position[2] = v.z + 50;
+		buf.initial_position = buf.position;
+		cpu_particles.push_back(buf);
+	}
+
+	/*
 	buf.phase = SOLID; //Rigid cube
 	glm::vec3 cubeSize = glm::vec3(10, 5, 100);
 	glm::uvec3 icubeSize = glm::vec3(cubeSize.x/spacing, cubeSize.y / spacing, cubeSize.y / spacing);
@@ -293,13 +304,13 @@ void ExampleLayer::ResetSimulation() {
 		float x = (xi*spacing) - (cubeSize.x / 2.0);
 		float y = (yi*spacing) - (cubeSize.y / 2.0);
 		float z = (zi*spacing)/*+ 0.1 * xi*/;
-
+	/*
 		buf.position[0] = x;
 		buf.position[1] = y;
 		buf.position[2] = z + 0;
 		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
-	}
+	}*/
 
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
@@ -389,6 +400,7 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
+	solver->SetFloat("dt", settings.timeStep / float(solver_substep)); //Spawn particle after prediction
 
 	binBuffer->Bind();
 	binBuffer->Clear(); //Reset neighbor search data
@@ -402,18 +414,21 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	solver->Use();
 
 	if (!paused) {
-		elapsedTime += 0.016;
+		elapsedTime += settings.timeStep;
 
 		colorScaleBuffer->Bind();
 		colorScaleBuffer->Clear();
 		
 
-		for (int i = 0; i < solver_iteration; i++) {
+		for (int i = 0; i < solver_substep; i++) {
 			solver->Execute(2); //Predict position
-			solver->Execute(3); //Solve constraint
-			solver->Execute(4); //Position delta
+			//for (int k = 0; k < 4; k++)
+				//solver->Execute(3); //Solve collision
+			for (int k = 0; k < solver_iteration; k++)
+				solver->Execute(4); //Solve constraint
+			solver->Execute(5); //Position delta
 		}
-		if (integrate) solver->Execute(5); //Apply changes
+		if (integrate) solver->Execute(6); //Apply changes
 	}
 }
 
@@ -458,7 +473,7 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 
-	static bool transparency = true;
+	static bool transparency = false;
 	if (ImGui::Checkbox("Particle transparency", &transparency)) {
 		if (transparency) particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
 		else particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);

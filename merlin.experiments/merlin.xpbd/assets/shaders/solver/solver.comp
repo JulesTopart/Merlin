@@ -359,11 +359,49 @@ void XPBDSolveSolid(uint i, uint simStep) {
 
 		//Pressure solver iteration
 		case 2 :
-			particles[i].velocity += particles[i].acceleration*dt;
-			particles[i].new_position = particles[i].position + particles[i].velocity * dt;
+			vec4 vel = particles[i].velocity + particles[i].acceleration*dt;
+			particles[i].new_position = particles[i].position + vel * dt;
 		break;
 
 		case 3 :
+			
+			OVERNNS
+				Particle pj = particles[j];
+				
+				vec4 diff = particles[j].new_position - particles[i].new_position;
+				vec4 dir = normalize(diff);
+
+				float currentLength = length(diff);
+				if(currentLength >= H*0.2) continue;
+
+				// Calculate the constraint violation
+				float C = (currentLength - H*0.2);
+				//C *= dot(diff, restDiff) > 0 ? 1.0 : -1.0; 
+
+
+				// Calculate the gradient of the constraint function
+				vec4 gradC_p1 = dir;
+				vec4 gradC_p2 = -1.0 * dir;
+
+				// Calculate the effective mass matrix
+				float sumInverseMass = (1.0/particles[i].mass) + (1.0/pj.mass);
+
+				float stiffness = 100000000.0;
+				float compliance = 1.0/stiffness; // Compliance of the constraints
+				float gamma = compliance / (dt * dt);
+				float beta = 1.0f / (sumInverseMass + gamma);
+
+				// Calculate the Lagrange multiplier delta
+				float deltaLambda = -C * beta;
+
+				// Calculate and apply the position corrections
+				vec4 correctionP1 = gradC_p1 * deltaLambda * (1.0/particles[i].mass);
+				particles[i].new_position -= correctionP1;
+				clampToBoundaries(particles[i].new_position, particles[i].velocity);
+			OVERNNS_END
+		break;
+
+		case 4 :
 			
 			OVERNNS
 				Particle pj = particles[j];
@@ -376,7 +414,9 @@ void XPBDSolveSolid(uint i, uint simStep) {
 				float currentLength = length(diff);
 
 				// Calculate the constraint violation
-				float C = currentLength - restLength;
+				float C = (currentLength - restLength);
+				//C *= dot(diff, restDiff) > 0 ? 1.0 : -1.0; 
+
 
 				// Calculate the gradient of the constraint function
 				vec4 gradC_p1 = dir;
@@ -385,7 +425,7 @@ void XPBDSolveSolid(uint i, uint simStep) {
 				// Calculate the effective mass matrix
 				float sumInverseMass = (1.0/particles[i].mass) + (1.0/pj.mass);
 
-				float stiffness = 100000;
+				float stiffness = 10000;
 				float compliance = 1.0/stiffness; // Compliance of the constraints
 				float gamma = compliance / (dt * dt);
 				float beta = 1.0f / (sumInverseMass + gamma);
@@ -396,18 +436,21 @@ void XPBDSolveSolid(uint i, uint simStep) {
 				// Calculate and apply the position corrections
 				vec4 correctionP1 = gradC_p1 * deltaLambda * (1.0/particles[i].mass);
 				particles[i].new_position -= correctionP1;
+				clampToBoundaries(particles[i].new_position, particles[i].velocity);
 			OVERNNS_END
 
 		break;
 		
-		case 4 :
+		case 5 :
 			particles[i].velocity = (particles[i].new_position - particles[i].position)/dt;
 			//particles[i].new_position = particles[i].position + (particles[i].velocity * dt * speed);
+
+
 			particles[i].position = particles[i].new_position;
-			clampToBoundaries(particles[i].position, particles[i].velocity);
+			//clampToBoundaries(particles[i].position, particles[i].velocity);
 		break;
 
-		case 5 : //Apply changes
+		case 6 : //Apply changes
 
 
 		
