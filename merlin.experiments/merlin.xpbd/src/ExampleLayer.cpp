@@ -206,7 +206,10 @@ void ExampleLayer::InitPhysics() {
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 	//Create the buffer
 	particleBuffer = SSBO<FluidParticle>::Create("ParticleBuffer");
-	particleBuffer->Allocate(settings.pThread);
+	particleBuffer->Allocate(settings.pThread);	
+	
+	constraintBuffer = SSBO<DistanceContraint>::Create("ContraintBuffer");
+	constraintBuffer->Allocate(32* settings.pThread);
 
 	binBuffer = SSBO<Bin>::Create("BinBuffer");
 	binBuffer->Allocate(settings.bThread);
@@ -284,6 +287,25 @@ void ExampleLayer::ResetSimulation() {
 	buf.newIndex = 0;
 
 
+	/*
+	buf.phase = FLUID; //Fluid body
+	const float height = 80;
+	const float goldenRatio = (1.0 + sqrt(5.0)) / 2.0;
+	const float angleIncrement = 3.1415926 * 2.0 * goldenRatio;
+	const int radius = 8;
+	for (float r = spacing; r < radius; r += spacing)
+		for (int i = 0; i < 4 * 3.1415926 * r * r; ++i) {
+			float t = float(i) / float(4 * 3.1415926 * r * r);
+			float inclinationAngle = acos(1 - 2 * t);  // polar angle
+			float azimuthalAngle = angleIncrement * i;  // azimuthal angle
+			buf.position[0] = r * sin(inclinationAngle) * cos(azimuthalAngle);
+			buf.position[1] = r * sin(inclinationAngle) * sin(azimuthalAngle);
+			buf.position[2] = r * cos(inclinationAngle) + height;
+
+			buf.initial_position = buf.position;
+			cpu_particles.push_back(buf);
+		}*/
+	
 	buf.phase = SOLID; //Rigid bunny
 	for (auto& v : bunny) {
 		buf.position[0] = v.x;
@@ -295,7 +317,7 @@ void ExampleLayer::ResetSimulation() {
 
 	/*
 	buf.phase = SOLID; //Rigid cube
-	glm::vec3 cubeSize = glm::vec3(10, 5, 100);
+	glm::vec3 cubeSize = glm::vec3(10, 10, 10);
 	glm::uvec3 icubeSize = glm::vec3(cubeSize.x/spacing, cubeSize.y / spacing, cubeSize.y / spacing);
 
 	for (int xi = 0; xi < cubeSize.x / spacing; xi++)
@@ -303,15 +325,52 @@ void ExampleLayer::ResetSimulation() {
 	for (int zi = 0; zi < cubeSize.z / spacing; zi++) {
 		float x = (xi*spacing) - (cubeSize.x / 2.0);
 		float y = (yi*spacing) - (cubeSize.y / 2.0);
-		float z = (zi*spacing)/*+ 0.1 * xi*/;
-	/*
+		float z = (zi*spacing)+ 10;
+	
 		buf.position[0] = x;
 		buf.position[1] = y;
-		buf.position[2] = z + 0;
+		buf.position[2] = z;
 		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
 	}*/
 
+	/*
+	buf.temperature = 400.15;//ambient
+	buf.phase = BOUNDARY; //Boundaries body
+	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
+		for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
+			buf.position[0] = x;
+			buf.position[1] = y;
+			buf.position[2] = 0;
+			cpu_particles.push_back(buf);
+			buf.temperature = 400.0;//ambient
+			buf.position[2] = settings.bz;
+			buf.temperature = 470;//bed
+			cpu_particles.push_back(buf);
+		}
+	}
+	for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
+		for (float z = 0; z < settings.bz; z += spacing) {
+			buf.position[0] = -settings.bx / 2.0;
+			buf.position[1] = y;
+			buf.position[2] = z;
+			cpu_particles.push_back(buf);
+			buf.position[0] = settings.bx / 2.0;
+			cpu_particles.push_back(buf);
+		}
+	}
+	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
+		for (float z = 0; z < settings.bz; z += spacing) {
+			buf.position[0] = x;
+			buf.position[1] = -settings.by / 2.0;
+			buf.position[2] = z;
+			cpu_particles.push_back(buf);
+			buf.position[1] = settings.by / 2.0;
+			cpu_particles.push_back(buf);
+		}
+	}
+
+	*/
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
 
@@ -419,11 +478,10 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 		colorScaleBuffer->Bind();
 		colorScaleBuffer->Clear();
 		
-
 		for (int i = 0; i < solver_substep; i++) {
 			solver->Execute(2); //Predict position
-			//for (int k = 0; k < 4; k++)
-				//solver->Execute(3); //Solve collision
+			//for (int k = 0; k < 1; k++)
+			solver->Execute(3); //Solve collision
 			for (int k = 0; k < solver_iteration; k++)
 				solver->Execute(4); //Solve constraint
 			solver->Execute(5); //Position delta

@@ -13,11 +13,13 @@ using namespace Merlin::Tensor;
 
 struct FluidParticle {
 	glm::vec4 initial_position;	// initial position    x0
+	glm::vec4 pposition;		// predicted position    x~
 	glm::vec4 position;			// current position    x
-	glm::vec4 new_position;		// predicted position  x*
+	glm::vec4 new_position;		// predicted position  x+1
 	glm::vec4 velocity;			// velocity			   u
 	glm::vec4 new_velocity;		// velocity			   u*
 	glm::vec4 acceleration;		// acceleration		   a
+	glm::vec4 dummyVector;		// available
 	GLfloat mass;				// mass				   m   (or pseudo mass for boundary particles)
 	GLfloat density;			// density			   rho
 	GLfloat temperature;		// temperature		   T
@@ -67,14 +69,38 @@ inline void BufferObject<Bin>::print() {
 	Console::print() << m_cpuBuffer[m_cpuBuffer.size() - 1].sum << "]" << Console::endl << Console::endl;
 }
 
-
-//Moving particles
-struct Constraint {
-	GLuint a;
-	GLuint b;
-	GLfloat stress;
-	GLfloat strain;
+/*
+struct ElasticConstraint {
+	GLuint a; //Particle A
+	GLuint b; //Particle B
+	GLfloat restLength;
 };
+
+struct ThermoElasticConstraint {
+	GLuint a; //Particle A
+	GLuint b; //Particle B
+	GLfloat restLength;			//spring restlenght
+	GLfloat thermalDeformation; //thermal induced deformation
+};
+
+struct ElastoPlasticConstraint {
+	GLuint a; //Particle A
+	GLuint b; //Particle B
+	GLfloat restLength;
+	GLfloat plasticDeformation;
+};
+*/
+
+struct DistanceContraint {
+	GLuint a; //Particle A
+	GLuint b; //Particle B
+	GLfloat compliance;
+	GLfloat restLength;
+	GLfloat thermalDeformation; //thermal induced deformation
+	GLfloat plasticDeformation;
+};
+
+
 
 struct Settings {
 	
@@ -107,8 +133,12 @@ struct Settings {
 	float H = 1.7; // Kernel radius mm
 	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
 	float particleMass = 1.0;//g Mass
-	float timeStep = 0.0016;//g Mass
+	float timeStep = 0.016;//g Mass
 };
+
+
+
+
 
 class ExampleLayer : public Merlin::Layer
 {
@@ -148,6 +178,7 @@ private:
 
 	SSBO_Ptr<Bin> binBuffer; //Particle buffer
 	SSBO_Ptr<FluidParticle> particleBuffer; //Particle buffer
+	SSBO_Ptr<DistanceContraint> constraintBuffer; //Particle buffer
 	SSBO_Ptr<ColorScale> colorScaleBuffer; //Particle buffer
 
 	Shader_Ptr modelShader;
@@ -177,8 +208,8 @@ private:
 	GLuint numConstraint = 0;
 	GLuint numBoundaryParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	int solver_substep = 100;
-	int solver_iteration = 4;
+	int solver_substep = 40;
+	int solver_iteration = 1;
 
 	float elapsedTime = 0;
 	bool paused = true;
