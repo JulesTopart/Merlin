@@ -6,8 +6,8 @@ namespace Merlin::Graphics {
     using namespace Merlin::Utils;
 
     TransformObject::TransformObject(const std::string& name) : TransformObject::RenderableObject(name) {
-        x_axis = Primitives::CreateCylinder(0.1, 5, 10);
-        y_axis = Primitives::CreateCylinder(0.1, 5, 10);
+        x_axis = Primitives::CreateCylinder(0.1, 5, 1000);
+        y_axis = Primitives::CreateCylinder(0.1, 5, 1000);
         z_axis = Primitives::CreateCylinder(0.1, 5, 10);
 
         /*

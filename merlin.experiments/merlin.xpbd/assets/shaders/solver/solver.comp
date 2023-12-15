@@ -53,8 +53,8 @@ float computeLambda(uint i) {
 		Particle pj = particles[j];
         if(pj.phase != FLUID) continue;
   
-		vec4 dist = pi.new_position - pj.new_position;
-		vec4 gradCj = densityConstraintGradient(pi.new_position, pj.new_position);
+		vec4 dist = pi.pposition - pj.pposition;
+		vec4 gradCj = densityConstraintGradient(pi.pposition, pj.pposition);
 		if (j == i) {
 			gradCi += gradCj;
 		}
@@ -76,7 +76,7 @@ vec4 computePositionDelta(uint i) {
 	OVERNNS
 		Particle pj = particles[j];
 		if( pj.phase != FLUID) continue;
-		  vec4 dist = pi.new_position - pj.new_position;
+		  vec4 dist = pi.pposition - pj.pposition;
           float sCorr = -(pressureMultiplier) * pow(poly6(dist) / poly6(vec4(0.3*H, 0,0,0)), 4);
           vec4 dp_ij = spiky_grad(dist) * ((pi.lambda + pj.lambda  + sCorr ) / rho0);
           posDelta += dp_ij;
@@ -137,10 +137,10 @@ float computeTemperatureDelta(uint i) {
 		temperatureDelta += lambda * w2_pse * (Tj-Ti);
 	OVERNNS_END
 
-	/*
+	
 	if(particles[i].position.z < H/2.0){
 		temperatureDelta += kPlateau * (floorTemperature - Ti);
-	}*/
+	}
 	temperatureDelta += kAmbient*(ambientTemperature - Ti);
 	return temperatureDelta /** dt * speed*/;
 }
@@ -281,22 +281,25 @@ void XPBDSolveSolid(uint i, uint simStep) {
 			vec4 deltaPosition = vec4(0);
 
 			OVERNNS
-				float l0 = distance(particles[i].initial_position, particles[j].initial_position);
+				if(particles[j].phase != SOLID) continue; //Ignore particle that are too far
+				highp float l0 = distance(particles[i].initial_position, particles[j].initial_position);
 				if(l0 >= H) continue; //Ignore particle that are too far
 
-				float l = distance(particles[i].pposition, particles[j].pposition); // Calculate the current lenght 
+				highp float l = distance(particles[i].pposition, particles[j].pposition); // Calculate the current lenght 
 				// Calculate the constraint violation
-				float C = l - l0;
+				highp float C = l - l0;
 				// Calculate the gradient of the constraint function
 				vec4 gradC = normalize(particles[i].pposition - particles[j].pposition);
 
 				// Calculate the effective mass matrix
-				float inverseMass = (1.0/particles[i].mass) + (1.0/particles[j].mass);
-				float compliance = 0.000002; // Compliance of the constraints
+				highp float inverseMass = (1.0/particles[i].mass) + (1.0/particles[j].mass);
+
+
+				highp float compliance = 1.0f / stiffness;//0.000002; // Compliance of the constraints
 
 				// Calculate the Lagrange multiplier delta (note : gradient dot product = 1 because normalized)
 				//float deltaLambda = -(C /*- particles[i].lambda * (compliance/(dt*dt))*/) / ( dot(gradC, gradC)* inverseMass + (compliance/(dt*dt)));
-				float deltaLambda = -C / ( inverseMass + (compliance/(dt*dt)));
+				highp float deltaLambda = -C / ( inverseMass + (compliance/(dt*dt)));
 
 				// Calculate and apply the position corrections
 				deltaPosition += gradC * deltaLambda * particles[i].mass;
@@ -305,9 +308,30 @@ void XPBDSolveSolid(uint i, uint simStep) {
 
 			OVERNNS_END
 				particles[i].new_position = particles[i].pposition + deltaPosition;
+
+				bool test1 = false;
+				bool test2 = false;
+
+				for (int xi = 0; xi < 10; xi++)
+				for (int yi = 0; yi < 2; yi++){
+					if(i == xi*120 + yi * 60)test1 = true;
+					if(i == xi*120 + yi * 60 - 1) test2 = true;
+				}
+
+
+				if(test1){
+					particles[i].new_position =  particles[i].position;//particles[i].position +vec4(0,0,0.000001,0.0);
+					return;
+				}
+				if(test2){
+					particles[i].new_position =  particles[i].position;//particles[i].position -vec4(0,0,0.000001,0.0);
+					return;
+				}
+				
+
 				clampToBoundaries(particles[i].new_position, particles[i].velocity);
 
-
+				particles[i].temperature = computeTemperature(i);
 		break;
 
 		case 5 :
@@ -342,6 +366,7 @@ void PBFSolvefluid(uint i, uint simStep) {
 		case 0 :
 		particles[i].acceleration = vec4(0,0,-G,0);
 		particles[i].mass = particleMass; //reset mass of fluid particles
+		particles[i].lambda = 0;
 		break;
 		//case 1:
 		//Skip step 1 (used for neighboring sort)
@@ -351,46 +376,18 @@ void PBFSolvefluid(uint i, uint simStep) {
 		case 2 :
 			particles[i].pposition = particles[i].position + particles[i].velocity * dt + particles[i].acceleration*dt*dt;
 			//particles[i].new_position = particles[i].pposition;
-			particles[i].lambda = 0;
+			//particles[i].lambda = 0;
 		break;
 
 		case 3 :
-		//collision detection
+			particles[i].lambda = computeLambda(i);
 		break;
 
 		//solver iteration
 		case 4 :
-			
-
-			float rho0 = REST_DENSITY;
-			float sumGradCj = 0;
-			vec4 gradCi = vec4(0);
-			float density = 0.0;
-			vec4 deltaPosition = vec4(0);
-
-			OVERNNS_I
-				Particle pj = particles[j];
-				if(pj.phase != FLUID) continue;
-  
-				vec4 dist = particles[i].new_position - particles[j].new_position;
-				vec4 gradCj = densityConstraintGradient(particles[i].new_position, particles[j].new_position);
-				if (j == i) {
-					gradCi += gradCj;
-				}
-
-				sumGradCj += dot(gradCj, gradCj);
-				density += pj.mass * poly6(dist);
-			OVERNNS_END
-
-			particles[i].density = density;
-			float C = max((density / rho0) - 1, 0.0);
-			float deltaLambda = -C / (sumGradCj + 1e-6);
-			
-
-			
-			particles[i].new_position = particles[i].pposition + deltaPosition;
+						
+			particles[i].new_position = particles[i].pposition + computePositionDelta(i);
 			clampToBoundaries(particles[i].new_position, particles[i].velocity);
-
 
 		break;
 
@@ -398,7 +395,17 @@ void PBFSolvefluid(uint i, uint simStep) {
 
 			particles[i].velocity = (particles[i].new_position - particles[i].position)/dt;
 			particles[i].position = particles[i].new_position;
-			//clampToBoundaries(particles[i].position, particles[i].velocity);
+
+			vec4 xsphSum = vec4(0);
+			OVERNNS
+				Particle pj = particles[j];
+				vec4 dist = particles[j].position - particles[i].position;
+				vec4 Vij = particles[j].velocity - particles[i].velocity;
+				float Wij = poly6_lapl(dist);
+				if(pj.phase == FLUID) xsphSum += alphaVisco * Vij * Wij * particles[j].density;
+			OVERNNS_END
+			particles[i].velocity += xsphSum;
+			clampToBoundaries(particles[i].position, particles[i].velocity);
 		break;
 		//solver iteration end
 		//substep iteration end

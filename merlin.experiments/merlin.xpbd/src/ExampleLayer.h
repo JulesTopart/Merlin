@@ -105,10 +105,11 @@ struct DistanceContraint {
 struct Settings {
 	
 	//Build Volume dimensions
-	float bx = 100;//mm 120
-	float by = 35;//mm
-	float bz = 100;//mm 40
-
+	glm::vec3 bb = glm::vec3(40, 10, 100);
+	float bx = bb.x;//mm 120
+	float by = bb.y;//mm
+	float bz = bb.z;//mm 40
+	
 	GLuint maxNNS = 64;
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
@@ -208,7 +209,7 @@ private:
 	GLuint numConstraint = 0;
 	GLuint numBoundaryParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	int solver_substep = 40;
+	int solver_substep = 60;
 	int solver_iteration = 1;
 
 	float elapsedTime = 0;

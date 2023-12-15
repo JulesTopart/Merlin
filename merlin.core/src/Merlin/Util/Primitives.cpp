@@ -55,7 +55,7 @@ namespace Merlin::Utils {
 
 		Vertices v;
 		for (int i(0); i < 4 * groundNumTiles * groundNumTiles; i++) {
-			v.push_back(Vertex{ glm::vec3(groundVerts[i * 3], groundVerts[i * 3 + 2], groundVerts[i * 3 + 1]),glm::vec3(0,0,1), glm::vec3(groundColors[i * 3], groundColors[i * 3 + 1], groundColors[i * 3 + 2]) });
+			v.push_back(Vertex{ glm::vec3(groundVerts[i * 3], groundVerts[i * 3 + 2], groundVerts[i * 3 + 1]),glm::vec3(0,0,1), glm::vec3(groundColors[i * 3], groundColors[i * 3 + 1], groundColors[i * 3 + 2]) }); //color : 
 		}
 
 		return Mesh::Create("Floor", v, GL_QUADS);

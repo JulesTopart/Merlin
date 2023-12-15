@@ -76,7 +76,8 @@ void ExampleLayer::InitGraphics() {
 	scene.Add(sky);
 	//scene.Add(Model::Create("sphere", Primitives::CreateSphere(0.8, 60, 60)));
 
-	Shared<Model> floor = Model::Create("floor", Primitives::CreateFloor(50, 1.5));
+	Shared<Model> floor = Model::Create("floor", Primitives::CreateFloor(1000, 1.5));
+	floor->EnableWireFrameMode();
 	floor->Translate(glm::vec3(0, 0, -(0.75 + 1.0 / 32.0)));
 
 	Shared<Material> floorMat = CreateShared<Material>("floorMat");
