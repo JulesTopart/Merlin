@@ -49,7 +49,7 @@ const float rheo_k = 50.0; // Consistency index
 const float rheo_n = 0.5; // Flow behavior index
 
 
-#define MAXNN 64
+#define MAXNN 256
 // --- Domain ---
 const uint binResolution = 42;
 const vec3 domain = vec3(40, 10, 100);

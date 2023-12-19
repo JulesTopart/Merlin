@@ -340,9 +340,9 @@ void ExampleLayer::ResetSimulation() {
 	glm::vec3 cubeSize = glm::vec3(10, 2, 60);
 	glm::uvec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.y / spacing);
 
-	for (int xi = 0; xi < cubeSize.x / spacing; xi++)
-		for (int yi = 0; yi < cubeSize.y / spacing; yi++)
-			for (int zi = 0; zi < cubeSize.z / spacing; zi++) {
+	for (int xi = 0; xi <= cubeSize.x / spacing; xi++)
+		for (int yi = 0; yi <= cubeSize.y / spacing; yi++)
+			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
 				float x = (xi * spacing) - (cubeSize.x / 2.0);
 				float y = (yi * spacing) - (cubeSize.y / 2.0);
 				float z = (zi * spacing) + 30;
@@ -350,7 +350,7 @@ void ExampleLayer::ResetSimulation() {
 				buf.position[0] = x;
 				buf.position[1] = y;
 				buf.position[2] = z;
-				buf.initial_position = buf.position;
+				buf.initial_position = buf.new_position = buf.pposition = buf.position;
 				cpu_particles.push_back(buf);
 			}
 	
@@ -631,7 +631,7 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 	static float stiffness = stiffness;
-	if (ImGui::SliderFloat("stiffness", &stiffness, 0.0, 100000)) {
+	if (ImGui::SliderFloat("stiffness", &stiffness, 0.0, 2000000)) {
 		solver->Use();
 		solver->SetFloat("stiffness", stiffness); // Kernel radius // 5mm
 	}

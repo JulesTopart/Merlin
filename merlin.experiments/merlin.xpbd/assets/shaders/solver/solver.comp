@@ -268,12 +268,12 @@ void XPBDSolveSolid(uint i, uint simStep) {
 		//substep iteration
 		case 2 :
 			particles[i].pposition = particles[i].position + particles[i].velocity * dt + particles[i].acceleration*dt*dt;
-			//particles[i].new_position = particles[i].pposition;
+			particles[i].new_position = particles[i].pposition;
 			particles[i].lambda = 0;
 		break;
 
 		case 3 :
-		//collision detection
+		//collision detection 
 		break;
 
 		//solver iteration
@@ -285,9 +285,11 @@ void XPBDSolveSolid(uint i, uint simStep) {
 				highp float l0 = distance(particles[i].initial_position, particles[j].initial_position);
 				if(l0 >= H) continue; //Ignore particle that are too far
 
-				highp float l = distance(particles[i].pposition, particles[j].pposition); // Calculate the current lenght 
+				highp float l = distance(particles[i].pposition, particles[j].pposition); // Calculate the current length
 				// Calculate the constraint violation
 				highp float C = l - l0;
+
+				if(abs(C) < 1e-06) continue;
 				// Calculate the gradient of the constraint function
 				vec4 gradC = normalize(particles[i].pposition - particles[j].pposition);
 
@@ -299,7 +301,14 @@ void XPBDSolveSolid(uint i, uint simStep) {
 
 				// Calculate the Lagrange multiplier delta (note : gradient dot product = 1 because normalized)
 				//float deltaLambda = -(C /*- particles[i].lambda * (compliance/(dt*dt))*/) / ( dot(gradC, gradC)* inverseMass + (compliance/(dt*dt)));
+				//highp float deltaLambda = -C / ( inverseMass + (compliance/(dt*dt)));
+				
+				
+				highp float gamma = compliance * 
 				highp float deltaLambda = -C / ( inverseMass + (compliance/(dt*dt)));
+
+
+
 
 				// Calculate and apply the position corrections
 				deltaPosition += gradC * deltaLambda * particles[i].mass;
@@ -307,38 +316,19 @@ void XPBDSolveSolid(uint i, uint simStep) {
 				particles[i].lambda += deltaLambda;
 
 			OVERNNS_END
-				particles[i].new_position = particles[i].pposition + deltaPosition;
-
-				bool test1 = false;
-				bool test2 = false;
-
-				for (int xi = 0; xi < 10; xi++)
-				for (int yi = 0; yi < 2; yi++){
-					if(i == xi*120 + yi * 60)test1 = true;
-					if(i == xi*120 + yi * 60 - 1) test2 = true;
-				}
-
-
-				if(test1){
-					particles[i].new_position =  particles[i].position;//particles[i].position +vec4(0,0,0.000001,0.0);
-					return;
-				}
-				if(test2){
-					particles[i].new_position =  particles[i].position;//particles[i].position -vec4(0,0,0.000001,0.0);
-					return;
-				}
 				
+			particles[i].new_position = particles[i].pposition + deltaPosition;
+			clampToBoundaries(particles[i].new_position, particles[i].velocity);
 
-				clampToBoundaries(particles[i].new_position, particles[i].velocity);
-
-				particles[i].temperature = computeTemperature(i);
+			//particles[i].temperature = computeTemperature(i);
 		break;
 
 		case 5 :
 
 			particles[i].velocity = (particles[i].new_position - particles[i].position)/dt;
 			particles[i].position = particles[i].new_position;
-			//clampToBoundaries(particles[i].position, particles[i].velocity);
+
+			clampToBoundaries(particles[i].position, particles[i].velocity);
 		break;
 		//solver iteration end
 		//substep iteration end
