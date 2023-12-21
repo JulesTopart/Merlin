@@ -215,7 +215,7 @@ namespace Merlin::Tensor {
 	void StagedComputeShader::Step() {
 		SetUInt("stage", m_stage);
 		Dispatch(m_wkgrpLayout.x, m_wkgrpLayout.y, m_wkgrpLayout.z);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		m_stage++;
 	}
 	void StagedComputeShader::Execute(GLuint i) {

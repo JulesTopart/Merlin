@@ -269,6 +269,7 @@ void XPBDSolveSolid(uint i, uint simStep) {
 		case 2 :
 			particles[i].pposition = particles[i].position + particles[i].velocity * dt + particles[i].acceleration*dt*dt;
 			particles[i].new_position = particles[i].pposition;
+			//if(i == 0) particles[i].new_position = particles[i].pposition = particles[i].position;
 			particles[i].lambda = 0;
 		break;
 
@@ -298,15 +299,19 @@ void XPBDSolveSolid(uint i, uint simStep) {
 
 
 				highp float compliance = 1.0f / stiffness;//0.000002; // Compliance of the constraints
+				highp float damping = -0.0001; // Compliance of the constraints
 
 				// Calculate the Lagrange multiplier delta (note : gradient dot product = 1 because normalized)
 				//float deltaLambda = -(C /*- particles[i].lambda * (compliance/(dt*dt))*/) / ( dot(gradC, gradC)* inverseMass + (compliance/(dt*dt)));
 				//highp float deltaLambda = -C / ( inverseMass + (compliance/(dt*dt)));
 				
 				
-				highp float gamma = compliance * 
-				highp float deltaLambda = -C / ( inverseMass + (compliance/(dt*dt)));
+				highp float complianceSc = compliance/(dt*dt);
+				highp float dampingSc = damping*(dt*dt);
 
+				highp float gamma = (complianceSc * dampingSc)/dt;
+				highp float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
+				//highp float deltaLambda = -C / ( inverseMass + (complianceSc));
 
 
 
@@ -318,6 +323,8 @@ void XPBDSolveSolid(uint i, uint simStep) {
 			OVERNNS_END
 				
 			particles[i].new_position = particles[i].pposition + deltaPosition;
+			//if(distance(particles[i].new_position, particles[i].position) > 2.0*distance(particles[i].pposition, particles[i].position)) particles[i].new_position = particles[i].pposition;
+			//if(i == 0) particles[i].new_position = particles[i].pposition = particles[i].position;
 			clampToBoundaries(particles[i].new_position, particles[i].velocity);
 
 			//particles[i].temperature = computeTemperature(i);
@@ -327,7 +334,7 @@ void XPBDSolveSolid(uint i, uint simStep) {
 
 			particles[i].velocity = (particles[i].new_position - particles[i].position)/dt;
 			particles[i].position = particles[i].new_position;
-
+			//if(i == 0) particles[i].new_position = particles[i].pposition = particles[i].position;
 			clampToBoundaries(particles[i].position, particles[i].velocity);
 		break;
 		//solver iteration end
