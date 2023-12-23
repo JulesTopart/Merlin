@@ -68,12 +68,12 @@ namespace Merlin::Graphics {
 			ps.Draw(*shader);
 
 			glDisable(GL_PROGRAM_POINT_SIZE);
-		}else if(ps.GetDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT) {
+		}else if(ps.GetDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE_SHADED) {
 			const Shader* shader;
 			//glPointSize(10);
 			glEnable(GL_PROGRAM_POINT_SIZE);
 			glEnable(0x8861);//WTF
-			glDisable(GL_DEPTH_TEST);
+			//glDisable(GL_DEPTH_TEST);
 
 			if (ps.GetMesh()->HasShader())
 				shader = &ps.GetMesh()->GetShader();
@@ -87,7 +87,7 @@ namespace Merlin::Graphics {
 			shader->SetMat4("projection", camera.GetProjectionMatrix()); //Sync model matrix with GPU
 			ps.Draw(*shader);
 
-			glEnable(GL_DEPTH_TEST);
+			//glEnable(GL_DEPTH_TEST);
 			glDisable(GL_PROGRAM_POINT_SIZE);
 			glDisable(0x8861);//WTF
 		}else if (ps.GetDisplayMode() == ParticleSystemDisplayMode::MESH) {

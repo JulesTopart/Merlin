@@ -9,7 +9,8 @@ using namespace Merlin::Tensor;
 #define SOLID 1
 #define FLUID 2
 #define GAS 3
-#define BOUNDARY 4
+#define GRANULAR 4
+#define BOUNDARY 5
 
 struct FluidParticle {
 	glm::vec4 initial_position;	// initial position    x0
@@ -92,8 +93,7 @@ struct ElastoPlasticConstraint {
 */
 
 struct DistanceContraint {
-	GLuint a; //Particle A
-	GLuint b; //Particle B
+	GLuint nodes[8]; //Particle A
 	GLfloat compliance;
 	GLfloat restLength;
 	GLfloat thermalDeformation; //thermal induced deformation
@@ -105,21 +105,21 @@ struct DistanceContraint {
 struct Settings {
 	
 	//Build Volume dimensions
-	glm::vec3 bb = glm::vec3(40, 10, 100);
+	glm::vec3 bb = glm::vec3(30, 30, 30);
 	float bx = bb.x;//mm 120
 	float by = bb.y;//mm
 	float bz = bb.z;//mm 40
 	
-	GLuint maxNNS = 64;
+	GLuint maxNNS = 256;
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
-	GLuint pThread = 64*64*64; //Max Number of particles (thread)
+	GLuint pThread = 1000000; //Max Number of particles (thread) (10 milion)
 	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bRes = 42; //Bed width is divided bRes times
+	GLuint bRes = 32; //Bed width is divided bRes times (old 42)
 	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint blockSize = floor(log2f(bThread));
@@ -130,11 +130,14 @@ struct Settings {
 
 	// --- SPH ---
 	// SPH Parameters
-	float particleRadius = 1.2; // mm
+	float particleRadius = 0.5; // mm
 	float H = 1.7; // Kernel radius mm
 	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
 	float particleMass = 1.0;//g Mass
 	float timeStep = 0.016;//g Mass
+
+	int solver_substep = 60;
+	int solver_iteration = 1;
 };
 
 
@@ -209,8 +212,7 @@ private:
 	GLuint numConstraint = 0;
 	GLuint numBoundaryParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-	int solver_substep = 60;
-	int solver_iteration = 1;
+
 
 	float elapsedTime = 0;
 	bool paused = true;

@@ -8,29 +8,10 @@ in vec2 texCoord;
 
 out vec4 FragColor;
 
- 
-// --- POLY6 KERNEL ---
-//Computed the poly6 scalar smoothing kernel
+uniform vec3 lightPosition = vec3(10); // Position of the light source
+uniform vec3 lightColor = vec3(1.0);    // Color of the light
 
-/*
-void main() {
-	FragColor = color;
-
-	if(gl_PointCoord == vec2(0)){
-		FragColor.w = 1;
-	}else{
-		vec2 center = (gl_PointCoord - vec2(0.5))*2;
-		if(length(center) > 1.0) discard;
-		FragColor.w = smoothstep(1, 0,length(center));
-	}
-}*/
-
-
-// Fragment shader
-uniform vec3 lightPosition = vec3(200,100,300); // Position of the light source
-uniform vec3 lightColor = vec3(1);    // Color of the light
-
-void main() {
+void sprite() {
     // Calculate the center and radius of the sphere
     vec2 center = (gl_PointCoord - vec2(0.5)) * 2.0;
     float radius = length(center);
@@ -46,22 +27,24 @@ void main() {
     float diff = max(dot(normal, lightDir), 0.0);
 
     // Ambient, Diffuse, and Specular Components
-    vec3 ambient = 0.1 * lightColor;
-    vec3 diffuse = diff * lightColor;
+    vec3 ambient = 0.3 * lightColor;
+    vec3 diffuse = 0.8*diff * lightColor;
     vec3 specular = vec3(0.0); // Assuming no specular component for simplicity
 
     // Calculate final color
-    vec4 finalColor = vec4((ambient + diffuse + specular, 1.0)) * color;
+    vec4 finalColor = vec4(ambient + diffuse + specular, 1.0) * color;
 
     // Apply smoothstep for alpha blending at the edges
-    if(gl_PointCoord == vec2(0)){
-		FragColor.w = 1;
-	}else{
-		vec2 center = (gl_PointCoord - vec2(0.5))*2;
-		if(length(center) > 1.0) discard;
-		FragColor.w = smoothstep(1, 0,length(center));
-	}
+	//finalColor.w = smoothstep(1, 0,length(center)*length(center));
+	
 
     // Output the final color
     FragColor = finalColor;
 }
+
+void main() {
+	FragColor = color;
+    if(gl_PointCoord != vec2(0)) sprite();
+}
+
+

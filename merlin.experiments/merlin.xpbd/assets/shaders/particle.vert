@@ -174,7 +174,7 @@ void main() {
 	else{
 		screen_position = projection * view * position;
 		gl_Position = screen_position;
-		gl_PointSize = 2.0*particleRadius*400.0/(gl_Position.w);
+		gl_PointSize = 2.0*particleRadius*630.0/(gl_Position.w);
 		if(colorCycle == 5 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = 100.0/(gl_Position.w);
 		
 	}

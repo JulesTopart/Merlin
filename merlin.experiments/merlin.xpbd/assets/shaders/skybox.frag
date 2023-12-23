@@ -16,6 +16,6 @@ vec4 sun(){
 void main()
 {    
     //FragColor = texture(skybox, texCoords); //Cubemap texture
-    FragColor = vec4(vec3(-texCoords.y, 0.9, 0.9)*0.5+0.8,1.0f); //texcoord as color
+    FragColor = vec4(vec3(1.0, -texCoords.y + 0.5, -texCoords.y)*0.2+0.6,1.0f); //texcoord as color
 
 }

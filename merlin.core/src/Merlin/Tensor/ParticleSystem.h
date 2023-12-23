@@ -20,7 +20,7 @@ namespace Merlin::Tensor {
 		MESH,
 		SPRITE,
 		POINT_SPRITE,
-		POINT_SPRITE_TRANSPARENT
+		POINT_SPRITE_SHADED
 	};
 
 	// Refer to Uniform block layout alignement: https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL

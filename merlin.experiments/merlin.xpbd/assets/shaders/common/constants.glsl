@@ -5,7 +5,8 @@
 #define SOLID 1
 #define FLUID 2
 #define GAS 3
-#define BOUNDARY 4
+#define GRANULAR 4
+#define BOUNDARY 5
 
 // --- Global ---
 const float EPSILON = 1.0e-6f; //Small error epsilon
@@ -51,8 +52,8 @@ const float rheo_n = 0.5; // Flow behavior index
 
 #define MAXNN 256
 // --- Domain ---
-const uint binResolution = 42;
-const vec3 domain = vec3(40, 10, 100);
+const uint binResolution = 32;
+const vec3 domain = vec3(30, 30, 30);
 //const vec3 domain = vec3(300, 30, 30);
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);
