@@ -119,7 +119,7 @@ struct Settings {
 	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bRes = 32; //Bed width is divided bRes times (old 42)
+	GLuint bRes = 12; //Bed width is divided bRes times (old 42)
 	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint blockSize = floor(log2f(bThread));
@@ -130,14 +130,14 @@ struct Settings {
 
 	// --- SPH ---
 	// SPH Parameters
-	float particleRadius = 0.5; // mm
+	float particleRadius = 1; // mm
 	float H = 1.7; // Kernel radius mm
 	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
 	float particleMass = 1.0;//g Mass
 	float timeStep = 0.016;//g Mass
 
-	int solver_substep = 60;
-	int solver_iteration = 1;
+	int solver_substep = 20;
+	int solver_iteration = 2;
 };
 
 

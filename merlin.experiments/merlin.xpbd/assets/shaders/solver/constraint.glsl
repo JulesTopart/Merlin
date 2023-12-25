@@ -1,6 +1,49 @@
 #include "sph.kernels.glsl" 
 
-void solveParticleCollision(uint i, inout vec4 deltaPosition){
+vec4 solveParticleCollision(uint i){
+	int n = 0;
+	vec4 deltaPosition = vec4(0);
+	OVERNNS
+		//if(particles[j].phase == GRANULAR) continue; //Ignore particle that are too far
+		highp float l0 = 2.0*particleRadius;
+		highp float l = distance(particles[i].new_position, particles[j].new_position); // Calculate the current length
+		// Calculate the constraint violation
+		highp float C = l - l0;
+
+		if( C >= 0) continue;
+		// Calculate the gradient of the constraint function
+		vec4 gradC = normalize(particles[i].new_position - particles[j].new_position);
+
+		// Calculate the effective mass matrix
+		highp float inverseMass = (1.0/particles[i].mass) + (1.0/particles[j].mass);
+
+
+		highp float compliance = 1.0f / stiffness;//0.000002; // Compliance of the constraints
+
+		// Calculate the Lagrange multiplier delta (note : gradient dot product = 1 because normalized)
+		//highp float deltaLambda = -C / ( inverseMass + (compliance/(dt*dt)));
+				
+				
+		highp float complianceSc = compliance/(dt*dt);
+		//highp float deltaLambda = -C/ (inverseMass + complianceSc);
+		highp float deltaLambda = (- C - particles[i].lambda * complianceSc) / ( dot(gradC, gradC) * inverseMass + complianceSc);
+
+
+		// Calculate and apply the position corrections
+		deltaPosition += gradC * deltaLambda * particles[i].mass;
+		n++;
+		particles[i].lambda += deltaLambda;
+
+	OVERNNS_END
+
+	if(n > 1) return deltaPosition/float(n);
+	else return deltaPosition;
+}
+
+
+vec4 solveFriction(uint i){
+	int n = 0;
+	vec4 deltaPosition = vec4(0);
 	OVERNNS
 		if(particles[j].phase != GRANULAR) continue; //Ignore particle that are too far
 		highp float l0 = 2.0*particleRadius;
@@ -9,94 +52,71 @@ void solveParticleCollision(uint i, inout vec4 deltaPosition){
 		highp float C = l - l0;
 
 		if( C >= 0 || abs(C) < 1e-06) continue;
-		// Calculate the gradient of the constraint function
-		vec4 gradC = normalize(particles[i].pposition - particles[j].pposition);
-
-		// Calculate the effective mass matrix
 		highp float inverseMass = (1.0/particles[i].mass) + (1.0/particles[j].mass);
-
-
-		highp float compliance = 1.0f / stiffness;//0.000002; // Compliance of the constraints
-
-		// Calculate the Lagrange multiplier delta (note : gradient dot product = 1 because normalized)
-		//float deltaLambda = -(C /*- particles[i].lambda * (compliance/(dt*dt))*/) / ( dot(gradC, gradC)* inverseMass + (compliance/(dt*dt)));
-		//highp float deltaLambda = -C / ( inverseMass + (compliance/(dt*dt)));
-				
-				
-		highp float complianceSc = compliance/(dt*dt);
-		highp float deltaLambda = -C/ (inverseMass + complianceSc);
-
-
-
-		// Calculate and apply the position corrections
-		deltaPosition += gradC * deltaLambda * particles[i].mass;
-		deltaPosition.w++;
-		particles[i].lambda += deltaLambda;
-
+		deltaPosition += (particles[i].mass/inverseMass) * ((particles[i].new_position - particles[i].position) - (particles[j].new_position - particles[j].position));
+		n++;
 	OVERNNS_END
+	if(n > 1) return deltaPosition/float(n);
+	else return deltaPosition;
 }
 
-void solveDistanceConstraint(uint i, inout vec4 deltaPosition){
+vec4 solveDistanceConstraint(uint i){
+	int n = 0;
+	vec4 deltaPosition = vec4(0);
 	OVERNNS
-		if(particles[j].phase != SOLID) continue; //Ignore particle that are too far
-		highp float l0 = distance(particles[i].initial_position, particles[j].initial_position);
+		//if(particles[j].phase != SOLID) continue; //Ignore particle that are too far
+		float l0 = distance(particles[i].initial_position, particles[j].initial_position);
 		if(l0 >= H) continue; //Ignore particle that are too far
 
-		highp float l = distance(particles[i].pposition, particles[j].pposition); // Calculate the current length
+		float l = distance(particles[i].pposition, particles[j].pposition); // Calculate the current length
 		// Calculate the constraint violation
-		highp float C = l - l0;
+		float C = l - l0;
 
-		if(abs(C) < 1e-06) continue;
+		//if(abs(C) < 1e-06) continue;
 		// Calculate the gradient of the constraint function
 		vec4 gradC = normalize(particles[i].pposition - particles[j].pposition);
 
 		// Calculate the effective mass matrix
-		highp float inverseMass = (1.0/particles[i].mass) + (1.0/particles[j].mass);
+		float inverseMass = (1.0/particles[i].mass) + (1.0/particles[j].mass);
 
+		float compliance = 1.0f / stiffness;//0.000002; // Compliance of the constraints
+		float damping = -0.000000001; // Compliance of the constraints
+		float complianceSc = compliance/(dt*dt);
+		float dampingSc = damping*(dt*dt);
 
-		highp float compliance = 1.0f / stiffness;//0.000002; // Compliance of the constraints
-		highp float damping = -0.000000001; // Compliance of the constraints
-
-		// Calculate the Lagrange multiplier delta (note : gradient dot product = 1 because normalized)
-		//float deltaLambda = -(C /*- particles[i].lambda * (compliance/(dt*dt))*/) / ( dot(gradC, gradC)* inverseMass + (compliance/(dt*dt)));
-		//highp float deltaLambda = -C / ( inverseMass + (compliance/(dt*dt)));
-				
-				
-		highp float complianceSc = compliance/(dt*dt);
-		highp float dampingSc = damping*(dt*dt);
-
-		highp float gamma = (complianceSc * dampingSc)/dt;
-		highp float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
+		float gamma = (complianceSc * dampingSc)/dt;
+		float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
 		//highp float deltaLambda = -C / ( inverseMass + (complianceSc));
 
 
 
 		// Calculate and apply the position corrections
 		deltaPosition += gradC * deltaLambda * particles[i].mass;
-		deltaPosition.w++;
+		n++;
 		particles[i].lambda += deltaLambda;
 
 	OVERNNS_END
+	if(n > 1) return deltaPosition/float(n);
+	else return deltaPosition;
 }
 
-void solveFloorCollision(uint i, inout vec4 deltaPosition){
-	vec4 correctedPosition = particles[i].position;
+vec4 solveFloorCollision(uint i){
+	vec4 correctedPosition = particles[i].new_position;
 	for (int i = 0; i < 3; i++){
-		if (correctedPosition[i] - particleRadius <= boundaryMin[i] )
+		if (correctedPosition[i] - particleRadius < boundaryMin[i] )
 		{
 			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
 			//velocity[i] *= boundaryDamping;
 
 		}
-		else if (correctedPosition[i] + particleRadius >= boundaryMax[i])
+		else if (correctedPosition[i] + particleRadius > boundaryMax[i])
 		{
 			correctedPosition[i] =  boundaryMax[i] - particleRadius;
 			//velocity[i] *= boundaryDamping;
 		}
 	}
 
-	deltaPosition += (correctedPosition - particles[i].position);
-	deltaPosition.w++;
+	return (correctedPosition - particles[i].new_position);
 }
 
 

@@ -29,7 +29,7 @@ void ExampleLayer::OnAttach() {
 	Window* wd = &Application::Get().GetWindow();
 	_height = wd->GetHeight();
 	_width = wd->GetWidth();
-
+	ImGui::LoadIniSettingsFromDisk("imgui.ini");
 	Console::SetLevel(ConsoleLevel::_INFO);
 
 	InitGraphics();
@@ -50,7 +50,10 @@ void ExampleLayer::OnAttach() {
 	ResetSimulation();
 }
 
-void ExampleLayer::OnDetach() {}
+void ExampleLayer::OnDetach() {
+	
+	
+}
 
 void ExampleLayer::OnEvent(Event& event) {
 	camera->OnEvent(event);
@@ -101,6 +104,7 @@ void ExampleLayer::InitGraphics() {
 	particleShader->noTexture();
 	particleShader->noMaterial();
 	particleShader->SetUInt("colorCount", 5);
+	particleShader->SetVec3("lightPos", glm::vec3(0,-200,1000));
 
 	binShader = Shader::Create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
 	binShader->noTexture();
@@ -108,9 +112,9 @@ void ExampleLayer::InitGraphics() {
 	binShader->SetUInt("colorCount", 5);
 
 	particleShader->Use();
-	particleShader->SetInt("colorCycle", 1);
+	particleShader->SetInt("colorCycle", 0);
 	binShader->Use();
-	binShader->SetInt("colorCycle", 1);
+	binShader->SetInt("colorCycle", 0);
 
 	renderer.AddShader(modelShader);
 	renderer.AddShader(particleShader);
@@ -317,7 +321,7 @@ void ExampleLayer::ResetSimulation() {
 	*/
 
 	
-	buf.phase = GRANULAR; //Rigid cube
+	buf.phase = SOLID; //Rigid cube
 	glm::vec3 cubeSize = glm::vec3(20, 20, 20);
 	glm::uvec3 icubeSize = glm::vec3(cubeSize.x/spacing, cubeSize.y / spacing, cubeSize.y / spacing);
 
@@ -523,6 +527,7 @@ void ExampleLayer::updateFPS(Timestep ts) {
 
 void ExampleLayer::OnImGuiRender()
 {
+	ImGui::DockSpaceOverViewport((ImGuiViewport*)0, ImGuiDockNodeFlags_PassthruCentralNode);
 	ImGui::Begin("Infos");
 
 	model_matrix_translation = camera->GetPosition();
@@ -596,6 +601,7 @@ void ExampleLayer::OnImGuiRender()
 	*/
 
 	ImGui::DragInt("Solver substep", &settings.solver_substep, 1, 1, 200);
+	ImGui::DragInt("Solver iteratino", &settings.solver_iteration, 1, 1, 200);
 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->SetPosition(model_matrix_translation);
@@ -635,8 +641,8 @@ void ExampleLayer::OnImGuiRender()
 		solver->SetFloat("pressureMultiplier", pressureM * 0.001); // Kernel radius // 5mm
 	}
 
-	static float stiffness = 500000;
-	if (ImGui::SliderFloat("stiffness", &stiffness, 0.0, 2000000)) {
+	static float stiffness = 5000;
+	if (ImGui::SliderFloat("stiffness", &stiffness, 0.0, 200000)) {
 		solver->Use();
 		solver->SetFloat("stiffness", stiffness); // Kernel radius // 5mm
 	}
@@ -652,9 +658,9 @@ void ExampleLayer::OnImGuiRender()
 		solver->SetFloat("particleMass", settings.particleMass);
 	}
 
-	static int colorMode = 1;
-	static const char* options[] = { "Bin index", "Density", "Temperature", "Lambda", "Mass", "Neighbors" };
-	if (ImGui::ListBox("Colored field", &colorMode, options, 6)) {
+	static int colorMode = 0;
+	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Lambda", "Mass", "Neighbors" };
+	if (ImGui::ListBox("Colored field", &colorMode, options, 7)) {
 		particleShader->Use();
 		particleShader->SetInt("colorCycle", colorMode);
 		binShader->Use();
@@ -663,7 +669,7 @@ void ExampleLayer::OnImGuiRender()
 
 	static int particleTest = 2000;
 	static int binTest = 1459;
-	if (colorMode == 5) {
+	if (colorMode == 6) {
 		if (ImGui::DragInt("Particle to test", &particleTest)) {
 			particleShader->Use();
 			particleShader->SetUInt("particleTest", particleTest);

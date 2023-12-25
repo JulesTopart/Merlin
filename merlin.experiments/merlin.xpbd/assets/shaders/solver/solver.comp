@@ -159,14 +159,13 @@ void XPBDSolveSolid(uint i, uint simStep) {
 
 		//solver iteration
 		case 4 :
-			vec4 deltaPosition = vec4(0);
-			solveDistanceConstraint(i, deltaPosition);
-
-			vec4 avgDelta = deltaPosition.w > 0.0 ? vec4(deltaPosition.xyz/deltaPosition.w, 0.0) : vec4(0.0);
-			particles[i].new_position = particles[i].pposition + avgDelta;
+			particles[i].new_position += solveFloorCollision(i);
+			particles[i].new_position += solveDistanceConstraint(i);
+			//particles[i].new_position += solveParticleCollision(i);
+			//particles[i].new_position += solveFriction(i);
 			//if(distance(particles[i].new_position, particles[i].position) > 2.0*distance(particles[i].pposition, particles[i].position)) particles[i].new_position = particles[i].pposition;
 			//if(i == 0) particles[i].new_position = particles[i].pposition = particles[i].position;
-			clampPosition(particles[i].new_position);
+			//clampPosition(particles[i].new_position);
 
 			//particles[i].temperature = computeTemperature(i);
 		break;
@@ -176,7 +175,7 @@ void XPBDSolveSolid(uint i, uint simStep) {
 			particles[i].velocity = (particles[i].new_position - particles[i].position)/dt;
 			particles[i].position = particles[i].new_position;
 			//if(i == 0) particles[i].new_position = particles[i].pposition = particles[i].position;
-			clampPosition(particles[i].position);
+			//clampPosition(particles[i].position);
 		break;
 		//solver iteration end
 		//substep iteration end
@@ -214,7 +213,7 @@ void PBFSolvefluid(uint i, uint simStep) {
 		case 2 :
 			particles[i].pposition = particles[i].position + particles[i].velocity * dt + particles[i].acceleration*dt*dt;
 			//particles[i].new_position = particles[i].pposition;
-			//particles[i].lambda = 0;
+			particles[i].lambda = 0;
 		break;
 
 		case 3 :
@@ -280,6 +279,7 @@ void DEMSolve(uint i, uint simStep){
 		//substep iteration
 		case 2 :
 			particles[i].pposition = particles[i].position + particles[i].velocity * dt + particles[i].acceleration*dt*dt;
+			clampPosition(particles[i].pposition);
 			particles[i].new_position = particles[i].pposition;
 			//if(i == 0) particles[i].new_position = particles[i].pposition = particles[i].position;
 			particles[i].lambda = 0;
@@ -291,12 +291,12 @@ void DEMSolve(uint i, uint simStep){
 
 		//solver iteration
 		case 4 :
-			vec4 deltaPosition = vec4(0);
-			solveParticleCollision(i, deltaPosition);
-			//solveFloorCollision(i, deltaPosition);
 
-			vec4 avgDelta = deltaPosition.w > 0.0 ? vec4(deltaPosition.xyz/deltaPosition.w, 0.0) : vec4(0.0);
-			particles[i].new_position = particles[i].pposition + avgDelta;
+			//Solve Floor Collision
+			
+			particles[i].new_position += solveFloorCollision(i);
+			particles[i].new_position += solveParticleCollision(i);
+			//particles[i].new_position += solveFriction(i);
 			//if(distance(particles[i].new_position, particles[i].position) > 2.0*distance(particles[i].pposition, particles[i].position)) particles[i].new_position = particles[i].pposition;
 			//if(i == 0) particles[i].new_position = particles[i].pposition = particles[i].position;
 
@@ -304,10 +304,10 @@ void DEMSolve(uint i, uint simStep){
 		break;
 
 		case 5 :
-		    if(!stabilizationPass) particles[i].velocity = (particles[i].new_position - particles[i].position)/dt;
+		    if(!stabilizationPass) particles[i].velocity = 0.98*(particles[i].new_position - particles[i].position)/dt;
 			particles[i].position = particles[i].new_position;
 			//if(i == 0) particles[i].new_position = particles[i].pposition = particles[i].position;
-			clampPosition(particles[i].position);
+			//clampPosition(particles[i].position);
 		break;
 		//solver iteration end
 		//substep iteration end

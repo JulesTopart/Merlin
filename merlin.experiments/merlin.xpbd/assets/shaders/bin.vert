@@ -84,7 +84,7 @@ void main() {
 	bool test = bins[gl_InstanceID].count > 0;
 
 	color = vec4(1);
-	if(colorCycle == 0){
+	if(colorCycle == 1){
 		color = vec4(randomColor(gl_InstanceID), 1);
 	}else if(colorCycle != 5){
 		color = heatMap(float(bins[gl_InstanceID].count)/(MAXNN));

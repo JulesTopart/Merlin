@@ -27,7 +27,6 @@ namespace Merlin {
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-
 		// Setup Dear ImGui style
 		//ImGui::StyleColorsDark();
 
@@ -35,7 +34,7 @@ namespace Merlin {
 		ImGuiStyle& style = ImGui::GetStyle();
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			style.WindowRounding = 5.0f;
+			style.WindowRounding = 10.0f;
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 
             ImGuiStyle& style = ImGui::GetStyle();

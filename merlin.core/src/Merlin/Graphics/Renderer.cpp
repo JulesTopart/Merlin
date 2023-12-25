@@ -65,6 +65,7 @@ namespace Merlin::Graphics {
 			shader->SetMat4("model", currentTransform); //Sync model matrix with GPU
 			shader->SetMat4("view", camera.GetViewMatrix()); //Sync model matrix with GPU
 			shader->SetMat4("projection", camera.GetProjectionMatrix()); //Sync model matrix with GPU
+			shader->SetVec2("WindowSize", glm::vec2(camera.Width(), camera.Height())); //Sync model matrix with GPU
 			ps.Draw(*shader);
 
 			glDisable(GL_PROGRAM_POINT_SIZE);
@@ -85,6 +86,8 @@ namespace Merlin::Graphics {
 			shader->SetMat4("model", currentTransform); //Sync model matrix with GPU
 			shader->SetMat4("view", camera.GetViewMatrix()); //Sync model matrix with GPU
 			shader->SetMat4("projection", camera.GetProjectionMatrix()); //Sync model matrix with GPU
+			shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
+			shader->SetVec2("WindowSize", glm::vec2(camera.Width(), camera.Height())); //Sync model matrix with GPU
 			ps.Draw(*shader);
 
 			//glEnable(GL_DEPTH_TEST);
