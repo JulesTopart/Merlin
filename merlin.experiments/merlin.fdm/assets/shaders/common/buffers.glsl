@@ -8,6 +8,7 @@ struct Particle {
 	float mass;				// mass				   m   (or pseudo mass for boundary particles)
 	float density;			// density			   rho
 	float temperature;		// temperature		   T
+	float new_temperature;	// temperature		   T+
 	float pressure;			// pressure			   P
 	float lambda;			// lagrange multiplier lambda
 	uint phase;				// phase (liquid, solid...)

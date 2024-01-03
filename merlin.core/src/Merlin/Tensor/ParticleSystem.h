@@ -86,7 +86,7 @@ namespace Merlin::Tensor {
 
 	private:
 		//Buffers & Compute Shaders
-		std::vector<Shared<GenericBufferObject>> m_buffers; //Buffer to store the particle
+		std::vector<Shared<GenericBufferObject>> m_buffers; //Buffer to store the particle 
 		
 	};
 
