@@ -96,7 +96,6 @@ void ExampleLayer::UpdateBufferSettings() {
 	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
 	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
 
-	init->SetWorkgroupLayout(settings.pWkgCount);
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
@@ -194,7 +193,6 @@ void ExampleLayer::InitGraphics() {
 
 void ExampleLayer::InitPhysics() {
 	//Compute Shaders
-	init = CreateShared<ComputeShader>("init", "assets/shaders/solver/init.comp");
 	solver = CreateShared<StagedComputeShader>("solver", "assets/shaders/solver/solver.comp", 6);
 	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 
@@ -222,7 +220,6 @@ void ExampleLayer::InitPhysics() {
 	binSystem->SetMesh(binInstance);
 	binSystem->EnableWireFrameMode();
 
-	init->SetWorkgroupLayout(settings.pWkgCount);
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 	//Create the buffer
@@ -244,7 +241,6 @@ void ExampleLayer::InitPhysics() {
 	scales.push_back({ 0,50 });
 	colorScaleBuffer->LoadData(scales);
 
-	particleSystem->AddComputeShader(init);
 	particleSystem->AddComputeShader(solver);
 	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddStorageBuffer(binBuffer);

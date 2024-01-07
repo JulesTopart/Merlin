@@ -181,7 +181,6 @@ private:
 	GLsizei _width = 1080, _height = 720;
 
 	//Simulation
-	ComputeShader_Ptr init;
 	StagedComputeShader_Ptr solver;
 	StagedComputeShader_Ptr prefixSum;
 

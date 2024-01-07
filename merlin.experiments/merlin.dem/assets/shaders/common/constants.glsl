@@ -1,3 +1,7 @@
+//? #version 430
+#ifndef INCLUDE_CONSTANTS_GLSL
+#define INCLUDE_CONSTANTS_GLSL
+
 #define BTHREAD 256
 #define PTHREAD 512
 
@@ -66,3 +70,4 @@ const uint binCount = binMax.x * binMax.y * binMax.z;
 const float boundaryDamping = -0.001; // Bounce factor
 
 
+#endif

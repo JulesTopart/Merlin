@@ -1,3 +1,6 @@
+//? #version 430
+#ifndef INCLUDE_UNIFORMS_GLSL
+#define INCLUDE_UNIFORMS_GLSL
 
 uniform float particleRadius = 1.0;//mm
 uniform float smoothingRadius; //mm
@@ -11,3 +14,5 @@ uniform float stiffness = 5000000.0;
 uniform float alphaVisco = 0.0001;
 uniform uint numParticles = 0;
 uniform bool stabilizationPass = false;
+
+#endif

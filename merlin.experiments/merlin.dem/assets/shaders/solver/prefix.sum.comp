@@ -1,5 +1,8 @@
-#version 450
-#include "common.glsl"
+#version 430
+
+#include "../common/constants.glsl"
+#include "../common/buffers.glsl"
+
 layout (local_size_x = BTHREAD) in;
 
 uniform uint dataSize;

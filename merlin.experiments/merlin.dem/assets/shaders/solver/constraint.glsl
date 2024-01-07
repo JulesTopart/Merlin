@@ -1,4 +1,12 @@
-#include "sph.kernels.glsl" 
+//? #version 430
+#ifndef INCLUDE_CONSTRAINTS_GLSL
+#define INCLUDE_CONSTRAINTS_GLSL
+
+//?#include "../common/uniforms.glsl"
+//?#include "../common/constants.glsl"
+//?#include "../common/buffers.glsl"
+//?#include "sph.kernels.glsl" 
+
 /*
 vec4 solveParticleCollision(uint i){
 	int n = 0;
@@ -259,3 +267,5 @@ vec4 computePositionDelta(uint i) {
 	return posDelta;
 }
 */
+
+#endif

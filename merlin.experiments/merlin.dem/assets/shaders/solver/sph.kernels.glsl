@@ -1,4 +1,11 @@
-#include "common.glsl"
+//? #version 430
+#ifndef INCLUDE_SPH_KERNELS_GLSL
+#define INCLUDE_SPH_KERNELS_GLSL
+
+//?#include "../common/uniforms.glsl"
+//?#include "../common/constants.glsl"
+//?#include "../common/buffers.glsl"
+
 // --- Kernels ---
 // Kernel Functions Precomputed Constants
 #define H smoothingRadius // Kernel radius
@@ -105,3 +112,6 @@ float Wvisc_lapl(vec4 r_v) {
 	
 	return WVISC_LAPL_COEFFICIENT * (1 - (r/H));
 }
+
+
+#endif

@@ -124,9 +124,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\shaders\common\colors.glsl" />
     <None Include="assets\shaders\model.frag" />
     <None Include="assets\shaders\model.vert" />
     <None Include="assets\shaders\common\uniforms.glsl" />
+    <None Include="assets\shaders\common\nns.glsl" />
+    <None Include="assets\shaders\solver\collision.glsl" />
     <None Include="assets\shaders\solver\constraint.glsl" />
     <None Include="assets\shaders\solver\prefix.sum.comp" />
     <None Include="assets\shaders\skybox.frag" />
@@ -137,12 +140,10 @@
     <None Include="assets\shaders\box.frag" />
     <None Include="assets\shaders\box.vert" />
     <None Include="assets\shaders\particle.frag" />
-    <None Include="assets\shaders\solver\init.comp" />
     <None Include="assets\shaders\particle.vert" />
     <None Include="assets\shaders\solver\sph.kernels.glsl" />
     <None Include="assets\shaders\bin.frag" />
     <None Include="assets\shaders\bin.vert" />
-    <None Include="assets\shaders\solver\common.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

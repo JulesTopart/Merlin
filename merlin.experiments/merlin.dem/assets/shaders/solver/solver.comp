@@ -1,5 +1,14 @@
-#version 450
+#version 430
+
+#pragma once
+#include "../common/uniforms.glsl"
+#include "../common/constants.glsl"
+#include "../common/buffers.glsl"
+#include "../common/colors.glsl"
+#include "../common/nns.glsl"
+#include "sph.kernels.glsl" 
 #include "constraint.glsl" 
+
 layout (local_size_x = PTHREAD) in;
 
 //calculate Temperature
