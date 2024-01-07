@@ -23,7 +23,7 @@ namespace Merlin::Graphics {
 	}
 
 
-	void Scene::Add(Shared<GenericParticleSystem> ps) {
+	void Scene::Add(Shared<deprecated_GenericParticleSystem> ps) {
 		_currentNode->AddChild(ps);
 	}
 

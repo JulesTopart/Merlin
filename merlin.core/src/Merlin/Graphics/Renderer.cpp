@@ -51,8 +51,8 @@ namespace Merlin::Graphics {
 	}
 
 
-	void Renderer::RenderParticleSystem(const GenericParticleSystem& ps, const Camera& camera) {
-		if (ps.GetDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE) {
+	void Renderer::RenderParticleSystem(const deprecated_GenericParticleSystem& ps, const Camera& camera) {
+		if (ps.GetDisplayMode() == deprecated_ParticleSystemDisplayMode::POINT_SPRITE) {
 			const Shader* shader;
 			//glPointSize(10);
 			glEnable(GL_PROGRAM_POINT_SIZE);
@@ -69,7 +69,7 @@ namespace Merlin::Graphics {
 			ps.Draw(*shader);
 
 			glDisable(GL_PROGRAM_POINT_SIZE);
-		}else if(ps.GetDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE_SHADED) {
+		}else if(ps.GetDisplayMode() == deprecated_ParticleSystemDisplayMode::POINT_SPRITE_SHADED) {
 			const Shader* shader;
 			//glPointSize(10);
 			glEnable(GL_PROGRAM_POINT_SIZE);
@@ -93,7 +93,7 @@ namespace Merlin::Graphics {
 			//glEnable(GL_DEPTH_TEST);
 			glDisable(GL_PROGRAM_POINT_SIZE);
 			glDisable(0x8861);//WTF
-		}else if (ps.GetDisplayMode() == ParticleSystemDisplayMode::MESH) {
+		}else if (ps.GetDisplayMode() == deprecated_ParticleSystemDisplayMode::MESH) {
 			const Shader* shader;
 			const Material* mat;
 
@@ -251,7 +251,7 @@ namespace Merlin::Graphics {
 		else if (const auto ps = std::dynamic_pointer_cast<TransformObject>(object)) {
 			RenderTransformObject(*ps, camera); //Propagate to childrens
 		}
-		else if (const auto ps = std::dynamic_pointer_cast<GenericParticleSystem>(object)) {
+		else if (const auto ps = std::dynamic_pointer_cast<deprecated_GenericParticleSystem>(object)) {
 			RenderParticleSystem(*ps, camera); //Propagate to childrens
 		}//The object is a particleSystem node
 		

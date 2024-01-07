@@ -126,7 +126,7 @@
     <ClInclude Include="src\Merlin\Util\DataStream.h" />
     <ClInclude Include="src\Merlin\Graphics\Mesh.h" />
     <ClInclude Include="src\Merlin\Memory\ShaderStorageBuffer.h" />
-    <ClInclude Include="src\Merlin\Tensor\ParticleSystem.h" />
+    <ClInclude Include="src\Merlin\Scene\deprecated_ParticleSystem.h" />
     <ClInclude Include="src\Merlin\Memory\RenderBuffer.h" />
     <ClInclude Include="src\Merlin\Memory\FrameBuffer.h" />
     <ClInclude Include="src\Merlin\Graphics\ScreenQuadRenderer.h" />
@@ -184,7 +184,7 @@
     <ClCompile Include="src\Merlin\Scene\Material.cpp" />
     <ClCompile Include="src\Merlin\Util\DataStream.cpp" />
     <ClCompile Include="src\Merlin\Graphics\Mesh.cpp" />
-    <ClCompile Include="src\Merlin\Tensor\ParticleSystem.cpp" />
+    <ClCompile Include="src\Merlin\Scene\deprecated_ParticleSystem.cpp" />
     <ClCompile Include="src\Merlin\Memory\RenderBuffer.cpp" />
     <ClCompile Include="src\Merlin\Memory\FrameBuffer.cpp" />
     <ClCompile Include="src\Merlin\Graphics\ScreenQuadRenderer.cpp" />

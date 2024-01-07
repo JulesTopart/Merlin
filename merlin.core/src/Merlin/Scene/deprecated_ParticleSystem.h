@@ -16,7 +16,7 @@ namespace Merlin::Tensor {
 	using namespace Merlin::Graphics;
 
 
-	enum class ParticleSystemDisplayMode {
+	enum class deprecated_ParticleSystemDisplayMode {
 		MESH,
 		SPRITE,
 		POINT_SPRITE,
@@ -25,15 +25,15 @@ namespace Merlin::Tensor {
 
 	// Refer to Uniform block layout alignement: https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL
     // Particle properties
-	struct DefaultParticle {
+	struct deprecated_DefaultParticle {
 		alignas(16) glm::vec4 position;      // Position (x, y, z) and mass (w)
 		alignas(16) glm::vec4 velocity;      // Velocity (x, y, z) and density (w)
 	};
 
-	class GenericParticleSystem : public RenderableObject {
+	class deprecated_GenericParticleSystem : public RenderableObject {
 	public:
-		GenericParticleSystem();
-		GenericParticleSystem(const std::string& name, GLsizeiptr instances);
+		deprecated_GenericParticleSystem();
+		deprecated_GenericParticleSystem(const std::string& name, GLsizeiptr instances);
 
 		void Draw(const Shader& shader) const; //Draw the mesh
 
@@ -42,8 +42,8 @@ namespace Merlin::Tensor {
 		inline void SetMesh(Shared<Mesh> geometry) { m_geometry = geometry; }
 		inline Shared<Mesh> GetMesh() const { return m_geometry; }
 
-		inline void SetDisplayMode(ParticleSystemDisplayMode mode) { m_displayMode = mode; }
-		inline ParticleSystemDisplayMode GetDisplayMode() const { return m_displayMode; }
+		inline void SetDisplayMode(deprecated_ParticleSystemDisplayMode mode) { m_displayMode = mode; }
+		inline deprecated_ParticleSystemDisplayMode GetDisplayMode() const { return m_displayMode; }
 
 		inline void AddComputeShader(Shared<ComputeShader> cs) { m_shaders.push_back(cs); };
 
@@ -52,7 +52,7 @@ namespace Merlin::Tensor {
 
 		//Geometry
 		Shared<Mesh> m_geometry;
-		ParticleSystemDisplayMode m_displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
+		deprecated_ParticleSystemDisplayMode m_displayMode = deprecated_ParticleSystemDisplayMode::POINT_SPRITE;
 
 		//Compute shaders
 		std::vector<Shared<ComputeShader>> m_shaders; //Shader to compute the particle position
@@ -60,20 +60,20 @@ namespace Merlin::Tensor {
 	};
 
 
-	class ParticleSystem : public GenericParticleSystem {
+	class deprecated_ParticleSystem : public deprecated_GenericParticleSystem {
 	public:
 		
 
 
-		ParticleSystem() : GenericParticleSystem() {}
-		ParticleSystem(std::string name, GLsizeiptr maxCount) : GenericParticleSystem(name, maxCount) {}
-		~ParticleSystem() {};
+		deprecated_ParticleSystem() : deprecated_GenericParticleSystem() {}
+		deprecated_ParticleSystem(std::string name, GLsizeiptr maxCount) : deprecated_GenericParticleSystem(name, maxCount) {}
+		~deprecated_ParticleSystem() {};
 
 		//void Update(Timestep ts);//Execute all linked compute shader
 		//void Execute(Shared<ComputeShader> step, bool autoBind = true); //Execute compute shader once
 
-		inline static Shared<ParticleSystem> Create(std::string name, GLsizeiptr instances) {
-			return CreateShared<ParticleSystem>(name, instances);
+		inline static Shared<deprecated_ParticleSystem> Create(std::string name, GLsizeiptr instances) {
+			return CreateShared<deprecated_ParticleSystem>(name, instances);
 		};
 
 		inline void AddStorageBuffer(Shared<GenericBufferObject> buffer) {
@@ -90,6 +90,6 @@ namespace Merlin::Tensor {
 		
 	};
 
-	typedef Shared<ParticleSystem> ParticleSystem_Ptr;
+	typedef Shared<deprecated_ParticleSystem> ParticleSystem_Ptr;
 
 }

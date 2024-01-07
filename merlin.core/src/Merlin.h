@@ -16,18 +16,21 @@
 #include "Merlin/Graphics/Renderer.h"
 #include "Merlin/Graphics/Shader.h"
 #include "Merlin/Graphics/Mesh.h"
-#include "Merlin/Graphics/Mesh.h"
 #include "Merlin/Graphics/ScreenQuadRenderer.h"
+
 #include "Merlin/Scene/Scene.h"
 #include "Merlin/Scene/SkyBox.h"
 #include "Merlin/Scene/Camera.h"
+
 #include "Merlin/Scene/CameraController.h"
 
 #include "Merlin/Events/Event.h"
 #include "Merlin/Events/ApplicationEvent.h"
 
 #include "Merlin/Tensor/ComputeShader.h"
-#include "Merlin/Tensor/ParticleSystem.h"
+
+#include "Merlin/Scene/deprecated_ParticleSystem.h"
+
 
 #include "Merlin/Util/OpenGLDebug.h"
 #include "Merlin/Util/ModelLoader.h"
