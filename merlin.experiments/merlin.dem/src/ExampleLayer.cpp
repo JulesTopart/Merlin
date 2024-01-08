@@ -41,18 +41,14 @@ void ExampleLayer::OnAttach() {
 
 	InitGraphics();
 	InitPhysics();
-	SetColorGradient();
+
 	particleShader->Use();
-	particleShader->Attach(*particleBuffer, 0);
-	particleShader->Attach(*binBuffer, 1);
-	particleShader->Attach(*colorScaleBuffer, 2);
-	particleShader->Attach(*heatMap, 3);
+	particleShader->Attach(*particleBuffer);
+	particleShader->Attach(*binBuffer);
 
 	binShader->Use();
-	binShader->Attach(*particleBuffer, 0);
-	binShader->Attach(*binBuffer, 1);
-	binShader->Attach(*colorScaleBuffer, 2);
-	binShader->Attach(*heatMap, 3);
+	binShader->Attach(*particleBuffer);
+	binShader->Attach(*binBuffer);
 
 	ResetSimulation();
 }
@@ -232,42 +228,18 @@ void ExampleLayer::InitPhysics() {
 	binBuffer = SSBO<Bin>::Create("BinBuffer");
 	binBuffer->Allocate(settings.bThread);
 
-
-	colorScaleBuffer = SSBO<ColorScale>::Create("ColorScaleBuffer");
-	std::vector<ColorScale> scales;
-	scales.push_back({ 0,1 });
-	scales.push_back({ 0,100 });
-	scales.push_back({ 0,400 });
-	scales.push_back({ 0,50 });
-	colorScaleBuffer->LoadData(scales);
-
 	particleSystem->AddComputeShader(solver);
 	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddStorageBuffer(binBuffer);
-	particleSystem->AddStorageBuffer(colorScaleBuffer);
 
 	binSystem->AddComputeShader(prefixSum);
 	binSystem->AddStorageBuffer(particleBuffer);
 	binSystem->AddStorageBuffer(binBuffer);
-	binSystem->AddStorageBuffer(colorScaleBuffer);
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
 	//scene.Add(constraintSystem);
 	binSystem->Hide();
-}
-
-void ExampleLayer::SetColorGradient() {
-	std::vector<glm::vec4> colors;
-	colors.push_back(glm::vec4(0, 0, 1, 0.0f));     // Blue.
-	colors.push_back(glm::vec4(0, 1, 1, 0.25f));     // Cyan.
-	colors.push_back(glm::vec4(0, 1, 0, 0.5f));     // Green.
-	colors.push_back(glm::vec4(1, 1, 0, 0.75f));     // Yellow.
-	colors.push_back(glm::vec4(1, 0, 0, 1.0f));     // Red.
-	colorCount = colors.size();
-
-	heatMap = SSBO<glm::vec4>::Create("ColorMapBuffer");
-	heatMap->LoadData(colors);
 }
 
 void ExampleLayer::ResetSimulation() {
@@ -278,8 +250,6 @@ void ExampleLayer::ResetSimulation() {
 	particleBuffer->Bind();
 	particleBuffer->Clear();
 	particleBuffer->FreeHostMemory();
-
-
 
 	elapsedTime = 0;
 	Console::info() << "Generating particles..." << Console::endl;
@@ -534,9 +504,6 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 
 	if (!paused) {
 		elapsedTime += settings.timeStep;
-
-		colorScaleBuffer->Bind();
-		colorScaleBuffer->Clear();
 		
 		GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
@@ -802,8 +769,6 @@ void ExampleLayer::OnImGuiRender()
 		particleBuffer->Download();
 		binBuffer->Bind();
 		binBuffer->Download();
-		colorScaleBuffer->Bind();
-		colorScaleBuffer->Download();
 
 		/*
 		std::vector<FluidParticle> sorted;

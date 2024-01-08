@@ -39,13 +39,4 @@ layout(std430) buffer BinBuffer {
 	Bin bins[];
 };
 
-struct ColorScale {
-	int minValue;
-	int maxValue;
-};
-
-layout(std430) buffer ColorScaleBuffer {
-	ColorScale colorScale[];
-};
-
 #endif// INCLUDE_BUFFERS_HLSL

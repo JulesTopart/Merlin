@@ -120,15 +120,7 @@ void PBFSolvefluid(uint i, uint simStep) {
 
 		break;
 	}
-	updateMinMax(LAMBDA_FIELD, int(G));
-	updateMinMax(LAMBDA_FIELD, int(0));
-	//updateMinMax(DENSITY_FIELD, particles[i].density);
-	updateMinMax(DENSITY_FIELD, 0);
-	updateMinMax(DENSITY_FIELD, 2*REST_DENSITY);
-	updateMinMax(VELOCITY_FIELD, particles[i].mass);
-	updateMinMax(TEMPERATURE_FIELD, 0);
-	updateMinMax(TEMPERATURE_FIELD, nozzleTemperature);
-	updateMinMax(TEMPERATURE_FIELD, particles[i].temperature);
+
 }*/
 
 
@@ -203,13 +195,6 @@ void PBFSolvefluid(uint i, uint simStep) {
 		break;
 	}
 		
-	//updateMinMax(LAMBDA_FIELD, int(G));
-	//updateMinMax(LAMBDA_FIELD, int(0));
-	//updateMinMax(DENSITY_FIELD, particles[i].density);
-	updateMinMax(DENSITY_FIELD, 0);
-	updateMinMax(DENSITY_FIELD, 2*REST_DENSITY);
-	updateMinMax(VELOCITY_FIELD, particles[i].mass);
-	updateMinMax(TEMPERATURE_FIELD, particles[i].temperature);
 }
 
 */
@@ -270,18 +255,7 @@ void PBDSolve(uint i, uint simStep){
 		//solver iteration end
 		//substep iteration end
 	}
-		
 
-	/*
-	//updateMinMax(LAMBDA_FIELD, int(G));
-	//updateMinMax(LAMBDA_FIELD, int(0));
-	//updateMinMax(DENSITY_FIELD, particles[i].density);
-	updateMinMax(DENSITY_FIELD, 0);
-	updateMinMax(DENSITY_FIELD, 2*REST_DENSITY);
-	updateMinMax(VELOCITY_FIELD, particles[i].mass);
-	updateMinMax(TEMPERATURE_FIELD,  273.15);
-	updateMinMax(TEMPERATURE_FIELD,  273.15 + 200);*/
-	
 }
 
 

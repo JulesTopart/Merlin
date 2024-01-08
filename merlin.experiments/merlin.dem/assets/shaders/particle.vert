@@ -56,16 +56,21 @@ void main() {
 		//color = heatMap(map(int(particles[gl_InstanceID].density), rest ));
 		color = heatMap(map(particles[gl_InstanceID].density, colorScale[DENSITY_FIELD]));
 	}*/else if(colorCycle == 3) {
-		ColorScale trest;
-		trest.minValue = int(ambientTemperature*100.0);
-		trest.maxValue = int(nozzleTemperature*100.0);
+
+		float minValue = int(ambientTemperature*100.0);
+		float maxValue = int(nozzleTemperature*100.0);
 
 		//color = heatMap(map(particles[gl_InstanceID].temperature, trest));
-		color = heatMap(map(int(particles[gl_InstanceID].temperature), colorScale[TEMPERATURE_FIELD]));
+		color = heatMap(map(particles[gl_InstanceID].temperature, minValue, maxValue));
 	}else if(colorCycle == 4) {
-		color = heatMap(map(abs(particles[gl_InstanceID].lambda), colorScale[LAMBDA_FIELD]));
+		float minValue = 0.0;
+		float maxValue = 20;
+		color = heatMap(map(particles[gl_InstanceID].lambda, minValue, maxValue));
+
 	}else if(colorCycle == 5) {
-		color = heatMap(map(particles[gl_InstanceID].mass, colorScale[VELOCITY_FIELD]));
+		float minValue = 0.0;
+		float maxValue = 5;
+		color = heatMap(map(particles[gl_InstanceID].mass, minValue, maxValue));
 	}else{ //NNS Test
 		
 		binTest = true;

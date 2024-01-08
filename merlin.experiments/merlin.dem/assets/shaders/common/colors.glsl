@@ -47,18 +47,12 @@ vec4 heatMap(const float value) {
 	return color;
 }
 
-void updateMinMax(int field, float value){
-	if(field > MAX_FIELD) return;
-	atomicMax(colorScale[field].maxValue, int(value*100.0));
-	atomicMin(colorScale[field].minValue, int(value*100));
-}
-
-float map(float value, ColorScale range){
-	return (value*100.0 - (float(range.minValue)))/(float(range.maxValue - range.minValue));
-}
-
 float rand(vec2 co){
     return 0.00001*abs(fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453));
+}
+
+float map(float value, float minValue, float maxValue){
+	return (value - minValue)/(maxValue - minValue);
 }
 
 vec3 randomColor(uint index){
