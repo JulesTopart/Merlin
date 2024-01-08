@@ -59,7 +59,7 @@ private:
 	SSBO_Ptr<FieldProperty> grid;
 	SSBO_Ptr<FieldProperty> newGrid;
 
-	ParticleSystem_Ptr streamlines;
+	deprecated_ParticleSystem_Ptr streamlines;
 
 	//Camera
 	Shared<Camera> camera;

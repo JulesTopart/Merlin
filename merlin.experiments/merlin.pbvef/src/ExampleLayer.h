@@ -150,8 +150,8 @@ private:
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;
 
-	ParticleSystem_Ptr particleSystem;
-	ParticleSystem_Ptr binSystem;
+	deprecated_ParticleSystem_Ptr particleSystem;
+	deprecated_ParticleSystem_Ptr binSystem;
 
 	Renderer renderer;
 	Scene scene;

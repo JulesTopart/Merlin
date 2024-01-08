@@ -132,19 +132,19 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\shaders\common\colors.glsl" />
+    <None Include="assets\shaders\common\colors.comp" />
     <None Include="assets\shaders\model.frag" />
     <None Include="assets\shaders\model.vert" />
-    <None Include="assets\shaders\common\uniforms.glsl" />
-    <None Include="assets\shaders\common\nns.glsl" />
+    <None Include="assets\shaders\common\uniforms.comp" />
+    <None Include="assets\shaders\common\nns.comp" />
     <None Include="assets\shaders\solver\collision.glsl" />
     <None Include="assets\shaders\solver\constraint.glsl" />
     <None Include="assets\shaders\solver\prefix.sum.comp" />
     <None Include="assets\shaders\skybox.frag" />
     <None Include="assets\shaders\skybox.vert" />
     <None Include="assets\shaders\solver\solver.comp" />
-    <None Include="assets\shaders\common\buffers.glsl" />
-    <None Include="assets\shaders\common\constants.glsl" />
+    <None Include="assets\shaders\common\buffers.comp" />
+    <None Include="assets\shaders\common\constants.comp" />
     <None Include="assets\shaders\box.frag" />
     <None Include="assets\shaders\box.vert" />
     <None Include="assets\shaders\particle.frag" />

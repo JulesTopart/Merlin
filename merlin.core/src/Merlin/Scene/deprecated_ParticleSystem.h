@@ -80,7 +80,7 @@ namespace Merlin::Tensor {
 			m_buffers.push_back(buffer);
 			if (m_shaders.size() == 0) Console::info("ParticleSystem") << "Shader list is empty. Load particle system shader before adding buffer to enable automatic shader attach or attach them manually" << Console::endl;
 			for (Shared<ComputeShader> shader : m_shaders) {
-				shader->Attach(*buffer, m_buffers.size() - 1);
+				shader->Attach(*buffer);
 			}
 		}
 
@@ -90,6 +90,6 @@ namespace Merlin::Tensor {
 		
 	};
 
-	typedef Shared<deprecated_ParticleSystem> ParticleSystem_Ptr;
+	typedef Shared<deprecated_ParticleSystem> deprecated_ParticleSystem_Ptr;
 
 }

@@ -146,7 +146,7 @@ void ExampleLayer::InitPhysics() {
 	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 	
 	//Create particle system
-	particleSystem = ParticleSystem::Create("ParticleSystem", settings.pThread);
+	particleSystem = deprecated_ParticleSystem::Create("ParticleSystem", settings.pThread);
 	particleSystem->Translate(glm::vec3(0, 0, 0.5));
 
 	//Define the mesh for instancing (Here a cube)
@@ -157,12 +157,12 @@ void ExampleLayer::InitPhysics() {
 	particle->SetShader(particleShader);
 	particleSystem->SetMesh(particle);
 	particleSystem->Translate(glm::vec3(0, 0, -0.5));
-	particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
+	particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 	//particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 
 	//Create bin system
 	Console::info("Memory") << "size of FluidParticle is " << sizeof(FluidParticle) << Console::endl;
-	binSystem = ParticleSystem::Create("BinSystem", settings.bThread);
+	binSystem = deprecated_ParticleSystem::Create("BinSystem", settings.bThread);
 	binSystem->Translate(glm::vec3(0, 0, 0));
 
 	//Define the mesh for bin instancing (Here a cube)
@@ -544,8 +544,8 @@ void ExampleLayer::OnImGuiRender()
 	
 	static bool transparency = true;
 	if (ImGui::Checkbox("Particle transparency", &transparency)) {
-		if(transparency) particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
-		else particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
+		if(transparency) particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
+		else particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
 	}
 
 	ImGui::Checkbox("Integrate", &integrate);

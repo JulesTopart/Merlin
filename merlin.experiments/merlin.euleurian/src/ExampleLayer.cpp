@@ -94,7 +94,7 @@ void ExampleLayer::InitGraphics() {
 	streamMesh->SetDrawMode(GL_LINES);
 	streamMesh->SetShader("streamlines");
 
-	streamlines = ParticleSystem::Create("StreamLineSystem", 1);
+	streamlines = deprecated_ParticleSystem::Create("StreamLineSystem", 1);
 	streamlines->SetMesh(streamMesh);
 
 	scene.Add(streamlines);
