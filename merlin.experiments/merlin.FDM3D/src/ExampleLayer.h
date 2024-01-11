@@ -94,16 +94,12 @@ private:
 	Shared<Shader> modelShader;
 	Shared<Shader> voxelShader;
 
-	//Heat Map
-	Shared<SSBO> heatMap;
-	int colorCount;
-
 	//Computing
 	Shared<ComputeShader> physics;
 	Shared<ComputeShader> init;
 
-	Shared<SSBO> buffer;
-	Shared<SSBO> binBuffer;
+	SSBO buffer;
+	SSBO binBuffer;
 	Shared<Solver> solver;
 	GLsizeiptr nodeCount, sqNodeCount;
 	float domainWidth;

@@ -233,6 +233,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\shaders\default.model.frag" />
+    <None Include="assets\shaders\default.model.vert" />
+    <None Include="assets\shaders\default.skybox.frag" />
+    <None Include="assets\shaders\default.skybox.vert" />
     <None Include="note.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -6,8 +6,8 @@ layout (location = 2) in vec3 _color;
 layout (location = 3) in vec2 _texCoord;
 
 out vec3 position;
-out vec3 normal;
-out vec3 color;
+flat out vec3 normal;
+flat out vec3 color;
 out vec2 texCoord;
 
 uniform mat4 view;

@@ -78,8 +78,12 @@
       <AdditionalDependencies>merlin.core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy "$(SolutionDir)merlin.core\assets\*" "$(ProjectDir)assets\common\" /E /Y /I</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)merlin.core\assets\*" "$(ProjectDir)assets\common\" /E /Y /I</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -103,8 +107,12 @@
       <AdditionalDependencies>merlin.core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy "$(SolutionDir)merlin.core\assets\*" "$(ProjectDir)assets\common\" /E /Y /I</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)merlin.core\assets\*" "$(ProjectDir)assets\common\" /E /Y /I</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\ExampleLayer.h" />
@@ -134,11 +142,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\common\shaders\default.model.frag" />
+    <None Include="assets\common\shaders\default.model.vert" />
     <None Include="assets\shaders\model.frag" />
     <None Include="assets\shaders\model.vert" />
-    <None Include="assets\shaders\normal.geom.glsl" />
-    <None Include="assets\shaders\normal.vert.glsl" />
-    <None Include="assets\shaders\normal.frag.glsl" />
     <None Include="assets\shaders\pbr.frag.glsl" />
     <None Include="assets\shaders\pbr.vert.glsl" />
     <None Include="assets\shaders\skybox.frag.glsl" />

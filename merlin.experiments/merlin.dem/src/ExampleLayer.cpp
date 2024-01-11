@@ -36,7 +36,7 @@ void ExampleLayer::OnAttach() {
 	Window* wd = &Application::Get().GetWindow();
 	_height = wd->GetHeight();
 	_width = wd->GetWidth();
-	ImGui::LoadIniSettingsFromDisk("imgui.ini");
+	//ImGui::LoadIniSettingsFromDisk("imgui.ini");
 	Console::SetLevel(ConsoleLevel::_INFO);
 
 	InitGraphics();

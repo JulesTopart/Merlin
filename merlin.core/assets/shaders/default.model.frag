@@ -1,13 +1,13 @@
 #version 330 core
 
 in vec3 position;
-in vec3 normal;
-in vec3 color;
+flat in vec3 normal;
+flat in vec3 color;
 in vec2 texCoord;
 
 uniform vec3 viewPos;
 uniform vec3 lightPos;
-uniform vec4 lightColor;
+uniform vec4 lightColor = vec4(1);
 
 uniform vec3 ambient;
 uniform vec3 diffuse;
@@ -32,7 +32,7 @@ vec4 defaultLight() {
 		norm = normalize(texture(normal0, uv).rgb) * norm;
 	}
 
-	vec3 lightDir = normalize(lightPos - position);
+	vec3 lightDir = normalize(lightPos - position );
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuseColor;
 	if (hasColorTex == 1) {

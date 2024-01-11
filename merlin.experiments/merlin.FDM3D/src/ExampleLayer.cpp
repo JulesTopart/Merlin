@@ -2,7 +2,7 @@
 
 using namespace Merlin;
 using namespace Merlin::Utils;
-using namespace Merlin::Renderer;
+using namespace Merlin::Graphics;
 
 #include <iostream>
 #include <iomanip>
@@ -29,7 +29,7 @@ ExampleLayer::ExampleLayer() {
 
 void ExampleLayer::CreateMesh() {
 	//voxels = Primitive::CreateSphere(0.040 / sqNodeCount /2, 8, 8);
-	voxels = Primitive::CreateCube(0.050 * 0.8 / sqNodeCount);
+	voxels = Primitives::CreateCube(0.050 * 0.8 / sqNodeCount);
 	voxels->Translate(glm::vec3(-0.475f, -0.475f, 0));
 }
 

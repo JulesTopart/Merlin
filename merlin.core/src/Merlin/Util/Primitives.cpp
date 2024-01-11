@@ -269,15 +269,16 @@ namespace Merlin::Utils {
 
 			// Indices for top face
 			const int iTopCenter = (res + 1) * 2;
-			indices.push_back(iTopCenter);
-			indices.push_back(i0);
 			indices.push_back(i2);
+			indices.push_back(i0);
+			indices.push_back(iTopCenter);
+			
 
 			// Indices for bottom face
 			const int iBottomCenter = (res + 1) * 2 + 1;
-			indices.push_back(iBottomCenter);
-			indices.push_back(i3);
 			indices.push_back(i1);
+			indices.push_back(i3);
+			indices.push_back(iBottomCenter);
 		}
 
 		// Generate vertices
@@ -299,12 +300,55 @@ namespace Merlin::Utils {
 
 	Shared<Mesh> Primitives::CreateSphere(float r, int hres, int vres) {
 
-		std::vector<glm::vec3> vertices;
+		std::vector<glm::vec3> position;
 		std::vector<glm::vec3> normals;
+		std::vector<glm::vec2> tex;
 
-		vertices.resize(hres * vres * 6);
-		normals.resize(hres * vres * 6);
+		
+		float x, y, z, xy;                              // vertex position
+		float nx, ny, nz, lengthInv = 1.0f / r;    // vertex normal
+		float s, t;                                     // vertex texCoord
 
+		float sectorStep = 2 * glm::pi<float>() / hres;
+		float stackStep = glm::pi<float>() / vres;
+		float sectorAngle, stackAngle;
+
+		for (int i = 0; i <= vres; ++i)
+		{
+			stackAngle = glm::pi<float>() / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+			xy = r * cosf(stackAngle);             // r * cos(u)
+			z = r * sinf(stackAngle);              // r * sin(u)
+
+			// add (sectorCount+1) vertices per stack
+			// first and last vertices have same position and normal, but different tex coords
+			for (int j = 0; j <= hres; ++j)
+			{
+				sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+
+				// vertex position (x, y, z)
+				x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
+				y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+
+				position.push_back(glm::vec3(x, y, z));
+
+				// normalized vertex normal (nx, ny, nz)
+				nx = x * lengthInv;
+				ny = y * lengthInv;
+				nz = z * lengthInv;
+				normals.push_back(glm::vec3(nx, ny, nz));
+
+				// vertex tex coord (s, t) range between [0, 1]
+				s = (float)j / hres;
+				t = (float)i / vres;
+				tex.push_back(glm::vec2(s, t));
+			}
+		}
+
+
+
+
+
+		/*
 		float d_h = 2 * glm::pi<float>() / ((float)hres);
 		float d_v = glm::pi<float>() / ((float)vres);
 		int n = 0;
@@ -316,7 +360,7 @@ namespace Merlin::Utils {
 				float v = j * d_v;
 				float vn = v + d_v;
 
-				// The sphere is consists of multiple triangles where 2 triangles make a plane.
+				// The sphere is consists of multiple triangles where 2 triangles make a quad.
 				// These 4 points are the corners of said plane. To create a triangle 3 of these corners are
 				// used counterclockwise with the 2nd triangle's first point being the 1st last point.
 				// Normal vectors are the same as the points without the radius multiplied.
@@ -342,13 +386,49 @@ namespace Merlin::Utils {
 				normals.at(n++) = glm::vec3(p0);
 			}
 		}
+		*/
 
+		std::vector<int> indices;
+		std::vector<int> lineIndices;
+		int k1, k2;
+		for (int i = 0; i < vres; ++i)
+		{
+			k1 = i * (hres + 1);     // beginning of current stack
+			k2 = k1 + hres + 1;      // beginning of next stack
 
-		Vertices v;
-		for (int i(0); i < vertices.size(); i++) {
-			v.push_back({ vertices[i], normals[i], glm::vec3(1)});
+			for (int j = 0; j < hres; ++j, ++k1, ++k2)
+			{
+				// 2 triangles per sector excluding first and last stacks
+				// k1 => k2 => k1+1
+				if (i != 0)
+				{
+					indices.push_back(k1);
+					indices.push_back(k2);
+					indices.push_back(k1 + 1);
+				}
+
+				// k1+1 => k2 => k2+1
+				if (i != (vres - 1))
+				{
+					indices.push_back(k1 + 1);
+					indices.push_back(k2);
+					indices.push_back(k2 + 1);
+				}
+			}
 		}
-		return Mesh::Create("Sphere",v);
+	
+		
+		Vertices v;
+		for (int i(0); i < position.size(); i++) {
+			v.push_back({ position[i], normals[i], glm::vec3(1), tex[i]});
+		}
+
+		Indices i;
+		for (int j(0); j < indices.size(); j++) {
+			i.push_back(indices[j]);
+		}
+
+		return Mesh::Create("Sphere",v, i);
 	}
 
 

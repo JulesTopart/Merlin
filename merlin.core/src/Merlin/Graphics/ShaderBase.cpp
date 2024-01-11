@@ -31,7 +31,7 @@ namespace Merlin::Graphics {
 	void ShaderBase::Use() const {
 		//LOG_TRACE("Shader") << "Using program : " << m_programID << Console::endl;
 		if (!IsCompiled()) {
-			LOG_ERROR("Shader") << "Failed to bind shader. Program is not compiled" << Console::endl;
+			//LOG_ERROR("Shader") << "Failed to bind shader. Program is not compiled" << Console::endl;
 			return;
 		}
 		glUseProgram(m_programID);
@@ -137,7 +137,7 @@ namespace Merlin::Graphics {
 		}
 		else {
 			LOG_ERROR("ShaderLoader") << "Can't read file " << filename << Console::endl;
-			throw(errno);
+			//throw(errno);
 			return "error";
 		}
 	}

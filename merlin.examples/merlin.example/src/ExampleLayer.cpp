@@ -25,7 +25,8 @@ ExampleLayer::~ExampleLayer(){}
 
 Shared<Mesh> GetModel() {
 	//return ModelLoader::LoadModel("assets/models/cube.stl")->meshes()[0];
-	return Primitives::CreateSphere(0.5, 30, 30);
+	//return Primitives::CreateSphere(0.5, 30, 30);
+	return Primitives::CreateCylinder(0.5, 0.5, 30);
 }
 
 void ExampleLayer::OnAttach(){
@@ -33,8 +34,9 @@ void ExampleLayer::OnAttach(){
 	Console::SetLevel(ConsoleLevel::_INFO);
 
 	renderer.Initialize();
+	renderer.EnableSampleShading();
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
-	modelShader = Shader::Create("default", "assets/shaders/model.vert", "assets/shaders/model.frag");
+	modelShader = Shader::Create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
 	renderer.AddShader(modelShader);
 
 	Shared<Model> model1 = Model::Create("sphere1", GetModel());
@@ -62,7 +64,7 @@ void ExampleLayer::OnAttach(){
 	Shared<Model> model23 = Model::Create("sphere23", GetModel());
 	Shared<Model> model24 = Model::Create("sphere24", GetModel());
 	Shared<Model> floor = Model::Create("floor", Primitives::CreateCube(10, 6, 0.1));
-	light = Model::Create("light", Primitives::CreateCube(0.2));
+	light = Model::Create("light", Primitives::CreateSphere(0.05));
 
 	model1->SetMaterial("emerald");
 	model2->SetMaterial("jade");
@@ -96,15 +98,19 @@ void ExampleLayer::OnAttach(){
 	lightMat->SetShininess(1);
 
 	Shared<Material> floorMat = CreateShared<Material>("floorMat");
-	floorMat->SetAmbient(glm::vec3(0.2));
+	floorMat->SetAmbient(glm::vec3(0.0));
 	floorMat->SetDiffuse(glm::vec3(0.4));
-	floorMat->SetSpecular(glm::vec3(0.2));
+	floorMat->SetSpecular(glm::vec3(0.0));
 	floorMat->SetShininess(0.2);
-	floorMat->LoadTexture("./assets/textures/wall.jpg");
+	//floorMat->LoadTexture("./assets/textures/wall.jpg");
 
 	light->SetMaterial(lightMat);
 	floor->SetMaterial(floorMat);
 
+	Model_Ptr sphere = Model::Create("cube", Primitives::CreateSphere(1));
+	sphere->SetMaterial(floorMat);
+	scene.Add(sphere);
+	/*
 	scene.Add(model1);
 	scene.Add(model2);
 	scene.Add(model3);
@@ -128,7 +134,7 @@ void ExampleLayer::OnAttach(){
 	scene.Add(model21);
 	scene.Add(model22);
 	scene.Add(model23);
-	scene.Add(model24);
+	scene.Add(model24);*/
 
 	int offset = 0;
 	float spacing = 1.2;
@@ -141,8 +147,8 @@ void ExampleLayer::OnAttach(){
 			
 	}
 
-	floor->Translate(glm::vec3(2.8, 2, -1));
-	light->Translate(glm::vec3(2.8, 2, 2));
+	//floor->Translate(glm::vec3(2.8, 2, -1));
+	light->Translate(glm::vec3(0, 0, 0.6));
 
 	scene.Add(floor);
 	scene.Add(light);
