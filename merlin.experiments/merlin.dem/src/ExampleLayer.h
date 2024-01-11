@@ -164,7 +164,6 @@ public:
 	void InitGraphics();
 	void InitPhysics();
 	void ResetSimulation();
-	void SetColorGradient();
 	void UpdateBufferSettings();
 	
 	void NeigborSearch();
@@ -187,7 +186,6 @@ private:
 	SSBO_Ptr<Bin> binBuffer; //Particle buffer
 	SSBO_Ptr<FluidParticle> particleBuffer; //Particle buffer
 	SSBO_Ptr<DistanceContraint> constraintBuffer; //Particle buffer
-	SSBO_Ptr<ColorScale> colorScaleBuffer; //Particle buffer
 
 	Shader_Ptr modelShader;
 	Shader_Ptr particleShader;
@@ -200,10 +198,6 @@ private:
 	Scene scene;
 	TransformObject_Ptr origin;
 	Model_Ptr  light;
-
-	//Heat Map
-	SSBO_Ptr<glm::vec4> heatMap;
-	int colorCount;
 
 	//Camera
 	Camera_Ptr camera;
