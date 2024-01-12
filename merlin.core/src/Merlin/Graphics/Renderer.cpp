@@ -216,11 +216,10 @@ namespace Merlin::Graphics {
 
 			tex = mat->GetTexture(TextureType::COLOR);
 			//WARNING This should be done once...
+			tex->Bind();
 			tex->SetUnit(2); //Skybox is 0...
 			tex->SyncTextureUnit(*shader, (tex->typeToString()) + "0");
 
-
-			tex->Bind();
 			shader->SetInt("hasColorTex", !tex->IsDefault());
 		}
 		

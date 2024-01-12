@@ -176,7 +176,6 @@ void ExampleLayer::OnAttach(){
 
 	EnableGLDebugging();
 	Console::SetLevel(ConsoleLevel::_INFO);
-
 	renderer.Initialize();
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
 
@@ -200,9 +199,8 @@ void ExampleLayer::OnAttach(){
 	fbo->AddColorAttachment(fbo->CreateTextureAttachment(GL_RGB, 0));
 	fbo->Unbind();
 	
-	modelShader = Shader::Create("default", "assets/shaders/model.vert", "assets/shaders/model.frag");
+	modelShader = Shader::Create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
 	renderer.AddShader(modelShader);
-	
 	LoadScene();
 }
 
@@ -242,6 +240,7 @@ void ExampleLayer::OnUpdate(Timestep ts) {
 	light->Translate(glm::vec3(cos(t)*10 - x, sin(t)*10 - y, 0.0));
 	modelShader->Use();
 	modelShader->SetVec3("lightPos", light->position());
+	modelShader->SetVec4("lightColor", glm::vec4(1));
 
 	renderer.RenderScene(scene, *camera);
 

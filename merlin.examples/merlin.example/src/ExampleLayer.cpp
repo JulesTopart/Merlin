@@ -24,7 +24,7 @@ ExampleLayer::~ExampleLayer(){}
 
 Shared<Mesh> GetModel() {
 	//return ModelLoader::LoadModel("assets/models/cube.stl")->meshes()[0];
-	Shared<Mesh> m = Primitives::CreateSphere(0.5, 30, 30);
+	Shared<Mesh> m = Primitives::CreateSphere(0.5, 40, 40);
 	return m;
 }
 
@@ -39,7 +39,6 @@ void ExampleLayer::OnAttach(){
 	renderer.AddShader(modelShader);
 	renderer.AddShader(Shader::Create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom"));
 
-	
 	std::vector<std::string> skyBoxPath = {
 	"./assets/textures/skybox/right.jpg",
 	"./assets/textures/skybox/left.jpg",
@@ -59,7 +58,7 @@ void ExampleLayer::OnAttach(){
 	};
 
 	Shared<Shader> skyShader = Shader::Create("skybox", "assets/shaders/skybox.vert.glsl", "assets/shaders/skybox.frag.glsl");
-	Shared<SkyBox> sky = CreateShared<SkyBox>("Sky", skyBoxPath);
+	sky = CreateShared<SkyBox>("Sky", skyBoxPath);
 	sky->SetShader(skyShader);
 	scene.Add(sky);
 
@@ -89,7 +88,6 @@ void ExampleLayer::OnAttach(){
 	Shared<Model> model24 = Model::Create("sphere24", GetModel());
 	Shared<Model> floor = Model::Create("floor", Primitives::CreateCube(10, 6, 0.1));
 	light = Model::Create("light", Primitives::CreateSphere(0.05));
-
 
 	model1->SetMaterial("emerald");
 	model2->SetMaterial("jade");
@@ -161,15 +159,18 @@ void ExampleLayer::OnAttach(){
 	for (auto& node : scene.nodes()){
 		if (node != nullptr)
 		{
-			node->Translate(glm::vec3(offset /4 * spacing, (offset % 4) * spacing,0));
+			if (node->GetType() == ObjectType::SKYBOX) continue;
+			else {
+			node->Translate(glm::vec3(offset / 4 * spacing, (offset % 4) * spacing, 0));
 			offset++;
+			}
 		}
 			
 	}
 
 	Shared<Model> model0 = Model::Create("sphere0", GetModel());
 	model0->SetShader("debug.normals");
-	//scene.Add(model0);
+	scene.Add(model0);
 	floor->Translate(glm::vec3(2.8, 2, -1));
 	light->Translate(glm::vec3(2.8, 2, 0.6));
 

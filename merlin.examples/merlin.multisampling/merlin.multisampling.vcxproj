@@ -80,6 +80,9 @@
     <PreBuildEvent>
       <Command>xcopy "$(SolutionDir)merlin.core\assets\*" "$(ProjectDir)assets\common\" /E /Y /I</Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)merlin.core\assets\*" "$(ProjectDir)assets\common\" /E /Y /I</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -105,6 +108,9 @@
     <PreBuildEvent>
       <Command>xcopy "$(SolutionDir)merlin.core\assets\*" "$(ProjectDir)assets\common\" /E /Y /I</Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)merlin.core\assets\*" "$(ProjectDir)assets\common\" /E /Y /I</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\ExampleLayer.h" />
@@ -131,8 +137,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\shaders\model.frag" />
-    <None Include="assets\shaders\model.vert" />
     <None Include="assets\shaders\normal.frag.glsl" />
     <None Include="assets\shaders\normal.geom.glsl" />
     <None Include="assets\shaders\normal.vert.glsl" />

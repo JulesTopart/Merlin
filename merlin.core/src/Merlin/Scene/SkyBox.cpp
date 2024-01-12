@@ -10,7 +10,7 @@ namespace Merlin::Graphics {
 	}
 
 
-	SkyBox::SkyBox(std::string name) : RenderableObject(name), m_vao(){
+	SkyBox::SkyBox(std::string name) : RenderableObject(name, ObjectType::SKYBOX), m_vao(){
 		std::vector<float> skyboxVertices =
 		{
 			//   Coordinates
@@ -59,7 +59,7 @@ namespace Merlin::Graphics {
 
 	}
 
-	SkyBox::SkyBox(std::string name, std::vector<std::string> paths) : RenderableObject(name), m_vao() {
+	SkyBox::SkyBox(std::string name, std::vector<std::string> paths) : RenderableObject(name, ObjectType::SKYBOX), m_vao() {
 		std::vector<float> skyboxVertices =
 		{
 			//   Coordinates
