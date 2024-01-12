@@ -176,7 +176,6 @@ void ExampleLayer::OnAttach(){
 	scene.Add(floor);
 	scene.Add(light);
 
-
 	modelShader->Use();
 	modelShader->SetVec3("lightPos", light->position());
 	modelShader->SetVec4("lightColor", glm::vec4(1));
