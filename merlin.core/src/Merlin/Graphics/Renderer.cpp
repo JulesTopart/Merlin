@@ -191,8 +191,7 @@ namespace Merlin::Graphics {
 
 			mat = &_materialLibrary.Get(mesh.GetMaterialName());
 		}
-			
-		
+				
 		shader->Use();
 
 		if (shader->SupportMaterial()) {

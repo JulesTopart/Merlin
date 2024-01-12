@@ -298,6 +298,8 @@ namespace Merlin::Utils {
 		return CreateShared<Mesh>("Cylinder", vertices, indices, GL_TRIANGLES);
 	}
 
+
+	/*
 	Shared<Mesh> Primitives::CreateSphere(float r, int hres, int vres) {
 
 		std::vector<glm::vec3> position;
@@ -343,53 +345,8 @@ namespace Merlin::Utils {
 				tex.push_back(glm::vec2(s, t));
 			}
 		}
-
-
-
-
-
-		/*
-		float d_h = 2 * glm::pi<float>() / ((float)hres);
-		float d_v = glm::pi<float>() / ((float)vres);
-		int n = 0;
-		// Vertices are created inside this loop.
-		for (int i = 0; i < hres; i++) {
-			float h = i * d_h;
-			float hn = h + d_h;
-			for (int j = 0; j < vres; j++) {
-				float v = j * d_v;
-				float vn = v + d_v;
-
-				// The sphere is consists of multiple triangles where 2 triangles make a quad.
-				// These 4 points are the corners of said plane. To create a triangle 3 of these corners are
-				// used counterclockwise with the 2nd triangle's first point being the 1st last point.
-				// Normal vectors are the same as the points without the radius multiplied.
-				glm::vec4 p0(glm::cos(h) * glm::sin(v), glm::sin(h) * glm::sin(v),
-					glm::cos(v), 1.0f);
-				glm::vec4 p1(glm::cos(h) * glm::sin(vn), glm::sin(h) * glm::sin(vn),
-					glm::cos(vn), 1.0f);
-				glm::vec4 p2(glm::cos(hn) * glm::sin(v), glm::sin(hn) * glm::sin(v),
-					glm::cos(v), 1.0f);
-				glm::vec4 p3(glm::cos(hn) * glm::sin(vn), glm::sin(hn) * glm::sin(vn),
-					glm::cos(vn), 1.0f);
-				vertices[n] = p0 * r;
-				normals.at(n++) = glm::vec3(p0);
-				vertices.at(n) = p1 * r;
-				normals.at(n++) = glm::vec3(p1);
-				vertices.at(n) = p3 * r;
-				normals.at(n++) = glm::vec3(p3);
-				vertices.at(n) = p3 * r;
-				normals.at(n++) = glm::vec3(p3);
-				vertices.at(n) = p2 * r;
-				normals.at(n++) = glm::vec3(p2);
-				vertices.at(n) = p0 * r;
-				normals.at(n++) = glm::vec3(p0);
-			}
-		}
-		*/
-
+		
 		std::vector<int> indices;
-		std::vector<int> lineIndices;
 		int k1, k2;
 		for (int i = 0; i < vres; ++i)
 		{
@@ -416,7 +373,64 @@ namespace Merlin::Utils {
 				}
 			}
 		}
-	
+
+
+		
+
+		
+		position.resize(hres * vres * 6);
+		normals.resize(hres * vres * 6);
+
+		float d_h = 2 * glm::pi<float>() / ((float)hres);
+		float d_v = glm::pi<float>() / ((float)vres);
+		int n = 0;
+		// Vertices are created inside this loop.
+		for (int i = 0; i < hres; i++) {
+			float h = i * d_h;
+			float hn = h + d_h;
+			for (int j = 0; j < vres; j++) {
+				float v = j * d_v;
+				float vn = v + d_v;
+
+				// The sphere is consists of multiple triangles where 2 triangles make a quad.
+				// These 4 points are the corners of said plane. To create a triangle 3 of these corners are
+				// used counterclockwise with the 2nd triangle's first point being the 1st last point.
+				// Normal vectors are the same as the points without the radius multiplied.
+				glm::vec4 p0(glm::cos(h) * glm::sin(v), glm::sin(h) * glm::sin(v),
+					glm::cos(v), 1.0f);
+				glm::vec4 p1(glm::cos(h) * glm::sin(vn), glm::sin(h) * glm::sin(vn),
+					glm::cos(vn), 1.0f);
+				glm::vec4 p2(glm::cos(hn) * glm::sin(v), glm::sin(hn) * glm::sin(v),
+					glm::cos(v), 1.0f);
+				glm::vec4 p3(glm::cos(hn) * glm::sin(vn), glm::sin(hn) * glm::sin(vn),
+					glm::cos(vn), 1.0f);
+				position[n] = p0 * r;
+				normals.at(n++) = glm::vec3(p0);
+				position.at(n) = p1 * r;
+				normals.at(n++) = glm::vec3(p1);
+				position.at(n) = p3 * r;
+				normals.at(n++) = glm::vec3(p3);
+				position.at(n) = p3 * r;
+				normals.at(n++) = glm::vec3(p3);
+				position.at(n) = p2 * r;
+				normals.at(n++) = glm::vec3(p2);
+				position.at(n) = p0 * r;
+				normals.at(n++) = glm::vec3(p0);
+
+				// vertex tex coord (s, t) range between [0, 1]
+				float s = (float)j / hres;
+				float t = (float)i / vres;
+				tex.push_back(glm::vec2(s, t));
+			}
+		}
+
+		Vertices v;
+		for (int i(0); i < position.size(); i++) {
+			v.push_back({ position[i], normals[i], glm::vec3(1) });
+		}
+		return Mesh::Create("Sphere", v);
+		
+
 		
 		Vertices v;
 		for (int i(0); i < position.size(); i++) {
@@ -429,8 +443,101 @@ namespace Merlin::Utils {
 		}
 
 		return Mesh::Create("Sphere",v, i);
+		
 	}
+	*/
 
+
+
+
+	Shared<Mesh> Primitives::CreateSphere(float r, int hres, int vres) {
+
+		std::vector<glm::vec3> position;
+		std::vector<glm::vec3> normals;
+		std::vector<glm::vec2> tex;
+		std::vector<GLuint> indices;
+
+		glm::vec3 v0 = glm::vec3(0, r, 0);
+		tex.push_back(glm::vec2(0, 0));
+		position.push_back(v0);
+		normals.push_back(glm::normalize(v0));
+
+		for (int i = 0; i < vres - 1; i++)
+		{
+			auto phi = glm::pi<float>() * double(i + 1) / double(vres);
+			for (int j = 0; j < hres; j++)
+			{
+				auto theta = 2.0 * glm::pi<float>() * double(j) / double(hres);
+				auto x = std::sin(phi) * std::cos(theta) * r;
+				auto y = std::cos(phi) * r;
+				auto z = std::sin(phi) * std::sin(theta) * r;
+				position.push_back(glm::vec3(x, y, z));
+				normals.push_back(glm::normalize((glm::vec3(x, y, z))));
+
+				// vertex tex coord (s, t) range between [0, 1]
+				float s = (float)j / hres;
+				float t = (float)i / vres;
+				tex.push_back(glm::vec2(s, t));
+			}
+		}
+
+		glm::vec3 v1 = glm::vec3(0, -r, 0);
+		position.push_back(v1);
+		normals.push_back(glm::normalize(v1));
+		tex.push_back(glm::vec2(0, 1));
+		GLuint iv1 = position.size() - 1;
+
+		for (int i = 0; i < hres; ++i)
+		{
+			auto i0 = i + 1;
+			auto i1 = (i + 1) % hres + 1;
+			indices.push_back(0);
+			indices.push_back(i1);
+			indices.push_back(i0);
+			i0 = i + hres * (vres - 2) + 1;
+			i1 = (i + 1) % hres + hres * (vres - 2) + 1;
+			indices.push_back(iv1);
+			indices.push_back(i1);
+			indices.push_back(i0);
+		}
+
+
+		for (int j = 0; j < vres - 2; j++)
+		{
+			auto j0 = j * hres + 1;
+			auto j1 = (j + 1) * hres + 1;
+			for (int i = 0; i < hres; i++)
+			{
+				auto i0 = j0 + i;
+				auto i1 = j0 + (i + 1) % hres;
+				auto i2 = j1 + (i + 1) % hres;
+				auto i3 = j1 + i;
+
+				indices.push_back(i0);
+				indices.push_back(i1);
+				indices.push_back(i2);
+				
+				indices.push_back(i0);
+				indices.push_back(i3);
+				indices.push_back(i2);
+			}
+		}
+
+
+		Vertices v;
+		for (int i(0); i < position.size(); i++) {
+			v.push_back({ position[i], normals[i], glm::vec3(1), tex[i]});
+		}
+
+		Indices i;
+		for (int j(0); j < indices.size(); j++) {
+			i.push_back(indices[j]);
+		}
+
+		return Mesh::Create("Sphere",v, i);
+
+	}
+		
 
 	Shared<Mesh> Primitives::CreateFromQuad(std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode) {
 		std::vector<GLuint> indices_buffer;

@@ -22,11 +22,10 @@ ExampleLayer::ExampleLayer(){
 
 ExampleLayer::~ExampleLayer(){}
 
-
 Shared<Mesh> GetModel() {
 	//return ModelLoader::LoadModel("assets/models/cube.stl")->meshes()[0];
-	//return Primitives::CreateSphere(0.5, 30, 30);
-	return Primitives::CreateCylinder(0.5, 0.5, 30);
+	Shared<Mesh> m = Primitives::CreateSphere(0.5, 30, 30);
+	return m;
 }
 
 void ExampleLayer::OnAttach(){
@@ -38,6 +37,31 @@ void ExampleLayer::OnAttach(){
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
 	modelShader = Shader::Create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
 	renderer.AddShader(modelShader);
+	renderer.AddShader(Shader::Create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom"));
+
+	
+	std::vector<std::string> skyBoxPath = {
+	"./assets/textures/skybox/right.jpg",
+	"./assets/textures/skybox/left.jpg",
+	"./assets/textures/skybox/bottom.jpg",
+	"./assets/textures/skybox/top.jpg",
+	"./assets/textures/skybox/front.jpg",
+	"./assets/textures/skybox/back.jpg"
+	};
+
+	std::vector<std::string> studioPath = {
+		"./assets/textures/studio/pz.png",
+		"./assets/textures/studio/nz.png",
+		"./assets/textures/studio/ny.png",
+		"./assets/textures/studio/py.png",
+		"./assets/textures/studio/nx.png",
+		"./assets/textures/studio/px.png"
+	};
+
+	Shared<Shader> skyShader = Shader::Create("skybox", "assets/shaders/skybox.vert.glsl", "assets/shaders/skybox.frag.glsl");
+	Shared<SkyBox> sky = CreateShared<SkyBox>("Sky", skyBoxPath);
+	sky->SetShader(skyShader);
+	scene.Add(sky);
 
 	Shared<Model> model1 = Model::Create("sphere1", GetModel());
 	Shared<Model> model2 = Model::Create("sphere2", GetModel());
@@ -65,6 +89,7 @@ void ExampleLayer::OnAttach(){
 	Shared<Model> model24 = Model::Create("sphere24", GetModel());
 	Shared<Model> floor = Model::Create("floor", Primitives::CreateCube(10, 6, 0.1));
 	light = Model::Create("light", Primitives::CreateSphere(0.05));
+
 
 	model1->SetMaterial("emerald");
 	model2->SetMaterial("jade");
@@ -98,19 +123,14 @@ void ExampleLayer::OnAttach(){
 	lightMat->SetShininess(1);
 
 	Shared<Material> floorMat = CreateShared<Material>("floorMat");
-	floorMat->SetAmbient(glm::vec3(0.0));
-	floorMat->SetDiffuse(glm::vec3(0.4));
-	floorMat->SetSpecular(glm::vec3(0.0));
-	floorMat->SetShininess(0.2);
-	//floorMat->LoadTexture("./assets/textures/wall.jpg");
+	floorMat->SetAmbient(glm::vec3(0.4));
+	floorMat->SetDiffuse(glm::vec3(0.6));
+	floorMat->SetSpecular(glm::vec3(0.2));
+	floorMat->SetShininess(0.1);
 
 	light->SetMaterial(lightMat);
 	floor->SetMaterial(floorMat);
 
-	Model_Ptr sphere = Model::Create("cube", Primitives::CreateSphere(1));
-	sphere->SetMaterial(floorMat);
-	scene.Add(sphere);
-	/*
 	scene.Add(model1);
 	scene.Add(model2);
 	scene.Add(model3);
@@ -134,7 +154,7 @@ void ExampleLayer::OnAttach(){
 	scene.Add(model21);
 	scene.Add(model22);
 	scene.Add(model23);
-	scene.Add(model24);*/
+	scene.Add(model24);
 
 	int offset = 0;
 	float spacing = 1.2;
@@ -147,35 +167,15 @@ void ExampleLayer::OnAttach(){
 			
 	}
 
-	//floor->Translate(glm::vec3(2.8, 2, -1));
-	light->Translate(glm::vec3(0, 0, 0.6));
+	Shared<Model> model0 = Model::Create("sphere0", GetModel());
+	model0->SetShader("debug.normals");
+	//scene.Add(model0);
+	floor->Translate(glm::vec3(2.8, 2, -1));
+	light->Translate(glm::vec3(2.8, 2, 0.6));
 
 	scene.Add(floor);
 	scene.Add(light);
 
-	
-	std::vector<std::string> skyBoxPath = {
-		"./assets/textures/skybox/right.jpg",
-		"./assets/textures/skybox/left.jpg",
-		"./assets/textures/skybox/bottom.jpg",
-		"./assets/textures/skybox/top.jpg",
-		"./assets/textures/skybox/front.jpg",
-		"./assets/textures/skybox/back.jpg"
-	};
-	
-	std::vector<std::string> studioPath = {
-		"./assets/textures/studio/pz.png",
-		"./assets/textures/studio/nz.png",
-		"./assets/textures/studio/ny.png",
-		"./assets/textures/studio/py.png",
-		"./assets/textures/studio/nx.png",
-		"./assets/textures/studio/px.png"
-	};
-
-	Shared<Shader> skyShader = Shader::Create("skybox", "assets/shaders/skybox.vert.glsl", "assets/shaders/skybox.frag.glsl");
-	Shared<SkyBox> sky = CreateShared<SkyBox>("Sky", skyBoxPath);
-	sky->SetShader(skyShader);
-	scene.Add(sky);
 
 	modelShader->Use();
 	modelShader->SetVec3("lightPos", light->position());
@@ -214,11 +214,10 @@ void ExampleLayer::OnImGuiRender()
 	model_matrix_translation = camera->GetPosition();
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->SetPosition(model_matrix_translation);
+
 	}
 	ImGui::End();
 
-
-	
 	// Define a recursive lambda function to traverse the scene graph
 	std::function<void(const std::list<Shared<RenderableObject>>&)> traverseNodes = [&](const std::list<Shared<RenderableObject>>& nodes)
 	{

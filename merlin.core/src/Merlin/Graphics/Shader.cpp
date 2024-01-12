@@ -217,6 +217,12 @@ namespace Merlin::Graphics {
 		defaultShader->noTexture();
 		//defaultShader->noMaterial();
 		Add(defaultShader);
+
+		/*
+		Shared<Shader> debugShader = Shader::Create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom");
+		debugShader->noTexture();
+		debugShader->noMaterial();
+		Add(debugShader);*/
 	}
 
 	void ShaderLibrary::Add(Shared<Shader> shader){

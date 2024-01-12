@@ -233,6 +233,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\shaders\debug.normals.geom" />
+    <None Include="assets\shaders\debug.normals.frag" />
+    <None Include="assets\shaders\debug.normals.vert" />
     <None Include="assets\shaders\default.model.frag" />
     <None Include="assets\shaders\default.model.vert" />
     <None Include="assets\shaders\default.skybox.frag" />

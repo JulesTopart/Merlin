@@ -69,6 +69,8 @@ namespace Merlin::Graphics {
 
 		Shared<Material> m_material;
 		Shared<Shader> m_shader;
+
+		bool debugnormal = true;
 	};
 
 	typedef Shared<Mesh> Mesh_Ptr;
