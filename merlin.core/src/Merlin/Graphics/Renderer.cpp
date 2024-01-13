@@ -5,6 +5,8 @@
 namespace Merlin::Graphics {
 
 	Renderer::Renderer() : currentTransform(glm::mat4(1.0)) {
+		m_shaderLibrary = CreateScope<ShaderLibrary>();
+		m_materialLibrary = CreateScope<MaterialLibrary>();
 	}
 
 	Renderer::~Renderer() {
@@ -15,8 +17,6 @@ namespace Merlin::Graphics {
 		EnableMultisampling();
 		EnableDepthTest();
 		EnableCubeMap();
-		
-		_materialLibrary.LoadDefaultMaterials();
 	}
 
 	void Renderer::PushMatrix() {
@@ -59,7 +59,7 @@ namespace Merlin::Graphics {
 			if (ps.GetMesh()->HasShader())
 				shader = &ps.GetMesh()->GetShader();
 			else
-				shader = &_shaderLibrary.Get(ps.GetMesh()->GetShaderName());
+				shader = &m_shaderLibrary->Get(ps.GetMesh()->GetShaderName());
 
 			shader->Use();
 			shader->SetMat4("model", currentTransform); //Sync model matrix with GPU
@@ -79,7 +79,7 @@ namespace Merlin::Graphics {
 			if (ps.GetMesh()->HasShader())
 				shader = &ps.GetMesh()->GetShader();
 			else
-				shader = &_shaderLibrary.Get(ps.GetMesh()->GetShaderName());
+				shader = &m_shaderLibrary->Get(ps.GetMesh()->GetShaderName());
 
 
 			shader->Use();
@@ -100,25 +100,34 @@ namespace Merlin::Graphics {
 			if (ps.GetMesh()->HasShader())
 				shader = &ps.GetMesh()->GetShader();
 			else
-				shader = &_shaderLibrary.Get(ps.GetMesh()->GetShaderName());
+				shader = &m_shaderLibrary->Get(ps.GetMesh()->GetShaderName());
 
 
 			if (ps.GetMesh()->HasMaterial())
 				mat = &ps.GetMesh()->GetMaterial();
 			else {
 
-				mat = &_materialLibrary.Get(ps.GetMesh()->GetMaterialName());
+				mat = &m_materialLibrary->Get(ps.GetMesh()->GetMaterialName());
 			}
 
 
 			shader->Use();
-
 			if (shader->SupportMaterial()) {
-				shader->SetVec3("ambient", mat->ambient());
-				shader->SetVec3("diffuse", mat->diffuse());
-				shader->SetVec3("specular", mat->specular());
-				shader->SetFloat("shininess", mat->shininess());
-				shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
+				if (mat->usePBR()) {
+					shader->SetVec3("albedo", mat->albedo());
+					shader->SetFloat("metallic", mat->metallic());
+					shader->SetFloat("roughness", mat->roughness());
+					shader->SetFloat("ao", mat->ao());
+					shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
+				}
+				else {
+					shader->SetVec3("ambient", mat->ambient());
+					shader->SetVec3("diffuse", mat->diffuse());
+					shader->SetVec3("specular", mat->specular());
+					shader->SetFloat("shininess", mat->shininess());
+					shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
+				}
+
 			}
 
 			shader->SetMat4("model", currentTransform); //Sync model matrix with GPU
@@ -126,8 +135,7 @@ namespace Merlin::Graphics {
 			shader->SetMat4("projection", camera.GetProjectionMatrix()); //Sync model matrix with GPU
 
 			if (shader->SupportTexture()) {
-				Shared<Texture> tex;
-				tex = mat->GetTexture(TextureType::COLOR);
+				Texture* tex = &mat->GetTexture(TextureType::COLOR);
 
 				//WARNING This should be done once...
 				tex->SetUnit(1); //Skybox is 0...
@@ -157,7 +165,7 @@ namespace Merlin::Graphics {
 		if (sky.HasShader())
 			shader = &sky.GetShader();
 		else
-			shader = &_shaderLibrary.Get(sky.GetShaderName());
+			shader = &m_shaderLibrary->Get(sky.GetShaderName());
 		
 
 		shader->Use();
@@ -182,14 +190,14 @@ namespace Merlin::Graphics {
 		if (mesh.HasShader())
 			shader = &mesh.GetShader();
 		else
-			shader = &_shaderLibrary.Get(mesh.GetShaderName());
+			shader = &m_shaderLibrary->Get(mesh.GetShaderName());
 		
 
 		if (mesh.HasMaterial()) 
 			mat = &mesh.GetMaterial();
 		else {
 
-			mat = &_materialLibrary.Get(mesh.GetMaterialName());
+			mat = &m_materialLibrary->Get(mesh.GetMaterialName());
 		}
 				
 		shader->Use();
@@ -207,14 +215,14 @@ namespace Merlin::Graphics {
 		shader->SetMat4("projection", camera.GetProjectionMatrix()); //Sync model matrix with GPU
 
 		if (shader->SupportTexture()) {
-			Shared<Texture> tex;
-			tex = mat->GetTexture(TextureType::NORMAL);
+			Texture*  tex;
+			tex = &mat->GetTexture(TextureType::NORMAL);
 			//WARNING This should be done once...
 			tex->SetUnit(1); //Skybox is 0...
 			tex->SyncTextureUnit(*shader, (tex->typeToString()) + "0");
 			tex->Bind();
 
-			tex = mat->GetTexture(TextureType::COLOR);
+			tex = &mat->GetTexture(TextureType::COLOR);
 			//WARNING This should be done once...
 			tex->Bind();
 			tex->SetUnit(2); //Skybox is 0...
@@ -262,38 +270,38 @@ namespace Merlin::Graphics {
 
 
 	const Shared<Shader>& Renderer::ShareShader(std::string n) {
-		return _shaderLibrary.Share(n);
+		return m_shaderLibrary->Share(n);
 	}
 
 
 	const Material& Renderer::GetMaterial(std::string n) {
-		return _materialLibrary.Get(n);
+		return m_materialLibrary->Get(n);
 	}
 
 	const Shader& Renderer::GetShader(std::string n) {
-		return _shaderLibrary.Get(n);
+		return m_shaderLibrary->Get(n);
 	}
 
 	void Renderer::LoadShader(const std::string& name, const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geomShaderPath) {
 		Shared<Shader> shader = Shader::Create(name, vertexShaderPath, fragmentShaderPath, geomShaderPath);
-		_shaderLibrary.Add(shader);
+		m_shaderLibrary->Add(shader);
 	}
 
 	void Renderer::CreateMaterial(MaterialProperty matProps){
 		std::string name = "material";
 		std::stringstream ss;
-		ss << name << _materialLibrary.size();
+		ss << name << m_materialLibrary->size();
 		Shared<Material> mat = CreateShared<Material>(ss.str());
-		_materialLibrary.Add(mat);
+		m_materialLibrary->Add(mat);
 	}
 
 	void Renderer::AddMaterial(Shared<Material> material) {
-		_materialLibrary.Add(material);
+		m_materialLibrary->Add(material);
 	}
 
 	void Renderer::AddShader(Shared<Shader> shader) {
 		if (!shader->IsCompiled()) Console::error("Renderer") << "Shader is not compiled. Compile the shader before adding them to the ShaderLibrary" << Console::endl;
-		_shaderLibrary.Add(shader);
+		m_shaderLibrary->Add(shader);
 	}
 
 	void Renderer::Clear() {

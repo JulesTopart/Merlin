@@ -64,22 +64,22 @@ namespace Merlin::Graphics {
         for (const auto& mesh : m_meshes) {
             if (mesh->HasMaterial() && mesh->HasShader()) {
 				const Shader* shader = &mesh->GetShader();
-				const Material* mat = &mesh->GetMaterial();
+				const Material& mat = mesh->GetMaterial();
 
-				shader->SetVec3("ambient", mat->ambient());
-				shader->SetVec3("diffuse", mat->diffuse());
-				shader->SetVec3("specular", mat->specular());
-				shader->SetFloat("shininess", mat->shininess());
+				shader->SetVec3("ambient", mat.ambient());
+				shader->SetVec3("diffuse", mat.diffuse());
+				shader->SetVec3("specular", mat.specular());
+				shader->SetFloat("shininess", mat.shininess());
 
 				//manage camera,transform, textures
 
-				Shared<Texture> tex;
-				tex = mat->GetTexture(TextureType::COLOR);
+				Texture* tex;
+				tex = &mat.GetTexture(TextureType::COLOR);
 				tex->SetUnit(0);
 				tex->SyncTextureUnit(*shader, (tex->typeToString()));
 				tex->Bind();
 
-				tex = mat->GetTexture(TextureType::ROUGHNESS);
+				tex = &mat.GetTexture(TextureType::ROUGHNESS);
 				tex->SetUnit(1);
 				tex->SyncTextureUnit(*shader, (tex->typeToString()));
 				tex->Bind();

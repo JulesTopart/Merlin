@@ -7,7 +7,7 @@ using namespace Merlin::Graphics;
 namespace Merlin::Memory {
 
 	enum class TextureType {
-		COLOR, ROUGHNESS, NORMAL, DEPTH, HEIGHT, AMBIENT_OCCLUSION, EMISSION, SHADOW
+		COLOR, NORMAL, ROUGHNESS, AMBIENT_OCCLUSION, EMISSION, DEPTH, HEIGHT, SHADOW
 	};
 
 	class TextureBase {
@@ -76,5 +76,5 @@ namespace Merlin::Memory {
 		GLuint _minFilter, _magFilter, _wrapS, _wrapT;
 	};
 
-
+	typedef Shared<Texture> Texture_Ptr;
 }

@@ -119,7 +119,7 @@
     <ClInclude Include="src\Merlin\Graphics\Renderer.h" />
     <ClInclude Include="src\Merlin\Scene\Light.h" />
     <ClInclude Include="src\Merlin\Scene\Model.h" />
-    <ClInclude Include="src\Merlin\Scene\Material.h" />
+    <ClInclude Include="src\Merlin\Graphics\Material.h" />
     <ClInclude Include="src\GL.h" />
     <ClInclude Include="src\Merlin\Memory\BufferObject.h" />
     <ClInclude Include="src\Merlin\Memory\UniformBuffer.h" />
@@ -181,7 +181,7 @@
     <ClCompile Include="src\Merlin\Graphics\Renderer.cpp" />
     <ClCompile Include="src\Merlin\Scene\Light.cpp" />
     <ClCompile Include="src\Merlin\Scene\Model.cpp" />
-    <ClCompile Include="src\Merlin\Scene\Material.cpp" />
+    <ClCompile Include="src\Merlin\Graphics\Material.cpp" />
     <ClCompile Include="src\Merlin\Util\DataStream.cpp" />
     <ClCompile Include="src\Merlin\Graphics\Mesh.cpp" />
     <ClCompile Include="src\Merlin\Scene\deprecated_ParticleSystem.cpp" />
@@ -233,6 +233,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\shaders\pbr.model.frag" />
+    <None Include="assets\shaders\pbr.model.vert" />
     <None Include="assets\shaders\debug.normals.geom" />
     <None Include="assets\shaders\debug.normals.frag" />
     <None Include="assets\shaders\debug.normals.vert" />

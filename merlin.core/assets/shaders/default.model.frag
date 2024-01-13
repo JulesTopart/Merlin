@@ -4,6 +4,7 @@ in vec3 position;
 in vec3 normal;
 in vec3 color;
 in vec2 texCoord;
+out vec4 FragColor;
 
 uniform vec3 viewPos;
 uniform vec3 lightPos;
@@ -24,7 +25,6 @@ uniform int hasSpecularTex = 0;
 uniform sampler2D normal0;
 uniform int hasNormalTex = 0;
 
-out vec4 FragColor;
 
 vec4 pointLight(){	
 

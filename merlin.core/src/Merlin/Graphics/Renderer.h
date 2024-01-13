@@ -42,7 +42,7 @@ namespace Merlin::Graphics {
 		glm::mat4 currentTransform;
 		std::stack<glm::mat4> matrixStack;
 
-		ShaderLibrary _shaderLibrary;
-		MaterialLibrary _materialLibrary;
+		Scope<ShaderLibrary> m_shaderLibrary;
+		Scope<MaterialLibrary> m_materialLibrary;
 	};
 }

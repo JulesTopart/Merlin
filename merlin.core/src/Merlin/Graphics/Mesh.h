@@ -1,7 +1,7 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 #include "Merlin/Graphics/Shader.h"
-#include "Merlin/Scene/Material.h"
+#include "Merlin/Graphics/Material.h"
 #include "Merlin/Memory/VertexArray.h"
 #include "Merlin/Graphics/RenderableObject.h"
 
