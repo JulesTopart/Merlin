@@ -113,7 +113,7 @@ namespace Merlin::Graphics {
 
 			shader->Use();
 			if (shader->SupportMaterial()) {
-				if (mat->usePBR()) {
+				if (mat->usePBR() && shader->SupportPBR()) {
 					shader->SetVec3("albedo", mat->albedo());
 					shader->SetFloat("metallic", mat->metallic());
 					shader->SetFloat("roughness", mat->roughness());
@@ -203,11 +203,21 @@ namespace Merlin::Graphics {
 		shader->Use();
 
 		if (shader->SupportMaterial()) {
-			shader->SetVec3("ambient", mat->ambient());
-			shader->SetVec3("diffuse", mat->diffuse());
-			shader->SetVec3("specular", mat->specular());
-			shader->SetFloat("shininess", mat->shininess());
-			shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
+			if (mat->usePBR() && shader->SupportPBR()) {
+				shader->SetVec3("albedo", mat->albedo());
+				shader->SetFloat("metallic", mat->metallic());
+				shader->SetFloat("roughness", mat->roughness());
+				shader->SetFloat("ao", mat->ao());
+				shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
+			}
+			else {
+				shader->SetVec3("ambient", mat->ambient());
+				shader->SetVec3("diffuse", mat->diffuse());
+				shader->SetVec3("specular", mat->specular());
+				shader->SetFloat("shininess", mat->shininess());
+				shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
+			}
+
 		}
 
 		shader->SetMat4("model", currentTransform); //Sync model matrix with GPU

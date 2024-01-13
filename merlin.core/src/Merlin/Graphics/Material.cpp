@@ -119,6 +119,7 @@ namespace Merlin::Graphics {
 		defaultMaterial->SetDiffuse(glm::vec3(0.4, 0.4, 0.4));
 		defaultMaterial->SetSpecular(glm::vec3(0.2, 0.2, 0.2));
 		defaultMaterial->SetShininess(0.5);
+		defaultMaterial->disablePBR();
 
 		Material_Ptr aluminum = CreateShared<Material>("aluminum");
 		aluminum->SetAlbedo(glm::vec3(0.912, 0.914, 0.920));

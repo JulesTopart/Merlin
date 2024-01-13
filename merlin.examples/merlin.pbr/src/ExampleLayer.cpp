@@ -41,9 +41,17 @@ void ExampleLayer::OnAttach(){
 	renderer.EnableSampleShading();
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
 	modelShader = Shader::Create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
+	Shader_Ptr pbr = Shader::Create("pbr", "assets/common/shaders/pbr.model.vert", "assets/common/shaders/pbr.model.frag");
+	Shader_Ptr debugNormal = Shader::Create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom");
+
+	modelShader->noPBR();
+	pbr->noTexture();
+	debugNormal->noMaterial();
+	debugNormal->noTexture();
+
 	renderer.AddShader(modelShader);
-	renderer.AddShader(Shader::Create("pbr", "assets/common/shaders/pbr.model.vert", "assets/common/shaders/pbr.model.frag"));
-	renderer.AddShader(Shader::Create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom"));
+	renderer.AddShader(pbr);
+	renderer.AddShader(debugNormal);
 
 	std::vector<std::string> skyBoxPath = {
 	"./assets/textures/skybox/right.jpg",
@@ -180,9 +188,9 @@ void ExampleLayer::OnAttach(){
 			
 	}
 
-	Shared<Model> model0 = Model::Create("sphere0", GetModel());
-	model0->SetShader("debug.normals");
-	scene.Add(model0);
+	//Shared<Model> model0 = Model::Create("sphere0", GetModel());
+	//model0->SetShader("debug.normals");
+	//scene.Add(model0);
 	floor->Translate(glm::vec3(2.8, 2, -1));
 	light->Translate(glm::vec3(2.8, 2, 0.6));
 

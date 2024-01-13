@@ -34,6 +34,8 @@ namespace Merlin::Graphics {
 
 		inline bool SupportTexture() const		{ return _supportTexture; }
 		inline bool SupportMaterial() const		{ return _supportMaterial; }
+		inline bool SupportPBR() const		{ return _supportPBR; }
+		inline void noPBR()	{ _supportPBR = false; }
 		inline void noMaterial()	{ _supportMaterial = false; }
 		inline void noTexture()	{ _supportTexture = false; }
 
@@ -44,6 +46,7 @@ namespace Merlin::Graphics {
 
 		bool _supportTexture = true;
 		bool _supportMaterial = true;
+		bool _supportPBR = true;
 
 
 		GLuint vertexShaderID = 0;
