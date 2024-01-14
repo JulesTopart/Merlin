@@ -10,8 +10,16 @@ project "merlin.example"
 	files
 	{
 		"src/**.h",
-		"src/**.cpp"
+		"src/**.cpp",
+		"../merlin.core/vendor/imgui/backends/imgui_impl_glfw.*",
+		"../merlin.core/vendor/imgui/backends/imgui_impl_opengl3.*"
 	}
+
+	vpaths { ["sources"] = "./**" }
+	includedirs { "../merlin.core/vendor/glfw/include" }
+	
+	filter { "system:windows" }
+		ignoredefaultlibraries { "msvcrt" }
 
 	includedirs
 	{
@@ -25,7 +33,11 @@ project "merlin.example"
 
 	links
 	{
-		"merlin.core"
+		"merlin.core",
+		"glad",
+		"glfw",
+		"imgui",
+		"opengl32"
 	}
 	
 	filter "files:../merlin.core/assets/**"

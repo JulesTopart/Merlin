@@ -4,6 +4,7 @@
 
 #include <string>
 #include <memory>
+#include <glm/glm.hpp>
 
 namespace Merlin::Graphics {
 	class Merlin::Memory::GenericBufferObject;

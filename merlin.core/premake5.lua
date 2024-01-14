@@ -42,6 +42,7 @@ project "merlin.core"
 		"glfw",
 		"glad",
 		"imgui",
+		"stb_image",
 		"opengl32.lib"
 	}
 

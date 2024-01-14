@@ -59,8 +59,8 @@ namespace Merlin {
 
 
 	void Application::PrintHeader() const {
-		int deviceMem;
-		glGetIntegerv(GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &deviceMem);
+		//int deviceMem;
+		//glGetIntegerv(GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &deviceMem);
 
 		Console::print()
 			<< "| -------------- | " << "------------------------------------------------------------" << "|" << Console::endl
@@ -70,7 +70,7 @@ namespace Merlin {
 			<< "| GPU name       | " << Console::alignLeft(60, (const char*)glGetString(GL_RENDERER)) << "|" << Console::endl
 			<< "| OpenGL version | " << Console::alignLeft(60, (const char*)glGetString(GL_VERSION)) << "|" << Console::endl
 			<< "| GLSL version   | " << Console::alignLeft(60, (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION)) << "|" << Console::endl
-			<< "| GPU RAM        | " << Console::alignLeft(60, std::to_string(deviceMem / 1000000.0f) + " Go") << "|" << Console::endl
+			//<< "| GPU RAM        | " << Console::alignLeft(60, std::to_string(deviceMem / 1000000.0f) + " Go") << "|" << Console::endl
 			<< "| -------------- | " << "------------------------------------------------------------" << "|" << Console::endl;
 	}
 

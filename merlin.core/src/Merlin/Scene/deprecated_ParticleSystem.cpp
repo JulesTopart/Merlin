@@ -1,5 +1,4 @@
 #include "glpch.h"
-#include "GL.h"
 #include "deprecated_ParticleSystem.h"
 #include "Merlin/Memory/IndexBuffer.h"
 

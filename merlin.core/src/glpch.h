@@ -14,8 +14,6 @@
 #include <fstream>
 #include <vector>
 
-
-
 #ifdef GLCORE_PLATFORM_WINDOWS
 	#include <Windows.h>
 #endif

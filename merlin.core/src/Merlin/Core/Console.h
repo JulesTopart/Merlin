@@ -1,5 +1,7 @@
 #pragma once
 #include "Merlin/Core/Core.h"
+
+#include <glm/glm.hpp>
 #include <string>
 
 #define GLLOG() Console::LogGLError()

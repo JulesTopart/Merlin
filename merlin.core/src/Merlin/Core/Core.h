@@ -1,7 +1,11 @@
 
 #pragma once
 #include <memory>
-#include "GL.h"
+#include <glad/gl.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <imgui.h>
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 

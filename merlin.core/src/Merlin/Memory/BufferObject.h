@@ -2,7 +2,8 @@
 #include "Merlin/Core/Core.h"
 #include "Merlin/Core/Console.h"
 
-
+#include <glm/glm.hpp>
+#include <glad/gl.h>
 
 namespace Merlin::Memory{
 

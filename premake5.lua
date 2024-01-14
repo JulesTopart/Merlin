@@ -29,6 +29,7 @@ group "Dependencies"
 	include "merlin.core/vendor/glfw"
 	include "merlin.core/vendor/glad"
 	include "merlin.core/vendor/imgui"
+	include "merlin.core/vendor/stb_image"
 group ""
 
 include "merlin.core"
