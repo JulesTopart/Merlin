@@ -1,0 +1,9 @@
+[submodule "merlin.core/vendor/glfw"]
+	path = merlin.core/vendor/glfw
+	url = https://github.com/JulesTopart/glfw.git
+[submodule "merlin.core/vendor/glm"]
+	path = merlin.core/vendor/glm
+	url = https://github.com/g-truc/glm
+[submodule "merlin.core/vendor/imgui"]
+	path = merlin.core/vendor/imgui
+	url = https://github.com/JulesTopart/imgui
