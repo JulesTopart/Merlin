@@ -3,7 +3,7 @@ project "merlin.example"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
-
+	debugdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../bin-int/" .. outputdir .. "/%{prj.name}")
 
@@ -40,8 +40,7 @@ project "merlin.example"
 		"opengl32"
 	}
 	
-	filter "files:../merlin.core/assets/**"
-		buildaction ("Copy")
+
 
 	filter "system:windows"
 		systemversion "latest"
@@ -55,8 +54,15 @@ project "merlin.example"
 		defines "GLCORE_DEBUG"
 		runtime "Debug"
 		symbols "on"
+		postbuildcommands {
+		  "{COPYDIR} %[../merlin.core/assets] %[%{!cfg.targetdir}/assets/common]"
+		}
 
 	filter "configurations:Release"
 		defines "GLCORE_RELEASE"
 		runtime "Release"
         optimize "on"
+		postbuildcommands {
+		  "{COPYDIR} ../merlin.core/assets/ %[%{!cfg.targetdir}]"
+		}
+

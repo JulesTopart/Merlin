@@ -39,26 +39,9 @@ void ExampleLayer::OnAttach(){
 	renderer.AddShader(modelShader);
 	renderer.AddShader(Shader::Create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom"));
 
-	std::vector<std::string> skyBoxPath = {
-	"./assets/textures/skybox/right.jpg",
-	"./assets/textures/skybox/left.jpg",
-	"./assets/textures/skybox/bottom.jpg",
-	"./assets/textures/skybox/top.jpg",
-	"./assets/textures/skybox/front.jpg",
-	"./assets/textures/skybox/back.jpg"
-	};
 
-	std::vector<std::string> studioPath = {
-		"./assets/textures/studio/pz.png",
-		"./assets/textures/studio/nz.png",
-		"./assets/textures/studio/ny.png",
-		"./assets/textures/studio/py.png",
-		"./assets/textures/studio/nx.png",
-		"./assets/textures/studio/px.png"
-	};
-
-	Shared<Shader> skyShader = Shader::Create("skybox", "assets/shaders/skybox.vert.glsl", "assets/shaders/skybox.frag.glsl");
-	sky = CreateShared<SkyBox>("Sky", skyBoxPath);
+	Shared<Shader> skyShader = Shader::Create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
+	sky = CreateShared<SkyBox>("Sky");
 	sky->SetShader(skyShader);
 	scene.Add(sky);
 
