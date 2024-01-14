@@ -5,7 +5,7 @@
 #include "Input.h"
 
 #include <glfw/glfw3.h>
-#include <glad/glad.h>
+
 
 namespace Merlin {
 

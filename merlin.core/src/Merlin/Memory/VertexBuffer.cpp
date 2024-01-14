@@ -2,8 +2,6 @@
 #include "VertexBuffer.h"
 #include "../Core/Console.h"
 
-#include <glad/glad.h>
-
 namespace Merlin::Memory{
 	VertexBufferLayout Vertex::GetLayout() {
 		VertexBufferLayout layout;

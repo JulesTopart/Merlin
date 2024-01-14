@@ -10,7 +10,16 @@ project "merlin.core"
 	pchheader "glpch.h"
 	pchsource "src/glpch.cpp"
 
-	files { "**.h", "**.c", "**.vert", "**.frag", "**.geom", "**.glsl", "**.comp" }
+	files { 
+		"src/**.h",
+		"src/**.c",
+		"src/**.cpp",
+		"src/**.vert",
+		"src/**.frag",
+		"src/**.geom",
+		"src/**.glsl",
+		"src/**.comp" 
+	}
 
 	defines
 	{
@@ -21,18 +30,18 @@ project "merlin.core"
 	{
 		"src",
 		"vendor/spdlog/include",
-		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.Glad}",
-		"%{IncludeDir.ImGui}",
+		"%{IncludeDir. glfw}",
+		"%{IncludeDir.glad}",
+		"%{IncludeDir.imgui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}"
 	}
 
 	links 
 	{ 
-		"GLFW",
-		"Glad",
-		"ImGui",
+		"glfw",
+		"glad",
+		"imgui",
 		"opengl32.lib"
 	}
 

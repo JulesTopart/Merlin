@@ -2,6 +2,8 @@
 #include "Merlin/Core/Core.h"
 #include "Merlin/Core/Console.h"
 
+
+
 namespace Merlin::Memory{
 
 	class GenericBufferObject {

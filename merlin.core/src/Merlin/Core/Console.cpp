@@ -1,6 +1,5 @@
 #include "glpch.h"
 #include "Console.h"
-#include <glad/glad.h>
 
 #include <iostream>
 

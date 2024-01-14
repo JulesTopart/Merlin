@@ -8,7 +8,7 @@ using namespace Merlin::Graphics;
 namespace Merlin::Memory {
 
 	template<class T>
-	class UniformBuffer : BufferObject<T>{
+	class UniformBuffer : public BufferObject<T>{
 		UniformBuffer(std::string name);
 		~UniformBuffer();
 

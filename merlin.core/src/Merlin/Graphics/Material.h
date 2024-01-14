@@ -4,6 +4,8 @@
 #include "Merlin/Graphics/Shader.h"
 #include <glm/glm.hpp>
 
+#include <map>
+
 using namespace Merlin::Memory;
 
 namespace Merlin::Graphics {

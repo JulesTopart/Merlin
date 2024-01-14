@@ -8,7 +8,6 @@
 #include <regex> // Include the <regex> header for regular expressions
 
 #include <glm/gtc/type_ptr.hpp>
-#include <glad/glad.h>
 
 namespace Merlin::Graphics {
 

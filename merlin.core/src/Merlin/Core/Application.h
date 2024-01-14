@@ -1,10 +1,6 @@
 #pragma once
-#include "Merlin/Core/Core.h"
-
-
 #include "Window.h"
 #include "LayerStack.h"
-#include "../Events/Event.h"
 #include "../Events/ApplicationEvent.h"
 
 #include "Timestep.h"

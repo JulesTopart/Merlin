@@ -1,7 +1,7 @@
 
 #pragma once
-#include "GL.h"
 #include <memory>
+#include "GL.h"
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 

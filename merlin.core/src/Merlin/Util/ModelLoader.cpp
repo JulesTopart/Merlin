@@ -5,7 +5,7 @@
 #include "Merlin/Memory/IndexBuffer.h"
 #include "Merlin/Memory/Vertex.h"
 
-#include <tiny_gltf.h>
+//#include <tiny_gltf.h>
 
 
 namespace Merlin::Utils {

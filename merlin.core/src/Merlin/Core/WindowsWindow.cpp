@@ -7,7 +7,8 @@
 #include "Merlin/Core/Log.h"
 
 #include <GLFW/glfw3.h>
-#include <glad/glad.h>
+
+
 namespace Merlin {
 	
 	static bool s_GLFWInitialized = false;
@@ -53,8 +54,8 @@ namespace Merlin {
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 
 		glfwMakeContextCurrent(m_Window);
-		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-		GLCORE_ASSERT(status, "WindowsWindow", "Failed to initialize Glad!");
+		int version = gladLoadGL(glfwGetProcAddress);
+		GLCORE_ASSERT(version, "WindowsWindow", "Failed to initialize Glad!");
 
 		//OpenGl is ready
 

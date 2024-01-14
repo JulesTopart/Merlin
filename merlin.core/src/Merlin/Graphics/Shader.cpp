@@ -10,7 +10,6 @@
 #include <vector>
 
 #include <glm/gtc/type_ptr.hpp>
-#include <glad/glad.h>
 #include "Merlin/Core/Log.h"
 
 namespace Merlin::Graphics {

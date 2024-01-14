@@ -4,7 +4,8 @@
 #include "../Core/KeyCodes.h"
 #include "../Core/MouseButtonCodes.h"
 
-#include "glpch.h"
+#include <functional>
+#include <sstream>
 
 namespace Merlin {
 

@@ -1,7 +1,7 @@
 -- OpenGL-Sandbox
 workspace "Merlin"
 	architecture "x64"
-	startproject "merlin.core"
+	startproject "merlin.example"
 
 	configurations
 	{
@@ -18,18 +18,18 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to OpenGL-Core
 IncludeDir = {}
-IncludeDir["GLFW"] = "vendor/GLFW/include"
-IncludeDir["Glad"] = "vendor/Glad/include"
-IncludeDir["ImGui"] = "vendor/imgui"
+IncludeDir["glfw"] = "vendor/glfw/include"
+IncludeDir["glad"] = "vendor/glad/include"
+IncludeDir["imgui"] = "vendor/imgui"
 IncludeDir["glm"] = "vendor/glm"
 IncludeDir["stb_image"] = "vendor/stb_image"
 
 -- Projects
 group "Dependencies"
-	include "OpenGL-Core/vendor/GLFW"
-	include "OpenGL-Core/vendor/Glad"
-	include "OpenGL-Core/vendor/imgui"
+	include "merlin.core/vendor/glfw"
+	include "merlin.core/vendor/glad"
+	include "merlin.core/vendor/imgui"
 group ""
 
 include "merlin.core"
-include "merlin.examples"
+include "merlin.example"
