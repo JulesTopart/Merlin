@@ -1,24 +1,28 @@
-#version 330 core
+#version 450 core
 
-layout (location = 0) in vec3 _position;
-layout (location = 1) in vec3 _normal;
-layout (location = 2) in vec3 _color;
-layout (location = 3) in vec2 _texCoord;
+layout(location=0) in vec3 position;
+layout(location=1) in vec3 normal;
+layout(location=2) in vec3 tangent;
+layout(location=3) in vec3 bitangent;
+layout(location=4) in vec2 texcoord;
 
-out vec3 position;
-out vec3 normal;
-out vec3 color;
-out vec2 texCoord;
+layout(std140, binding=0) uniform TransformUniforms {
+	mat4 view;
+	mat4 projection;
+	mat4 model;
+};
 
-uniform mat4 view;
-uniform mat4 projection;
-uniform mat4 model;
+
+layout(location=0) out Vertex {
+	vec3 position;
+	vec2 texcoord;
+	mat3 tangentBasis;
+} vout;
+
 
 void main() {
-	position = vec3(model * vec4(_position, 1.0f));
-	color = _color;
-	normal = _normal;
-	texCoord = _texCoord;
-
-	gl_Position = projection * view * vec4(position, 1.0f);
+	vout.position = vec3(model * vec4(position, 1.0));
+	vout.texcoord = vec2(texcoord.x, 1.0-texcoord.y);
+	vout.tangentBasis = mat3(model) * mat3(tangent, bitangent, normal);
+	gl_Position = projection * view * model *  vec4(position, 1.0f);
 }

@@ -37,8 +37,9 @@ void ExampleLayer::OnAttach(){
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
 
 	//modelShader = Shader::Create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
-	modelShader = Shader::Create("pbr", "assets/common/shaders/pbr.model.vert", "assets/common/shaders/pbr.model.frag");
+	modelShader = Shader::Create("model", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
 	modelShader->noTexture();
+	modelShader->noPBR();
 	renderer.AddShader(modelShader);
 
 	std::vector<std::string> skyBoxPath = {
@@ -56,8 +57,8 @@ void ExampleLayer::OnAttach(){
 	scene.Add(sky);
 
 	Shared<Model> model = Model::Create("sphere1", GetModel());
-	model->SetMaterial("aluminum");
-	model->SetShader("pbr");
+	model->SetMaterial("emerald");
+	model->SetShader("model");
 	scene.Add(model);
 
 

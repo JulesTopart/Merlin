@@ -49,7 +49,12 @@ vec4 pointLight(){
 	if (hasColorTex == 1) specularColor = specular * texture(color0, uv).rgb;
 	else specularColor = specular;
 
-
+	// Reflection (using skybox)
+	vec3 I = normalize(position - viewPos);
+	vec3 R = reflect(I, norm);
+	R = vec3(R.x, -R.z, -R.y);
+	vec3 skyColor = mix(vec3(1),texture(skybox, R).rbg, shininess);
+	
 	// intensity of light with respect to distance
 	float dist = length(lightDir);
 	float a = 0.01;
@@ -64,14 +69,8 @@ vec4 pointLight(){
 	vec3 halfwayVec = normalize(viewDirection + L);
 	float specularAmount = pow(max(dot(N, halfwayVec), 0.0f), shininess*128);
 	
-		// Reflection (using skybox)
-	vec3 I = normalize(position - viewPos);
-	vec3 R = reflect(I, norm);
-	R = vec3(R.x, -R.z, -R.y);
-	vec4 skyColor = texture(skybox, R);
-
-	vec4 finalColor = vec4(ambientColor + (diffuseColor * (diffuseAmount * inten) + specularAmount * specularColor * inten) * vec3(lightColor), 1.0);
-	finalColor = mix(finalColor, skyColor, shininess/4.0); // Adjust the reflection amount with the last parameter
+	vec4 finalColor = vec4(ambientColor + (diffuseColor * (diffuseAmount * inten) + specularAmount * specularColor * inten) * (vec3(lightColor) * skyColor ), 1.0);
+	
 	
 
 	return finalColor;
