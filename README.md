@@ -1,29 +1,48 @@
 # Merlin
-Merlin is a multipurpose 3D engine capable of drawing 3D objects in an OpenGL context.
 
-The project is using ImGui, Glad, GLFW and stb_image as dependencies. They are already pacakged and pre-compiled in the project.
+## Overview
+Merlin is a GPU computing and rendering engine designed as a sandbox instead of CUDA or OpenCL. While still in development, Merlin offers basic 3D rendering capabilities and a compute shader pipeline. The framework is geared towards facilitating physics experiments, but it's worth noting that it's still evolving and might not yet match the full capabilities of more established tools.
 
-## Gallery 
+## Features
+- **GPU Computing**: Utilizes GPU for computations, aiming to offer an alternative to CUDA.
+- **Basic 3D Rendering**: Provides fundamental 3D rendering functionalities.
+- **Compute Shader Pipeline**: Includes a pipeline for compute shaders, suitable for simple to moderately complex calculations.
+- **Class Abstraction**: Offers class abstraction to ease the process of setting up and managing physics experiments.
 
-![](./gallery/merlin.example.gif)
-![](./gallery/merlin.normals.png)
-![](./gallery/merlin.instancing.jpg)
+## Getting Started
+Merlin is in a developmental stage and might require some familiarity with GPU computing and rendering concepts.
 
+1. **Clone the Repository**
+   ```
+   git clone https://github.com/yourusername/Merlin.git
+   ```
 
-### Fluids
+2. **Build the Engine**
+   - Navigate to the Merlin directory.
+   - Run `build.bat` to compile the source code.
+   ```
+   cd Merlin
+   build.bat
+   ```
 
-![](./gallery/merlin.sph.bunny.gif)
-![](./gallery/merlin.sph.fluid.gif)
+3. **Open MVSC Solution**
+   - Open the `.sln` file in Microsoft Visual Studio.
 
-### Pathtracing
+## Example Usage
+The code sample provided gives an insight into the usage of Merlin. It involves creating a camera, loading models, shaders, and managing a simple scene with lighting. It demonstrates the engine's capabilities in handling basic 3D objects and scene management.
 
-![](./gallery/merlin.raytracing.jpg)
+## Limitations and Development Status
+Merlin is a work in progress and may not yet be fully optimized or bug-free. Users should be prepared for potential issues and are encouraged to contribute to its development.
 
-### Physics
+## Contributing
+Contributions are welcome, especially in areas of bug fixing, feature enhancement, and documentation improvement. Please submit pull requests for any contributions.
 
-![](./gallery/merlin.fdm.gif)
-![](./gallery/merlin.tsph.gif)
+## Support and Issues
+For support or to report issues, please use the GitHub issue tracker associated with the repository.
 
-### Raycasted
-![](./gallery/merlin.voxel.gif)
-![](./gallery/merlin.voxel.stanford.gif)
+## License
+Merlin is released under DO WHATEVER YOU WANT. Please review the license terms before using or modifying the software.
+
+---
+
+Note: As Merlin is in development, this README aims to provide a balanced view of its current state, highlighting its potential while acknowledging its ongoing development status.

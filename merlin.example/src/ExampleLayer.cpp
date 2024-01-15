@@ -57,7 +57,7 @@ void ExampleLayer::OnAttach(){
 	scene.Add(sky);
 
 	Shared<Model> model = Model::Create("sphere1", GetModel());
-	model->SetMaterial("emerald");
+	model->SetMaterial("gold");
 	model->SetShader("model");
 	scene.Add(model);
 
