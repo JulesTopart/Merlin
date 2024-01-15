@@ -55,6 +55,7 @@ project "merlin.example"
 		runtime "Debug"
 		symbols "on"
 		postbuildcommands {
+		  "{COPYDIR} %[assets] %[%{!cfg.targetdir}/assets]",
 		  "{COPYDIR} %[../merlin.core/assets] %[%{!cfg.targetdir}/assets/common]"
 		}
 
@@ -63,6 +64,7 @@ project "merlin.example"
 		runtime "Release"
         optimize "on"
 		postbuildcommands {
-		  "{COPYDIR} ../merlin.core/assets/ %[%{!cfg.targetdir}]"
+		  "{COPYDIR} %[assets] %[%{!cfg.targetdir}/assets]",
+		  "{COPYDIR} %[../merlin.core/assets] %[%{!cfg.targetdir}/assets/common]"
 		}
 

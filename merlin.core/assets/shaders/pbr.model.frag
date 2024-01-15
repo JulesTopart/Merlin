@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 in vec3 position;
 in vec3 normal;
 in vec3 color;
@@ -72,13 +72,23 @@ void main()
 	vec3 R = reflect(-V, N); 
 	vec3 prefilteredColor = texture(skybox, R,  roughness).rgb;
   
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    vec3 ambient = vec3(0.2) +  vec3(0.03) * albedo * ao;
     vec3 color = ambient + Lo;
 
 
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));  
    
+
+   	
+	// Reflection (using skybox)
+	vec3 I = normalize(position - viewPos);
+	vec3 Re = reflect(I, N);
+	Re = vec3(Re.x, -Re.z, -Re.y);
+	vec3 skyColor = texture(skybox, Re).rgb;
+   	color += skyColor / metallic; // Adjust the reflection amount with the last parameter
+	
+
     FragColor = vec4(color, 1.0);
 }  
 

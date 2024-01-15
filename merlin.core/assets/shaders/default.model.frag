@@ -71,7 +71,7 @@ vec4 pointLight(){
 	vec4 skyColor = texture(skybox, R);
 
 	vec4 finalColor = vec4(ambientColor + (diffuseColor * (diffuseAmount * inten) + specularAmount * specularColor * inten) * vec3(lightColor), 1.0);
-	finalColor = mix(finalColor, skyColor, 0.5); // Adjust the reflection amount with the last parameter
+	finalColor = mix(finalColor, skyColor, shininess/4.0); // Adjust the reflection amount with the last parameter
 	
 
 	return finalColor;

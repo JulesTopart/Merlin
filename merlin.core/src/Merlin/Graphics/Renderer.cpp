@@ -232,7 +232,8 @@ namespace Merlin::Graphics {
 			tex = &mat->GetTexture(TextureType::COLOR);
 
 			if(tex){
-				shader->SetInt("hasColorTex", 1);
+				shader->SetInt("skybox", 0);
+				shader->SetInt("hasColorTex", !tex->IsDefault());
 
 				if (!tex->IsDefault()) {
 					tex->SetUnit(1); //Skybox is 0...

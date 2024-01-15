@@ -123,8 +123,8 @@ namespace Merlin::Graphics {
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		m_vao.Unbind();
 
-		if (m_cubeMap);
-			m_cubeMap->Unbind();
+		//if (m_cubeMap);
+			//m_cubeMap->Unbind();
 
 	}
 

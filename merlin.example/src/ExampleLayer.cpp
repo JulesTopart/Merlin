@@ -35,129 +35,45 @@ void ExampleLayer::OnAttach(){
 	renderer.Initialize();
 	renderer.EnableSampleShading();
 	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
-	modelShader = Shader::Create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
-	renderer.AddShader(modelShader);
-	renderer.AddShader(Shader::Create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom"));
 
+	//modelShader = Shader::Create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
+	modelShader = Shader::Create("pbr", "assets/common/shaders/pbr.model.vert", "assets/common/shaders/pbr.model.frag");
+	modelShader->noTexture();
+	renderer.AddShader(modelShader);
+
+	std::vector<std::string> skyBoxPath = {
+		"./assets/textures/skybox/right.jpg",
+		"./assets/textures/skybox/left.jpg",
+		"./assets/textures/skybox/bottom.jpg",
+		"./assets/textures/skybox/top.jpg",
+		"./assets/textures/skybox/front.jpg",
+		"./assets/textures/skybox/back.jpg"
+	};
 
 	Shared<Shader> skyShader = Shader::Create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
-	sky = CreateShared<SkyBox>("Sky");
+	sky = CreateShared<SkyBox>("Sky", skyBoxPath);
 	sky->SetShader(skyShader);
 	scene.Add(sky);
 
-	Shared<Model> model1 = Model::Create("sphere1", GetModel());
-	Shared<Model> model2 = Model::Create("sphere2", GetModel());
-	Shared<Model> model3 = Model::Create("sphere3", GetModel());
-	Shared<Model> model4 = Model::Create("sphere4", GetModel());
-	Shared<Model> model5 = Model::Create("sphere5", GetModel());
-	Shared<Model> model6 = Model::Create("sphere6", GetModel());
-	Shared<Model> model7 = Model::Create("sphere7", GetModel());
-	Shared<Model> model8 = Model::Create("sphere8", GetModel());
-	Shared<Model> model9 = Model::Create("sphere9", GetModel());
-	Shared<Model> model10 = Model::Create("sphere10", GetModel());
-	Shared<Model> model11 = Model::Create("sphere11", GetModel());
-	Shared<Model> model12 = Model::Create("sphere12", GetModel());
-	Shared<Model> model13 = Model::Create("sphere13", GetModel());
-	Shared<Model> model14 = Model::Create("sphere14", GetModel());
-	Shared<Model> model15 = Model::Create("sphere15", GetModel());
-	Shared<Model> model16 = Model::Create("sphere16", GetModel());
-	Shared<Model> model17 = Model::Create("sphere17", GetModel());
-	Shared<Model> model18 = Model::Create("sphere18", GetModel());
-	Shared<Model> model19 = Model::Create("sphere19", GetModel());
-	Shared<Model> model20 = Model::Create("sphere20", GetModel());
-	Shared<Model> model21 = Model::Create("sphere21", GetModel());
-	Shared<Model> model22 = Model::Create("sphere22", GetModel());
-	Shared<Model> model23 = Model::Create("sphere23", GetModel());
-	Shared<Model> model24 = Model::Create("sphere24", GetModel());
-	Shared<Model> floor = Model::Create("floor", Primitives::CreateCube(10, 6, 0.1));
+	Shared<Model> model = Model::Create("sphere1", GetModel());
+	model->SetMaterial("aluminum");
+	model->SetShader("pbr");
+	scene.Add(model);
+
+
 	light = Model::Create("light", Primitives::CreateSphere(0.05));
-
-	model1->SetMaterial("emerald");
-	model2->SetMaterial("jade");
-	model3->SetMaterial("obsidian");
-	model4->SetMaterial("pearl");
-	model5->SetMaterial("ruby");
-	model6->SetMaterial("turquoise");
-	model7->SetMaterial("brass");
-	model8->SetMaterial("bronze");
-	model9->SetMaterial("chrome");
-	model10->SetMaterial("copper");
-	model11->SetMaterial("gold");
-	model12->SetMaterial("silver");
-	model13->SetMaterial("black plastic");
-	model14->SetMaterial("cyan plastic");
-	model15->SetMaterial("green plastic");
-	model16->SetMaterial("red plastic");
-	model17->SetMaterial("white plastic");
-	model18->SetMaterial("yellow plastic");
-	model19->SetMaterial("black rubber");
-	model20->SetMaterial("cyan rubber");
-	model21->SetMaterial("green rubber");
-	model22->SetMaterial("red rubber");
-	model23->SetMaterial("white rubber");
-	model24->SetMaterial("yellow rubber");
-
 	Shared<Material> lightMat = CreateShared<Material>("lightMat");
 	lightMat->SetAmbient(glm::vec3(1));
 	lightMat->SetDiffuse(glm::vec3(1));
 	lightMat->SetSpecular(glm::vec3(1));
-	lightMat->SetShininess(1);
-
-	Shared<Material> floorMat = CreateShared<Material>("floorMat");
-	floorMat->SetAmbient(glm::vec3(0.4));
-	floorMat->SetDiffuse(glm::vec3(0.6));
-	floorMat->SetSpecular(glm::vec3(0.2));
-	floorMat->SetShininess(0.1);
-
+	lightMat->SetShininess(0.1);
+	lightMat->disablePBR();
 	light->SetMaterial(lightMat);
-	floor->SetMaterial(floorMat);
 
-	scene.Add(model1);
-	scene.Add(model2);
-	scene.Add(model3);
-	scene.Add(model4);
-	scene.Add(model5);
-	scene.Add(model6);
-	scene.Add(model7);
-	scene.Add(model8);
-	scene.Add(model9);
-	scene.Add(model10);
-	scene.Add(model11);
-	scene.Add(model12);
-	scene.Add(model13);
-	scene.Add(model14);
-	scene.Add(model15);
-	scene.Add(model16);
-	scene.Add(model17);
-	scene.Add(model18);
-	scene.Add(model19);
-	scene.Add(model20);
-	scene.Add(model21);
-	scene.Add(model22);
-	scene.Add(model23);
-	scene.Add(model24);
 
-	int offset = 0;
-	float spacing = 1.2;
-	for (auto& node : scene.nodes()){
-		if (node != nullptr)
-		{
-			if (node->GetType() == ObjectType::SKYBOX) continue;
-			else {
-			node->Translate(glm::vec3(offset / 4 * spacing, (offset % 4) * spacing, 0));
-			offset++;
-			}
-		}
-			
-	}
 
-	Shared<Model> model0 = Model::Create("sphere0", GetModel());
-	model0->SetShader("debug.normals");
-	scene.Add(model0);
-	floor->Translate(glm::vec3(2.8, 2, -1));
 	light->Translate(glm::vec3(2.8, 2, 0.6));
 
-	scene.Add(floor);
 	scene.Add(light);
 
 	modelShader->Use();
