@@ -55,13 +55,8 @@ namespace Merlin::Graphics {
 
         inline std::string name() { return m_name; }
 
-        inline bool usePBR() const { return m_usePBR; }
-        inline void disablePBR() { m_usePBR = false; }
-        inline void enablePBR() { m_usePBR = true; }
-
     private:
         std::string m_name;
-        bool m_usePBR = true;
         std::map<TextureType, Texture_Ptr> m_textures;
         MaterialProperty m_props;
     };

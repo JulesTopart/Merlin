@@ -113,6 +113,7 @@ namespace Merlin::Graphics {
 
 			shader->Use();
 			if (shader->SupportMaterial()) {
+				/*
 				if (mat->usePBR() && shader->SupportPBR()) {//todo remove this -> Replace by proper UBO management
 					shader->SetVec3("albedo", mat->albedo());
 					shader->SetFloat("metallic", mat->metallic());
@@ -121,12 +122,15 @@ namespace Merlin::Graphics {
 					shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
 				}
 				else {
-					shader->SetVec3("ambient", mat->ambient());
-					shader->SetVec3("diffuse", mat->diffuse());
-					shader->SetVec3("specular", mat->specular());
-					shader->SetFloat("shininess", mat->shininess());
-					shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
+
 				}
+				*/
+
+				shader->SetVec3("ambient", mat->ambient());
+				shader->SetVec3("diffuse", mat->diffuse());
+				shader->SetVec3("specular", mat->specular());
+				shader->SetFloat("shininess", mat->shininess());
+				shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
 
 			}
 
@@ -173,7 +177,7 @@ namespace Merlin::Graphics {
 		glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
 		glm::mat4 projection = camera.GetProjectionMatrix();
 
-		if (sky.HasCubeMap()) shader->SetInt("isSkyboxBound", 1);
+		//if (sky.HasCubeMap()) shader->SetInt("isSkyboxBound", 1);
 		shader->SetMat4("view", view); //Sync model matrix with GPU
 		shader->SetMat4("projection", projection); //Sync model matrix with GPU
 
@@ -203,9 +207,9 @@ namespace Merlin::Graphics {
 		}
 				
 		shader->Use();
-
 		if (shader->SupportMaterial()) {
-			if (mat->usePBR() && shader->SupportPBR()) {
+			/*
+			if (mat->usePBR() && shader->SupportPBR()) {//todo remove this -> Replace by proper UBO management
 				shader->SetVec3("albedo", mat->albedo());
 				shader->SetFloat("metallic", mat->metallic());
 				shader->SetFloat("roughness", mat->roughness());
@@ -213,12 +217,15 @@ namespace Merlin::Graphics {
 				shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
 			}
 			else {
-				shader->SetVec3("ambient", mat->ambient());
-				shader->SetVec3("diffuse", mat->diffuse());
-				shader->SetVec3("specular", mat->specular());
-				shader->SetFloat("shininess", mat->shininess());
-				shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
+
 			}
+			*/
+
+			shader->SetVec3("ambient", mat->ambient());
+			shader->SetVec3("diffuse", mat->diffuse());
+			shader->SetVec3("specular", mat->specular());
+			shader->SetFloat("shininess", mat->shininess());
+			shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
 
 		}
 

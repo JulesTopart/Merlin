@@ -39,7 +39,6 @@ void ExampleLayer::OnAttach(){
 	//modelShader = Shader::Create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
 	modelShader = Shader::Create("model", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
 	modelShader->noTexture();
-	modelShader->noPBR();
 	renderer.AddShader(modelShader);
 
 	std::vector<std::string> skyBoxPath = {
@@ -68,7 +67,6 @@ void ExampleLayer::OnAttach(){
 	lightMat->SetDiffuse(glm::vec3(1));
 	lightMat->SetSpecular(glm::vec3(1));
 	lightMat->SetShininess(0.1);
-	lightMat->disablePBR();
 	light->SetMaterial(lightMat);
 
 

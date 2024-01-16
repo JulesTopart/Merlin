@@ -14,13 +14,18 @@ project "merlin.core"
 		"src/**.h",
 		"src/**.c",
 		"src/**.cpp",
-		"src/**.vert",
-		"src/**.frag",
-		"src/**.geom",
-		"src/**.glsl",
-		"src/**.comp" 
+		"vendor/imgui/backends/imgui_impl_glfw.*",
+		"vendor/imgui/backends/imgui_impl_opengl3.*",
+		"assets/shaders/**.*"
 	}
 
+	vpaths {
+	   ["Headers/*"] = "**.h",
+	   ["Sources/*"] = {"**.c", "**.cpp"},
+	   ["Docs"] = "**.md",
+	   ["Assets/*"] = "assets/**.*"
+	}
+	
 	defines
 	{
 		"_CRT_SECURE_NO_WARNINGS"
@@ -45,6 +50,12 @@ project "merlin.core"
 		"stb_image",
 		"opengl32.lib"
 	}
+
+	filter { 'files:vendor/imgui/backends/imgui_impl_glfw.cpp' }
+		flags { 'NoPCH' }
+		
+	filter { 'files:vendor/imgui/backends/imgui_impl_opengl3.cpp' }
+		flags { 'NoPCH' }
 
 	filter "system:windows"
 		systemversion "latest"

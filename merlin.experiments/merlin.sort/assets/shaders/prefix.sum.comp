@@ -1,0 +1,54 @@
+#include "common.glsl"
+
+const uint wgSize = 64; //WorkGroup size
+layout(local_size_x = wgSize) in;
+
+layout(std430) buffer compactSumBuffer {
+    uint compactPrefixSum[];
+};
+
+//Return index of the i-th element of a given block
+uint getIndexOf(uint block, uint i){ 
+    return block*blockSize + i;
+}
+
+//Return the last element of the given block
+uint getLastIndexOf(uint block){ 
+   return getIndexOf(block, blockSize - 1);
+}
+
+
+//Do a sum operation over the right most element of block according to Blelloch
+void compactSum(uint bid, uint space){
+    compactPrefixSum[bid] = globalPrefixSum[getLastIndexOf(bid)];
+    if (bid >= space) compactPrefixSum[bid] += globalPrefixSum[getLastIndexOf(bid-space)];
+}
+
+uniform uint stage;
+uniform uint space;
+
+void main(){
+    uint bid = gl_GlobalInvocationID.x; //blockID
+    if(bid > uint(dataSize/blockSize)) return;
+
+    switch(stage){
+    case 0:
+        //Sequential prefix sum on blocks
+        for (uint i = getIndexOf(bid, 0), k = 0; i < getIndexOf(bid, blockSize) && i < dataSize; i++, k++) { //Load into shared mem
+            if (k >= 1 && i < dataSize) globalPrefixSum[i] += globalPrefixSum[i - 1];
+        }
+    break;
+    case 1:
+        compactSum(bid, space);
+    break;
+    case 2:
+         globalPrefixSum[getLastIndexOf(bid)] = compactPrefixSum[bid];
+    break;
+    case 3: 
+        for (uint i = 0; i < blockSize-1; i++) { //Load into shared mem
+            globalPrefixSum[getIndexOf(bid,i)] += (bid >= 1 ? compactPrefixSum[bid-1] : 0); 
+        }
+    break;
+    }
+    
+}

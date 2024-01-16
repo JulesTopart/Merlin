@@ -1,0 +1,15 @@
+#include "common.glsl"
+
+const uint wgSize = 512; //WorkGroup size
+layout(local_size_x = wgSize) in;
+
+uniform uint stage;
+
+void main(){
+    uint gid = gl_GlobalInvocationID.x; //blockID
+
+    if(gid < dataSize && stage == 0) atomicAdd(globalPrefixSum[outData[gid]],1);
+    if(gid < dataSize && stage == 1){
+        outData[atomicAdd(globalPrefixSum[inData[gid]],-1)-1] = inData[gid];
+    }
+}

@@ -11,11 +11,16 @@ project "merlin.example"
 	{
 		"src/**.h",
 		"src/**.cpp",
-		"../merlin.core/vendor/imgui/backends/imgui_impl_glfw.*",
-		"../merlin.core/vendor/imgui/backends/imgui_impl_opengl3.*"
+		"assets/shaders/**.*"
 	}
 
-	vpaths { ["sources"] = "./**" }
+	vpaths {
+	   ["Headers/*"] = "**.h",
+	   ["Sources/*"] = {"**.c", "**.cpp"},
+	   ["Docs"] = "**.md",
+	   ["Assets/*"] = "assets/**.*"
+	}
+	
 	includedirs { "../merlin.core/vendor/glfw/include" }
 	
 	filter { "system:windows" }
@@ -47,7 +52,8 @@ project "merlin.example"
 
 		defines
 		{
-			"GLCORE_PLATFORM_WINDOWS"
+			"GLCORE_PLATFORM_WINDOWS",
+			"NOMINMAX"
 		}
 
 	filter "configurations:Debug"
