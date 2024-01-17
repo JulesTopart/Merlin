@@ -1,42 +1,42 @@
 
 newaction {
 	trigger     = "new",
-	description = "Create a new project from template using the Merlin library. example : premake5 new <name> <optional path>",
+	description = "Create a new project from template using the Merlin library. example : premake5 new <name>",
 	execute = function ()
-		projectName = _ARGS[1] or "newProject"
-		--projectDir = solutiondir .. "/" ..(_ARGS[2] or ".") .. "/" .. projectName
 
-		projectDir = solutiondir .. "/"
-
-		if(_ARGS[2])
+		projectName = ""
+		if(_ARGS[1])
 		then
-			if(path.isAbsolute(_ARGS[2]))
-			then
-				projectDir = _ARGS[2] .. "/" .. projectName
-			else
-				projectDir = projectDir .. _ARGS[2] .. "/" .. projectName
-			end
+			projectName = _ARGS[1]
+		else
+			printf("error : Please provide project name")
 		end
 
+		projectDir = solutiondir .. "/merlin.projects/" .. projectName
+		
 		printf("Copying template : \"" .. solutiondir .. "/merlin.template\" > " .. "\"" .. projectDir .."\"")
-		command = "\"" .. solutiondir .. "/merlin.template\" " .. "\"" .. projectDir .. "\""
+		command = "\"" .. solutiondir .. "/merlin.template/src\" " .. "\"" .. projectDir .. "/src\""
 		os.execute("{COPYDIR} " .. command)
 		os.execute("{TOUCH} " .. "\"" .. projectDir .. "/premake5.lua\"")
 
 		suffix = "> " .. "\"" .. projectDir .. "/premake5.lua" .. "\""
 
-		line = "include \"" .. solutiondir .. "/project.lua\""
+		line = "include \"" .. solutiondir .. "/merlin.template/template.lua\""
 		os.execute("{ECHO} " .. line .. suffix)
-
+		
 		suffix = ">> " .. "\"" .. projectDir .. "/premake5.lua" .. "\""
 		line = "newProject(\"" .. projectName .. "\")" 
+		os.execute("{ECHO} " .. line .. suffix)
+
+		suffix = ">> " .. "\"" .. solutiondir .. "/premake5.lua" .. "\""
+		line = "	include \"" .. projectDir .. "\"" 
 		os.execute("{ECHO} " .. line .. suffix)
 	end
 }
 
 newaction {
 	trigger     = "add",
-	description = "Add an existing project using the Merlin library. example : premake5 add <name> <optional path>",
+	description = "Add an existing project using the Merlin library. example : premake5 add <name>",
 	execute = function ()
 		projectDir = solutiondir .. "/"
 		
@@ -45,37 +45,23 @@ newaction {
 		then
 			projectName = _ARGS[1]
 		else
-			if(_ARGS[2])
-			then
-				projectName = path.getbasename("path")
-			else 
-				printf("error : Please provide project name and/or path")
-				return
-			end
+			printf("error : Please provide project name")
 		end
-		
-		projectDir = solutiondir .. "/"
-		if(_ARGS[2])
-		then
-			if(path.isAbsolute(_ARGS[2]))
-			then
-				projectDir = _ARGS[2] .. "/"
-			else
-				projectDir = projectDir .. _OPTIONS["path"]
-			end
-		else
-			projectDir = projectDir .. "/" .. projectName
-		end
-	  
+
+		projectDir = solutiondir .. "/merlin.projects/" .. projectName
 		
 		printf("Generating project files for : " .. projectName)
 		os.execute("{TOUCH} " .. "\"" .. projectDir .. "/premake5.lua\"")
 		suffix = "> " .. "\"" .. projectDir .. "/premake5.lua" .. "\""
-		line = "include \"" .. solutiondir .. "/project.lua\""
+		line = "include \"" .. solutiondir .. "/merlin.template/template.lua\""
 		os.execute("{ECHO} " .. line .. suffix)
 
 		suffix = ">> " .. "\"" .. projectDir .. "/premake5.lua" .. "\""
 		line = "newProject(\"" .. projectName .. "\")" 
+		os.execute("{ECHO} " .. line .. suffix)
+		
+		suffix = ">> " .. "\"" .. solutiondir .. "/premake5.lua" .. "\""
+		line = "	include \"" .. projectDir .. "\"" 
 		os.execute("{ECHO} " .. line .. suffix)
 	end
 }
@@ -115,16 +101,5 @@ group "Dependencies"
 	
 group ""
 	include "merlin.core"
-	include "merlin.example"
 	
---group "Experiments"
-	--include "merlin.experiments/merlin.dem"
-	--include "merlin.experiments/merlin.euleurian"
-	--include "merlin.experiments/merlin.fdm"
-	--include "merlin.experiments/merlin.FDM2D"
-	--include "merlin.experiments/merlin.FDM3D"
-	--include "merlin.experiments/merlin.flex"
-	--include "merlin.experiments/merlin.isosurface"
-	--include "merlin.experiments/merlin.pbd"
-	--include "merlin.experiments/merlin.pbf"
-	--include "merlin.experiments/merlin.pbvef"
+group "Projects"

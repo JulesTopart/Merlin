@@ -4,9 +4,9 @@ function newProject(name)
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
-	debugdir ("../bin/" .. outputdir .. "/%{prj.name}")
-	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("../bin-int/" .. outputdir .. "/%{prj.name}")
+	debugdir (solutiondir .."/bin/" .. outputdir .. "/%{prj.name}")
+	targetdir (solutiondir .."/bin/" .. outputdir .. "/%{prj.name}")
+	objdir (solutiondir .."/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files
 	{
@@ -22,19 +22,19 @@ function newProject(name)
 	   ["Assets/*"] = "assets/**.*"
 	}
 	
-	includedirs { "../merlin.core/vendor/glfw/include" }
+	includedirs { solutiondir .. "/merlin.core/vendor/glfw/include" }
 	
 	filter { "system:windows" }
 		ignoredefaultlibraries { "msvcrt" }
 
 	includedirs
 	{
-		"../merlin.core/vendor/spdlog/include",
-		"../merlin.core/src",
-		"../merlin.core/vendor",
-		"../merlin.core/%{IncludeDir.glm}",
-		"../merlin.core/%{IncludeDir.glad}",
-		"../merlin.core/%{IncludeDir.imgui}"
+		solutiondir .. "/merlin.core/vendor/spdlog/include",
+		solutiondir .. "/merlin.core/src",
+		solutiondir .. "/merlin.core/vendor",
+		solutiondir .. "/merlin.core/%{IncludeDir.glm}",
+		solutiondir .. "/merlin.core/%{IncludeDir.glad}",
+		solutiondir .. "/merlin.core/%{IncludeDir.imgui}"
 	}
 
 	links
@@ -63,7 +63,7 @@ function newProject(name)
 		symbols "on"
 		postbuildcommands {
 		  "{COPYDIR} %[assets] %[%{!cfg.targetdir}/assets]",
-		  "{COPYDIR} %[../merlin.core/assets] %[%{!cfg.targetdir}/assets/common]"
+		  "{COPYDIR} %[" .. solutiondir .. "/merlin.core/assets] %[%{!cfg.targetdir}/assets/common]"
 		}
 
 	filter "configurations:Release"
@@ -72,6 +72,6 @@ function newProject(name)
 		optimize "on"
 		postbuildcommands {
 		  "{COPYDIR} %[assets] %[%{!cfg.targetdir}/assets]",
-		  "{COPYDIR} %[../merlin.core/assets] %[%{!cfg.targetdir}/assets/common]"
+		  "{COPYDIR} %[" .. solutiondir .. "/merlin.core/assets] %[%{!cfg.targetdir}/assets/common]"
 		}
 end
