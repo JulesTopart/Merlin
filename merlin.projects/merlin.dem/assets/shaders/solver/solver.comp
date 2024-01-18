@@ -12,47 +12,27 @@
 layout (local_size_x = PTHREAD) in;
 
 //calculate Temperature
-float computeTemperature(uint i) {
-
-	const float Ti = particles[i].temperature;
-	float temperature = 0.0;
-	
-	OVERNNS
-		vec4 dij = particles[i].position - particles[j].position;
-		temperature += poly6(dij) * particles[j].temperature;
-	OVERNNS_END
-
-	return temperature;
-}
-
-//calculate Temperature
 float computeTemperatureDelta(uint i) {
 
 	const float Ti = particles[i].temperature;
 	float temperatureDelta = 0.0;
-	int n = 0;
 	OVERNNS
-		vec4 dij = particles[i].position - particles[j].position;
-
+		vec4 dij = particles[j].position - particles[i].position;
 		float Tj = particles[j].temperature;
-		float rhoj;
-		
-		if(particles[j].phase == FLUID) rhoj = 1.0;
-		else rhoj = 1.0;
+		float rhoj = particles[j].mass / (3.1415926*(4/3)*pow(particleRadius,3));
 
-		float w2_pse = poly6_lapl(dij);
 		float lambda = (kWater / (CpWater * rhoj));
-		temperatureDelta += lambda * (Tj-Ti);
-		n++;
+		temperatureDelta += lambda*(Tj-Ti)/(length(dij)*1e-3);
 	OVERNNS_END
-	temperatureDelta /= float(n);
+	//temperatureDelta /= float(n);
 	/*
 	if(particles[i].position.z < H/2.0){
 		temperatureDelta += kPlateau * (floorTemperature - Ti);
 	}*/
-	temperatureDelta += kAmbient*(ambientTemperature - Ti);
+	//temperatureDelta += kAmbient * (ambientTemperature - Ti);
 	return temperatureDelta;
 }
+
 
 
 
@@ -231,7 +211,7 @@ void PBDSolve(uint i, uint simStep){
 			//if(distance(particles[i].new_position, particles[i].position) > 2.0*distance(particles[i].pposition, particles[i].position)) particles[i].new_position = particles[i].pposition;
 			//if(i == 0) particles[i].new_position = particles[i].pposition = particles[i].position;
 
-			//particles[i].new_temperature = particles[i].temperature +  computeTemperatureDelta(i);
+			particles[i].new_temperature = particles[i].temperature + computeTemperatureDelta(i)*dt;
 		break;
 
 		case 4 :
@@ -246,7 +226,7 @@ void PBDSolve(uint i, uint simStep){
 		break;
 
 		case 6 :
-		    if(!stabilizationPass) particles[i].velocity = 1.0*(particles[i].new_position - particles[i].position)/dt;
+		    if(!stabilizationPass) particles[i].velocity = (particles[i].new_position - particles[i].position)/dt;
 			particles[i].position = particles[i].new_position;
 			particles[i].temperature = particles[i].new_temperature;
 			//if(i == 0) particles[i].new_position = particles[i].pposition = particles[i].position;

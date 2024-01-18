@@ -20,9 +20,9 @@ const float EPSILON = 1.0e-6f; //Small error epsilon
 const float relaxation = 0.0033;
 
 // --- Heat Transfer ---
-const float ambientTemperature = 298.15;
-const float floorTemperature = 333.15;
-const float nozzleTemperature = 488.15;
+const float ambientTemperature = 273.15 + 25;
+const float floorTemperature = 273.15 + 60;
+const float nozzleTemperature = 273.15 + 215;
 
 const float kPLA = 1.83e-4;// W / mm.K
 const float CpPLA = 4.0; // J / g.K

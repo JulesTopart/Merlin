@@ -24,7 +24,8 @@ const Palette warmcool = Palette(16, vec4[16](vec4(0.229999503869523 / 255.0, 0.
 const Palette parula = Palette(9, vec4[16](vec4(53 / 255.0, 42 / 255.0, 135 / 255.0, 0.0), vec4(3 / 255.0, 99 / 255.0, 225 / 255.0, 0.125), vec4(20 / 255.0, 133 / 255.0, 212 / 255.0, 0.25), vec4(6 / 255.0, 167 / 255.0, 198 / 255.0, 0.375), vec4(56 / 255.0, 185 / 255.0, 158 / 255.0, 0.5), vec4(146 / 255.0, 191 / 255.0, 115 / 255.0, 0.625), vec4(217 / 255.0, 186 / 255.0, 86 / 255.0, 0.75), vec4(252 / 255.0, 206 / 255.0, 46 / 255.0, 0.875), vec4(249 / 255.0, 251 / 255.0, 14 / 255.0, 1.0), vec4(0),vec4(0),vec4(0),vec4(0),vec4(0),vec4(0),vec4(0)));
 const Palette jet = Palette(5, vec4[16](vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 1.0, 1.0, 0.25), vec4(0.0, 1.0, 0.0, 0.5), vec4(1.0, 1.0, 0.0, 0.75), vec4(1.0, 0.0, 0.0, 1.0),vec4(0),vec4(0),vec4(0),vec4(0),vec4(0),vec4(0),vec4(0),vec4(0),vec4(0),vec4(0),vec4(0)));
 
-float map(float value, float min1, float max1, float min2, float max2) {
+float map(float value, float min1, float max1) {
+  const float min2 = 0.0; const float max2 = 1.0;
   return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
 

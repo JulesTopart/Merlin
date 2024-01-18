@@ -14,16 +14,33 @@ Merlin is in a developmental stage and might require some familiarity with GPU c
 
 1. **Clone the Repository**
    ```
-   git clone https://github.com/yourusername/Merlin.git
+   git clone https://github.com/JulesTopart/Merlin.git
    ```
 
 2. **Build the Engine**
    - Navigate to the Merlin directory.
-   - Run `build.bat` to compile the source code.
+   - Run `premake.bat` to generate Microsoft Visual studio projects and solution automatically.
+   
    ```
    cd Merlin
-   build.bat
+   premake.bat
    ```
+   
+   Premake is packaged with Merlin inside the `extern folder`. You could also install premake on you machine and add it to your PATH environment variable to shorten the commands.
+   
+   To create a new project preconfigured for Merlin, use this command : 
+   ```
+   ./extern/premake5/premake5.exe new <projectname>
+   ```
+   
+   or if you already have premake installed : 
+   
+   ```
+   premake5 new <projectname>
+   ```
+   
+   This command will create a new folder using the project template into the `merlin.projects` directory.
+   
 
 3. **Open MVSC Solution**
    - Open the `.sln` file in Microsoft Visual Studio.

@@ -4,7 +4,7 @@ function newProject(name)
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "on"
-	debugdir (solutiondir .."/bin/" .. outputdir .. "/%{prj.name}")
+	debugdir (solutiondir .."/merlin.projects" .. "/%{prj.name}")
 	targetdir (solutiondir .."/bin/" .. outputdir .. "/%{prj.name}")
 	objdir (solutiondir .."/bin-int/" .. outputdir .. "/%{prj.name}")
 
@@ -14,6 +14,8 @@ function newProject(name)
 		"src/**.cpp",
 		"assets/shaders/**.*"
 	}
+	
+	removefiles { "assets/common/**.*" }
 
 	vpaths {
 	   ["Headers/*"] = "**.h",
@@ -63,7 +65,7 @@ function newProject(name)
 		symbols "on"
 		postbuildcommands {
 		  "{COPYDIR} %[assets] %[%{!cfg.targetdir}/assets]",
-		  "{COPYDIR} %[" .. solutiondir .. "/merlin.core/assets] %[%{!cfg.targetdir}/assets/common]"
+		  "{COPYDIR} %[" .. solutiondir .. "/merlin.core/assets] %[%{!cfg.debugdir}/assets/common]"
 		}
 
 	filter "configurations:Release"
@@ -72,6 +74,6 @@ function newProject(name)
 		optimize "on"
 		postbuildcommands {
 		  "{COPYDIR} %[assets] %[%{!cfg.targetdir}/assets]",
-		  "{COPYDIR} %[" .. solutiondir .. "/merlin.core/assets] %[%{!cfg.targetdir}/assets/common]"
+		  "{COPYDIR} %[" .. solutiondir .. "/merlin.core/assets] %[%{!cfg.debugdir}/assets/common]"
 		}
 end

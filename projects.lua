@@ -19,7 +19,7 @@ function newProject(name)
 	   ["Headers/*"] = "**.h",
 	   ["Sources/*"] = {"**.c", "**.cpp"},
 	   ["Docs"] = "**.md",
-	   ["Assets/*"] = "assets/**.*"
+	   ["Assets/*"] = {"assets/shaders/**.*"},
 	}
 	
 	includedirs { solutiondir .. "/merlin.core/vendor/glfw/include" }
@@ -50,7 +50,7 @@ function newProject(name)
 
 	filter "system:windows"
 		systemversion "latest"
-
+		fastUpToDateCheck "off"
 		defines
 		{
 			"GLCORE_PLATFORM_WINDOWS",
@@ -62,8 +62,9 @@ function newProject(name)
 		runtime "Debug"
 		symbols "on"
 		postbuildcommands {
-		  "{COPYDIR} %[assets] %[%{!cfg.targetdir}/assets]",
+		  "{COPYDIR} %[assets] %[%{!cfg.targetdir}/assets]"
 		  "{COPYDIR} %[" .. solutiondir .. "/merlin.core/assets] %[%{!cfg.targetdir}/assets/common]"
+		  "{COPYDIR} %[" .. solutiondir .. "/merlin.core/assets] %[%{!cfg.debugdir}/assets/common]"
 		}
 
 	filter "configurations:Release"
@@ -71,7 +72,8 @@ function newProject(name)
 		runtime "Release"
 		optimize "on"
 		postbuildcommands {
-		  "{COPYDIR} %[assets] %[%{!cfg.targetdir}/assets]",
+		  "{COPYDIR} %[assets] %[%{!cfg.targetdir}/assets]"
 		  "{COPYDIR} %[" .. solutiondir .. "/merlin.core/assets] %[%{!cfg.targetdir}/assets/common]"
+		  "{COPYDIR} %[" .. solutiondir .. "/merlin.core/assets] %[%{!cfg.debugdir}/assets/common]"
 		}
 end

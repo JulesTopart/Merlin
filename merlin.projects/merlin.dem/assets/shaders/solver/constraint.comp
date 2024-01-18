@@ -5,7 +5,9 @@
 //?#include "../common/uniforms.comp"
 //?#include "../common/constants.comp"
 //?#include "../common/buffers.comp"
+//?#include "../common/nns.comp"
 //?#include "sph.kernels.comp" 
+
 
 /*
 vec4 solveParticleCollision(uint i){
@@ -42,7 +44,10 @@ vec4 solveParticleCollision(uint i){
 	if(n > 1) return deltaPosition/float(n);
 	else return deltaPosition;
 }
+
 */
+
+float rand(float n){return 1e-2*fract(sin(n) * 43758.5453123);}
 
 vec4 solveParticleCollision(uint i) {
     int n = 0;
@@ -51,10 +56,10 @@ vec4 solveParticleCollision(uint i) {
         vec4 pi = particles[i].new_position;
         vec4 pj = particles[j].new_position;
         float d0 = distance(pi, pj) - 2*particleRadius;
-        float vmax = 0.001*particleRadius/dt;
-        float l0 = 2.1 * particleRadius;
+        float vmax = 1e-6*particleRadius/dt;
+        float l0 = 2.0 * particleRadius;
         float l = distance(pi, pj);
-        float C = l - l0 + max(d0 - vmax * dt, 0.0);
+        float C = l - l0 - rand(l);
 
         if (C >= 0 || abs(C) < 1e-6) continue;
 
@@ -71,6 +76,7 @@ vec4 solveParticleCollision(uint i) {
     if (n > 1) return deltaPosition / float(n);
     else return deltaPosition;
 }
+
 
 
 /*
@@ -92,7 +98,9 @@ vec4 solveFriction(uint i){
 	if(n > 1) return deltaPosition/float(n);
 	else return deltaPosition;
 }
+*/
 
+/*
 vec4 solveDistanceConstraint(uint i){
 	int n = 0;
 	vec4 deltaPosition = vec4(0);

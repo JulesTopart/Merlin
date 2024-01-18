@@ -35,8 +35,6 @@ void main() {
 	vec3 offset = particles[gl_InstanceID].position.xyz;
 	position = model * (vec4(_position + offset,1));
 
-
-	
 	bool binTest = true;
 	bool nnTest = false;
 	bool hTest = false;
@@ -47,30 +45,28 @@ void main() {
 		color = vec4(vec3(0.8), 1.0);
 	}else if(colorCycle == 1){ 
 		color = vec4(randomColor(particles[gl_InstanceID].binIndex), 1);
-	}/*else if(colorCycle == 2) {
-		ColorScale rest;
-		rest.minValue = int(0);
-		rest.maxValue = int(2.0);
+	}else if(colorCycle == 2) {
 		//color = stableMap(map(int(particles[gl_InstanceID].density), colorScale[DENSITY_FIELD] ));
 		//color = stableMap(map(int(particles[gl_InstanceID].density), rest ));
 		//color = heatMap(map(int(particles[gl_InstanceID].density), rest ));
-		color = heatMap(map(particles[gl_InstanceID].density, colorScale[DENSITY_FIELD]));
-	}*/else if(colorCycle == 3) {
+		color = colorMap(map(particles[gl_InstanceID].density, 0.0 ,REST_DENSITY), jet);
+	}else if(colorCycle == 3) {
 
-		float minValue = int(ambientTemperature*100.0);
-		float maxValue = int(nozzleTemperature*100.0);
+		float minValue = ambientTemperature;
+		float maxValue = nozzleTemperature*3.0;
 
 		//color = heatMap(map(particles[gl_InstanceID].temperature, trest));
-		color = heatMap(map(particles[gl_InstanceID].temperature, minValue, maxValue));
+		color = colorMap(map(particles[gl_InstanceID].temperature, minValue, maxValue), jet);
+		
 	}else if(colorCycle == 4) {
 		float minValue = 0.0;
 		float maxValue = 20;
-		color = heatMap(map(particles[gl_InstanceID].lambda, minValue, maxValue));
+		color = colorMap(map(particles[gl_InstanceID].lambda, minValue, maxValue), jet);
 
 	}else if(colorCycle == 5) {
 		float minValue = 0.0;
 		float maxValue = 5;
-		color = heatMap(map(particles[gl_InstanceID].mass, minValue, maxValue));
+		color = colorMap(map(particles[gl_InstanceID].mass, minValue, maxValue), jet);
 	}else{ //NNS Test
 		
 		binTest = true;

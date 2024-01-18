@@ -34,7 +34,7 @@ void main() {
 	if(colorCycle == 1){
 		color = vec4(randomColor(gl_InstanceID), 1);
 	}else if(colorCycle != 6){
-		color = heatMap(float(bins[gl_InstanceID].count)/(MAXNN));
+		color = colorMap(float(bins[gl_InstanceID].count)/(MAXNN), parula);
 	}else {
 		
 		if(gl_InstanceID == binTest) color = vec4(1,0,0,1);

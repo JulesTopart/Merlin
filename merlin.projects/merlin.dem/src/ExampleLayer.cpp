@@ -9,7 +9,6 @@ using namespace Merlin::Graphics;
 #include <iomanip>
 #include "Bunny.h"
 
-
 #define PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 #define GPU_PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE glFinish(); VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 
@@ -270,6 +269,10 @@ void ExampleLayer::ResetSimulation() {
 	buf.binIndex = 0;
 	buf.newIndex = 0;
 
+	//buf.phase = SOLID;
+	//buf.position = glm::vec4(0, 0, 10, 0.0);
+	//cpu_particles.push_back(buf);
+
 	/*
 	buf.phase = SOLID; //Fluid body
 	const float height = 80;
@@ -300,8 +303,8 @@ void ExampleLayer::ResetSimulation() {
 		cpu_particles.push_back(buf);
 	}*/
 	
-
 	
+	buf.temperature = 273.15 + 60;//ambient
 	buf.phase = SOLID; //Rigid cube
 	glm::vec3 cubeSize = glm::vec3(20, 10, 10);
 	glm::uvec3 icubeSize = glm::vec3(cubeSize.x/spacing, cubeSize.y / spacing, cubeSize.y / spacing);
@@ -316,6 +319,7 @@ void ExampleLayer::ResetSimulation() {
 		buf.position[0] = x;
 		buf.position[1] = y;
 		buf.position[2] = z;
+		buf.temperature = 273.15 + 60*x;
 		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
 	}
@@ -360,7 +364,7 @@ void ExampleLayer::ResetSimulation() {
 			}
 			*/
 
-	
+	/*
 	buf.temperature = 273.15 + 60;//ambient
 	buf.phase = BOUNDARY; //Boundaries body
 	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
@@ -372,7 +376,10 @@ void ExampleLayer::ResetSimulation() {
 			buf.position[2] = settings.bz;
 			//cpu_particles.push_back(buf);
 		}
-	}/*
+	}*/
+	
+	
+	/*
 	for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
 		for (float z = 0; z < settings.bz; z += spacing) {
 			buf.position[0] = -settings.bx / 2.0;
@@ -533,7 +540,7 @@ static glm::vec4 DeltaTimeToColor(float dt)
 void ExampleLayer::OnImGuiRender()
 {
 
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
 	ImGui::DockSpaceOverViewport((ImGuiViewport*)0, ImGuiDockNodeFlags_PassthruCentralNode);
 	ImGui::Begin("Infos");
 

@@ -103,3 +103,7 @@ group ""
 	include "merlin.core"
 	
 group "Projects"
+	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.example"
+	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.dem"
+	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.sort"
+	
