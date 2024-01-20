@@ -107,3 +107,5 @@ group "Projects"
 	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.dem"
 	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.sort"
 	
+	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.example2D"
+	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.sph2D"
