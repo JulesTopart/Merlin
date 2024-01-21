@@ -4,54 +4,55 @@
 
 using namespace Merlin::Graphics;
 
+#define UNUSED 0
+#define SOLID 1
+#define FLUID 2
+#define GAS 3
+#define GRANULAR 4
+#define BOUNDARY 5
 
-class TemplateLayer : public Merlin::Layer
-{
+class AppLayer : public Merlin::Layer{
 public:
-	TemplateLayer();
-	virtual ~TemplateLayer();
+	AppLayer();
+	virtual ~AppLayer();
 
-	virtual void OnAttach() override;
-	virtual void OnDetach() override;
-	virtual void OnEvent(Merlin::Event& event) override;
-	virtual void OnUpdate(Merlin::Timestep ts) override;
-	virtual void OnImGuiRender() override;
+	void OnAttach() override;
+	void OnDetach() override;
+	void OnEvent(Merlin::Event& event) override;
+	void OnUpdate(Merlin::Timestep ts) override;
+	void OnImGuiRender() override;
+
+	void InitGraphics();
+	void InitPhysics();
+	void ResetSimulation();
+	void UpdateBufferSettings();
+
+	void NeigborSearch();
+	void Simulate(Merlin::Timestep ts);
+
+	void updateFPS(Merlin::Timestep ts);
 private:
 
 	Shared<Camera> camera;
 
 	Scene scene;
 	Renderer renderer;
-
 	Shared<Model>  light;
-
-
-
 
 	//Simulation
 	StagedComputeShader_Ptr solver;
 	StagedComputeShader_Ptr prefixSum;
 
 	SSBO_Ptr<Bin> binBuffer; //Particle buffer
-	SSBO_Ptr<FluidParticle> particleBuffer; //Particle buffer
-	SSBO_Ptr<DistanceContraint> constraintBuffer; //Particle buffer
+	SSBO_Ptr<glm::vec4> particleBuffer; //Particle buffer
 
-	Shader_Ptr modelShader;
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;
 
 	deprecated_ParticleSystem_Ptr particleSystem;
 	deprecated_ParticleSystem_Ptr binSystem;
 
-	Renderer renderer;
-	Scene scene;
 	TransformObject_Ptr origin;
-	Model_Ptr  light;
-
-	//Camera
-	Camera_Ptr camera;
-	CameraController_Ptr cameraController;
-
 	Settings settings;
 
 	//Simulation
@@ -59,10 +60,6 @@ private:
 	GLuint numConstraint = 0;
 	GLuint numBoundaryParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
-
-
-
-
 
 	double nns_time = 0;
 	double solver_substep_time = 0;
@@ -78,5 +75,4 @@ private:
 	float FPS = 0;
 	float FPS_sample = 0;
 
-	glm::vec3 model_matrix_translation = { 0.8f, 0.2f, 0.3f};
 };

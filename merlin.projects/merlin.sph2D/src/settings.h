@@ -10,14 +10,6 @@ struct Bin {
 	GLuint index; //bin index
 };
 
-struct FluidParticle {
-	alignas(16) glm::vec4 position; // current position    x
-	alignas(16) glm::vec4 velocity;	// velocity			   u
-	GLfloat	invmass;				//inverse mass
-	GLuint phase;					// phase (liquid, solid...)
-};
-
-
 
 /*
 struct FluidParticle {
@@ -45,29 +37,26 @@ struct FluidParticle {
 struct Settings {
 
 	//Build Volume dimensions
-	glm::vec3 bb = glm::vec3(30, 30, 100);
+	glm::vec2 bb = glm::vec2(30, 30);
 	float bx = bb.x;//mm 120
 	float by = bb.y;//mm
-	float bz = bb.z;//mm 40
 
-	GLuint bRes = 128; //Bed width is divided bRes times (old 42)
-
+	GLuint bRes = 64; //Bed width is divided bRes times (old 42)
 	GLuint maxNNS = 32;
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
-	GLuint pThread = 1000000; //Max Number of particles (thread) (10 milion)
-	GLuint pWkgSize = 512; //Number of thread per workgroup
+	GLuint pThread = 100000; //Max Number of particles (thread) (10 milion)
+	GLuint pWkgSize = 160; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-
-	float bWidth = std::max(bx, std::max(by, bz)) / float(bRes); //Width of a single bin in mm
-	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
+	float bWidth = std::max(bx, by) / float(bRes); //Width of a single bin in mm
+	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)); //Total number of bin (thread)
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 
-	GLuint bWkgSize = 512; //Number of thread per workgroup
+	GLuint bWkgSize = 32; //Number of thread per workgroup
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
 	// --- SPH ---

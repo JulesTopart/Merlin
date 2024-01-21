@@ -32,9 +32,6 @@ ExampleLayer::~ExampleLayer() {}
 
 void ExampleLayer::OnAttach() {
 	EnableGLDebugging();
-	Window* wd = &Application::Get().GetWindow();
-	_height = wd->GetHeight();
-	_width = wd->GetWidth();
 	//ImGui::LoadIniSettingsFromDisk("imgui.ini");
 	Console::SetLevel(ConsoleLevel::_INFO);
 

@@ -1,0 +1,29 @@
+//? #version 430
+#ifndef INCLUDE_CONSTANTS_GLSL
+#define INCLUDE_CONSTANTS_GLSL
+
+#define BTHREAD 32
+#define PTHREAD 160
+
+#define UNUSED 0
+#define SOLID 1
+#define FLUID 2
+#define GAS 3
+#define GRANULAR 4
+#define BOUNDARY 5
+
+#define MAXNN 32
+
+#define EPSILON 1e-6
+// --- Domain ---
+const uint binResolution = 64;
+const vec2 domain = vec2(30, 30);
+const vec2 boundaryMin = vec2(-domain.x/2.0 , -domain.y/2.0);
+const vec2 boundaryMax = vec2(domain.x / 2.0, domain.y / 2.0);
+
+const float binSize = max(domain.x, domain.y) / float(binResolution);
+const uvec2 binMax = uvec2(domain / binSize);
+const uint binCount = binMax.x * binMax.y;
+
+
+#endif

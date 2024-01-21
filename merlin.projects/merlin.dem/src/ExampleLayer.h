@@ -173,7 +173,6 @@ public:
 	void updateFPS(Merlin::Timestep ts);
 
 private:
-	GLsizei _width = 1080, _height = 720;
 
 	//Simulation
 	StagedComputeShader_Ptr solver;
