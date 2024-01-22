@@ -12,7 +12,7 @@ newaction {
 			printf("error : Please provide project name")
 		end
 
-		projectDir = solutiondir .. "/merlin.projects/" .. projectName
+		projectDir = "merlin.projects/" .. projectName
 		
 		printf("Copying template : \"" .. solutiondir .. "/merlin.template\" > " .. "\"" .. projectDir .."\"")
 		command = "\"" .. solutiondir .. "/merlin.template/src\" " .. "\"" .. projectDir .. "/src\""
@@ -21,7 +21,7 @@ newaction {
 
 		suffix = "> " .. "\"" .. projectDir .. "/premake5.lua" .. "\""
 
-		line = "include \"" .. solutiondir .. "/merlin.template/template.lua\""
+		line = "include (solutiondir .. \"/merlin.template/template.lua\")"
 		os.execute("{ECHO} " .. line .. suffix)
 		
 		suffix = ">> " .. "\"" .. projectDir .. "/premake5.lua" .. "\""
@@ -48,12 +48,13 @@ newaction {
 			printf("error : Please provide project name")
 		end
 
-		projectDir = solutiondir .. "/merlin.projects/" .. projectName
+		projectDir = "merlin.projects/" .. projectName
 		
 		printf("Generating project files for : " .. projectName)
 		os.execute("{TOUCH} " .. "\"" .. projectDir .. "/premake5.lua\"")
 		suffix = "> " .. "\"" .. projectDir .. "/premake5.lua" .. "\""
-		line = "include \"" .. solutiondir .. "/merlin.template/template.lua\""
+
+		line = "include (solutiondir .. \"/merlin.template/template.lua\")"
 		os.execute("{ECHO} " .. line .. suffix)
 
 		suffix = ">> " .. "\"" .. projectDir .. "/premake5.lua" .. "\""
@@ -103,9 +104,9 @@ group ""
 	include "merlin.core"
 	
 group "Projects"
-	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.example"
-	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.dem"
-	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.sort"
-	
-	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.example2D"
-	include "C:/Users/jules/Git/Merlin/merlin.projects/merlin.sph2D"
+	include "merlin.projects/merlin.example"
+	include "merlin.projects/merlin.dem"
+	include "merlin.projects/merlin.sort"
+	include "merlin.projects/merlin.example2D"
+	include "merlin.projects/merlin.sph2D"
+

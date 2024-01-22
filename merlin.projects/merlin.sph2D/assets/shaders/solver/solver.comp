@@ -11,19 +11,16 @@
 
 layout (local_size_x = PTHREAD) in;
 
-
-
 void NNS(uint i, uint simStep) {
-	uint binIndex = getBinIndex(particles[i].xy);
+	uint binIndex = getBinIndex(particles[i].position);
 	switch(simStep){ //Neighbor search
-		case 0 :
-			//Bin sorting
+		case 0 : //Bin sorting
 			atomicAdd(bins[binIndex].count, 1);
 			cpy_particles[i] = particles[i];
 		break;
-		case 1 ://Sort particle indices
-			uint newID = atomicAdd(bins[binIndex].index, -1) -1;
-			if(newID < numParticles) particles[newID] = cpy_particles[i];
+		case 1 : //Sort particle indices
+		uint newID = atomicAdd(bins[binIndex].index, -1) -1;
+		particles[newID] = cpy_particles[i];
 		break;
 	}
 }
@@ -40,32 +37,23 @@ void SolveFluid(uint i, uint simStep) {
 
 		//Pressure solver Iteration
 		case 3 :
-			vec2 acceleration = vec2(0,-G);
-			particles[i].xy += velocity[i] * dt + acceleration * (dt * dt);
-			density[i] = computeDensity(i);
+			//vec2 acceleration = vec2(0,-G);
+			//particles[i].new_position = particles[i].position + particles[i].velocity * dt + acceleration * (dt * dt);
+			//particles[i].density = computeDensity(i);
 		break;
 		
 		case 4 :
-			particles[i].new_position += computePositionDelta(i);
+			//new_position[i] += computePositionDelta(i);
 		break;
 		//End iteration
 		
 		case 5 : //Apply changes
 			
-			particles[i].velocity = (particles[i].new_position - particles[i].position)/(dt);
-			particles[i].position = particles[i].new_position;
-			clampToBoundaries(particles[i].position, particles[i].velocity);
+			//particles[i].velocity = (particles[i].new_position - particles[i].position)/(dt);
+			//particles[i].position = particles[i].new_position;
+			//clampToBoundaries(position[i], velocity[i]);
 
-			
-			vec4 xsphSum = vec4(0);
-			OVERNNS
-				Particle pj = particles[j];
-				vec4 dist = particles[j].position - particles[i].position;
-				vec4 Vij = particles[j].velocity - particles[i].velocity;
-				float Wij = poly6_lapl(dist);
-				if(pj.phase == FLUID) xsphSum += alphaVisco * Vij * Wij * particles[j].density;
-			OVERNNS_END
-			particles[i].velocity -= xsphSum;
+
 			//particles[i].temperature += computeTemperatureDelta(u);			
 			//particles[i].position = particles[i].new_position; //apply new position
 
@@ -88,6 +76,5 @@ void main() {
 		return;
 	}
 
-	if (particles[i].phase == UNUSED) return;
-	if(particles[i].phase == FLUID) SolveFluid(i, stage);
+	SolveFluid(i, stage);
 }

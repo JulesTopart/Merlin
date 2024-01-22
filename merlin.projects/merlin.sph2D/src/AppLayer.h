@@ -44,15 +44,13 @@ private:
 	StagedComputeShader_Ptr prefixSum;
 
 	SSBO_Ptr<Bin> binBuffer; //Particle buffer
-	SSBO_Ptr<glm::vec4> particleBuffer; //Particle buffer
+	SSBO_Ptr<Particle> particleBuffer; //Particle buffer
 
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;
 
 	deprecated_ParticleSystem_Ptr particleSystem;
 	deprecated_ParticleSystem_Ptr binSystem;
-
-	TransformObject_Ptr origin;
 	Settings settings;
 
 	//Simulation

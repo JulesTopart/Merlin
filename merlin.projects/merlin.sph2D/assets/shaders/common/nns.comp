@@ -14,6 +14,7 @@ layout(std430) buffer BinBuffer {
 	Bin bins[];
 };
 
+
 uvec2 getBinCoord(vec2 position) {
 	position.xy -= boundaryMin;
 	uvec2 bin3D = uvec2(position / binSize);

@@ -28,7 +28,7 @@ void main() {
 	position = vec3(model * vec4(_position*0.95 + vec3(offset + boundaryMin,0) , 1.0f));
 	normal = _normal;
 
-	bool test = bins[gl_InstanceID].count > 0;
+	bool test = true;//bins[gl_InstanceID].count > 0;
 
 	color = vec4(1);
 	if(colorCycle == 1){
@@ -40,7 +40,7 @@ void main() {
 		if(gl_InstanceID == binTest) color = vec4(1,0,0,1);
 		else{
 			test = false;
-			uvec2 binIndexVec = getBinCoord(particles[particleTest].x);
+			uvec2 binIndexVec = getBinCoord(particles[particleTest].position);
 				for (int y = int(binIndexVec.y) - 1; y <= int(binIndexVec.y) + 1; y++) {
 					for (int x = int(binIndexVec.x) - 1; x <= int(binIndexVec.x) + 1; x++) {
 						if (x < 0 || y < 0) continue;

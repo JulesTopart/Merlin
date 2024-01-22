@@ -2,6 +2,8 @@
 #ifndef INCLUDE_BUFFERS_GLSL
 #define INCLUDE_BUFFERS_GLSL
 
+//TODO generate this automatically
+
 //Buffer layout
 /*
 vec2 position;	// x : current position x
@@ -11,23 +13,23 @@ float phase;	// p : phase
 vec2 velocity;	// v : velocity
 */
 
+struct Particle{
+	vec2 position;
+	vec2 new_position;
+	vec2 velocity;
+	float invmass;
+	float density;
+	uint phase;
+	uint binIndex;
+};
+
 
 layout(std430) buffer ParticleBuffer {
-	vec4 particles[];
+	Particle particles[];
 };
 
 layout(std430) buffer ParticleCpyBuffer {
-	vec4 cpy_particles[];
+	Particle cpy_particles[];
 };
-
-layout(std430) buffer VelocityBuffer {
-	vec2 velocity[];
-};
-
-layout(std430) buffer DensityBuffer {
-	float density[];
-};
-
-
 
 #endif// INCLUDE_BUFFERS_HLSL

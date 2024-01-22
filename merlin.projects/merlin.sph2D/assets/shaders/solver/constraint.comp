@@ -8,10 +8,9 @@
 //?#include "../common/nns.comp"
 //?#include "sph.kernels.comp" 
 
-/*
-vec4 solveFloorCollision(uint i){
-	vec4 correctedPosition = particles[i].new_position;
-	for (int i = 0; i < 3; i++){
+vec2 solveFloorCollision(uint i){
+	vec2 correctedPosition = particles[i].new_position;
+	for (int i = 0; i < 2; i++){
 		if (correctedPosition[i] - particleRadius <= boundaryMin[i] ){
 			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
 		}
@@ -44,51 +43,38 @@ void clampPosition(inout vec4 position){
 	position = correctedPosition / 6.0;
 }
 
-*/
-// --------- Position based fluid --------------
-vec4 solveViscosity(uint i) {
-	vec4 smoothedVelocity = vec4(0);
-	OVERNNS
-		Particle pj = particles[j];
-		if(pj.phase == FLUID){
-			vec4 rij = particles[i].new_position - particles[j].new_position;
-			vec4 vij = particles[i].velocity - particles[j].velocity;
-
-			float Wij = Wvisc(rij);
-			smoothedVelocity += (pj.mass / pj.density) * vij * Wij ;
-
-		}
-	OVERNNS_END
-
-	return artificialViscosity * smoothedVelocity;
-}
-
 float computeDensity(uint i) {
-	float density = particleMass * poly6(vec4(0.0));
+	float density = particleMass * cubicKernel2D(vec2(0.0));
 	Particle pi = particles[i];
 
 	OVERNNS
 		Particle pj = particles[j];
 		if( pj.phase != FLUID) continue;
-		vec4 diff = pi.position - pj.position;
-		density += pj.mass*poly6(diff); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
+		vec2 diff = pi.position - pj.position;
+		density += (1.0/pj.invmass)*cubicKernel2D(diff); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
 	OVERNNS_END
 	return  density;
 }
 
+
+
+
+
+
+/*
 // Introduce the viscosity constraint and its gradient
 float densityConstraint(float density) {
-    return (density * INV_REST_DENSITY) - 1.0f;
+    return (density * (1.0/REST_DENSITY)) - 1.0f;
 }
 
-vec4 densityConstraintGradient(vec4 pi, vec4 pj) {
-	vec4 diff = pi - pj;
-	if (length(diff.xyz) > H) return vec4(0.0);//neighbor too far
-	return spiky_grad(diff);
+vec2 densityConstraintGradient(vec2 pi, vec2 pj) {
+	vec2 diff = pi - pj;
+	if (length(diff.xy) > H) return vec2(0.0);//neighbor too far
+	return spikyGradient(diff);
 }
 
 // Introduce the viscosity constraint and its gradient
-float viscosityConstraint(vec4 p_i, vec4 p_j, float d_ij) {
+float viscosityConstraint(vec2 p_i, vec2 p_j, float d_ij) {
     return d_ij - length(p_i - p_j) - artificialViscosity * d_ij;
 }
 
@@ -96,7 +82,6 @@ vec4 viscosityConstraintGradient(vec4 p_i, vec4 p_j) {
     vec4 p_ij = p_i - p_j;
     return normalize(p_ij);
 }
-
 
 
 float computeLambda(uint i) {
@@ -142,6 +127,6 @@ vec4 computePositionDelta(uint i) {
 	OVERNNS_END
 	return posDelta;
 }
-
+*/
 
 #endif

@@ -1,7 +1,7 @@
 #version 430
 
 #include "../common/constants.comp"
-#include "../common/buffers.comp"
+#include "../common/nns.comp"
 
 layout (local_size_x = BTHREAD) in;
 

@@ -32,13 +32,13 @@ void main() {
 		return;
 	}
 
-	vec2 offset = particles[gl_InstanceID].x.xy;
+	vec2 offset = particles[gl_InstanceID].position;
 	position = model * (vec4(_position + vec3(offset,0),1));
 
 	bool binTest = true;
 	bool nnTest = false;
 	bool hTest = false;
-	uint binindex = getBinIndex(particles[gl_InstanceID].x);
+	uint binindex = getBinIndex(particles[gl_InstanceID].position);
 
 	bool test = particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0);
 
@@ -50,7 +50,7 @@ void main() {
 	}else{ //NNS Test
 		
 		binTest = true;
-		uvec2 binIndexVec2 = getBinCoord(particles[gl_InstanceID].x);
+		uvec2 binIndexVec2 = getBinCoord(particles[gl_InstanceID].position);
 		for (int y = int(binIndexVec2.y) - 1; y <= int(binIndexVec2.y) + 1; y++) {
 			for (int x = int(binIndexVec2.x) - 1; x <= int(binIndexVec2.x) + 1; x++) {
 				if (x < 0 || y < 0) continue;
@@ -65,7 +65,7 @@ void main() {
 		OVERNNS
 			if(gl_InstanceID == j){
 				nnTest = true;
-				if(length(particles[particleTest].x - particles[j].x) <= smoothingRadius) hTest = true;
+				if(length(particles[particleTest].position - particles[j].position) <= smoothingRadius) hTest = true;
 			}
 		OVERNNS_END
 
@@ -85,8 +85,8 @@ void main() {
 		mv = projection * view;
 		
 		gl_Position = screen_position;
-		gl_PointSize = particleRadius * WindowSize.y * 1.8 / (gl_Position.w);
-		if(colorCycle == 6 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = 100.0/(gl_Position.w);
+		gl_PointSize = particleRadius * WindowSize.y * 0.09;
+		if(colorCycle == 6 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = particleRadius * WindowSize.y * 0.25*1e-3;
 		
 	}
 }

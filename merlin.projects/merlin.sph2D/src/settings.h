@@ -10,6 +10,16 @@ struct Bin {
 	GLuint index; //bin index
 };
 
+struct Particle {
+	alignas(8) glm::vec2 position;
+	alignas(8) glm::vec2 new_position;
+	alignas(8) glm::vec2 velocity;
+	float invmass;
+	float density;
+	GLuint phase;
+	GLuint binIndex;
+};
+
 
 /*
 struct FluidParticle {
@@ -37,11 +47,11 @@ struct FluidParticle {
 struct Settings {
 
 	//Build Volume dimensions
-	glm::vec2 bb = glm::vec2(30, 30);
+	glm::vec2 bb = glm::vec2(25, 15);
 	float bx = bb.x;//mm 120
 	float by = bb.y;//mm
 
-	GLuint bRes = 64; //Bed width is divided bRes times (old 42)
+	GLuint bRes = 42; //Bed width is divided bRes times (old 42)
 	GLuint maxNNS = 32;
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)

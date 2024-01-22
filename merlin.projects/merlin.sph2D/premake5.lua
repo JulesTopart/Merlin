@@ -1,2 +1,2 @@
-include "C:/Users/jules/Git/Merlin/merlin.template/template.lua"
+include (solutiondir .. "/merlin.template/template.lua")
 newProject("merlin.sph2D")
