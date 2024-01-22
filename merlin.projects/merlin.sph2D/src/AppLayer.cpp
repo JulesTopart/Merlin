@@ -134,13 +134,13 @@ void AppLayer::InitPhysics() {
 	particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
 
 
-	Shared<Mesh> binInstance = Primitives::CreateCube(settings.bWidth);
+	Shared<Mesh> binInstance = Primitives::CreateQuadRectangle(settings.bWidth, settings.bWidth, true);
 	binInstance->Rename("bin");
 	binInstance->SetShader(binShader);
 	binSystem = deprecated_ParticleSystem::Create("BinSystem", settings.bThread);
 	binSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::MESH);
 	binSystem->SetMesh(binInstance);
-	//binSystem->EnableWireFrameMode();
+	binSystem->EnableWireFrameMode();
 
 
 
@@ -181,8 +181,7 @@ void AppLayer::ResetSimulation() {
 
 	elapsedTime = 0;
 
-	particleBuffer->Bind();
-	particleBuffer->Clear();
+	
 	particleBuffer->FreeHostMemory();
 	
 	Console::info() << "Generating particles..." << Console::endl;
@@ -208,12 +207,15 @@ void AppLayer::ResetSimulation() {
 				buf.new_position = buf.position;
 				cpu_particles.push_back(buf);
 			}
-
+	
 	numParticles = cpu_particles.size();
 	settings.pThread = numParticles;
 	particleSystem->SetInstancesCount(settings.pThread);
 
 	UpdateBufferSettings();
+
+	particleBuffer->Bind();
+	particleBuffer->Clear();
 	particleBuffer->Upload();
 	
 

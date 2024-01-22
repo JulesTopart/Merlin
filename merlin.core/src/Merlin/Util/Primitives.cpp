@@ -16,6 +16,37 @@ namespace Merlin::Utils {
 		return Mesh::Create("Rectangle", v, i, GL_QUADS);
 	}
 
+
+	Shared<Mesh> Primitives::CreateQuadRectangle(float x, float y, bool centered) {
+
+		float x_lo;
+		float x_up;
+		float y_lo;
+		float y_up;
+
+		if (centered) {
+			x_lo = -x / 2.0f;
+			x_up = x / 2.0f;
+			y_lo = -y / 2.0f;
+			y_up = y / 2.0f;
+		}
+		else {
+			x_lo = 0;
+			x_up = x;
+			y_lo = 0;
+			y_up = y;
+		}
+
+		std::vector<Vertex> v = {
+			Vertex{ glm::vec3(x_lo,y_lo,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // Z-
+			Vertex{ glm::vec3(x_up,y_lo,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)}
+		};
+
+		return Mesh::Create("Cube", v, GL_QUADS);
+	}
+
 	Shared<Mesh> Primitives::CreateFloor(const int groundNumTiles, const float groundTileSize) {
 
 		glm::vec2 squareVerts[] = { glm::vec2(0, 0), glm::vec2(0, 1), glm::vec2(1, 1), glm::vec2(1, 0) };

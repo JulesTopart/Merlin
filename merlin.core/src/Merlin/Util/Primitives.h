@@ -7,6 +7,7 @@ namespace Merlin::Utils {
 	public:
 		// Load a model from the specified file and return a pointer to a new Mesh object
 		static Shared<Mesh> CreateRectangle(float x, float y);
+		static Shared<Mesh> CreateQuadRectangle(float x, float y, bool centered = true);
 		static Shared<Mesh> CreateFloor(const int groundNumTiles, const float groundTileSize);
 		static Shared<Mesh> CreatePoint();
 		static Shared<Mesh> CreateLine(float length, glm::vec3 dir = glm::vec3(1, 0, 0));
