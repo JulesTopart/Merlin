@@ -11,7 +11,15 @@
 
 namespace Merlin::Graphics {
 
+	int ShaderBase::shader_instances = 0;
+
+	ShaderBase::ShaderBase() {
+		shader_instances++;
+		m_name = "default" + std::to_string(shader_instances);
+	}
+
 	ShaderBase::ShaderBase(std::string name) {
+		shader_instances++;
 		m_name = name;
 	}
 

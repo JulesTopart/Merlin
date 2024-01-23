@@ -3,7 +3,7 @@
 #define INCLUDE_CONSTANTS_GLSL
 
 #define BTHREAD 32
-#define PTHREAD 160
+#define PTHREAD 32
 
 #define UNUSED 0
 #define SOLID 1
@@ -16,7 +16,7 @@
 
 #define EPSILON 1e-6
 // --- Domain ---
-const uint binResolution = 42;
+const uint binResolution = 16;
 const vec2 domain = vec2(25, 15);
 const vec2 boundaryMin = vec2(-domain.x/2.0 , -domain.y/2.0);
 const vec2 boundaryMax = vec2(domain.x / 2.0, domain.y / 2.0);

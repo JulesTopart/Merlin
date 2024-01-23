@@ -33,24 +33,23 @@ public:
 	void updateFPS(Merlin::Timestep ts);
 private:
 
-	Shared<Camera> camera;
+	Camera camera;
 
 	Scene scene;
 	Renderer renderer;
-	Shared<Model>  light;
 
 	//Simulation
-	StagedComputeShader_Ptr solver;
-	StagedComputeShader_Ptr prefixSum;
+	StagedComputeShader solver;
+	StagedComputeShader prefixSum;
 
-	SSBO_Ptr<Bin> binBuffer; //Particle buffer
-	SSBO_Ptr<Particle> particleBuffer; //Particle buffer
+	SSBO<Bin> binBuffer; //Particle buffer
+	SSBO<Particle> particleBuffer; //Particle buffer
 
-	Shader_Ptr particleShader;
-	Shader_Ptr binShader;
+	Shader particleShader;
+	Shader binShader;
 
-	deprecated_ParticleSystem_Ptr particleSystem;
-	deprecated_ParticleSystem_Ptr binSystem;
+	deprecated_ParticleSystem particleSystem;
+	deprecated_ParticleSystem binSystem;
 	Settings settings;
 
 	//Simulation

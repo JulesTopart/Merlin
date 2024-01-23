@@ -51,14 +51,14 @@ struct Settings {
 	float bx = bb.x;//mm 120
 	float by = bb.y;//mm
 
-	GLuint bRes = 42; //Bed width is divided bRes times (old 42)
+	GLuint bRes = 16; //Bed width is divided bRes times (old 42)
 	GLuint maxNNS = 32;
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
-	GLuint pThread = 100000; //Max Number of particles (thread) (10 milion)
-	GLuint pWkgSize = 160; //Number of thread per workgroup
+	GLuint pThread = 10000; //Max Number of particles (thread) (10 milion)
+	GLuint pWkgSize = 32; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
 	float bWidth = std::max(bx, by) / float(bRes); //Width of a single bin in mm

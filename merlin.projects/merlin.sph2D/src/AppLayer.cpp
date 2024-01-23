@@ -19,11 +19,11 @@ AppLayer::AppLayer(){
 	Window* w = &Application::Get().GetWindow();
 	int height = w->GetHeight();
 	int width = w->GetWidth();
-	camera = CreateShared<Camera>(width, height, Projection::Orthographic);
-	camera->setNearPlane(0.0f);
-	camera->setFarPlane(1000.0f);
-	camera->Translate(glm::vec3(0,0,1));
-	camera->setZoom(10);
+	camera = Camera(width, height, Projection::Orthographic);
+	camera.setNearPlane(0.0f);
+	camera.setFarPlane(1000.0f);
+	camera.Translate(glm::vec3(0, 0, 1));
+	camera.setZoom(10);
 }
 
 AppLayer::~AppLayer(){}
@@ -36,13 +36,13 @@ void AppLayer::OnAttach(){
 	InitGraphics();
 	InitPhysics();
 
-	particleShader->Use();
-	particleShader->Attach(*particleBuffer);
-	particleShader->Attach(*binBuffer);
+	particleShader.Use();
+	particleShader.Attach(particleBuffer);
+	particleShader.Attach(binBuffer);
 
-	binShader->Use();
-	binShader->Attach(*particleBuffer);
-	binShader->Attach(*binBuffer);
+	binShader.Use();
+	binShader.Attach(particleBuffer);
+	binShader.Attach(binBuffer);
 
 	ResetSimulation();
 }
@@ -50,7 +50,7 @@ void AppLayer::OnAttach(){
 void AppLayer::OnDetach(){}
 
 void AppLayer::OnEvent(Event& event){
-	camera->OnEvent(event);
+	camera.OnEvent(event);
 }
 
 float t = 0.0;
@@ -71,7 +71,7 @@ void AppLayer::OnUpdate(Timestep ts){
 	
 	GPU_PROFILE(render_time,
 		renderer.Clear();
-		renderer.RenderScene(scene, *camera);
+		renderer.RenderScene(scene, camera);
 	)
 }
 
@@ -85,11 +85,11 @@ void AppLayer::UpdateBufferSettings() {
 	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
 	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
 
-	solver->SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
+	solver.SetWorkgroupLayout(settings.pWkgCount);
+	prefixSum.SetWorkgroupLayout(settings.bWkgCount);
 
-	particleBuffer->Resize(settings.pThread);
-	binBuffer->Resize(settings.bThread);
+	particleBuffer.Resize(settings.pThread);
+	binBuffer.Resize(settings.bThread);
 }
 
 void AppLayer::InitGraphics() {
@@ -99,22 +99,22 @@ void AppLayer::InitGraphics() {
 	renderer.EnableTransparency();
 	renderer.EnableSampleShading();
 
-	particleShader = Shader::Create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
-	particleShader->noTexture();
-	particleShader->noMaterial();
-	particleShader->SetVec3("lightPos", glm::vec3(0, -200, 1000));
+	particleShader = Shader("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
+	particleShader.noTexture();
+	particleShader.noMaterial();
+	particleShader.SetVec3("lightPos", glm::vec3(0, -200, 1000));
 
-	binShader = Shader::Create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
-	binShader->noTexture();
-	binShader->noMaterial();
+	binShader = Shader("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
+	binShader.noTexture();
+	binShader.noMaterial();
 
-	particleShader->Use();
-	particleShader->SetInt("colorCycle", 0);
-	binShader->Use();
-	binShader->SetInt("colorCycle", 0);
+	particleShader.Use();
+	particleShader.SetInt("colorCycle", 0);
+	binShader.Use();
+	binShader.SetInt("colorCycle", 0);
 	 
-	renderer.AddShader(particleShader);
-	renderer.AddShader(binShader);
+	renderer.AddShader(std::make_shared<Shader>(particleShader));
+	renderer.AddShader(std::make_shared<Shader>(binShader));
 
 	//scene.Add(Model::Create("cube",Primitives::CreateCube(20)));
 
@@ -134,14 +134,13 @@ void AppLayer::InitPhysics() {
 	particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
 
 
-	Shared<Mesh> binInstance = Primitives::CreateQuadRectangle(settings.bWidth, settings.bWidth, true);
+	Shared<Mesh> binInstance = Primitives::CreateQuadRectangle(settings.bWidth, settings.bWidth);
 	binInstance->Rename("bin");
 	binInstance->SetShader(binShader);
 	binSystem = deprecated_ParticleSystem::Create("BinSystem", settings.bThread);
 	binSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::MESH);
 	binSystem->SetMesh(binInstance);
 	binSystem->EnableWireFrameMode();
-
 
 
 

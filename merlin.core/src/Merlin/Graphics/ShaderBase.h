@@ -11,7 +11,8 @@ namespace Merlin::Graphics {
 
 	class ShaderBase {
 	public:
-		ShaderBase(std::string name = "default");
+		ShaderBase();
+		ShaderBase(std::string name);
 		virtual ~ShaderBase();
 
 		virtual void Use() const;
@@ -45,6 +46,7 @@ namespace Merlin::Graphics {
 		bool m_compiled = false;
 		GLuint m_attachedBuffers = 0;
 
+		static int shader_instances;
 
 	private:
 		GLuint m_programID = 0;

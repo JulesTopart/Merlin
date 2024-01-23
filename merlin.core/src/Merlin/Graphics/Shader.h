@@ -10,6 +10,7 @@ namespace Merlin::Graphics {
 
 	class Shader : public ShaderBase {
 	public:
+		Shader();
 		Shader(std::string n);
 		Shader(std::string n,
 			const std::string vpath,
@@ -52,20 +53,6 @@ namespace Merlin::Graphics {
 		std::string VertexShaderSrc;
 		std::string FragmentShaderSrc;
 		std::string GeomShaderSrc;
-	};
-
-	class ShaderLibrary {
-	public:
-		ShaderLibrary();
-
-		void Add(Shared<Shader> shader);
-		void Load(const std::string& filepath);
-		const Shader& Get(const std::string& name);
-		Shared<Shader> Share(const std::string& name);
-
-		bool Exists(const std::string& name);
-	private:
-		std::unordered_map<std::string, Shared<Shader>> _shaders;
 	};
 
 	typedef Shared<Shader> Shader_Ptr;

@@ -22,6 +22,7 @@ namespace Merlin::Graphics {
 		return CreateShared<Shader>(name, vertex_file_path, fragment_file_path, geometry_file_path);
 	}
 
+	Shader::Shader() : ShaderBase() {}
 	Shader::Shader(std::string n) : ShaderBase(n) {}
 
 	Shader::Shader(std::string n,
@@ -224,8 +225,8 @@ namespace Merlin::Graphics {
 		Add(debugShader);*/
 	}
 
-	void ShaderLibrary::Add(Shared<Shader> shader){
-		if(Exists(shader->name())) Console::warn("ShaderLibrary") << "Shader already exists ! " << shader->name() << " shader has been overridden." << Console::endl;
+	void ShaderLibrary::Add(Shared<Shader> shader) {
+		if (Exists(shader->name())) Console::warn("ShaderLibrary") << "Shader already exists ! " << shader->name() << " shader has been overridden." << Console::endl;
 		_shaders[shader->name()] = shader;
 	}
 

@@ -63,12 +63,11 @@ void SolveFluid(uint i, uint simStep) {
 }
 
 
-uniform uint indexOffset = 0;
 uniform uint stage;
 uniform vec4 sourcePos;
 // XPBD_Main
 void main() {
-	uint i = gl_GlobalInvocationID.x + indexOffset;
+	uint i = gl_GlobalInvocationID.x;
 	if (i >= numParticles) return;
 
 	if(stage < 2){ 
