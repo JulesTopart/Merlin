@@ -16,10 +16,10 @@
 
 #define EPSILON 1e-6
 // --- Domain ---
-const uint binResolution = 16;
-const vec2 domain = vec2(25, 15);
-const vec2 boundaryMin = vec2(-domain.x/2.0 , -domain.y/2.0);
-const vec2 boundaryMax = vec2(domain.x / 2.0, domain.y / 2.0);
+const uint binResolution = 10;
+const vec2 domain = vec2(10, 10);
+const vec2 boundaryMin = vec2(-domain.x / 2.0, -domain.y / 2.0);
+const vec2 boundaryMax = vec2( domain.x / 2.0,  domain.y / 2.0);
 
 const float binSize = max(domain.x, domain.y) / float(binResolution);
 const uvec2 binMax = uvec2(domain / binSize);

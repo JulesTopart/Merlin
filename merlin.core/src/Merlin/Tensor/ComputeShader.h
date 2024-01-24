@@ -41,8 +41,10 @@ namespace Merlin::Tensor{
 		inline void SetStageCount(GLuint n) { m_stageCount = n; }
 		inline void SetStage(GLuint n) { m_stage = n; }
 		inline void Reset() { m_stage = 0; }
-		inline GLuint GetStage() { return m_stage; }
-		inline GLuint GetStageCount() { return m_stageCount; }
+		inline GLuint GetStage() const { return m_stage; }
+		inline GLuint GetStageCount() const { return m_stageCount; }
+
+		static Shared<StagedComputeShader> Create(const std::string& n, const std::string& file_path, GLuint numberOfStage) { return CreateShared<StagedComputeShader>(n, file_path, numberOfStage); };
 
 	protected:
 		GLuint m_stage = 0;

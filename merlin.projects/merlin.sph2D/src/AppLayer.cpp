@@ -19,11 +19,12 @@ AppLayer::AppLayer(){
 	Window* w = &Application::Get().GetWindow();
 	int height = w->GetHeight();
 	int width = w->GetWidth();
-	camera = Camera(width, height, Projection::Orthographic);
-	camera.setNearPlane(0.0f);
-	camera.setFarPlane(1000.0f);
-	camera.Translate(glm::vec3(0, 0, 1));
-	camera.setZoom(10);
+	camera = CreateShared<Camera>(width, height, Projection::Orthographic);
+	camera->setNearPlane(0.0f);
+	camera->setFarPlane(1000.0f);
+	camera->Translate(glm::vec3(0, 0, 1));
+	camera->setZoom(10);
+	cameraController = CreateShared<CameraController2D>(camera);
 }
 
 AppLayer::~AppLayer(){}
@@ -36,13 +37,13 @@ void AppLayer::OnAttach(){
 	InitGraphics();
 	InitPhysics();
 
-	particleShader.Use();
-	particleShader.Attach(particleBuffer);
-	particleShader.Attach(binBuffer);
+	particleShader->Use();
+	particleShader->Attach(*particleBuffer);
+	particleShader->Attach(*binBuffer);
 
-	binShader.Use();
-	binShader.Attach(particleBuffer);
-	binShader.Attach(binBuffer);
+	binShader->Use();
+	binShader->Attach(*particleBuffer);
+	binShader->Attach(*binBuffer);
 
 	ResetSimulation();
 }
@@ -50,13 +51,14 @@ void AppLayer::OnAttach(){
 void AppLayer::OnDetach(){}
 
 void AppLayer::OnEvent(Event& event){
-	camera.OnEvent(event);
+	camera->OnEvent(event);
+	cameraController->OnEvent(event);
 }
 
 float t = 0.0;
 
 void AppLayer::OnUpdate(Timestep ts){
-
+	cameraController->OnUpdate(ts);
 	PROFILE_END(total_start_time, total_time);
 	PROFILE_BEGIN(total_start_time);
 
@@ -71,7 +73,7 @@ void AppLayer::OnUpdate(Timestep ts){
 	
 	GPU_PROFILE(render_time,
 		renderer.Clear();
-		renderer.RenderScene(scene, camera);
+		renderer.RenderScene(scene, *camera);
 	)
 }
 
@@ -85,11 +87,11 @@ void AppLayer::UpdateBufferSettings() {
 	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
 	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
 
-	solver.SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum.SetWorkgroupLayout(settings.bWkgCount);
+	solver->SetWorkgroupLayout(settings.pWkgCount);
+	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
-	particleBuffer.Resize(settings.pThread);
-	binBuffer.Resize(settings.bThread);
+	particleBuffer->Resize(settings.pThread);
+	binBuffer->Resize(settings.bThread);
 }
 
 void AppLayer::InitGraphics() {
@@ -99,34 +101,38 @@ void AppLayer::InitGraphics() {
 	renderer.EnableTransparency();
 	renderer.EnableSampleShading();
 
-	particleShader = Shader("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
-	particleShader.noTexture();
-	particleShader.noMaterial();
-	particleShader.SetVec3("lightPos", glm::vec3(0, -200, 1000));
+	particleShader = Shader::Create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
+	particleShader->noTexture();
+	particleShader->noMaterial();
+	particleShader->SetVec3("lightPos", glm::vec3(0, -200, 1000));
 
-	binShader = Shader("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
-	binShader.noTexture();
-	binShader.noMaterial();
+	binShader = Shader::Create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
+	binShader->noTexture();
+	binShader->noMaterial();
 
-	particleShader.Use();
-	particleShader.SetInt("colorCycle", 0);
-	binShader.Use();
-	binShader.SetInt("colorCycle", 0);
+	particleShader->Use();
+	particleShader->SetInt("colorCycle", 0);
+	binShader->Use();
+	binShader->SetInt("colorCycle", 0);
 	 
-	renderer.AddShader(std::make_shared<Shader>(particleShader));
-	renderer.AddShader(std::make_shared<Shader>(binShader));
+	renderer.AddShader(particleShader);
+	renderer.AddShader(binShader);
 
-	//scene.Add(Model::Create("cube",Primitives::CreateCube(20)));
+	Model_Ptr mdl = Model::Create("bbox", Primitives::CreateQuadRectangle(10, 10));
+	mdl->EnableWireFrameMode();
+	scene.Add(mdl);
+
+	//scene.Add(TransformObject::Create("origin"));
 
 }
 
 void AppLayer::InitPhysics() {
 	//Compute Shaders
-	solver = StagedComputeShader("solver", "assets/shaders/solver/solver.comp", 6);
-	prefixSum = StagedComputeShader("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
+	solver = StagedComputeShader::Create("solver", "assets/shaders/solver/solver.comp", 6);
+	prefixSum = StagedComputeShader::Create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 
 	//Create particle system
-	particleSystem = deprecated_ParticleSystem("ParticleSystem", settings.pThread);
+	particleSystem = deprecated_ParticleSystem::Create("ParticleSystem", settings.pThread);
 	Shared<Mesh> particle = Primitives::CreatePoint();
 	particle->Rename("particle");
 	particle->SetShader(particleShader);
@@ -134,7 +140,7 @@ void AppLayer::InitPhysics() {
 	particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
 
 
-	Shared<Mesh> binInstance = Primitives::CreateQuadRectangle(settings.bWidth, settings.bWidth);
+	Shared<Mesh> binInstance = Primitives::CreateQuadRectangle(settings.bWidth, settings.bWidth, false);
 	binInstance->Rename("bin");
 	binInstance->SetShader(binShader);
 	binSystem = deprecated_ParticleSystem::Create("BinSystem", settings.bThread);
@@ -142,25 +148,27 @@ void AppLayer::InitPhysics() {
 	binSystem->SetMesh(binInstance);
 	binSystem->EnableWireFrameMode();
 
-
-
-
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
 	//Allocate Buffers
+	Console::info() << "Particle struct size :" << sizeof(Particle) << Console::endl;
 	particleBuffer = SSBO<Particle>::Create("ParticleBuffer");
 	particleBuffer->Allocate(settings.pThread);
 
 	SSBO_Ptr<Particle> particleCpyBuffer = SSBO<Particle>::Create("ParticleCpyBuffer");
 	particleCpyBuffer->Allocate(settings.pThread);
 
+	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
 	binBuffer = SSBO<Bin>::Create("BinBuffer");
 	binBuffer->Allocate(settings.bThread);
 
-
+	particleBuffer->SetBindingPoint(0);
+	particleCpyBuffer->SetBindingPoint(1);
+	binBuffer->SetBindingPoint(2);
 
 	//Attach Buffers
+	
 	particleSystem->AddComputeShader(solver);
 	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddStorageBuffer(particleCpyBuffer);
@@ -168,7 +176,7 @@ void AppLayer::InitPhysics() {
 
 	binSystem->AddComputeShader(prefixSum);
 	binSystem->AddStorageBuffer(binBuffer);
-
+	
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
 	//scene.Add(constraintSystem);
@@ -251,12 +259,12 @@ void AppLayer::NeigborSearch() {
 	prefixSum->SetUInt("blockSize", settings.blockSize); //block size
 
 	prefixSum->Execute(0);// local prefix sum
-
+	return;
 	//Binary tree on rightmost element of blocks
 	GLuint steps = settings.blockSize;
 	UniformObject<GLuint> space("space");
 	space.value = 1;
-
+	
 	for (GLuint step = 0; step < steps; step++) {
 		// Calls the parallel operation
 
@@ -269,7 +277,7 @@ void AppLayer::NeigborSearch() {
 	prefixSum->Execute(3);
 
 	solver->Use();
-	solver->Execute(1); //Sort
+	//solver->Execute(1); //Sort
 }
 
 
@@ -281,12 +289,13 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	binBuffer->Bind();
 	binBuffer->Clear(); //Reset neighbor search data
-
+	
 	solver->Execute(0); //Place particles in bins
+
 	GPU_PROFILE(nns_time,
 		NeigborSearch();
 	)
-
+	return;
 	if (!paused) {
 		elapsedTime += settings.timeStep;
 

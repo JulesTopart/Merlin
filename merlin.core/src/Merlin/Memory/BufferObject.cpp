@@ -64,6 +64,13 @@ namespace Merlin::Memory {
 		glUnmapBuffer(m_target);
 	}
 
+	void GenericBufferObject::SetBindingPoint(GLuint bp) {
+		m_bindingPoint = bp;
+		Bind();
+		Console::info("ShaderBase") << name() << "( block id " << m_bufferID << ") is now bound to binding point " << m_bindingPoint << Console::endl;
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, m_bindingPoint, m_bufferID);
+	}
+
 	void GenericBufferObject::Generate(bool autoBind) {
 		if (m_bufferID == -1) {
 			// Generate a buffer object if not yet generated.

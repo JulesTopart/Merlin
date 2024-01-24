@@ -11,10 +11,13 @@ namespace Merlin::Graphics {
 
 	class CameraController {
 	public:
-		virtual void OnUpdate(Timestep ts) {};
-		virtual void OnEvent(Event& e) {};
 
-		Shared<Camera> GetCamera() const { return _Camera; }
+		CameraController(Shared<Camera> cam) : _Camera(cam) {}
+		virtual void OnUpdate(Timestep ts) = 0;
+		virtual void OnEvent(Event& e) = 0;
+
+		Camera& GetCamera() const { return *_Camera; }
+		Shared<Camera> ShareCamera() const { return _Camera; }
 		float GetCameraSpeed() const { return _CameraSpeed; }
 		void SetCameraSpeed(float speed) { _CameraSpeed = speed; }
 
@@ -25,7 +28,7 @@ namespace Merlin::Graphics {
 
 	class CameraController3D : public CameraController {
 	public:
-		CameraController3D(Shared<Camera> Camera);
+		CameraController3D(Shared<Camera> cam);
 		virtual void OnUpdate(Timestep ts) override;
 		virtual void OnEvent(Event& e) override;
 

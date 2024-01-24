@@ -16,7 +16,7 @@ ExampleLayer::ExampleLayer(){
 	camera->setNearPlane(0.001f);
 	camera->setFarPlane(3000.0f);
 	camera->setFOV(45.0f); //Use 90.0f as we are using cubemaps
-	camera->SetPosition(glm::vec3(-2.0f, 0.0f, 1.0f));
+	camera->SetPosition(glm::vec3(-3.0f, 0.0f, 0.3f));
 	cameraController = CreateShared<CameraController3D>(camera);
 }
 
@@ -56,7 +56,7 @@ void ExampleLayer::OnAttach(){
 	scene.Add(sky);
 
 	Shared<Model> model = Model::Create("sphere1", GetModel());
-	model->SetMaterial("gold");
+	model->SetMaterial("jade");
 	model->SetShader("model");
 	scene.Add(model);
 

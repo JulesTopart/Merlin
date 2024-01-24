@@ -175,6 +175,7 @@ namespace Merlin::Graphics {
 		glm::mat4 projection = camera.GetProjectionMatrix();
 
 		//if (sky.HasCubeMap()) shader->SetInt("isSkyboxBound", 1);
+		shader->SetInt("isSkyboxBound", sky.HasCubeMap()); //Sync model matrix with GPU
 		shader->SetMat4("view", view); //Sync model matrix with GPU
 		shader->SetMat4("projection", projection); //Sync model matrix with GPU
 

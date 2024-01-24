@@ -16,11 +16,11 @@ void NNS(uint i, uint simStep) {
 	switch(simStep){ //Neighbor search
 		case 0 : //Bin sorting
 			atomicAdd(bins[binIndex].count, 1);
-			cpy_particles[i] = particles[i];
+			//cpy_particles[i] = particles[i];
 		break;
 		case 1 : //Sort particle indices
-		uint newID = atomicAdd(bins[binIndex].index, -1) -1;
-		particles[newID] = cpy_particles[i];
+			uint newID = atomicAdd(bins[binIndex].index, -1) -1;
+			//particles[newID] = cpy_particles[i];
 		break;
 	}
 }
@@ -75,5 +75,5 @@ void main() {
 		return;
 	}
 
-	SolveFluid(i, stage);
+	//SolveFluid(i, stage);
 }

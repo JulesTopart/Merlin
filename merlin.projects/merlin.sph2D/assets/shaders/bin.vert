@@ -24,8 +24,8 @@ uniform uint binTest = 1459;
 uniform int colorCycle;
 
 void main() {
-	vec2 offset = (vec2(getBinCoordFromIndex(gl_InstanceID)) * binSize);
-	position = vec3(model * vec4(_position*0.95 + vec3(offset + boundaryMin,0) , 1.0f));
+	vec2 offset = (vec2(getBinCoordFromIndex(gl_InstanceID)) * binSize) + boundaryMin;
+	position = vec3(model * vec4(_position*0.95 + vec3(offset,0) , 1.0f));
 	normal = _normal;
 
 	bool test = true;//bins[gl_InstanceID].count > 0;

@@ -21,6 +21,7 @@ struct Particle{
 	float density;
 	uint phase;
 	uint binIndex;
+	float[6] padding;
 };
 
 

@@ -22,6 +22,9 @@ namespace Merlin::Memory{
 		void BindAs(GLenum target);
 		void Unbind();
 
+		void SetBindingPoint(GLuint bp);
+		inline GLuint GetBindingPoint() const { return m_bindingPoint; }
+
 		void* Map();
 		void Unmap();
 
@@ -38,6 +41,8 @@ namespace Merlin::Memory{
 
 		//Count buffer construction for named
 		inline static unsigned int instances = 0;
+
+		GLuint m_bindingPoint = 0;
 
 		GLuint m_bufferID; //OpenGL handle
 		GLsizeiptr m_size; //size in type instance

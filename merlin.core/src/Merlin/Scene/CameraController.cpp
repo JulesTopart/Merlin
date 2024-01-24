@@ -6,9 +6,7 @@
 
 namespace Merlin::Graphics {
 
-	CameraController3D::CameraController3D(Shared<Camera> cam){
-		_Camera = cam;
-	}
+	CameraController3D::CameraController3D(Shared<Camera> cam) : CameraController(cam) {}
 
 	void CameraController3D::OnUpdate(Timestep ts)
 	{
@@ -86,9 +84,7 @@ namespace Merlin::Graphics {
 	}
 
 
-	CameraController2D::CameraController2D(Shared<Camera> cam){
-		_Camera = cam;
-	}
+	CameraController2D::CameraController2D(Shared<Camera> cam) : CameraController(cam){}
 
 	void CameraController2D::OnUpdate(Timestep ts)
 	{

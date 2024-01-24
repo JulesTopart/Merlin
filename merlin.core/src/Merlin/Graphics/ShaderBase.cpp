@@ -45,16 +45,14 @@ namespace Merlin::Graphics {
 	}
 
 
-	void ShaderBase::Attach(Memory::GenericBufferObject& buf, GLuint bindingPoint) {
+	void ShaderBase::Attach(Memory::GenericBufferObject& buf) {
 		int block_index = glGetProgramResourceIndex(m_programID, GL_SHADER_STORAGE_BLOCK, buf.name().c_str());
 		if (block_index == -1) Console::error("ShaderBase") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
 		else {
-			if (bindingPoint == GLuint(-1)) bindingPoint = m_attachedBuffers++;
-			m_attachedBuffers++;
+			GLuint bindingPoint = buf.GetBindingPoint();
 			buf.Bind();
 			Console::info("ShaderBase") << buf.name() << "( block index " << block_index << ") is now bound to " << name() << " using binding point " << bindingPoint << Console::endl;
-			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, buf.id()); //Do this explicitly in your shader !
+			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint);//Do this explicitly in your shader !
 		}
 	}
 

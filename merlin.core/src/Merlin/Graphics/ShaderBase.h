@@ -30,7 +30,7 @@ namespace Merlin::Graphics {
 		void SetMat4(const std::string name, glm::mat4 mat) const;
 		void SetIntArray(const std::string name, GLint* values, uint32_t count) const;
 
-		void Attach(Memory::GenericBufferObject& buf, GLuint bindingPoint = -1);
+		void Attach(Memory::GenericBufferObject& buf);
 
 		inline const GLuint id() const { return m_programID; }
 		inline void SetID(GLuint _id_) { m_programID = _id_; };
@@ -44,7 +44,6 @@ namespace Merlin::Graphics {
 	protected:
 		std::string m_name;
 		bool m_compiled = false;
-		GLuint m_attachedBuffers = 0;
 
 		static int shader_instances;
 
