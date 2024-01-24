@@ -122,11 +122,11 @@ void AppLayer::InitGraphics() {
 
 void AppLayer::InitPhysics() {
 	//Compute Shaders
-	solver = CreateShared<StagedComputeShader>("solver", "assets/shaders/solver/solver.comp", 6);
-	prefixSum = CreateShared<StagedComputeShader>("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
+	solver = StagedComputeShader("solver", "assets/shaders/solver/solver.comp", 6);
+	prefixSum = StagedComputeShader("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 
 	//Create particle system
-	particleSystem = deprecated_ParticleSystem::Create("ParticleSystem", settings.pThread);
+	particleSystem = deprecated_ParticleSystem("ParticleSystem", settings.pThread);
 	Shared<Mesh> particle = Primitives::CreatePoint();
 	particle->Rename("particle");
 	particle->SetShader(particleShader);

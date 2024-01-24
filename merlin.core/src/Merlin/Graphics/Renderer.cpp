@@ -4,10 +4,7 @@
 
 namespace Merlin::Graphics {
 
-	Renderer::Renderer() : currentTransform(glm::mat4(1.0)) {
-		m_shaderLibrary = CreateScope<ShaderLibrary>();
-		m_materialLibrary = CreateScope<MaterialLibrary>();
-	}
+	Renderer::Renderer() : currentTransform(glm::mat4(1.0)) {}
 
 	Renderer::~Renderer() {
 	}
@@ -59,7 +56,7 @@ namespace Merlin::Graphics {
 			if (ps.GetMesh()->HasShader())
 				shader = &ps.GetMesh()->GetShader();
 			else
-				shader = &m_shaderLibrary->Get(ps.GetMesh()->GetShaderName());
+				shader = &m_shaderLibrary.Get(ps.GetMesh()->GetShaderName());
 
 			shader->Use();
 			shader->SetMat4("model", currentTransform); //Sync model matrix with GPU
@@ -79,7 +76,7 @@ namespace Merlin::Graphics {
 			if (ps.GetMesh()->HasShader())
 				shader = &ps.GetMesh()->GetShader();
 			else
-				shader = &m_shaderLibrary->Get(ps.GetMesh()->GetShaderName());
+				shader = &m_shaderLibrary.Get(ps.GetMesh()->GetShaderName());
 
 
 			shader->Use();
@@ -100,14 +97,14 @@ namespace Merlin::Graphics {
 			if (ps.GetMesh()->HasShader())
 				shader = &ps.GetMesh()->GetShader();
 			else
-				shader = &m_shaderLibrary->Get(ps.GetMesh()->GetShaderName());
+				shader = &m_shaderLibrary.Get(ps.GetMesh()->GetShaderName());
 
 
 			if (ps.GetMesh()->HasMaterial())
 				mat = &ps.GetMesh()->GetMaterial();
 			else {
 
-				mat = &m_materialLibrary->Get(ps.GetMesh()->GetMaterialName());
+				mat = &m_materialLibrary.Get(ps.GetMesh()->GetMaterialName());
 			}
 
 
@@ -169,7 +166,7 @@ namespace Merlin::Graphics {
 		if (sky.HasShader())
 			shader = &sky.GetShader();
 		else
-			shader = &m_shaderLibrary->Get(sky.GetShaderName());
+			shader = &m_shaderLibrary.Get(sky.GetShaderName());
 		
 
 		shader->Use();
@@ -196,14 +193,14 @@ namespace Merlin::Graphics {
 		if (mesh.HasShader())
 			shader = &mesh.GetShader();
 		else
-			shader = &m_shaderLibrary->Get(mesh.GetShaderName());
+			shader = &m_shaderLibrary.Get(mesh.GetShaderName());
 		
 
 		if (mesh.HasMaterial()) 
 			mat = &mesh.GetMaterial();
 		else {
 
-			mat = &m_materialLibrary->Get(mesh.GetMaterialName());
+			mat = &m_materialLibrary.Get(mesh.GetMaterialName());
 		}
 				
 		shader->Use();
@@ -301,38 +298,38 @@ namespace Merlin::Graphics {
 
 
 	const Shared<Shader>& Renderer::ShareShader(std::string n) {
-		return m_shaderLibrary->Share(n);
+		return m_shaderLibrary.Share(n);
 	}
 
 
 	const Material& Renderer::GetMaterial(std::string n) {
-		return m_materialLibrary->Get(n);
+		return m_materialLibrary.Get(n);
 	}
 
 	const Shader& Renderer::GetShader(std::string n) {
-		return m_shaderLibrary->Get(n);
+		return m_shaderLibrary.Get(n);
 	}
 
 	void Renderer::LoadShader(const std::string& name, const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geomShaderPath) {
 		Shared<Shader> shader = Shader::Create(name, vertexShaderPath, fragmentShaderPath, geomShaderPath);
-		m_shaderLibrary->Add(shader);
+		m_shaderLibrary.Add(shader);
 	}
 
 	void Renderer::CreateMaterial(MaterialProperty matProps){
 		std::string name = "material";
 		std::stringstream ss;
-		ss << name << m_materialLibrary->size();
+		ss << name << m_materialLibrary.size();
 		Shared<Material> mat = CreateShared<Material>(ss.str());
-		m_materialLibrary->Add(mat);
+		m_materialLibrary.Add(mat);
 	}
 
 	void Renderer::AddMaterial(Shared<Material> material) {
-		m_materialLibrary->Add(material);
+		m_materialLibrary.Add(material);
 	}
 
 	void Renderer::AddShader(Shared<Shader> shader) {
 		if (!shader->IsCompiled()) Console::error("Renderer") << "Shader is not compiled. Compile the shader before adding them to the ShaderLibrary" << Console::endl;
-		m_shaderLibrary->Add(shader);
+		m_shaderLibrary.Add(shader);
 	}
 
 	void Renderer::Clear() {

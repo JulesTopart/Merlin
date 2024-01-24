@@ -155,49 +155,20 @@ namespace Merlin::Tensor {
 		Add(defaultShader);
 	}
 
-	void ComputeShaderLibrary::Add(Shared<ComputeShader> shader) {
-		if (Exists(shader->name())) Console::warn("ComputeShaderLibrary") << "Shader already exists ! " << shader->name() << " shader has been overridden." << Console::endl;
-		m_shaders[shader->name()] = shader;
-	}
-
-	void ComputeShaderLibrary::Load(const std::string& name) {
-		auto shader = CreateShared<ComputeShader>(name);
-		Add(shader);
-	}
-
-	const ComputeShader& ComputeShaderLibrary::Get(const std::string& name) {
-		if (!Exists(name)) {
-			Console::error("ComputeShaderLibrary") << "Shader " << name << " not found ! Using default shader instead." << Console::endl;
-			return Get("default");
-		}
-		return *m_shaders[name];
-	}
-
-	bool ComputeShaderLibrary::Exists(const std::string& name) {
-		return m_shaders.find(name) != m_shaders.end();
-	}
-
-	Shared<ComputeShader> ComputeShaderLibrary::Share(const std::string& name) {
-		if (!Exists(name)) {
-			Console::error("ComputeShaderLibrary") << "Shader " << name << " not found ! Using default shader instead." << Console::endl;
-			return Share("default");
-		}
-		return m_shaders[name];
-	}
-
+	
 	void ComputeShaderLibrary::Dispatch(const std::string& key) {
-		if (!Exists(key)) {
+		if (!Exist(key)) {
 			Console::error("ComputeShaderLibrary") << "Shader " << key << " not found ! Using default shader instead." << Console::endl;
 			return;
 		}
-		m_shaders[key]->Dispatch();
+		resources[key]->Dispatch();
 	}
 	void ComputeShaderLibrary::Dispatch(const std::string& key, GLuint width, GLuint height, GLuint layers) {
-		if (!Exists(key)) {
+		if (!Exist(key)) {
 			Console::error("ComputeShaderLibrary") << "Shader " << key << " not found ! Using default shader instead." << Console::endl;
 			return;
 		}
-		m_shaders[key]->Dispatch(width, height, layers);
+		resources[key]->Dispatch(width, height, layers);
 	}
 
 

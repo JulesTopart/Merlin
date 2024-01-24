@@ -1,6 +1,7 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 #include "Merlin/Graphics/ShaderBase.h"
+#include "Merlin/Graphics/RessourceManager.h"
 
 namespace Merlin::Tensor{
 
@@ -50,21 +51,14 @@ namespace Merlin::Tensor{
 	};
 
 
-	class ComputeShaderLibrary {
+	class ComputeShaderLibrary : public RessourceManager<ComputeShader>{
 	public:
 		ComputeShaderLibrary();
-
-		void Add(Shared<ComputeShader> shader);
-		void Load(const std::string& filepath);
-		const ComputeShader& Get(const std::string& name);
-		Shared<ComputeShader> Share(const std::string& name);
+		inline void Add(Shared<ComputeShader> shader) { RessourceManager::Add(shader->name(), shader); };
 
 		void Dispatch(const std::string& key);
 		void Dispatch(const std::string& key, GLuint width, GLuint height = 1, GLuint layers = 1);
-		bool Exists(const std::string& name);
 
-	private:
-		std::unordered_map<std::string, Shared<ComputeShader>> m_shaders;
 	};
 
 	typedef Shared<ComputeShader> ComputeShader_Ptr;

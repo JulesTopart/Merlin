@@ -64,19 +64,4 @@ namespace Merlin::Graphics {
     typedef Shared<Material> Material_Ptr;
 
 
-
-    class MaterialLibrary {
-    public:
-
-        MaterialLibrary();
-        void Add(Shared<Material> mat);
-
-        Material& Get(const std::string& name);
-
-        inline unsigned int size() { return m_materials.size(); };
-        bool Exists(const std::string& name);
-    private:
-        void LoadDefaultMaterials();
-        std::unordered_map<std::string, Material_Ptr> m_materials;
-    };
 }
