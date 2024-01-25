@@ -20,10 +20,10 @@ uniform mat4 projection;
 uniform mat4 model;
 
 uniform int colorCycle = 0;
-uniform uint particleTest = 2000;
+uniform uint particleTest = 50;
 uniform int showBoundary;
 uniform vec2 WindowSize;
-
+uniform float zoomLevel = 20;
 
 void main() {
 	if (gl_InstanceID >= numParticles){
@@ -31,62 +31,75 @@ void main() {
 		gl_Position =  projection * view * vec4(0,0,0,1);
 		return;
 	}
+	uint sortedID = sortedIndices[gl_InstanceID]; 
 
-	vec2 offset = particles[gl_InstanceID].position;
+	vec2 offset = particles[sortedID].position;
 	position = model * (vec4(_position + vec3(offset,0),1));
 
+	uint testsortedID = particleTest;
+	
 	bool binTest = true;
 	bool nnTest = false;
 	bool hTest = false;
-	uint binindex = getBinIndex(particles[gl_InstanceID].position);
+	uint binindex = particles[sortedID].binIndex;//getBinIndex(particles[sortedID].position);
 
-	bool test = particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0);
+	bool test = false;//particles[sortedID].phase == UNUSED || (particles[sortedID].phase == BOUNDARY && showBoundary == 0);
 
 	if(colorCycle == 0){ 
 		color = vec4(vec3(0.8), 1.0);
 	}else if(colorCycle == 1){ 
-		
+		color = vec4(randomColor(binindex), 1);
+	}else if(colorCycle == 2){ 
+		color = vec4(randomColor(binindex), 1);
+	}else if(colorCycle == 3){ 
+		color = vec4(randomColor(binindex), 1);
+	}else if(colorCycle == 4){ 
+		color = vec4(randomColor(binindex), 1);
+	}else if(colorCycle == 5){ 
 		color = vec4(randomColor(binindex), 1);
 	}else{ //NNS Test
-		
-		binTest = true;
-		uvec2 binIndexVec2 = getBinCoord(particles[gl_InstanceID].position);
-		for (int y = int(binIndexVec2.y) - 1; y <= int(binIndexVec2.y) + 1; y++) {
-			for (int x = int(binIndexVec2.x) - 1; x <= int(binIndexVec2.x) + 1; x++) {
-				if (x < 0 || y < 0) continue;
-				if (x >= binMax.x || y >= binMax.y) continue; 
+		if(sortedIndices[sortedID] == testsortedID){
+			color = vec4(1,0,0, 1);
+			binTest = true;
+		}else{
 
-				if (getBinIndexFromCoord(uvec2(x,y)) == binindex) binTest = true;
+			binTest = false;
+			uvec2 binIndexVec2 = getBinCoord(particles[testsortedID].position);
+			for (int y = int(binIndexVec2.y) - 1; y <= int(binIndexVec2.y) + 1; y++) {
+				for (int x = int(binIndexVec2.x) - 1; x <= int(binIndexVec2.x) + 1; x++) {
+					if (x < 0 || y < 0) continue;
+					if (x >= binMax.x || y >= binMax.y) continue; 
+					if (getBinIndexFromCoord(uvec2(x,y)) == binindex) binTest = true;
+				}
 			}
+		
+
+			uint i = testsortedID;
+			OVERNNS
+				if(sortedID == j){
+					nnTest = true;
+					if(length(particles[testsortedID].position - particles[j].position) <= smoothingRadius) hTest = true;
+				}
+			OVERNNS_END
+
+			color = vec4(0,0,0, 1);
+			if(nnTest) color = vec4(0,0,1, 1);
+			if(hTest) color = vec4(0,1,0, 1);
 		}
 		
-
-		uint i = particleTest;
-		OVERNNS
-			if(gl_InstanceID == j){
-				nnTest = true;
-				if(length(particles[particleTest].position - particles[j].position) <= smoothingRadius) hTest = true;
-			}
-		OVERNNS_END
-
-		color = vec4(0,0,0, 1);
-		if(nnTest) color = vec4(0,0,1, 1);
-		if(hTest) color = vec4(0,1,0, 1);
-		if(gl_InstanceID == particleTest) color = vec4(1,0,0, 1);
 	}
 
 	if( test || !binTest){
 		screen_position = projection * view * vec4(0,0,0,1);
 		gl_Position = screen_position;
 		gl_PointSize = 0;
-	}
-	else{
+	}else{
 		screen_position = projection * view * position;
 		mv = projection * view;
 		
 		gl_Position = screen_position;
-		gl_PointSize = particleRadius * WindowSize.y * 0.09;
-		if(colorCycle == 6 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = particleRadius * WindowSize.y * 0.25*1e-3;
+		gl_PointSize = particleRadius * WindowSize.y * 0.7 / zoomLevel;
+		if(colorCycle == 6 && !hTest && !(gl_InstanceID == testsortedID)) gl_PointSize = particleRadius * WindowSize.y * 0.3 / zoomLevel;
 		
 	}
 }

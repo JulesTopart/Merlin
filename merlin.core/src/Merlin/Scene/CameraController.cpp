@@ -6,6 +6,12 @@
 
 namespace Merlin::Graphics {
 
+	void CameraController::SetZoomLevel(float zl)
+	{
+		_ZoomLevel = zl;
+		_Camera->setZoom(zl);
+	}
+
 	CameraController3D::CameraController3D(Shared<Camera> cam) : CameraController(cam) {}
 
 	void CameraController3D::OnUpdate(Timestep ts)
@@ -108,11 +114,16 @@ namespace Merlin::Graphics {
 		dispatcher.Dispatch<MouseScrolledEvent>(MERLIN_BIND_EVENT_FN(CameraController2D::OnMouseScrolled));
 		dispatcher.Dispatch<MouseMovedEvent>(MERLIN_BIND_EVENT_FN(CameraController2D::OnMouseMoved));
 	}
+	
+
+
+
+
 
 	bool CameraController2D::OnMouseScrolled(MouseScrolledEvent& e)
 	{
-		_ZoomLevel += e.GetYOffset() * 0.25f * _ZoomLevel;
-		_ZoomLevel = std::min<float>(_ZoomLevel, 20.f);
+		_ZoomLevel -= e.GetYOffset() * 0.25f * _ZoomLevel;
+		_ZoomLevel = std::min<float>(_ZoomLevel, 100.f);
 		_ZoomLevel = std::max<float>(_ZoomLevel, 0.1);
 		_Camera->setZoom(_ZoomLevel);
 		return false;

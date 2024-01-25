@@ -20,10 +20,13 @@ namespace Merlin::Graphics {
 		Shared<Camera> ShareCamera() const { return _Camera; }
 		float GetCameraSpeed() const { return _CameraSpeed; }
 		void SetCameraSpeed(float speed) { _CameraSpeed = speed; }
+		void SetZoomLevel(float zl);
+
 
 	protected:
 		Shared<Camera> _Camera;
 		float _CameraSpeed = 1.0f;
+		float _ZoomLevel = 1.0f;
 	};
 
 	class CameraController3D : public CameraController {
@@ -47,13 +50,12 @@ namespace Merlin::Graphics {
 	class CameraController2D : public CameraController {
 	public:
 		CameraController2D(Shared<Camera> Camera);
-		virtual void OnUpdate(Timestep ts) override;
-		virtual void OnEvent(Event& e) override;
-
+		void OnUpdate(Timestep ts) override;
+		void OnEvent(Event& e) override;
+		
 	private:
 		bool OnMouseScrolled(MouseScrolledEvent& e);
 		bool OnMouseMoved(MouseMovedEvent& e);
-		float _ZoomLevel = 1.0f;
 		glm::vec2 _dU = { 0.0f, 0.0f };
 		glm::vec2 _lastMousePos = { 0.0f, 0.0f };
 		glm::vec2 _deltaMousePos = { 0.0f, 0.0f };

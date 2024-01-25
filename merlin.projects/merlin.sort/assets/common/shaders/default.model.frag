@@ -36,9 +36,14 @@ vec4 pointLight(){
 	if (hasNormalTex == 1) N = normalize(texture(normal0, uv).rgb);
 	else N = normalize(normal);
 
+	// Reflection (using skybox)
+	vec3 I = normalize(position - viewPos);
+	vec3 R = reflect(I, norm);
+	R = vec3(R.x, -R.z, -R.y);
+	vec3 skyColor = mix(vec3(1),textureLod(skybox, R, 6.0).rbg, shininess);
 
 	vec3 ambientColor;
-	if (hasColorTex == 1) ambientColor = ambient * texture(color0, uv).rgb;
+	if (hasColorTex == 1) ambientColor = ambient * (texture(color0, uv).rgb + 5.0*normalize(skyColor));
 	else ambientColor = ambient;
 
 	vec3 diffuseColor;
@@ -49,12 +54,10 @@ vec4 pointLight(){
 	if (hasColorTex == 1) specularColor = specular * texture(color0, uv).rgb;
 	else specularColor = specular;
 
-	// Reflection (using skybox)
-	vec3 I = normalize(position - viewPos);
-	vec3 R = reflect(I, norm);
-	R = vec3(R.x, -R.z, -R.y);
-	vec3 skyColor = mix(vec3(1),texture(skybox, R).rbg, shininess);
+
+
 	
+   
 	// intensity of light with respect to distance
 	float dist = length(lightDir);
 	float a = 0.01;

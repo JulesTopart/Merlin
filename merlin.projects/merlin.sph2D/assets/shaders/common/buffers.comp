@@ -33,4 +33,8 @@ layout(std430) buffer ParticleCpyBuffer {
 	Particle cpy_particles[];
 };
 
+layout(std430) buffer SortedIndexBuffer {
+	uint sortedIndices[];
+};
+
 #endif// INCLUDE_BUFFERS_HLSL

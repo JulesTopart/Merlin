@@ -13,14 +13,16 @@ layout (local_size_x = PTHREAD) in;
 
 void NNS(uint i, uint simStep) {
 	uint binIndex = getBinIndex(particles[i].position);
+	particles[i].binIndex = binIndex;
 	switch(simStep){ //Neighbor search
 		case 0 : //Bin sorting
 			atomicAdd(bins[binIndex].count, 1);
-			//cpy_particles[i] = particles[i];
+			cpy_particles[i] = particles[i];
 		break;
 		case 1 : //Sort particle indices
 			uint newID = atomicAdd(bins[binIndex].index, -1) -1;
-			//particles[newID] = cpy_particles[i];
+			particles[newID] = cpy_particles[i];
+			sortedIndices[newID] = i;
 		break;
 	}
 }
@@ -69,7 +71,7 @@ uniform vec4 sourcePos;
 void main() {
 	uint i = gl_GlobalInvocationID.x;
 	if (i >= numParticles) return;
-
+	i = sortedIndices[i];
 	if(stage < 2){ 
 		NNS(i, stage);
 		return;

@@ -45,6 +45,8 @@ private:
 
 	SSBO_Ptr<Bin> binBuffer; //Particle buffer
 	SSBO_Ptr<Particle> particleBuffer; //Particle buffer
+	SSBO_Ptr<Particle> particleCpyBuffer; //Particle buffer
+	SSBO_Ptr<GLuint> sortedIndexBuffer; //Particle buffer
 
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;
