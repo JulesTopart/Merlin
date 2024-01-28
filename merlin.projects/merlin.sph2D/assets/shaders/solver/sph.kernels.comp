@@ -23,9 +23,10 @@
 #define SPIKY_KERNEL_CONST (10.0 / (M_PI * H * H))
 
 
-float cubicKernel2D(vec2 r) {
+
+float cubicKernel2D(float r) {
   float result = 0;
-  float q = length(r) / H;
+  float q = r / H;
   if (q <= 1.0){
     float q2 = q*q;
     float q3 = q2*q;
@@ -36,6 +37,11 @@ float cubicKernel2D(vec2 r) {
   }
   return result;
 }
+
+float cubicKernel2D(vec2 r) {
+  return cubicKernel2D(length(r));
+}
+
  
 // Gradient of cubic spline kernel 2D 
 vec2 cubicKernel2D_Gradient(vec2 r){

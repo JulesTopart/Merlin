@@ -44,6 +44,7 @@ void AppLayer::OnAttach(){
 
 	binShader->Use();
 	binShader->Attach(*particleBuffer);
+	binShader->Attach(*sortedIndexBuffer);
 	binShader->Attach(*binBuffer);
 
 	ResetSimulation();
@@ -96,9 +97,16 @@ void AppLayer::UpdateBufferSettings() {
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
+	particleBuffer->Bind();
 	particleBuffer->Resize(settings.pThread);
+
+	particleCpyBuffer->Bind();
 	particleCpyBuffer->Resize(settings.pThread);
+
+	sortedIndexBuffer->Bind();
 	sortedIndexBuffer->Resize(settings.pThread);
+
+	binBuffer->Bind();
 	binBuffer->Resize(settings.bThread);
 }
 
@@ -159,6 +167,7 @@ void AppLayer::InitPhysics() {
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
+
 	//Allocate Buffers
 	Console::info() << "Particle struct size :" << sizeof(Particle) << Console::endl;
 	particleBuffer = SSBO<Particle>::Create("ParticleBuffer");
@@ -207,18 +216,18 @@ void AppLayer::ResetSimulation() {
 	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
 
 	Particle buf;
-	buf.invmass = 1.0 / 1.0;//inverse mass
+	buf.mass = 1.0;//inverse mass
 	buf.density = 1.0; // phase
 	
 	buf.phase = FLUID; // phase
-	glm::vec2 cubeSize = glm::vec2(10, 10);
+	glm::vec2 cubeSize = glm::vec2(50, 50);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
 
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++)
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++){
-				float x = (xi * spacing) - (cubeSize.x / 2.0);
+				float x = (xi * spacing) - (cubeSize.x / 2.0) - 20;
 				float y = (yi * spacing) - (cubeSize.y / 2.0);
-
+				buf.id = cpu_particles.size();
 				buf.position.x = x;
 				buf.position.y = y;
 				buf.new_position = buf.position;
@@ -306,19 +315,18 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	GPU_PROFILE(nns_time,
 		NeigborSearch();
 	)
-	return;
+
 	if (!paused) {
 		elapsedTime += settings.timeStep;
 
 		GPU_PROFILE(solver_substep_time,
 			for (int i = 0; i < settings.solver_substep; i++) {
 				solver->Execute(2); //Predict position
-				for (int k = 0; k < settings.solver_iteration; k++) {
-					solver->Execute(3); //Solve floor collision constraint
-					solver->Execute(4); //Solve collision constraint
-					//solver->Execute(5); //Solve distance constraint
-				}
-				solver->Execute(6); //Position delta
+				//for (int k = 0; k < settings.solver_iteration; k++) {
+				solver->Execute(3); //Solve floor collision constraint
+				solver->Execute(4); //Solve collision constraint
+				solver->Execute(5); //Solve distance constraint
+				//}
 			})
 	}
 }

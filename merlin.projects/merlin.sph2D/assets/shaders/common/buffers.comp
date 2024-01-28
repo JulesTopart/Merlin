@@ -15,13 +15,16 @@ vec2 velocity;	// v : velocity
 
 struct Particle{
 	vec2 position;
-	vec2 new_position;
+	vec2 pposition;
 	vec2 velocity;
-	float invmass;
+	vec2 pvelocity;
+	float mass;
 	float density;
+	float lambda;
 	uint phase;
 	uint binIndex;
-	float[6] padding;
+	uint id;
+	float[2] padding;
 };
 
 

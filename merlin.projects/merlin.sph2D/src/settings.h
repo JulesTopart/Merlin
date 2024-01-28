@@ -14,11 +14,14 @@ struct Particle {
 	alignas(8) glm::vec2 position;
 	alignas(8) glm::vec2 new_position;
 	alignas(8) glm::vec2 velocity;
-	float invmass;
+	alignas(8) glm::vec2 pvelocity;
+	float mass;
 	float density;
+	float lambda;
 	GLuint phase;
 	GLuint binIndex;
-	float padding[6];
+	GLuint id;
+	float padding[2];
 };
 
 /*
@@ -52,12 +55,12 @@ struct Settings {
 	float by = bb.y;//mm
 
 	GLuint bRes = 32; //Bed width is divided bRes times (old 42)
-	GLuint maxNNS = 32;
+	GLuint maxNNS = 64;
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
-	GLuint pThread = 1000; //Max Number of particles (thread) (10 milion)
+	GLuint pThread = 1000000; //Max Number of particles (thread) (10 milion)
 	GLuint pWkgSize = 32; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 

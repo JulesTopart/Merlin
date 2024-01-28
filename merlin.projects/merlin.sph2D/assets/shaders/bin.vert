@@ -1,4 +1,4 @@
-#version 450
+#version 430
 
 #include "common/uniforms.comp"
 #include "common/constants.comp"
@@ -18,7 +18,7 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 model;
 
-uniform uint particleTest = 2000;
+uniform uint particleTest = 50;
 uniform uint binTest = 1459;
 
 uniform int colorCycle;
@@ -40,12 +40,15 @@ void main() {
 		if(gl_InstanceID == binTest) color = vec4(1,0,0,1);
 		else{
 			test = false;
-			uvec2 binIndexVec = getBinCoord(particles[particleTest].position);
-				for (int y = int(binIndexVec.y) - 1; y <= int(binIndexVec.y) + 1; y++) {
-					for (int x = int(binIndexVec.x) - 1; x <= int(binIndexVec.x) + 1; x++) {
-						if (x < 0 || y < 0) continue;
-						if (x >= binMax.x || y >= binMax.y) continue; 
-						if (getBinIndexFromCoord(uvec2(x,y)) == gl_InstanceID) test = true;
+			uint testsortedID = sortedIndices[particleTest];
+
+			uvec2 binIndexVec = getBinCoord(particles[testsortedID].position);
+			ivec2 minBound = max(ivec2(binIndexVec) - 1, ivec2(0));
+			ivec2 maxBound = min(ivec2(binIndexVec) + 1, ivec2(binMax) - 1);
+			for (int y = minBound.y; y <= maxBound.y; y++) {
+				for (int x = minBound.x; x <= maxBound.x; x++) {
+					uint cindex = getBinIndexFromCoord(uvec2(x, y));
+						if (cindex == gl_InstanceID) test = true;
 					}
 				}
 			if(test)color = vec4(0.2,1,0.2,1);

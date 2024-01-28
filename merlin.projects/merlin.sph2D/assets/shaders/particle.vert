@@ -1,4 +1,4 @@
-#version 450
+#version 430
 #include "common/uniforms.comp"
 #include "common/constants.comp"
 #include "common/buffers.comp"
@@ -31,17 +31,16 @@ void main() {
 		gl_Position =  projection * view * vec4(0,0,0,1);
 		return;
 	}
-	uint sortedID = sortedIndices[gl_InstanceID]; 
 
-	vec2 offset = particles[sortedID].position;
+	vec2 offset = particles[gl_InstanceID].position;
 	position = model * (vec4(_position + vec3(offset,0),1));
 
-	uint testsortedID = particleTest;
+	uint testsortedID = sortedIndices[particleTest];
 	
 	bool binTest = true;
 	bool nnTest = false;
 	bool hTest = false;
-	uint binindex = particles[sortedID].binIndex;//getBinIndex(particles[sortedID].position);
+	uint binindex = particles[gl_InstanceID].binIndex;//getBinIndex(particles[sortedID].position);
 
 	bool test = false;//particles[sortedID].phase == UNUSED || (particles[sortedID].phase == BOUNDARY && showBoundary == 0);
 
@@ -58,7 +57,7 @@ void main() {
 	}else if(colorCycle == 5){ 
 		color = vec4(randomColor(binindex), 1);
 	}else{ //NNS Test
-		if(sortedIndices[sortedID] == testsortedID){
+		if(gl_InstanceID == testsortedID){
 			color = vec4(1,0,0, 1);
 			binTest = true;
 		}else{
@@ -76,7 +75,7 @@ void main() {
 
 			uint i = testsortedID;
 			OVERNNS
-				if(sortedID == j){
+				if(gl_InstanceID == j){
 					nnTest = true;
 					if(length(particles[testsortedID].position - particles[j].position) <= smoothingRadius) hTest = true;
 				}

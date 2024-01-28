@@ -9,7 +9,7 @@
 //?#include "sph.kernels.comp" 
 
 vec2 solveFloorCollision(uint i){
-	vec2 correctedPosition = particles[i].new_position;
+	vec2 correctedPosition = particles[i].pposition;
 	for (int i = 0; i < 2; i++){
 		if (correctedPosition[i] - particleRadius <= boundaryMin[i] ){
 			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
@@ -20,13 +20,13 @@ vec2 solveFloorCollision(uint i){
 		}
 	}
 
-	return (correctedPosition - particles[i].new_position)/10.0;
+	return (correctedPosition - particles[i].pposition)/10.0;
 }
 
 
-void clampPosition(inout vec4 position){
-	vec4 correctedPosition = position;
-	for (int i = 0; i < 3; i++){
+void clampPosition(inout vec2 position){
+	vec2 correctedPosition = position;
+	for (int i = 0; i < 2; i++){
 		if (correctedPosition[i] - particleRadius <= boundaryMin[i] )
 		{
 			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
@@ -49,17 +49,92 @@ float computeDensity(uint i) {
 
 	OVERNNS
 		Particle pj = particles[j];
-		if( pj.phase != FLUID) continue;
-		vec2 diff = pi.position - pj.position;
-		density += (1.0/pj.invmass)*cubicKernel2D(diff); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
+		float dist = distance(pi.position, pj.position);
+		density += (1.0/dt) * pj.mass *cubicKernel2D(dist); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
 	OVERNNS_END
 	return  density;
 }
 
 
 
+float computeLambda(uint i) {
+	Particle pi = particles[i];
+    if(pi.density == REST_DENSITY) return 0.0;
+
+    float rho0 = REST_DENSITY;
+    float sumGradCj = 0;
+    vec2 gradCi = vec2(0);
+    float density = 0.0;
+    
+    OVERNNS_I
+		Particle pj = particles[j];
+        if(pj.phase != FLUID) continue;
+  
+		vec2 dist = pi.pposition - pj.pposition;
+		vec2 gradCj = cubicKernel2D_Gradient(dist);
+		if (j == i) {
+			gradCi += gradCj;
+		}
+		sumGradCj += dot(gradCj, gradCj);
+		density += pj.mass * cubicKernel2D(dist);
+	OVERNNS_END
+
+	particles[i].density = density;
+    float C = max((density / rho0) - 1, 0.0);
+    return -C / (sumGradCj + 1e-6);
+}
 
 
+//Compute position deltas w neigbor
+vec2 computePositionDelta(uint i) {
+	vec2 posDelta = vec2(0.0f);
+	float rho0 = REST_DENSITY;
+	Particle pi = particles[i];
+	OVERNNS
+		Particle pj = particles[j];
+		if( pj.phase != FLUID) continue;
+		  vec2 dist = pi.pposition - pj.pposition;
+          float sCorr = -(pressureMultiplier) * pow(cubicKernel2D(dist) / cubicKernel2D(vec2(0.3*H,0)), 4);
+          vec2 dp_ij = spikyGradient(dist) * ((pi.lambda + pj.lambda  ) / rho0);
+          posDelta += dp_ij;
+	OVERNNS_END
+	return posDelta;
+}
+
+/*DFSPH
+//predict density but advecting quantities
+float predictDensity(uint i) {
+	
+	Particle pi = particles[i];
+
+	float deltaDensity = 0.0;
+	OVERNNS
+		Particle pj = particles[j];
+		vec2 diff = pi.position - pj.position;
+		vec2 veldiff = pi.pvelocity - pj.pvelocity;
+		deltaDensity += pj.mass * dot(veldiff, cubicKernel2D_Gradient(diff)); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
+	OVERNNS_END
+
+	return particles[i].density + dt * deltaDensity;
+}
+
+//constant density solving
+void correctDensity(uint i) {
+	Particle pi = particles[i];
+	float pI = kDensity * (particles[i].pdensity - REST_DENSITY)/(dt*dt);
+	float rhoI = pi.density;
+	vec2 velCorrection = vec2(0);
+	OVERNNS
+		Particle pj = particles[j];
+		float rhoJ = pj.density;
+		float pJ = kDensity * (pj.pdensity - REST_DENSITY)/(dt*dt);
+		vec2 diff = pi.position - pj.position;
+		velCorrection += pj.mass * ((pI/(rhoI*rhoI)) + (pJ/rhoJ*rhoJ)) * cubicKernel2D_Gradient(diff); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
+	OVERNNS_END
+
+	particles[i].pvelocity -= dt * velCorrection;
+}
+*/
 
 /*
 // Introduce the viscosity constraint and its gradient
