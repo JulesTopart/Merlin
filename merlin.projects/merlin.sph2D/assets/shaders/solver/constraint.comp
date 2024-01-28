@@ -59,7 +59,6 @@ float computeDensity(uint i) {
 
 float computeLambda(uint i) {
 	Particle pi = particles[i];
-    if(pi.density == REST_DENSITY) return 0.0;
 
     float rho0 = REST_DENSITY;
     float sumGradCj = 0;

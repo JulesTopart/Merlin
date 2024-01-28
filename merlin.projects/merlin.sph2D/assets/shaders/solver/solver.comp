@@ -27,6 +27,7 @@ void SolveFluid(uint i, uint simStep) {
 		break;
 		//compute non pressure acceleration
 		case 2:
+			particles[i].mass = particleMass;
 			vec2 acceleration = vec2(0,-g);
 			particles[i].pposition = particles[i].position + particles[i].velocity * dt + acceleration * (dt * dt);
 		break;
@@ -36,13 +37,13 @@ void SolveFluid(uint i, uint simStep) {
 		break;
 		//correct density error and update position
 		case 4 :
-			particles[i].pposition += computePositionDelta(i);
+			//particles[i].pposition += computePositionDelta(i);
 		break;
 
 		case 5 :
 			clampPosition(particles[i].pposition);
 			particles[i].velocity = (particles[i].pposition - particles[i].position)/dt;
-			particles[i].position = particles[i].pposition;
+			//particles[i].position = particles[i].pposition;
 		break;
 		//End iteration
 		

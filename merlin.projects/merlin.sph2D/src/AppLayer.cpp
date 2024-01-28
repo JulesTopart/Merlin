@@ -216,7 +216,7 @@ void AppLayer::ResetSimulation() {
 	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
 
 	Particle buf;
-	buf.mass = 1.0;//inverse mass
+	buf.mass = 10.0;//inverse mass
 	buf.density = 1.0; // phase
 	
 	buf.phase = FLUID; // phase
@@ -428,7 +428,7 @@ void AppLayer::OnImGuiRender() {
 		solver->SetFloat("speed", sim_speed);
 	}
 
-	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 1 * settings.particleRadius, 8 * settings.particleRadius)) {
+	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 1, 25)) {
 		solver->Use();
 		solver->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 		particleShader->Use();
@@ -441,7 +441,7 @@ void AppLayer::OnImGuiRender() {
 		particleShader->SetFloat("particleRadius", settings.particleRadius); // Kernel radius // 5mm
 	}
 
-	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 0.1, 2.0)) {
+	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 0.0, 2000.0)) {
 		solver->Use();
 		solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 		particleShader->Use();
