@@ -12,7 +12,7 @@ struct Bin {
 
 struct Particle {
 	alignas(8) glm::vec2 position;
-	alignas(8) glm::vec2 new_position;
+	alignas(8) glm::vec2 pposition;
 	alignas(8) glm::vec2 velocity;
 	alignas(8) glm::vec2 pvelocity;
 	float mass;
@@ -54,14 +54,14 @@ struct Settings {
 	float bx = bb.x;//mm 120
 	float by = bb.y;//mm
 
-	GLuint bRes = 32; //Bed width is divided bRes times (old 42)
-	GLuint maxNNS = 64;
+	GLuint bRes = 16; //Bed width is divided bRes times (old 42)
+	GLuint maxNNS = 256;
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
 	GLuint pThread = 1000000; //Max Number of particles (thread) (10 milion)
-	GLuint pWkgSize = 32; //Number of thread per workgroup
+	GLuint pWkgSize = 256; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
 	float bWidth = std::max(bx, by) / float(bRes); //Width of a single bin in mm
@@ -76,10 +76,10 @@ struct Settings {
 	// SPH Parameters
 	float particleRadius = 0.25; // mm
 	float H = 3 * particleRadius; // Kernel radius mm
-	float REST_DENSITY = 1000.0; // kg/m3 Metled plastic
-	float particleMass = 1.0;//g Mass
-	float timeStep = 0.016;//g Mass
+	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
+	float particleMass = 0.25;//g Mass
+	float timeStep = 0.005;//g Mass
 
-	int solver_substep = 30;
+	int solver_substep = 40;
 	int solver_iteration = 1;
 };

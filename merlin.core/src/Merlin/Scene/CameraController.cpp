@@ -135,8 +135,8 @@ namespace Merlin::Graphics {
 		if (Input::IsMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
 			_deltaMousePos = _lastMousePos - newMousePos;
 
-			_dU.x = 3.0f * _deltaMousePos.x / _Camera->Width();
-			_dU.y = 3.0f *_deltaMousePos.y / _Camera->Height();
+			_dU.x = _CameraSpeed * _deltaMousePos.x / _Camera->Width();
+			_dU.y = _CameraSpeed * _deltaMousePos.y / _Camera->Height();
 		}
 
 		_lastMousePos = newMousePos;

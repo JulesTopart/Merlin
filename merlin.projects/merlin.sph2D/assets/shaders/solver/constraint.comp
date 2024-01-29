@@ -24,23 +24,23 @@ vec2 solveFloorCollision(uint i){
 }
 
 
-void clampPosition(inout vec2 position){
+vec2 clampPosition(vec2 position){
 	vec2 correctedPosition = position;
 	for (int i = 0; i < 2; i++){
-		if (correctedPosition[i] - particleRadius <= boundaryMin[i] )
+		if (correctedPosition[i] < boundaryMin[i] + particleRadius)
 		{
-			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
+			correctedPosition[i] = boundaryMin[i] + particleRadius;
 			//velocity[i] *= boundaryDamping;
 
 		}
-		else if (correctedPosition[i] + particleRadius >= boundaryMax[i])
+		else if (correctedPosition[i] > boundaryMax[i] - particleRadius)
 		{
 			correctedPosition[i] =  boundaryMax[i] - particleRadius;
 			//velocity[i] *= boundaryDamping;
 		}
 	}
 
-	position = correctedPosition / 6.0;
+	return correctedPosition;
 }
 
 float computeDensity(uint i) {
@@ -50,7 +50,7 @@ float computeDensity(uint i) {
 	OVERNNS
 		Particle pj = particles[j];
 		float dist = distance(pi.position, pj.position);
-		density += (1.0/dt) * pj.mass *cubicKernel2D(dist); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
+		density += (1.0/dt) * pj.mass * cubicKernel2D(dist); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
 	OVERNNS_END
 	return  density;
 }

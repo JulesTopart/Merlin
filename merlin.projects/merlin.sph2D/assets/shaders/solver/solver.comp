@@ -12,7 +12,7 @@
 layout (local_size_x = PTHREAD) in;
 
 void SolveFluid(uint i, uint simStep) {
-	uint binIndex = getBinIndex(particles[i].position);
+	uint binIndex = getBinIndex(particles[i].pposition);
 	switch(simStep){ 
 		case 0 : //Bin sorting
 			particles[i].binIndex = binIndex;
@@ -37,13 +37,13 @@ void SolveFluid(uint i, uint simStep) {
 		break;
 		//correct density error and update position
 		case 4 :
-			//particles[i].pposition += computePositionDelta(i);
+			particles[i].pposition += computePositionDelta(i);
 		break;
 
 		case 5 :
-			clampPosition(particles[i].pposition);
-			particles[i].velocity = (particles[i].pposition - particles[i].position)/dt;
-			//particles[i].position = particles[i].pposition;
+			particles[i].pposition = clampPosition(particles[i].pposition);
+			particles[i].velocity = 0.999 * (particles[i].pposition - particles[i].position)/dt;
+			particles[i].position = particles[i].pposition;
 		break;
 		//End iteration
 		

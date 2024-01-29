@@ -21,10 +21,11 @@ AppLayer::AppLayer(){
 	int width = w->GetWidth();
 	camera = CreateShared<Camera>(width, height, Projection::Orthographic);
 	camera->setNearPlane(0.0f);
-	camera->setFarPlane(100.0f);
+	camera->setFarPlane(10.0f);
 	camera->Translate(glm::vec3(0, 0, 1));
 	cameraController = CreateShared<CameraController2D>(camera);
 	cameraController->SetZoomLevel(20);
+	cameraController->SetCameraSpeed(100);
 }
 
 AppLayer::~AppLayer(){}
@@ -216,8 +217,10 @@ void AppLayer::ResetSimulation() {
 	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
 
 	Particle buf;
-	buf.mass = 10.0;//inverse mass
+	buf.mass = settings.particleMass;//inverse mass
 	buf.density = 1.0; // phase
+	buf.velocity = glm::vec2(0);
+	buf.pvelocity = glm::vec2(0);
 	
 	buf.phase = FLUID; // phase
 	glm::vec2 cubeSize = glm::vec2(50, 50);
@@ -230,7 +233,7 @@ void AppLayer::ResetSimulation() {
 				buf.id = cpu_particles.size();
 				buf.position.x = x;
 				buf.position.y = y;
-				buf.new_position = buf.position;
+				buf.pposition = buf.position;
 				buf.binIndex = cpu_particles.size();
 				cpu_particles.push_back(buf);
 			}
@@ -312,21 +315,21 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
 	solver->SetFloat("dt", settings.timeStep / float(settings.solver_substep)); //Spawn particle after prediction
 
-	GPU_PROFILE(nns_time,
-		NeigborSearch();
-	)
-
 	if (!paused) {
 		elapsedTime += settings.timeStep;
 
+		GPU_PROFILE(nns_time,
+			NeigborSearch();
+		)
 		GPU_PROFILE(solver_substep_time,
 			for (int i = 0; i < settings.solver_substep; i++) {
 				solver->Execute(2); //Predict position
-				//for (int k = 0; k < settings.solver_iteration; k++) {
-				solver->Execute(3); //Solve floor collision constraint
-				solver->Execute(4); //Solve collision constraint
+
+				for (int j = 0; j < settings.solver_iteration; j++) {
+					solver->Execute(3); //Solve floor collision constraint
+					solver->Execute(4); //Solve collision constraint
+				}
 				solver->Execute(5); //Solve distance constraint
-				//}
 			})
 	}
 }
@@ -428,20 +431,20 @@ void AppLayer::OnImGuiRender() {
 		solver->SetFloat("speed", sim_speed);
 	}
 
-	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 1, 25)) {
+	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 1, 1.2 * settings.bWidth)) {
 		solver->Use();
 		solver->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 		particleShader->Use();
 		particleShader->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 	}
-	if (ImGui::SliderFloat("particle radius", &settings.particleRadius, 0.1, 8.0)) {
+	if (ImGui::SliderFloat("particle radius", &settings.particleRadius, 0.0, 2.0)) {
 		solver->Use();
 		solver->SetFloat("particleRadius", settings.particleRadius);
 		particleShader->Use();
 		particleShader->SetFloat("particleRadius", settings.particleRadius); // Kernel radius // 5mm
 	}
 
-	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 0.0, 2000.0)) {
+	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 0.0, 2.0)) {
 		solver->Use();
 		solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 		particleShader->Use();
@@ -466,7 +469,7 @@ void AppLayer::OnImGuiRender() {
 		solver->SetFloat("alphaVisco", visco * 0.1); // Kernel radius // 5mm
 	}
 
-	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.0001, 2.0)) {
+	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.1, 2.0)) {
 		solver->Use();
 		solver->SetFloat("particleMass", settings.particleMass);
 	}
