@@ -50,18 +50,18 @@ struct FluidParticle {
 struct Settings {
 
 	//Build Volume dimensions
-	glm::vec2 bb = glm::vec2(100, 100);
+	glm::vec2 bb = glm::vec2(150, 80);
 	float bx = bb.x;//mm 120
 	float by = bb.y;//mm
 
-	GLuint bRes = 16; //Bed width is divided bRes times (old 42)
+	GLuint bRes = 64; //Bed width is divided bRes times (old 42)
 	GLuint maxNNS = 256;
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
 	GLuint pThread = 1000000; //Max Number of particles (thread) (10 milion)
-	GLuint pWkgSize = 256; //Number of thread per workgroup
+	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
 	float bWidth = std::max(bx, by) / float(bRes); //Width of a single bin in mm
@@ -69,7 +69,7 @@ struct Settings {
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 
-	GLuint bWkgSize = 32; //Number of thread per workgroup
+	GLuint bWkgSize = 64; //Number of thread per workgroup
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
 	// --- SPH ---
@@ -78,8 +78,8 @@ struct Settings {
 	float H = 3 * particleRadius; // Kernel radius mm
 	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
 	float particleMass = 0.25;//g Mass
-	float timeStep = 0.005;//g Mass
+	float timeStep = 0.003;//g Mass
 
-	int solver_substep = 40;
+	int solver_substep = 30;
 	int solver_iteration = 1;
 };

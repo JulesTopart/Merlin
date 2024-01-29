@@ -49,11 +49,11 @@ void main() {
 	}else if(colorCycle == 1){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 2){ 
-		color = colorMap(map(particles[gl_InstanceID].density,0,2.0*REST_DENSITY), jet);
+		color = colorMap(map(particles[gl_InstanceID].density,0,1.5*REST_DENSITY), jet);
 	}else if(colorCycle == 3){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 4){ 
-		color = vec4(randomColor(binindex), 1);
+		color = colorMap(map(length(particles[gl_InstanceID].velocity),0,1000.0), jet);
 	}else if(colorCycle == 5){ 
 		color = vec4(randomColor(binindex), 1);
 	}else{ //NNS Test

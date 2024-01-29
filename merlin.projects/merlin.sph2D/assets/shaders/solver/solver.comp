@@ -38,11 +38,8 @@ void SolveFluid(uint i, uint simStep) {
 		//correct density error and update position
 		case 4 :
 			particles[i].pposition += computePositionDelta(i);
-		break;
-
-		case 5 :
 			particles[i].pposition = clampPosition(particles[i].pposition);
-			particles[i].velocity = 0.999 * (particles[i].pposition - particles[i].position)/dt;
+			particles[i].velocity = 0.99998 * (particles[i].pposition - particles[i].position)/dt;
 			particles[i].position = particles[i].pposition;
 		break;
 		//End iteration

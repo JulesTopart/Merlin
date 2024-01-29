@@ -40,8 +40,8 @@ uvec2 getBinCoordFromIndex(uint index) {
 
 #define OVERNNS {\
 uvec2 binIndexVec = getBinCoord(particles[i].position);\
-ivec2 minBound = max(ivec2(binIndexVec) - 1, ivec2(0));\
-ivec2 maxBound = min(ivec2(binIndexVec) + 1, ivec2(binMax) - 1);\
+ivec2 minBound = ivec2( max( binIndexVec.x - 1, 0), max(binIndexVec.y - 1, 0));\
+ivec2 maxBound = ivec2( min( binIndexVec.x + 1, binMax.x - 1) , min(binIndexVec.y + 1, binMax.y - 1));\
 for (int y = minBound.y; y <= maxBound.y; y++) {\
     for (int x = minBound.x; x <= maxBound.x; x++) {\
         uint cindex = getBinIndexFromCoord(uvec2(x, y));\
@@ -56,8 +56,8 @@ for (int y = minBound.y; y <= maxBound.y; y++) {\
 
 #define OVERNNS_I {\
 uvec2 binIndexVec = getBinCoord(particles[i].position);\
-ivec2 minBound = max(ivec2(binIndexVec) - 1, ivec2(0));\
-ivec2 maxBound = min(ivec2(binIndexVec) + 1, ivec2(binMax) - 1);\
+ivec2 minBound = ivec2( max( binIndexVec.x - 1, 0), max(binIndexVec.y - 1, 0));\
+ivec2 maxBound = ivec2( min( binIndexVec.x + 1, binMax.x - 1) , min(binIndexVec.y + 1, binMax.y - 1));\
 for (int y = minBound.y; y <= maxBound.y; y++) {\
     for (int x = minBound.x; x <= maxBound.x; x++) {\
         uint cindex = getBinIndexFromCoord(uvec2(x, y));\

@@ -89,6 +89,7 @@ vec2 computePositionDelta(uint i) {
 	vec2 posDelta = vec2(0.0f);
 	float rho0 = REST_DENSITY;
 	Particle pi = particles[i];
+	if(pi.density -  REST_DENSITY < 1e-6) return posDelta;
 	OVERNNS
 		Particle pj = particles[j];
 		if( pj.phase != FLUID) continue;

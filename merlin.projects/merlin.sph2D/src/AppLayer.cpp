@@ -135,7 +135,7 @@ void AppLayer::InitGraphics() {
 	renderer.AddShader(particleShader);
 	renderer.AddShader(binShader);
 
-	Model_Ptr mdl = Model::Create("bbox", Primitives::CreateQuadRectangle(settings.bx, settings.bx, true));
+	Model_Ptr mdl = Model::Create("bbox", Primitives::CreateQuadRectangle(settings.bx, settings.by, true));
 	mdl->EnableWireFrameMode();
 	scene.Add(mdl);
 
@@ -228,7 +228,7 @@ void AppLayer::ResetSimulation() {
 
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++)
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++){
-				float x = (xi * spacing) - (cubeSize.x / 2.0) - 20;
+				float x = (xi * spacing) - (cubeSize.x / 2.0) - 45;
 				float y = (yi * spacing) - (cubeSize.y / 2.0);
 				buf.id = cpu_particles.size();
 				buf.position.x = x;
@@ -329,7 +329,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 					solver->Execute(3); //Solve floor collision constraint
 					solver->Execute(4); //Solve collision constraint
 				}
-				solver->Execute(5); //Solve distance constraint
+				//solver->Execute(5); //Solve distance constraint
 			})
 	}
 }
@@ -431,7 +431,7 @@ void AppLayer::OnImGuiRender() {
 		solver->SetFloat("speed", sim_speed);
 	}
 
-	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 1, 1.2 * settings.bWidth)) {
+	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 0.3, 1.2 * settings.bWidth)) {
 		solver->Use();
 		solver->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 		particleShader->Use();
@@ -475,7 +475,7 @@ void AppLayer::OnImGuiRender() {
 	}
 
 	static int colorMode = 0;
-	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Lambda", "Mass", "Neighbors" };
+	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Velocity", "Mass", "Neighbors" };
 	if (ImGui::ListBox("Colored field", &colorMode, options, 7)) {
 		particleShader->Use();
 		particleShader->SetInt("colorCycle", colorMode);
