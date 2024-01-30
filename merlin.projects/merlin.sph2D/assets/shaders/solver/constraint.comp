@@ -50,6 +50,7 @@ float computeDensity(uint i) {
 	OVERNNS
 		Particle pj = particles[j];
 		float dist = distance(pi.position, pj.position);
+		if(dist > H) continue;
 		density += (1.0/dt) * pj.mass * cubicKernel2D(dist); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
 	OVERNNS_END
 	return  density;
@@ -70,11 +71,13 @@ float computeLambda(uint i) {
         if(pj.phase != FLUID) continue;
   
 		vec2 dist = pi.pposition - pj.pposition;
+		if(length(dist) > H) continue;
 		vec2 gradCj = cubicKernel2D_Gradient(dist);
 		if (j == i) {
 			gradCi += gradCj;
 		}
 		sumGradCj += dot(gradCj, gradCj);
+		
 		density += pj.mass * cubicKernel2D(dist);
 	OVERNNS_END
 
@@ -95,7 +98,7 @@ vec2 computePositionDelta(uint i) {
 		if( pj.phase != FLUID) continue;
 		  vec2 dist = pi.pposition - pj.pposition;
           float sCorr = -(pressureMultiplier) * pow(cubicKernel2D(dist) / cubicKernel2D(vec2(0.3*H,0)), 4);
-          vec2 dp_ij = spikyGradient(dist) * ((pi.lambda + pj.lambda  ) / rho0);
+          vec2 dp_ij = spikyGradient(dist) * ((pi.lambda + pj.lambda + sCorr  ) / rho0);
           posDelta += dp_ij;
 	OVERNNS_END
 	return posDelta;

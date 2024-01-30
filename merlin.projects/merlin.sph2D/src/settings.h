@@ -75,7 +75,7 @@ struct Settings {
 	// --- SPH ---
 	// SPH Parameters
 	float particleRadius = 0.25; // mm
-	float H = 3 * particleRadius; // Kernel radius mm
+	float H = 2.9 * particleRadius; // Kernel radius mm
 	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
 	float particleMass = 0.25;//g Mass
 	float timeStep = 0.003;//g Mass

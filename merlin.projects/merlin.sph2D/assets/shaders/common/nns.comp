@@ -24,7 +24,7 @@ uvec2 getBinCoord(vec2 position) {
 }
 
 uint getBinIndexFromCoord(uvec2 coord) {
-	return (coord.y * binMax.x) + coord.x;
+	return min(max((coord.y * binMax.x) + coord.x,0),binCount);
 }   
 
 uint getBinIndex(vec2 position) {

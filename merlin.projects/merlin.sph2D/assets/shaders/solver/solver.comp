@@ -38,9 +38,21 @@ void SolveFluid(uint i, uint simStep) {
 		//correct density error and update position
 		case 4 :
 			particles[i].pposition += computePositionDelta(i);
-			particles[i].pposition = clampPosition(particles[i].pposition);
+			particles[i].pposition += solveFloorCollision(i);
+			//particles[i].pposition = clampPosition(particles[i].pposition);
 			particles[i].velocity = 0.99998 * (particles[i].pposition - particles[i].position)/dt;
 			particles[i].position = particles[i].pposition;
+		break;
+		case 5:
+			vec2 xsphSum = vec2(0);
+			OVERNNS
+				Particle pj = particles[j];
+				vec2 dist = particles[i].position - particles[j].position;
+				vec2 Vij = particles[j].velocity - particles[i].velocity;
+				float Wij = cubicKernel2D(dist);
+				xsphSum -= alphaVisco * Vij * Wij * particles[j].density;
+			OVERNNS_END
+			particles[i].velocity -= xsphSum;
 		break;
 		//End iteration
 		

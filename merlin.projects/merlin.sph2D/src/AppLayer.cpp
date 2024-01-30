@@ -329,7 +329,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 					solver->Execute(3); //Solve floor collision constraint
 					solver->Execute(4); //Solve collision constraint
 				}
-				//solver->Execute(5); //Solve distance constraint
+				solver->Execute(5); //Solve distance constraint
 			})
 	}
 }
@@ -452,9 +452,9 @@ void AppLayer::OnImGuiRender() {
 	}
 
 	static float pressureM = 0.5;
-	if (ImGui::SliderFloat("Pressure multiplier", &pressureM, 0.0, 1.0)) {
+	if (ImGui::SliderFloat("Pressure multiplier", &pressureM, 0.0, 10.0)) {
 		solver->Use();
-		solver->SetFloat("pressureMultiplier", pressureM * 0.001); // Kernel radius // 5mm
+		solver->SetFloat("pressureMultiplier", pressureM * 0.01); // Kernel radius // 5mm
 	}
 
 	static float stiffness = 5000;
@@ -464,7 +464,7 @@ void AppLayer::OnImGuiRender() {
 	}
 
 	static float visco = 0.5;
-	if (ImGui::SliderFloat("Viscosity", &visco, 0.0, 1.0)) {
+	if (ImGui::SliderFloat("Viscosity", &visco, 0.0, 10.0)) {
 		solver->Use();
 		solver->SetFloat("alphaVisco", visco * 0.1); // Kernel radius // 5mm
 	}
