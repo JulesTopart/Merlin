@@ -78,7 +78,7 @@ struct Settings {
 	float H = 3 * particleRadius; // Kernel radius mm
 	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
 	float particleMass = 0.25;//g Mass
-	float timeStep = 0.003;//g Mass
+	float timeStep = 0.016;//s
 
 	int solver_substep = 30;
 	int solver_iteration = 1;
