@@ -81,7 +81,9 @@ void AppLayer::OnUpdate(Timestep ts){
 	
 	GPU_PROFILE(render_time,
 		renderer.Clear();
-		renderer.RenderScene(scene, *camera);
+		//renderer.RenderScene(scene, *camera);
+
+		qrenderer.Render();
 	)
 }
 
@@ -134,6 +136,8 @@ void AppLayer::InitGraphics() {
 	 
 	renderer.AddShader(particleShader);
 	renderer.AddShader(binShader);
+
+	qrenderer.SetShader(Shader("screen", "assets/shaders/screen.space.vert", "assets/shaders/screen.space.frag"));
 
 	Model_Ptr mdl = Model::Create("bbox", Primitives::CreateQuadRectangle(settings.bx, settings.by, true));
 	mdl->EnableWireFrameMode();

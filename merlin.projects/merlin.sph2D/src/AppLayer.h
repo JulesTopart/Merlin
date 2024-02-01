@@ -38,6 +38,7 @@ private:
 
 	Scene scene;
 	Renderer renderer;
+	ScreenQuadRenderer qrenderer;
 
 	//Simulation
 	Shared<StagedComputeShader> solver;

@@ -8,16 +8,18 @@
 using namespace Merlin::Memory;
 
 namespace Merlin::Graphics {
-	class ScreenQuadRenderer : public RendererBase{
+	class ScreenQuadRenderer : public RendererBase {
 	public:
 		// Constructor
 		ScreenQuadRenderer();
 
 		// Render the screen quad
+		void Render();
 		void Render(const Shared<TextureBase>& tex);
 
-		inline VAO& GetVAO(){ return m_vao; }
+		inline VAO& GetVAO() { return m_vao; }
 		inline Shader& GetShader() { return m_shader; }
+		inline void SetShader(Shader shader) { m_shader = shader; }
 
 	private:
 		//Empty vertex array object for the binding quad
