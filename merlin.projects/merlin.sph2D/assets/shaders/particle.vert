@@ -49,11 +49,11 @@ void main() {
 	}else if(colorCycle == 1){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 2){ 
-		color = colorMap(map(particles[gl_InstanceID].density,0,1.5*REST_DENSITY), jet);
+		color = colorMap(map(particles[gl_InstanceID].density,0.8 * REST_DENSITY, 1.2 * REST_DENSITY), warmcool);
 	}else if(colorCycle == 3){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 4){ 
-		color = colorMap(map(length(particles[gl_InstanceID].velocity),0,1000.0), jet);
+		color = colorMap(map(length(particles[gl_InstanceID].velocity),0,1000.0), parula);
 	}else if(colorCycle == 5){ 
 		color = vec4(randomColor(binindex), 1);
 	}else{ //NNS Test
@@ -97,7 +97,7 @@ void main() {
 		mv = projection * view;
 		
 		gl_Position = screen_position;
-		gl_PointSize = particleRadius * WindowSize.y * 0.7 / zoomLevel;
+		gl_PointSize = particleRadius * WindowSize.y * 0.72 / zoomLevel;
 		if(colorCycle == 6 && !hTest && !(gl_InstanceID == testsortedID)) gl_PointSize = particleRadius * WindowSize.y * 0.3 / zoomLevel;
 		
 	}

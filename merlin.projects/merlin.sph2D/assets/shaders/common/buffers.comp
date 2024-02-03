@@ -4,15 +4,6 @@
 
 //TODO generate this automatically
 
-//Buffer layout
-/*
-vec2 position;	// x : current position x
-float invmass;	// m : inverse mass
-float phase;	// p : phase
-
-vec2 velocity;	// v : velocity
-*/
-
 struct Particle{
 	vec2 position;
 	vec2 pposition;
