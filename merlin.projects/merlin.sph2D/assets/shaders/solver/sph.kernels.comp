@@ -13,6 +13,7 @@
 #define H3 pow(H,3)
 #define H5 pow(H,5)
 #define H6 pow(H,6)
+#define H8 pow(H,8)
 #define H9 pow(H,9)
 
 #define M_PI 3.14159265358979323846
@@ -22,8 +23,143 @@
 #define KERNEL_L (240.0 / (7.0 * (M_PI*H*H)))
 #define SPIKY_KERNEL_CONST (10.0 / (M_PI * H * H))
 
+#define KERNEL_POLY6_COEFFICIENT        (1.566681471061f/H9)
+#define KERNEL_POLY6_GRAD_COEFFICIENT   (9.400088826365069f/H9)
+#define KERNEL_POLY6_LAPL_COEFFICIENT   (37.600355305460276f/H9)
+
+#define KERNEL_SPIKY_COEFFICIENT	    (4.7746482927568605f/H6)
+#define KERNEL_SPIKY_GRAD_COEFFICIENT   (14.32394487827058f/H6)
+
+#define KERNEL_WVISC_COEFFICIENT		(2.3873241463784303f/H3)		//(315 / (64 * PI * h^9)) * (h^2 - |r|^2)^3
+#define KERNEL_WVISC_GRAD_COEFFICIENT  KERNEL_WVISC_COEFFICIENT		// (945 / (32 * PI * h^9)) * (h^2 - |r|^2)^3
+#define KERNEL_WVISC_LAPL_COEFFICIENT  (14.32394487827058f/H5)	// (945 / (32 * PI * h^9)) * (h^2 - |r|^2)^3
+
+float poly6(float r);
+float poly6(vec2 r);
+vec2 poly6_grad(vec2 r);
+float poly6_lapl(vec2 r);
+float spiky(vec2 r);
+vec2 spiky_grad(vec2 r);
+float Wvisc(vec2 r_v);
+vec2 Wvisc_grad(vec2 r_v);
+float Wvisc_lapl(vec2 r_v);
+
+float densityKernel(float r){
+	return poly6(r);
+}
+float densityKernel(vec2 r){
+	return poly6(r);
+}
+vec2 densityGradientKernel(vec2 r){
+	return poly6_grad(r);
+}
+float pressureKernel(vec2 r){
+	return spiky(r);
+}
+vec2 pressureGradientKernel(vec2 r){
+	return spiky_grad(r);
+}
+float viscosityKernel(vec2 r){
+	return Wvisc(r);
+}
+vec2 viscosityGradientKernel(vec2 r){
+	return Wvisc_grad(r);
+}
 
 
+
+
+
+
+
+
+
+
+// --- POLY6 KERNEL ---
+//Computed the poly6 scalar smoothing kernel
+float poly6(float r){
+	float r2 = r * r;
+	if (r2 < EPSILON || r2 > H2 || H9 < EPSILON) return 0.0;
+	float B = H2 - r2;
+	return KERNEL_POLY6_COEFFICIENT * (B * B * B);
+}
+float poly6(vec2 r){
+	return poly6(length(r));
+}
+
+//Computed the poly6 gradient smoothing kernel
+vec2 poly6_grad(vec2 r){
+	float r2 = length(r.xy) * length(r.xy);
+	if (r2 < EPSILON || r2 > H2 || H9 < EPSILON) return vec2(0.0);
+	float B = H2-r2;
+	return -r *KERNEL_POLY6_GRAD_COEFFICIENT * (B * B);
+}
+
+//Computed the poly6 laplacian smoothing kernel
+float poly6_lapl(vec2 r) {
+	float r2 = length(r.xy) * length(r.xy);
+	if (r2 < EPSILON || r2 > H2 || H9 < EPSILON) return 0.0;
+	float B = H2 - r2;
+	return KERNEL_POLY6_LAPL_COEFFICIENT * B * (r2 - (3.0f*B/4.0f));
+}
+
+
+// --- SPIKY KERNEL ---
+//Computed the poly6 scalar smoothing kernel
+float spiky(vec2 r) {
+	float r2 = length(r.xy) * length(r.xy);
+	if (r2 < EPSILON || r2 > H2 || H9 < EPSILON) return 0.0;
+	float B = H2 - r2;
+	return KERNEL_SPIKY_COEFFICIENT * (B * B * B);
+}
+
+//Computed the poly6 gradient smoothing kernel
+vec2 spiky_grad(vec2 r) {
+	float r2 = length(r.xy) * length(r.xy);
+	if (r2 < EPSILON || r2 > H2 || H9 < EPSILON) return vec2(0.0);
+	float B = H2 - r2;
+	return -normalize(r) * KERNEL_SPIKY_GRAD_COEFFICIENT * (B * B);
+}
+
+
+
+
+// --- VISCOSITY KERNEL ---
+//Computed the poly6 scalar smoothing kernel
+float Wvisc(vec2 r_v) {
+	float r = length(r_v.xy);
+	float r2 = r * r;
+	float r3 = r2 * r;
+	if (r2 < EPSILON || r2 > H2 || H9 < EPSILON) return 0.0;
+	float A = -r3 / (2 * H3);
+	float B =  r2 / H2;
+	float C =  H / (2 * r);
+	return KERNEL_WVISC_COEFFICIENT * (A + B + C - 1);
+}
+
+//Computed the Wvisc gradient smoothing kernel
+vec2 Wvisc_grad(vec2 r_v) {
+	float r = length(r_v.xy);
+	float r2 = r * r;
+	float r3 = r2 * r;
+	if (r2 < EPSILON || r2 > H2 || H9 < EPSILON) return vec2(0.0);
+	float A = (-3 * r) / (2 * H3);
+	float B = 2 / H2;
+	float C = -H / (2 * r3);
+	return -r_v * KERNEL_WVISC_GRAD_COEFFICIENT * (A + B + C);
+}
+
+//Computed the Wvisc laplacian smoothing kernel
+float Wvisc_lapl(vec4 r_v) {
+	float r = length(r_v.xyz);
+	if (r < EPSILON || r > H || H9 < EPSILON) return 0.0;
+	
+	return KERNEL_WVISC_LAPL_COEFFICIENT * (1 - (r/H));
+}
+
+
+
+/*
 float cubicKernel2D(float r) {
   float result = 0;
   float q = r / H;
@@ -37,7 +173,10 @@ float cubicKernel2D(float r) {
   }
   return result;
 }
+*/
 
+
+/*
 float cubicKernel2D(vec2 r) {
   return cubicKernel2D(length(r));
 }
@@ -73,6 +212,6 @@ vec2 spikyGradient(vec2 r) {
     result = r * (coeff / rl);
   }
   return result;
-}
+}*/
 
 #endif

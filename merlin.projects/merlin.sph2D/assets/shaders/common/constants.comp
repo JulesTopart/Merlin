@@ -2,7 +2,7 @@
 #ifndef INCLUDE_CONSTANTS_GLSL
 #define INCLUDE_CONSTANTS_GLSL
 
-#define BTHREAD 64
+#define BTHREAD 512
 #define PTHREAD 512
 
 #define UNUSED 0
@@ -12,13 +12,14 @@
 #define GRANULAR 4
 #define BOUNDARY 5
 
-#define MAXNN 256
+#define MAXNN 64
 #define EPSILON 1e-6
 
 
 // --- Domain ---
 const uint binResolution = 64;
 const vec2 domain = vec2(150, 80);
+const vec2 halfdomain = domain/2.0;
 const vec2 boundaryMin = vec2(-domain.x / 2.0, -domain.y / 2.0);
 const vec2 boundaryMax = vec2( domain.x / 2.0,  domain.y / 2.0);
 

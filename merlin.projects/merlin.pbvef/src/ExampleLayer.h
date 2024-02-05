@@ -89,7 +89,7 @@ struct Settings {
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
 	GLuint bRes = 42; //Bed width is divided bRes times
-	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
+	float bWidth = std::max(bx, std::max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
@@ -104,6 +104,9 @@ struct Settings {
 	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
 	float particleMass = 1.0;//g Mass
 };
+
+
+
 
 class ExampleLayer : public Merlin::Layer
 {
@@ -120,7 +123,7 @@ public:
 	void InitGraphics();
 	void InitPhysics();
 	void ResetSimulation();
-	void SetColorGradient();
+
 	void UpdateBufferSettings();
 	
 	void NeigborSearch();
@@ -129,11 +132,6 @@ public:
 	void updateFPS(Merlin::Timestep ts);
 
 private:
-	glm::uvec3 getBinCoord(glm::vec3 position);
-	GLuint getBinIndexFromCoord(glm::uvec3 coord);
-	GLuint getBinIndex(glm::vec3 position);
-	glm::uvec3 getBinCoordFromIndex(GLuint index);
-
 	GLsizei _width = 1080, _height = 720;
 
 	//Simulation
@@ -144,7 +142,6 @@ private:
 	SSBO_Ptr<Bin> binBuffer; //Particle buffer
 	SSBO_Ptr<Constraint> constraintBuffer; //Index buffer
 	SSBO_Ptr<FluidParticle> particleBuffer; //Particle buffer
-	SSBO_Ptr<ColorScale> colorScaleBuffer; //Particle buffer
 
 	Shader_Ptr modelShader;
 	Shader_Ptr particleShader;
@@ -157,10 +154,6 @@ private:
 	Scene scene;
 	TransformObject_Ptr origin;
 	Model_Ptr  light;
-
-	//Heat Map
-	SSBO_Ptr<glm::vec4> heatMap;
-	int colorCount;
 
 	//Camera
 	Camera_Ptr camera;

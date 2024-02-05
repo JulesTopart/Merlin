@@ -9,19 +9,22 @@ using namespace Merlin::Graphics;
 
 #include "Bunny.h"
 
+
 void ExampleLayer::UpdateBufferSettings() {
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	settings.bWidth = max(settings.bx, max(settings.by, settings.bz)) / float(settings.bRes); //Width of a single bin in mm
-	settings.bThread = int(settings.bx / (settings.bWidth)) * int(settings.by / (settings.bWidth)) * int(settings.bz / (settings.bWidth)); //Total number of bin (thread)
+	settings.bWidth = std::max(settings.bx, settings.by) / float(settings.bRes); //Width of a single bin in mm
+	settings.bThread = int(settings.bx / (settings.bWidth)) * int(settings.by / (settings.bWidth)); //Total number of bin (thread)
 	settings.blockSize = floor(log2f(settings.bThread));
 	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
 	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
 
-	init->SetWorkgroupLayout(settings.pWkgCount);
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
+	particleBuffer->Bind();
 	particleBuffer->Resize(settings.pThread);
+
+	binBuffer->Bind();
 	binBuffer->Resize(settings.bThread);
 }
 
@@ -49,8 +52,8 @@ void ExampleLayer::InitGraphics() {
 
 
 	//Shaders
-	modelShader = Shader::Create("model", "assets/shaders/model.vert", "assets/shaders/model.frag");
-	modelShader->SetVec3("lightPos", glm::vec3(0, 0, 100));
+	modelShader = Shader::Create("model", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
+	//modelShader->SetVec3("lightPos", glm::vec3(0, 0, 100));
 
 	particleShader = Shader::Create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
 	particleShader->noTexture();
@@ -76,20 +79,8 @@ void ExampleLayer::InitGraphics() {
 	renderer.AddShader(binShader);
 
 
-
-
-	//SkyBox
-	std::vector<std::string> skyBoxPath = {
-		"./assets/textures/skybox/right.jpg",
-		"./assets/textures/skybox/left.jpg",
-		"./assets/textures/skybox/bottom.jpg",
-		"./assets/textures/skybox/top.jpg",
-		"./assets/textures/skybox/front.jpg",
-		"./assets/textures/skybox/back.jpg"
-	};
-
-	Shared<Shader> skyShader = Shader::Create("skybox", "assets/shaders/skybox.vert", "assets/shaders/skybox.frag");
-	Shared<SkyBox> sky = SkyBox::Create("Sky", skyBoxPath);
+	Shared<Shader> skyShader = Shader::Create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
+	Shared<SkyBox> sky = SkyBox::Create("Sky");
 	sky->SetShader(skyShader);
 	scene.Add(sky);
 
@@ -183,41 +174,18 @@ void ExampleLayer::InitPhysics() {
 	binBuffer->Allocate(settings.bThread);
 
 
-	colorScaleBuffer = SSBO<ColorScale>::Create("ColorScaleBuffer");
-	std::vector<ColorScale> scales;
-	scales.push_back({ 0,1 });
-	scales.push_back({ 0,100 });
-	scales.push_back({ 0,400 });
-	scales.push_back({ 0,50 });
-	colorScaleBuffer->LoadData(scales);
-
 	particleSystem->AddComputeShader(init);
 	particleSystem->AddComputeShader(solver);
 	particleSystem->AddStorageBuffer(particleBuffer);
 	particleSystem->AddStorageBuffer(binBuffer);
-	particleSystem->AddStorageBuffer(colorScaleBuffer);
 	
 	binSystem->AddComputeShader(prefixSum);
 	binSystem->AddStorageBuffer(particleBuffer);
 	binSystem->AddStorageBuffer(binBuffer);
-	binSystem->AddStorageBuffer(colorScaleBuffer);
 
 	scene.Add(particleSystem);
 	scene.Add(binSystem);
 	binSystem->Hide();
-}
-
-void ExampleLayer::SetColorGradient() {
-	std::vector<glm::vec4> colors;
-	colors.push_back( glm::vec4(0, 0, 1,0.0f));     // Blue.
-	colors.push_back( glm::vec4(0, 1, 1,0.25f));     // Cyan.
-	colors.push_back( glm::vec4(0, 1, 0,0.5f));     // Green.
-	colors.push_back( glm::vec4(1, 1, 0,0.75f));     // Yellow.
-	colors.push_back( glm::vec4(1, 0, 0,1.0f));     // Red.
-	colorCount = colors.size();
-
-	heatMap = SSBO<glm::vec4>::Create("ColorMapBuffer");
-	heatMap->LoadData(colors);
 }
 
 void ExampleLayer::ResetSimulation() {
@@ -368,34 +336,6 @@ void ExampleLayer::ResetSimulation() {
 	solver->Execute(1); //Sort
 }
 
-
-glm::uvec3 ExampleLayer::getBinCoord(glm::vec3 position) {
-	position += glm::vec3(150,100,125);
-	glm::uvec3 bin3D = glm::uvec3(position / settings.bWidth);
-	bin3D.x = max(min(bin3D.x, (settings.bx / (settings.bWidth)) - 1), 0);
-	bin3D.y = max(min(bin3D.y, (settings.by / (settings.bWidth)) - 1), 0);
-	bin3D.z = max(min(bin3D.z, (settings.bz / (settings.bWidth)) - 1), 0);
-	return bin3D;
-}
-
-GLuint ExampleLayer::getBinIndexFromCoord(glm::uvec3 coord) {
-	return (coord.z * (settings.bx / (settings.bWidth)) * (settings.by / (settings.bWidth))) + (coord.y * (settings.bx / (settings.bWidth))) + coord.x;
-}
-
-GLuint ExampleLayer::getBinIndex(glm::vec3 position) {
-	glm::uvec3 bin3D = getBinCoord(position);
-	return getBinIndexFromCoord(bin3D);
-}
-
-glm::uvec3 ExampleLayer::getBinCoordFromIndex(GLuint index) {
-	GLuint z = index / ((settings.bx / (settings.bWidth)) * (settings.by / (settings.bWidth)));
-	index -= (z * (settings.bx/ (settings.bWidth)) * (settings.by / (settings.bWidth)));
-	GLuint y = index / (settings.bx / (settings.bWidth));
-	GLuint x = index % int(settings.bx / (settings.bWidth));
-	return glm::uvec3(x, y, z);
-}
-
-
 void ExampleLayer::NeigborSearch() {
 	prefixSum->Use();
 	prefixSum->SetUInt("dataSize", settings.bThread); //data size
@@ -443,8 +383,6 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 	if (!paused) {
 		elapsedTime += 0.016;
 		
-		colorScaleBuffer->Bind();
-		colorScaleBuffer->Clear();
 		solver->Execute(2); //Calculate density
 
 		for (int i = 0; i < solver_iteration; i++) {
@@ -465,18 +403,14 @@ void ExampleLayer::OnAttach() {
 
 	InitGraphics();
 	InitPhysics();
-	SetColorGradient();
+
 	particleShader->Use();
-	particleShader->Attach(*particleBuffer, 0);
-	particleShader->Attach(*binBuffer, 1);
-	particleShader->Attach(*colorScaleBuffer, 2);
-	particleShader->Attach(*heatMap, 3);
+	particleShader->Attach(*particleBuffer);
+	particleShader->Attach(*binBuffer);
 
 	binShader->Use();
-	binShader->Attach(*particleBuffer, 0);
-	binShader->Attach(*binBuffer, 1);
-	binShader->Attach(*colorScaleBuffer, 2);
-	binShader->Attach(*heatMap, 3);
+	binShader->Attach(*particleBuffer);
+	binShader->Attach(*binBuffer);
 
 	ResetSimulation();
 }
@@ -692,8 +626,6 @@ void ExampleLayer::OnImGuiRender()
 		particleBuffer->Download();
 		binBuffer->Bind();
 		binBuffer->Download();
-		colorScaleBuffer->Bind();
-		colorScaleBuffer->Download();
 
 		/*
 		std::vector<FluidParticle> sorted;

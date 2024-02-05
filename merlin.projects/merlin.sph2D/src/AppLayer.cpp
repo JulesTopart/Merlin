@@ -81,9 +81,9 @@ void AppLayer::OnUpdate(Timestep ts){
 	
 	GPU_PROFILE(render_time,
 		renderer.Clear();
-		//renderer.RenderScene(scene, *camera);
+		renderer.RenderScene(scene, *camera);
 
-		qrenderer.Render();
+		//qrenderer.Render();
 	)
 }
 
@@ -137,7 +137,7 @@ void AppLayer::InitGraphics() {
 	renderer.AddShader(particleShader);
 	renderer.AddShader(binShader);
 
-	qrenderer.SetShader(Shader("screen", "assets/shaders/screen.space.vert", "assets/shaders/screen.space.frag"));
+	//qrenderer.SetShader(Shader("screen", "assets/shaders/screen.space.vert", "assets/shaders/screen.space.frag"));
 
 	Model_Ptr mdl = Model::Create("bbox", Primitives::CreateQuadRectangle(settings.bx, settings.by, true));
 	mdl->EnableWireFrameMode();
@@ -227,13 +227,13 @@ void AppLayer::ResetSimulation() {
 	buf.pvelocity = glm::vec2(0);
 	
 	buf.phase = FLUID; // phase
-	glm::vec2 cubeSize = glm::vec2(50, 50);
+	glm::vec2 cubeSize = glm::vec2(50, 25);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
 
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++)
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++){
-				float x = (xi * spacing) - (cubeSize.x / 2.0) - 45;
-				float y = (yi * spacing) - (cubeSize.y / 2.0);
+				float x = (xi * spacing) - (cubeSize.x / 2.0) - (50 - spacing);
+				float y = (yi * spacing) - (cubeSize.y / 2.0) - (-spacing + 40 - cubeSize.y / 2.0) ;
 				buf.id = cpu_particles.size();
 				buf.position.x = x;
 				buf.position.y = y;
@@ -318,24 +318,31 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
 	solver->SetFloat("dt", settings.timeStep / float(settings.solver_substep)); //Spawn particle after prediction
+	
+	/*
+	double mouseX, mouseY;
+	glfwGetCursorPos((GLFWwindow*)Application::Get().GetWindow().GetNativeWindow(), &mouseX, &mouseY);
+	float mouseState = (glfwGetMouseButton((GLFWwindow*)Application::Get().GetWindow().GetNativeWindow(), GLFW_MOUSE_BUTTON_LEFT) == (GLFW_PRESS));
+	solver->SetVec3("mousePos", glm::vec3(mouseX, mouseY, mouseState));
+	*/
+		
+	GPU_PROFILE(solver_substep_time,
+		for (int i = 0; i < settings.solver_substep; i++) {
+			solver->Execute(2); //Predict position
+				
+			GPU_PROFILE(nns_time,
+				NeigborSearch();
+			)
 
-	if (!paused) {
-		elapsedTime += settings.timeStep;
-
-		GPU_PROFILE(nns_time,
-			NeigborSearch();
-		)
-		GPU_PROFILE(solver_substep_time,
-			for (int i = 0; i < settings.solver_substep; i++) {
-				solver->Execute(2); //Predict position
-
-				for (int j = 0; j < settings.solver_iteration; j++) {
-					solver->Execute(3); //Solve floor collision constraint
-					solver->Execute(4); //Solve collision constraint
-				}
-				solver->Execute(5); //Solve distance constraint
-			})
-	}
+			for (int j = 0; j < settings.solver_iteration; j++) {
+				solver->Execute(3); //Solve floor collision constraint
+				solver->Execute(4); //Solve collision constraint
+			}
+			solver->Execute(5); //Solve collision constraint
+			solver->Execute(6); //Solve distance constraint
+		})
+	elapsedTime += settings.timeStep;
+	
 }
 
 void AppLayer::updateFPS(Timestep ts) {
@@ -545,7 +552,9 @@ void AppLayer::OnImGuiRender() {
 	}
 
 	if (ImGui::Button("Step Simulation")) {
-		Simulate(0.016);
+		GPU_PROFILE(solver_total_time,
+			Simulate(0.016);
+		)
 	}
 
 	if (ImGui::Button("Debug")) {

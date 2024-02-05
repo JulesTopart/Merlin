@@ -38,7 +38,7 @@ private:
 
 	Scene scene;
 	Renderer renderer;
-	ScreenQuadRenderer qrenderer;
+	//ScreenQuadRenderer qrenderer;
 
 	//Simulation
 	Shared<StagedComputeShader> solver;
@@ -75,5 +75,6 @@ private:
 	float camera_speed = 1;
 	float FPS = 0;
 	float FPS_sample = 0;
+	bool mousePressed = false;
 
 };

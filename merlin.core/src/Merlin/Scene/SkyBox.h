@@ -27,6 +27,7 @@ namespace Merlin::Graphics {
 		inline const std::string& GetShaderName() const { return m_shaderName; }
 		inline void SetShader(std::string shaderName) { m_shaderName = shaderName; }
 
+		static Shared<SkyBox>Create(std::string name);
 		static Shared<SkyBox>Create(std::string name, std::vector<std::string> paths);
 
 	private:

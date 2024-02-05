@@ -55,7 +55,7 @@ struct Settings {
 	float by = bb.y;//mm
 
 	GLuint bRes = 64; //Bed width is divided bRes times (old 42)
-	GLuint maxNNS = 256;
+	GLuint maxNNS = 64;
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	//float pDiameter = 1; //mm
@@ -69,7 +69,7 @@ struct Settings {
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 
-	GLuint bWkgSize = 64; //Number of thread per workgroup
+	GLuint bWkgSize = 512; //Number of thread per workgroup
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
 	// --- SPH ---
@@ -77,8 +77,8 @@ struct Settings {
 	float particleRadius = 0.25; // mm
 	float H = 2.9 * particleRadius; // Kernel radius mm
 	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
-	float particleMass = 0.25;//g Mass
-	float timeStep = 0.016;//s
+	float particleMass = 1.0 * particleRadius;//g Mass
+	float timeStep = 0.001;//s
 
 	int solver_substep = 30;
 	int solver_iteration = 1;

@@ -8,7 +8,9 @@ namespace Merlin::Graphics {
 	Shared<SkyBox> SkyBox::Create(std::string name, std::vector<std::string> paths) {
 		return std::make_shared<SkyBox>(name, paths);
 	}
-
+	Shared<SkyBox> SkyBox::Create(std::string name) {
+		return std::make_shared<SkyBox>(name);
+	}
 
 	SkyBox::SkyBox(std::string name) : RenderableObject(name, ObjectType::SKYBOX), m_vao(){
 		std::vector<float> skyboxVertices =
