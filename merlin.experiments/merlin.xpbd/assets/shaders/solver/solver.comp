@@ -117,6 +117,7 @@ float computeTemperature(uint i) {
 	return temperature;
 }
 
+/*
 //calculate Temperature
 float computeTemperatureDelta(uint i) {
 
@@ -137,13 +138,14 @@ float computeTemperatureDelta(uint i) {
 		temperatureDelta += lambda * w2_pse * (Tj-Ti);
 	OVERNNS_END
 
-	/*
-	if(particles[i].position.z < H/2.0){
-		temperatureDelta += kPlateau * (floorTemperature - Ti);
-	}*/
+	
+	//if(particles[i].position.z < H/2.0){
+	//	temperatureDelta += kPlateau * (floorTemperature - Ti);
+	//}
 	temperatureDelta += kAmbient*(ambientTemperature - Ti);
-	return temperatureDelta /** dt * speed*/;
-}
+	return temperatureDelta * dt * speed;
+	//return temperatureDelta;
+}*/
 
 
 void clampToBoundaries(inout vec4 position, inout vec4 velocity){
@@ -254,6 +256,73 @@ if(delta < EPSILON) particles[i].mass = particleMass;
 else particles[i].mass = (REST_DENSITY / delta);
 */
 
+float rand(float n){return 1e-2*fract(sin(n) * 43758.5453123);}
+
+vec4 solveParticleCollision(uint i) {
+    int n = 0;
+    vec4 deltaPosition = vec4(0);
+    OVERNNS
+        vec4 pi = particles[i].new_position;
+        vec4 pj = particles[j].new_position;
+        float d0 = distance(pi, pj) - 2*particleRadius;
+        float vmax = 1e-6*particleRadius/dt;
+        float l0 = 1.0 * particleRadius;
+        float l = distance(pi, pj);
+        float C = l - l0 - rand(l);
+
+        if (C >= 0 || abs(C) < 1e-6) continue;
+
+        vec4 gradC = normalize(pi - pj);
+        float inverseMass = (1.0 / particles[i].mass) + (1.0 / particles[j].mass);
+
+        float compliance = 1.0f / 100000;
+        float deltaLambda = -C / (inverseMass + (compliance / (dt * dt)));
+
+        deltaPosition += gradC * deltaLambda * particles[i].mass;
+        n++;
+    OVERNNS_END
+
+    if (n > 1) return deltaPosition / float(n);
+    else return deltaPosition;
+}
+
+
+vec4 solveFloorCollision(uint i){
+	vec4 correctedPosition = particles[i].pposition;
+	for (int i = 0; i < 3; i++){
+		if (correctedPosition[i] - particleRadius <= boundaryMin[i] ){
+			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
+		}
+		else if (correctedPosition[i] + particleRadius >= boundaryMax[i])
+		{
+			correctedPosition[i] =  boundaryMax[i] - particleRadius;
+		}
+	}
+
+	return (correctedPosition - particles[i].pposition)/10.0;
+}
+
+//calculate Temperature
+float computeTemperatureDelta(uint i) {
+
+	const float Ti = particles[i].temperature;
+	float temperatureDelta = 0.0;
+	OVERNNS
+		vec4 dij = particles[j].position - particles[i].position;
+		float Tj = particles[j].temperature;
+		float rhoj = particles[j].mass / (3.1415926*(4/3)*pow(particleRadius,3));
+
+		float lambda = 0.1*(kWater / (CpWater * rhoj));
+		temperatureDelta += lambda*(Tj-Ti)/(length(dij)*1e-3);
+	OVERNNS_END
+	//temperatureDelta /= float(n);
+	/*
+	if(particles[i].position.z < H/2.0){
+		temperatureDelta += kPlateau * (floorTemperature - Ti);
+	}*/
+	//temperatureDelta += kAmbient * (ambientTemperature - Ti);
+	return temperatureDelta;
+}
 
 void XPBDSolveSolid(uint i, uint simStep) {
 	switch(simStep){ 
@@ -274,10 +343,11 @@ void XPBDSolveSolid(uint i, uint simStep) {
 
 		case 3 :
 		//collision detection
+			particles[i].new_position = particles[i].pposition;
 		break;
 
 		//solver iteration
-		case 4 :
+		case 5 :
 			vec4 deltaPosition = vec4(0);
 
 			OVERNNS
@@ -292,7 +362,8 @@ void XPBDSolveSolid(uint i, uint simStep) {
 
 				// Calculate the effective mass matrix
 				float inverseMass = (1.0/particles[i].mass) + (1.0/particles[j].mass);
-				float compliance = 0.000002; // Compliance of the constraints
+				//float compliance = 0.0002; // Compliance of the constraints
+				float compliance = particles[i].pressure; // Compliance of the constraints
 
 				// Calculate the Lagrange multiplier delta (note : gradient dot product = 1 because normalized)
 				//float deltaLambda = -(C /*- particles[i].lambda * (compliance/(dt*dt))*/) / ( dot(gradC, gradC)* inverseMass + (compliance/(dt*dt)));
@@ -304,23 +375,29 @@ void XPBDSolveSolid(uint i, uint simStep) {
 				particles[i].lambda += deltaLambda;
 
 			OVERNNS_END
-				particles[i].new_position = particles[i].pposition + deltaPosition;
-				clampToBoundaries(particles[i].new_position, particles[i].velocity);
-
+			//particles[i].new_position += deltaPosition;
+			clampToBoundaries(particles[i].new_position, particles[i].velocity);
+			particles[i].temperature = particles[i].temperature + computeTemperatureDelta(i)*dt;
 
 		break;
 
-		case 5 :
+		case 4:
+			particles[i].new_position += solveParticleCollision(i);
+			particles[i].new_position += solveFloorCollision(i);
+		break;
 
-			particles[i].velocity = (particles[i].new_position - particles[i].position)/dt;
+		case 6 :
+		    
+			particles[i].velocity = 0.99995*(particles[i].new_position - particles[i].position)/dt;
 			particles[i].position = particles[i].new_position;
+			if(particles[i].position.z < 1) particles[i].velocity *= 0.99998;
 			//clampToBoundaries(particles[i].position, particles[i].velocity);
 		break;
 		//solver iteration end
 		//substep iteration end
 
 
-		case 6 : //Apply changes
+		case 7 : //Apply changes
 
 
 		
@@ -430,10 +507,11 @@ void main() {
 
 	if (i >= numParticles) return;
 	if (particles[i].phase == UNUSED) return;
-
+	
+	NNS(i, stage);
 	if(particles[i].phase == FLUID) PBFSolvefluid(i, stage);
 	else if(particles[i].phase == SOLID) XPBDSolveSolid(i, stage);
-	NNS(i, stage);
+	
 
 
 }

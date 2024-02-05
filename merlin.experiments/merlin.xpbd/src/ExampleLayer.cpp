@@ -81,7 +81,9 @@ void ExampleLayer::UpdateBufferSettings() {
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
+	particleBuffer->Bind();
 	particleBuffer->Resize(settings.pThread);
+	binBuffer->Bind();
 	binBuffer->Resize(settings.bThread);
 }
 
@@ -190,7 +192,7 @@ void ExampleLayer::InitPhysics() {
 	particle->SetShader(particleShader);
 	particleSystem->SetMesh(particle);
 	particleSystem->Translate(glm::vec3(0, 0, -0.5));
-	particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
+	particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
 	Console::info("Memory") << "size of FluidParticle is " << sizeof(FluidParticle) << Console::endl;
 
 	Shared<Mesh> binInstance = Primitives::CreateQuadCube(settings.bWidth, false);
@@ -209,7 +211,7 @@ void ExampleLayer::InitPhysics() {
 	particleBuffer->Allocate(settings.pThread);	
 	
 	constraintBuffer = SSBO<DistanceContraint>::Create("ContraintBuffer");
-	constraintBuffer->Allocate(32* settings.pThread);
+	//constraintBuffer->Allocate(32* settings.pThread);
 
 	binBuffer = SSBO<Bin>::Create("BinBuffer");
 	binBuffer->Allocate(settings.bThread);
@@ -268,7 +270,7 @@ void ExampleLayer::ResetSimulation() {
 	Console::info() << "Generating particles..." << Console::endl;
 
 
-	float spacing = 1.0;
+	float spacing = settings.particleRadius;
 
 	std::vector<glm::vec3> bunny = GenerateVoxelBunny(spacing);
 	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
@@ -285,6 +287,7 @@ void ExampleLayer::ResetSimulation() {
 	//buf.temperature = 298.15;//ambient
 	buf.binIndex = 0;
 	buf.newIndex = 0;
+	buf.mass = 1.0;
 
 
 	/*
@@ -306,35 +309,55 @@ void ExampleLayer::ResetSimulation() {
 			cpu_particles.push_back(buf);
 		}*/
 	
+	buf.pressure = 0.000002;
 	buf.phase = SOLID; //Rigid bunny
+	buf.temperature = 100;
 	for (auto& v : bunny) {
-		buf.position[0] = v.x;
+		buf.position[0] = v.x+15;
 		buf.position[1] = v.y;
-		buf.position[2] = v.z + 50;
+		buf.position[2] = v.z + 20;
 		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
 	}
 
-	/*
+	
 	buf.phase = SOLID; //Rigid cube
 	glm::vec3 cubeSize = glm::vec3(10, 10, 10);
 	glm::uvec3 icubeSize = glm::vec3(cubeSize.x/spacing, cubeSize.y / spacing, cubeSize.y / spacing);
-
+	buf.pressure = 0.00002;
+	buf.temperature = 200;
+	
 	for (int xi = 0; xi < cubeSize.x / spacing; xi++)
 	for (int yi = 0; yi < cubeSize.y / spacing; yi++)
 	for (int zi = 0; zi < cubeSize.z / spacing; zi++) {
 		float x = (xi*spacing) - (cubeSize.x / 2.0);
 		float y = (yi*spacing) - (cubeSize.y / 2.0);
-		float z = (zi*spacing)+ 10;
+		float z = (zi*spacing)+ 20;
 	
 		buf.position[0] = x;
 		buf.position[1] = y;
 		buf.position[2] = z;
 		buf.initial_position = buf.position;
 		cpu_particles.push_back(buf);
-	}*/
+	}
 
-	/*
+	buf.temperature = 50;
+	buf.pressure = 0.0002;
+	for (int xi = 0; xi < cubeSize.x / spacing; xi++)
+	for (int yi = 0; yi < cubeSize.y / spacing; yi++)
+	for (int zi = 0; zi < cubeSize.z / spacing; zi++) {
+		float x = (xi * spacing) - (cubeSize.x / 2.0);
+		float y = (yi * spacing) - (cubeSize.y / 2.0);
+		float z = (zi * spacing) + 5;
+
+		buf.position[0] = x;
+		buf.position[1] = y;
+		buf.position[2] = z;
+		buf.initial_position = buf.position;
+		cpu_particles.push_back(buf);
+	}
+
+	
 	buf.temperature = 400.15;//ambient
 	buf.phase = BOUNDARY; //Boundaries body
 	for (float x = -settings.bx / 2.0; x < settings.bx / 2.0; x += spacing) {
@@ -346,9 +369,10 @@ void ExampleLayer::ResetSimulation() {
 			buf.temperature = 400.0;//ambient
 			buf.position[2] = settings.bz;
 			buf.temperature = 470;//bed
-			cpu_particles.push_back(buf);
+			//cpu_particles.push_back(buf);
 		}
 	}
+	/*
 	for (float y = -settings.by / 2.0; y < settings.by / 2.0; y += spacing) {
 		for (float z = 0; z < settings.bz; z += spacing) {
 			buf.position[0] = -settings.bx / 2.0;
@@ -371,24 +395,31 @@ void ExampleLayer::ResetSimulation() {
 	}
 
 	*/
+	numParticles = cpu_particles.size();
+	settings.pThread = numParticles;
+	UpdateBufferSettings();
+
+
+
+	particleBuffer->Bind();
 	particleBuffer->Upload();
 	Console::info() << "Loaded Stanford rabbit and a sphere in particle buffer (" << cpu_particles.size() << " particles )" << Console::endl;
 
 	binBuffer->Bind();
 	binBuffer->Clear();
-	numParticles = cpu_particles.size();
+	
 	particleSystem->SetInstancesCount(numParticles);
-
-	settings.pThread = numParticles;
 
 	solver->Use();
 	solver->SetUInt("numParticles", numParticles);
+	solver->SetFloat("particleRadius", settings.particleRadius); // Kernel radius // 5mm
 	solver->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 	solver->SetFloat("particleMass", settings.particleMass); // Kernel radius // 5mm
 	solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
 
 	particleShader->Use();
 	particleShader->SetUInt("numParticles", numParticles);
+	particleShader->SetFloat("particleRadius", settings.particleRadius); // Kernel radius // 5mm
 	particleShader->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
 	particleShader->SetFloat("particleMass", settings.particleMass); // Kernel radius // 5mm
 	particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
@@ -481,12 +512,14 @@ void ExampleLayer::Simulate(Merlin::Timestep ts) {
 		for (int i = 0; i < solver_substep; i++) {
 			solver->Execute(2); //Predict position
 			//for (int k = 0; k < 1; k++)
-			solver->Execute(3); //Solve collision
-			for (int k = 0; k < solver_iteration; k++)
+			for (int k = 0; k < solver_iteration; k++) {
+				solver->Execute(3); //Solve collision
 				solver->Execute(4); //Solve constraint
-			solver->Execute(5); //Position delta
+				solver->Execute(5); //Position delta
+			}
+			if (integrate) solver->Execute(6); //Apply changes
 		}
-		if (integrate) solver->Execute(6); //Apply changes
+		
 	}
 }
 
@@ -531,7 +564,7 @@ void ExampleLayer::OnImGuiRender()
 	}
 
 
-	static bool transparency = false;
+	static bool transparency = true;
 	if (ImGui::Checkbox("Particle transparency", &transparency)) {
 		if (transparency) particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_TRANSPARENT);
 		else particleSystem->SetDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);

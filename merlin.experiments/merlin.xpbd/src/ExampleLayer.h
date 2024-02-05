@@ -23,7 +23,7 @@ struct FluidParticle {
 	GLfloat mass;				// mass				   m   (or pseudo mass for boundary particles)
 	GLfloat density;			// density			   rho
 	GLfloat temperature;		// temperature		   T
-	GLfloat temperatureDelta;	// temperature		   T
+	GLfloat pressure;	// temperature		   T
 	GLfloat lambda;				// lagrange multiplier lambda
 	GLuint phase;				// phase (liquid, solid...)
 	GLuint newIndex;			// sorted indexy
@@ -105,20 +105,20 @@ struct DistanceContraint {
 struct Settings {
 	
 	//Build Volume dimensions
-	float bx = 100;//mm 120
+	float bx = 60;//mm 120
 	float by = 35;//mm
-	float bz = 100;//mm 40
+	float bz = 60;//mm 40
 
 	GLuint maxNNS = 64;
 
 	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
 	//float pDiameter = 1; //mm
 	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
-	GLuint pThread = 64*64*64; //Max Number of particles (thread)
+	GLuint pThread = 10000000; //Max Number of particles (thread)
 	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bRes = 42; //Bed width is divided bRes times
+	GLuint bRes = 32; //Bed width is divided bRes times
 	float bWidth = max(bx, max(by, bz)) / float(bRes); //Width of a single bin in mm
 	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)) * int(bz / (bWidth)); //Total number of bin (thread)
 	GLuint blockSize = floor(log2f(bThread));
@@ -129,7 +129,7 @@ struct Settings {
 
 	// --- SPH ---
 	// SPH Parameters
-	float particleRadius = 1.2; // mm
+	float particleRadius = 0.8; // mm
 	float H = 1.7; // Kernel radius mm
 	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
 	float particleMass = 1.0;//g Mass

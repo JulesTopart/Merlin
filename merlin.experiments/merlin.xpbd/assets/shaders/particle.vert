@@ -2,6 +2,7 @@
 #include "common/uniforms.glsl"
 #include "common/constants.glsl"
 #include "common/buffers.glsl"
+#include "common/colors.comp"
 
 layout(location = 0) in vec3 _position;
 layout(location = 1) in vec3 _normal;
@@ -11,6 +12,7 @@ out vec4 screen_position;
 out vec4 normal;
 out vec4 color;
 out vec2 texCoord;
+out mat4 mv;
 
 uniform mat4 view;
 uniform mat4 projection;
@@ -86,15 +88,8 @@ vec4 stableMap(const float value) {
 }
 
 
-float rand(vec2 co){
-    return 0.00001*abs(fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453));
-}
 
-vec3 randomColor(uint index){
-	float v = float(index)/500.0;
-	vec2 co = vec2(v, v*v);
-	return vec3(0.2) + normalize(vec3(rand(co*0.8738), rand(co*0.321313), rand(0.12354*co)));
-}
+
 
 
 
@@ -118,6 +113,7 @@ void main() {
 
 	if(colorCycle == 0){ 
 		color = vec4(randomColor(particles[gl_InstanceID].binIndex), 1);
+		//color = vec4(randomColor(uint(particles[gl_InstanceID].pressure * 1000000.0)), 1);
 	}else if(colorCycle == 1) {
 		ColorScale rest;
 		rest.minValue = int(0);
@@ -125,14 +121,16 @@ void main() {
 		//color = stableMap(map(int(particles[gl_InstanceID].density), colorScale[DENSITY_FIELD] ));
 		//color = stableMap(map(int(particles[gl_InstanceID].density), rest ));
 		//color = heatMap(map(int(particles[gl_InstanceID].density), rest ));
-		color = heatMap(map(particles[gl_InstanceID].density, colorScale[DENSITY_FIELD]));
+		//color = heatMap(map(particles[gl_InstanceID].density, colorScale[DENSITY_FIELD]));
+		color = colorMap(map(particles[gl_InstanceID].lambda, 0,0.001), jet);
 	}else if(colorCycle == 2) {
 		ColorScale trest;
 		trest.minValue = int(ambientTemperature*100.0);
 		trest.maxValue = int(nozzleTemperature*100.0);
 
 		//color = heatMap(map(particles[gl_InstanceID].temperature, trest));
-		color = heatMap(map(int(particles[gl_InstanceID].temperature), colorScale[TEMPERATURE_FIELD]));
+		//color = heatMap(map(int(particles[gl_InstanceID].temperature), colorScale[TEMPERATURE_FIELD]));
+		color = colorMap(map(particles[gl_InstanceID].temperature, 25,200), inferno);
 	}else if(colorCycle == 3) {
 		color = heatMap(map(abs(particles[gl_InstanceID].lambda), colorScale[LAMBDA_FIELD]));
 	}else if(colorCycle == 4) {
@@ -173,6 +171,7 @@ void main() {
 	}
 	else{
 		screen_position = projection * view * position;
+		mv = projection * view;
 		gl_Position = screen_position;
 		gl_PointSize = 2.0*particleRadius*400.0/(gl_Position.w);
 		if(colorCycle == 5 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = 100.0/(gl_Position.w);

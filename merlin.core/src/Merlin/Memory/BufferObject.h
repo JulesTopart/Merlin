@@ -91,12 +91,12 @@ namespace Merlin::Memory{
 		float gb = m_bufferSize / 1000000000.0;
 
 		Console::info("Buffer") << "allocating " << name().c_str() << " with " << int(m_size) << " objects" << Console::endl;
-		if(gb > 0.5)		Console::info("Buffer") << "allocating " << gb << "GB of GPU Memory" << Console::endl;
-		else if(mb > 0.5)	Console::info("Buffer") << "allocating " << mb << "MB of GPU Memory" << Console::endl;
-		else if(kb > 0.5)	Console::info("Buffer") << "allocating " << kb << "kB of GPU Memory" << Console::endl;
+		if (gb > 0.5)		Console::info("Buffer") << "allocating " << gb << "GB of GPU Memory" << Console::endl;
+		else if (mb > 0.5)	Console::info("Buffer") << "allocating " << mb << "MB of GPU Memory" << Console::endl;
+		else if (kb > 0.5)	Console::info("Buffer") << "allocating " << kb << "kB of GPU Memory" << Console::endl;
 		else Console::info("Buffer") << "allocating " << GLuint(m_bufferSize) << "bytes of GPU Memory" << Console::endl;
 
-		
+
 		glBufferData(m_target, m_bufferSize, data, usage);
 		if (data == NULL) Clear(); //Initiliaze with zero
 	}
@@ -125,6 +125,7 @@ namespace Merlin::Memory{
 		Unmap();
 		return m_cpuBuffer;
 	}
+
 
 	template <class T>
 	void BufferObject<T>::Upload() {

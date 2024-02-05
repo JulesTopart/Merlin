@@ -124,6 +124,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\shaders\common\colors.comp" />
     <None Include="assets\shaders\model.frag" />
     <None Include="assets\shaders\model.vert" />
     <None Include="assets\shaders\common\uniforms.glsl" />
