@@ -89,7 +89,7 @@ void AppLayer::OnUpdate(Timestep ts){
 
 
 
-void AppLayer::ApplySettings() {
+void AppLayer::SyncUniforms() {
 
 	solver->Use();
 	solver->SetFloat("particleMass", settings.particleMass);
@@ -107,7 +107,7 @@ void AppLayer::ApplySettings() {
 void AppLayer::ApplyBufferSettings() {
 	settings.bWidth = settings.smoothingRadius; //Width of a single bin in mm
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	settings.bThread = int(settings.bx / (settings.bWidth)) * int(settings.by / (settings.bWidth)); //Total number of bin (thread)
+	settings.bThread = int(settings.bb.x / (settings.bWidth)) * int(settings.bb.y / (settings.bWidth)); //Total number of bin (thread)
 	settings.blockSize = floor(log2f(settings.bThread));
 	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
 	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
@@ -454,10 +454,10 @@ void AppLayer::OnImGuiRender() {
 		if(ImGui::SmallButton("Apply settings")) ApplySettings();
 	}
 
-	needSettingsUpdate = needSettingsUpdate || ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.1, 2.0);
-	needSettingsUpdate = needSettingsUpdate || ImGui::InputFloat("Rest density", &settings.restDensity, 0.0, 2.0);
-	needSettingsUpdate = needSettingsUpdate || ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier, 0.0, 10.0);
-	needSettingsUpdate = needSettingsUpdate || ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier, 0.0, 10.0);
+	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.1, 2.0));
+	ImGui::InputFloat("Rest density", &settings.restDensity, 0.0, 2.0);
+	ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier, 0.0, 10.0);
+	ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier, 0.0, 10.0);
 
 
 	static int colorMode = 0;

@@ -48,7 +48,7 @@ struct FluidParticle {
 };*/
 
 struct Settings {
-public : 
+ 
 	//Boundary Volume dimensions
 	glm::vec2 bb = glm::vec2(150, 80);
 
@@ -74,7 +74,7 @@ public :
 	int solver_iteration = 1;
 	float overRelaxation = 1.0;
 
-private:
+	//calulated
 	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint bWkgSize = 512; //Number of thread per workgroup
 

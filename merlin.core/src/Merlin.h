@@ -8,6 +8,7 @@
 #include "Merlin/Memory/VertexArray.h"
 #include "Merlin/Memory/FrameBuffer.h"
 #include "Merlin/Memory/RenderBuffer.h"
+#include "Merlin/Memory/Uniform.h"
 //#include "Merlin/Memory/UniformBuffer.h"
 #include "Merlin/Memory/ShaderStorageBuffer.h"
 

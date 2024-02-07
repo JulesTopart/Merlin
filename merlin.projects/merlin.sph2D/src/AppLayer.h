@@ -25,7 +25,8 @@ public:
 	void InitGraphics();
 	void InitPhysics();
 	void ResetSimulation();
-	void ApplySettings();
+
+	void SyncUniforms();
 	void ApplyBufferSettings();
 
 	void NeigborSearch();
@@ -39,6 +40,8 @@ private:
 
 	Scene scene;
 	Renderer renderer;
+	std::vector<Shared<Uniform>>
+
 	//ScreenQuadRenderer qrenderer;
 
 	//Simulation
