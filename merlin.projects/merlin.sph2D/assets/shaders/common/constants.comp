@@ -12,7 +12,7 @@
 #define GRANULAR 4
 #define BOUNDARY 5
 
-#define MAXNN 64
+#define MAXNN 128
 #define EPSILON 1e-6
 
 

@@ -39,7 +39,7 @@ uvec2 getBinCoordFromIndex(uint index) {
 }
 
 #define OVERNNS {\
-uvec2 binIndexVec = getBinCoord(particles[i].pposition);\
+uvec2 binIndexVec = getBinCoord(particles[i].position);\
 ivec2 minBound = ivec2( max( binIndexVec.x - 1, 0), max(binIndexVec.y - 1, 0));\
 ivec2 maxBound = ivec2( min( binIndexVec.x + 1, binMax.x - 1) , min(binIndexVec.y + 1, binMax.y - 1));\
 for (int y = minBound.y; y <= maxBound.y; y++) {\
@@ -53,9 +53,8 @@ for (int y = minBound.y; y <= maxBound.y; y++) {\
 
 #define OVERNNS_END }}}}
 
-
 #define OVERNNS_I {\
-uvec2 binIndexVec = getBinCoord(particles[i].pposition);\
+uvec2 binIndexVec = getBinCoord(particles[i].position);\
 ivec2 minBound = ivec2( max( binIndexVec.x - 1, 0), max(binIndexVec.y - 1, 0));\
 ivec2 maxBound = ivec2( min( binIndexVec.x + 1, binMax.x - 1) , min(binIndexVec.y + 1, binMax.y - 1));\
 for (int y = minBound.y; y <= maxBound.y; y++) {\
@@ -66,6 +65,19 @@ for (int y = minBound.y; y <= maxBound.y; y++) {\
         uint st = bins[cindex].sum - ns;\
         for (uint j = st; j < st + min(ns, MAXNN); j++) {\
             if ( j >= numParticles) continue;
+
+#define OVERNNS_POS {\
+uvec2 binIndexVec = getBinCoord(position);\
+ivec2 minBound = ivec2( max( binIndexVec.x - 1, 0), max(binIndexVec.y - 1, 0));\
+ivec2 maxBound = ivec2( min( binIndexVec.x + 1, binMax.x - 1) , min(binIndexVec.y + 1, binMax.y - 1));\
+for (int y = minBound.y; y <= maxBound.y; y++) {\
+    for (int x = minBound.x; x <= maxBound.x; x++) {\
+        uint cindex = getBinIndexFromCoord(uvec2(x, y));\
+        if (bins[cindex].count == 0) continue;\
+        uint ns = bins[cindex].count;\
+        uint st = bins[cindex].sum - ns;\
+        for (uint j = st; j < st + min(ns, MAXNN); j++) {\
+            if (j >= numParticles) continue;
 
 
 #endif// INCLUDE_BUFFERS_HLSL

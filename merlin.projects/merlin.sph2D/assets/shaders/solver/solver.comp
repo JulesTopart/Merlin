@@ -10,60 +10,51 @@
 #include "constraint.comp" 
 
 layout (local_size_x = PTHREAD) in;
+void SolveFluid(uint i, uint simStep);
+
+
 
 void SolveFluid(uint i, uint simStep) {
-	uint binIndex = getBinIndex(particles[i].pposition);
-	switch(simStep){ 
+	uint binIndex = getBinIndex(particles[i].position);
+	switch(simStep){
 		case 0 : //Bin sorting
 			particles[i].binIndex = binIndex;
 			atomicAdd(bins[binIndex].count, 1);
 			cpy_particles[i] = particles[i];
 		break;
+
 		case 1 : //Sort particle indices
-			//particles[i].binIndex = binIndex;
 			uint newID = atomicAdd(bins[binIndex].index, -1) -1;
 			particles[newID] = cpy_particles[i];
 			sortedIndices[particles[newID].id] = newID;
 		break;
-		//compute non pressure acceleration
-		case 2:
+		
+		case 2: //compute non pressure acceleration
 			particles[i].mass = particleMass;
 			vec2 acceleration = vec2(0,-g);
-			particles[i].pposition = particles[i].position + particles[i].velocity * dt + acceleration * (dt * dt);
-			//clampToDomain(particles[i].position, particles[i].pposition);
+			//particles[i].pposition = particles[i].position + particles[i].velocity * dt + acceleration * (dt * dt);
 		break;
-		//compute lagrange multiplier
-		case 3 :
-			particles[i].lambda = computeLambda(i);
+		
+		case 3 : //compute lagrange multiplier
+			particles[i].density += computeDensity(particles[i].position);
+			particles[i].nearDensity += computeNearDensity(particles[i].position);
 		break;
-		//correct density error and update position
-		case 4 :
-			particles[i].pposition += computePositionDelta(i);
-			particles[i].pposition += solveFloorCollision(i);
-			
+
+		case 4 : //correct density error and update position
+
 		break;
+
 		case 5 :
-			particles[i].velocity = 0.99998 * (particles[i].pposition - particles[i].position)/dt;
-			clampToDomain(particles[i].position, particles[i].pposition);
+			particles[i].velocity = (particles[i].pposition - particles[i].position)/dt;
 			particles[i].position = particles[i].pposition;
 		break;
-		case 6:
-			vec2 viscosityCorrection = vec2(0);
-			OVERNNS
-				if(particles[j].phase != FLUID || distance( particles[i].pposition, particles[j].pposition) > H) continue;
-				vec2 dist = particles[i].position - particles[j].position;
-				vec2 Vij = particles[j].velocity - particles[i].velocity;
-				viscosityCorrection -= Vij * viscosityKernel(dist);
-			OVERNNS_END
-			particles[i].velocity -= alphaVisco * viscosityCorrection;
 
-			//particles[i].velocity = max(min(particles[i].velocity, vec2(5,5)),vec2(-5,-5));
+		case 6:
 
 		break;
-		//End iteration
+
 		
 	}
-
 }
 
 
@@ -75,3 +66,81 @@ void main() {
 	if (i >= numParticles) return;
 	SolveFluid(i, stage);
 }
+
+
+
+
+
+/*
+void SolveFluid(uint i, uint simStep) {
+	uint binIndex = getBinIndex(particles[i].position);
+	switch(simStep){ 
+		case 0 : //Bin sorting
+			
+			particles[i].binIndex = binIndex;
+			atomicAdd(bins[binIndex].count, 1);
+			cpy_particles[i] = particles[i];
+		break;
+
+		case 1 : //Sort particle indices
+			uint newID = atomicAdd(bins[binIndex].index, -1) -1;
+			particles[newID] = cpy_particles[i];
+			sortedIndices[particles[newID].id] = newID;
+		break;
+		
+		case 2: //compute non pressure acceleration
+			particles[i].mass = particleMass;
+			vec2 acceleration = vec2(0,-g);
+			particles[i].pposition = particles[i].position + particles[i].velocity * dt + acceleration * (dt * dt);
+
+			//clampToDomain(particles[i].position, particles[i].pposition);
+			for(int i = 0; i < 3; i++){
+				particles[i].pposition[i] = max(particles[i].pposition[i], boundaryMin[i]); 
+				particles[i].pposition[i] = min(particles[i].pposition[i], boundaryMax[i]); 
+			}
+		break;
+		
+		case 3 : //compute lagrange multiplier
+			particles[i].lambda = computeLambda(i);
+
+
+
+		break;
+
+		case 4 : //correct density error and update position
+
+			particles[i].pposition += solveFloorCollision(i);
+			particles[i].pposition += computePositionDelta(i);
+			//particles[i].pposition += solveFloorCollision(i);
+		
+			for(int i = 0; i < 3; i++){
+				particles[i].pposition[i] = max(particles[i].pposition[i], boundaryMin[i]); 
+				particles[i].pposition[i] = min(particles[i].pposition[i], boundaryMax[i]); 
+			}
+			
+		break;
+
+		case 5 :
+			particles[i].velocity = 0.9998 * (particles[i].pposition - particles[i].position)/dt;
+			particles[i].position = particles[i].pposition;
+		break;
+		case 6:
+		
+			vec2 viscosityCorrection = vec2(0);
+			OVERNNS
+				if(particles[j].phase != FLUID || distance( particles[i].pposition, particles[j].pposition) > H) continue;
+				vec2 dist = particles[i].position - particles[j].position;
+				vec2 Vij = particles[j].velocity - particles[i].velocity;
+				viscosityCorrection -= Vij * viscosityKernel(dist);
+			OVERNNS_END
+			//particles[i].velocity -= alphaVisco * viscosityCorrection;
+
+			//particles[i].velocity = max(min(particles[i].velocity, vec2(5,5)),vec2(-5,-5));
+
+		break;
+
+		
+	}
+
+}*/
+

@@ -39,11 +39,18 @@ float poly6(vec2 r);
 vec2 poly6_grad(vec2 r);
 float poly6_lapl(vec2 r);
 float spiky(vec2 r);
+float spiky(float r);
 vec2 spiky_grad(vec2 r);
 float Wvisc(vec2 r_v);
 vec2 Wvisc_grad(vec2 r_v);
 float Wvisc_lapl(vec2 r_v);
 
+float nearDensityKernel(float r){
+	return spiky(r);
+}
+float nearDensityKernel(vec2 r){
+	return spiky(r);
+}
 float densityKernel(float r){
 	return poly6(r);
 }
@@ -111,6 +118,9 @@ float spiky(vec2 r) {
 	if (r2 < EPSILON || r2 > H2 || H9 < EPSILON) return 0.0;
 	float B = H2 - r2;
 	return KERNEL_SPIKY_COEFFICIENT * (B * B * B);
+}
+float spiky(float r){
+	return poly6(r);
 }
 
 //Computed the poly6 gradient smoothing kernel

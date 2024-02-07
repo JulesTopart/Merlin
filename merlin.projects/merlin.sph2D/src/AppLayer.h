@@ -25,7 +25,8 @@ public:
 	void InitGraphics();
 	void InitPhysics();
 	void ResetSimulation();
-	void UpdateBufferSettings();
+	void ApplySettings();
+	void ApplyBufferSettings();
 
 	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);
@@ -67,6 +68,9 @@ private:
 	double solver_total_time = 0;
 	double render_time = 0; double render_start_time = 0;
 	double total_time = 0; double total_start_time = 0;
+
+	bool needBufferSettingsUpdate = false;
+	bool needSettingsUpdate = false;
 
 	float elapsedTime = 0;
 	bool paused = true;

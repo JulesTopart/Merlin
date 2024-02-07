@@ -89,9 +89,24 @@ void AppLayer::OnUpdate(Timestep ts){
 
 
 
-void AppLayer::UpdateBufferSettings() {
+void AppLayer::ApplySettings() {
+
+	solver->Use();
+	solver->SetFloat("particleMass", settings.particleMass);
+	solver->SetFloat("stiffness", settings.stiffness); // Kernel radius // 5mm
+	solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier); // Kernel radius // 5mm
+	solver->SetFloat("pressureMultiplier", pressureM); // Kernel radius // 5mm
+	solver->SetFloat("restDensity", settings.restDensity); // Kernel radius // 5mm
+
+	particleShader->Use();
+	particleShader->SetFloat("restDensity", settings.restDensity); // Kernel radius // 5mm
+}
+
+
+
+void AppLayer::ApplyBufferSettings() {
+	settings.bWidth = settings.smoothingRadius; //Width of a single bin in mm
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	settings.bWidth = std::max(settings.bx, settings.by) / float(settings.bRes); //Width of a single bin in mm
 	settings.bThread = int(settings.bx / (settings.bWidth)) * int(settings.by / (settings.bWidth)); //Total number of bin (thread)
 	settings.blockSize = floor(log2f(settings.bThread));
 	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
@@ -111,8 +126,16 @@ void AppLayer::UpdateBufferSettings() {
 
 	binBuffer->Bind();
 	binBuffer->Resize(settings.bThread);
-}
 
+
+	solver->Use();
+	solver->SetFloat("particleRadius", settings.particleRadius);
+	solver->SetFloat("smoothingRadius", settings.smoothingRadius); // Kernel radius // 5mm
+
+	particleShader->Use();
+	particleShader->SetFloat("particleRadius", settings.particleRadius); // Kernel radius // 5mm
+	particleShader->SetFloat("smoothingRadius", settings.smoothingRadius); // Kernel radius // 5mm
+}
 void AppLayer::InitGraphics() {
 	// Init OpenGL stuff
 	renderer.Initialize();
@@ -245,7 +268,7 @@ void AppLayer::ResetSimulation() {
 	numParticles = cpu_particles.size();
 	particleSystem->SetInstancesCount(settings.pThread);
 	settings.pThread = numParticles;
-	UpdateBufferSettings();
+	ApplySettings();
 
 	particleBuffer->Bind();
 	particleBuffer->Clear();
@@ -259,24 +282,6 @@ void AppLayer::ResetSimulation() {
 	sortedIndexBuffer->Bind();
 	sortedIndexBuffer->Upload();
 
-
-	particleShader->Use();
-	particleShader->SetUInt("numParticles", numParticles);
-	particleShader->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
-	particleShader->SetFloat("particleRadius", settings.particleRadius); // visual radius // 5mm
-	particleShader->SetFloat("particleMass", settings.particleMass); // Kernel radius // 5mm
-	particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
-
-	solver->Use();
-	solver->SetUInt("numParticles", numParticles);
-	solver->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
-	solver->SetFloat("particleRadius", settings.particleRadius); // visual radius // 5mm
-	solver->SetFloat("particleMass", settings.particleMass); // Kernel radius // 5mm
-	solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
-
-	//solver->SetInt("stabilizationPass", true);
-	//Simulate(0.016);
-	//solver->SetInt("stabilizationPass", false);
 }
 
 
@@ -324,22 +329,26 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	glfwGetCursorPos((GLFWwindow*)Application::Get().GetWindow().GetNativeWindow(), &mouseX, &mouseY);
 	float mouseState = (glfwGetMouseButton((GLFWwindow*)Application::Get().GetWindow().GetNativeWindow(), GLFW_MOUSE_BUTTON_LEFT) == (GLFW_PRESS));
 	solver->SetVec3("mousePos", glm::vec3(mouseX, mouseY, mouseState));
-	*/
+	*/			
+	
+	GPU_PROFILE(nns_time,
+		NeigborSearch();
+	)
 		
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
+			
 			solver->Execute(2); //Predict position
-				
-			GPU_PROFILE(nns_time,
-				NeigborSearch();
-			)
 
 			for (int j = 0; j < settings.solver_iteration; j++) {
 				solver->Execute(3); //Solve floor collision constraint
 				solver->Execute(4); //Solve collision constraint
 			}
-			solver->Execute(5); //Solve collision constraint
-			solver->Execute(6); //Solve distance constraint
+
+			if (integrate) {
+				solver->Execute(5);
+				solver->Execute(6);
+			}
 		})
 	elapsedTime += settings.timeStep;
 	
@@ -431,59 +440,25 @@ void AppLayer::OnImGuiRender() {
 	*/
 
 	ImGui::DragInt("Solver substep", &settings.solver_substep, 1, 1, 200);
-	ImGui::DragInt("Solver iteratino", &settings.solver_iteration, 1, 1, 200);
+	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 200);
 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->SetPosition(model_matrix_translation);
 	}
 
-	if (ImGui::SliderFloat("Simulation speed", &sim_speed, 0.0, 5.0f)) {
-		solver->Use();
-		solver->SetFloat("speed", sim_speed);
+	needSettingsUpdate = needSettingsUpdate || ImGui::InputFloat("Time step", &sim_speed, 0.0, 5.0f);
+	needSettingsUpdate = needSettingsUpdate || ImGui::InputFloat("particle radius", &settings.particleRadius, 0.0, 5.0);
+	needBufferSettingsUpdate = needBufferSettingsUpdate || ImGui::InputFloat("Smoothing radius", &settings.smoothingRadius, 0.0, 5.0);
+
+	if (needBufferSettingsUpdate){
+		if(ImGui::SmallButton("Apply settings")) ApplySettings();
 	}
 
-	if (ImGui::SliderFloat("Smoothing radius", &settings.H, 0.3, 1.2 * settings.bWidth)) {
-		solver->Use();
-		solver->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
-		particleShader->Use();
-		particleShader->SetFloat("smoothingRadius", settings.H); // Kernel radius // 5mm
-	}
-	if (ImGui::SliderFloat("particle radius", &settings.particleRadius, 0.0, 2.0)) {
-		solver->Use();
-		solver->SetFloat("particleRadius", settings.particleRadius);
-		particleShader->Use();
-		particleShader->SetFloat("particleRadius", settings.particleRadius); // Kernel radius // 5mm
-	}
+	needSettingsUpdate = needSettingsUpdate || ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.1, 2.0);
+	needSettingsUpdate = needSettingsUpdate || ImGui::InputFloat("Rest density", &settings.restDensity, 0.0, 2.0);
+	needSettingsUpdate = needSettingsUpdate || ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier, 0.0, 10.0);
+	needSettingsUpdate = needSettingsUpdate || ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier, 0.0, 10.0);
 
-	if (ImGui::SliderFloat("Rest density", &settings.REST_DENSITY, 0.0, 2.0)) {
-		solver->Use();
-		solver->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
-		particleShader->Use();
-		particleShader->SetFloat("REST_DENSITY", settings.REST_DENSITY); // Kernel radius // 5mm
-	}
-
-	static float pressureM = 0.5;
-	if (ImGui::SliderFloat("Pressure multiplier", &pressureM, 0.0, 10.0)) {
-		solver->Use();
-		solver->SetFloat("pressureMultiplier", pressureM * 0.01); // Kernel radius // 5mm
-	}
-
-	static float stiffness = 5000;
-	if (ImGui::SliderFloat("stiffness", &stiffness, 0.0, 2000000)) {
-		solver->Use();
-		solver->SetFloat("stiffness", stiffness); // Kernel radius // 5mm
-	}
-
-	static float visco = 0.5;
-	if (ImGui::SliderFloat("Viscosity", &visco, 0.0, 10.0)) {
-		solver->Use();
-		solver->SetFloat("alphaVisco", visco * 0.1); // Kernel radius // 5mm
-	}
-
-	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass, 0.1, 2.0)) {
-		solver->Use();
-		solver->SetFloat("particleMass", settings.particleMass);
-	}
 
 	static int colorMode = 0;
 	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Velocity", "Mass", "Neighbors" };

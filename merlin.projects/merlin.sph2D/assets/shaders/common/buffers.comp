@@ -11,7 +11,7 @@ struct Particle{
 	vec2 pvelocity;
 	float mass;
 	float density;
-	float lambda;
+	float nearDensity;
 	uint phase;
 	uint binIndex;
 	uint id;

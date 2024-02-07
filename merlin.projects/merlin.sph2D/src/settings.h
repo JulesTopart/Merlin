@@ -48,38 +48,42 @@ struct FluidParticle {
 };*/
 
 struct Settings {
-
-	//Build Volume dimensions
+public : 
+	//Boundary Volume dimensions
 	glm::vec2 bb = glm::vec2(150, 80);
-	float bx = bb.x;//mm 120
-	float by = bb.y;//mm
 
-	GLuint bRes = 64; //Bed width is divided bRes times (old 42)
-	GLuint maxNNS = 64;
+	// Physics Parameters
+	float timeStep = 0.0001;//s
+	float particleRadius = 0.25; // mm
+	float particleMass = 1.0 * particleRadius;//g Mass
 
-	//ex : volume = (100,40,40) & nozzle = 0.8 -> 312.500 particles; nozzle = 0.4 -> 2.500.000 particles)
-	//float pDiameter = 1; //mm
-	//GLuint pThread = int(bx / (pDiameter)) * int(by / (pDiameter)) * int(bz / (pDiameter)); //Max Number of particles (thread)
+	float smoothingRadius = 2.4 * particleRadius; // SPH Kernel radius mm
+	float restDensity = 1.0; // Rest density g/mm3
+
+	float artificialViscosityMultiplier = 0.0;
+	float artificialPressureMultiplier = 0.0;
+
+	//Elastic solids
+	float stiffness = 0.0;
+
+	//GPU Threading settings
 	GLuint pThread = 1000000; //Max Number of particles (thread) (10 milion)
-	GLuint pWkgSize = 512; //Number of thread per workgroup
-	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	float bWidth = std::max(bx, by) / float(bRes); //Width of a single bin in mm
-	GLuint bThread = int(bx / (bWidth)) * int(by / (bWidth)); //Total number of bin (thread)
+	//Solver settings
+	int solver_substep = 15;
+	int solver_iteration = 1;
+	float overRelaxation = 1.0;
+
+private:
+	GLuint pWkgSize = 512; //Number of thread per workgroup
+	GLuint bWkgSize = 512; //Number of thread per workgroup
+
+	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
+	float bWidth = smoothingRadius; //Width of a single bin in mm
+	GLuint bThread = int(bb.x / (bWidth)) * int(bb.y / (bWidth)); //Total number of bin (thread)
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
-
-	GLuint bWkgSize = 512; //Number of thread per workgroup
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
-	// --- SPH ---
-	// SPH Parameters
-	float particleRadius = 0.25; // mm
-	float H = 2.9 * particleRadius; // Kernel radius mm
-	float REST_DENSITY = 1.0; // g/mm3 Metled plastic
-	float particleMass = 1.0 * particleRadius;//g Mass
-	float timeStep = 0.001;//s
 
-	int solver_substep = 30;
-	int solver_iteration = 1;
 };

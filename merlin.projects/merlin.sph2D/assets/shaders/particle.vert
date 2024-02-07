@@ -49,7 +49,7 @@ void main() {
 	}else if(colorCycle == 1){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 2){ 
-		color = colorMap(map(particles[gl_InstanceID].density,0.8 * REST_DENSITY, 1.2 * REST_DENSITY), warmcool);
+		color = colorMap(map(particles[gl_InstanceID].density,0.9 * REST_DENSITY, 1.1 * REST_DENSITY), warmcool);
 	}else if(colorCycle == 3){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 4){ 
