@@ -24,7 +24,7 @@ namespace Merlin::Memory {
 	using SSBO_Ptr = Shared<ShaderStorageBuffer<T>>;//Shorter alias
 
 	
-
+	//todo pointers
 	//Implementation
 	template <class T>
 	void ShaderStorageBuffer<T>::copy(Shared<ShaderStorageBuffer> origin, Shared<ShaderStorageBuffer> target, GLsizeiptr size) {

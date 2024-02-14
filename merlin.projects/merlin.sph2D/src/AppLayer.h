@@ -1,5 +1,4 @@
 #pragma once
-#include <Merlin.h>
 #include "settings.h"
 
 using namespace Merlin::Graphics;
@@ -40,13 +39,12 @@ private:
 
 	Scene scene;
 	Renderer renderer;
-	std::vector<Shared<Uniform>>
 
 	//ScreenQuadRenderer qrenderer;
 
 	//Simulation
-	Shared<StagedComputeShader> solver;
-	Shared<StagedComputeShader> prefixSum;
+	StagedComputeShader_Ptr solver;
+	StagedComputeShader_Ptr prefixSum;
 
 	SSBO_Ptr<Bin> binBuffer; //Particle buffer
 	SSBO_Ptr<Particle> particleBuffer; //Particle buffer
