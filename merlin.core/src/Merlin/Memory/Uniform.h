@@ -7,11 +7,7 @@ namespace Merlin::Memory {
 	template <class T>
 	class Uniform {
 	public:
-		Uniform(const std::string& name, T initValue) : m_name(name), m_data(initValue), m_dataCopy(initValue){}
-
-		inline bool HasChanged() {
-			return m_dataCopy != m_data;
-		}
+		Uniform(const std::string& name, T initValue) : m_name(name), m_data(initValue){}
 
 		inline T& value() {
 			return m_data;
@@ -20,8 +16,7 @@ namespace Merlin::Memory {
 		void Sync(ShaderBase& shader);
 
 	private:
-		bool needRefresh = true;
-		T m_data, m_dataCopy;
+		T m_data;
 		std::string m_name;
 	};
 

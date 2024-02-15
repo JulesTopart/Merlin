@@ -2,11 +2,8 @@
 #ifndef INCLUDE_UNIFORMS_GLSL
 #define INCLUDE_UNIFORMS_GLSL
 
-uniform float particleRadius = 1.0;//mm
-uniform float smoothingRadius = 1.3; //mm
 uniform float restDensity = 1.0;//g/mm3
 uniform float particleMass = 1.0;//g
-uniform float bWidth = 1.0;//Bin witdh
 
 uniform float dt = 0.005;//s
 uniform float g = 9.81f*1000.0;//mm/s^-2

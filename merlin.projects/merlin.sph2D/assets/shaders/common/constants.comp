@@ -22,9 +22,10 @@ const vec2 halfdomain = domain/2.0;
 const vec2 boundaryMin = vec2(-domain.x / 2.0, -domain.y / 2.0);
 const vec2 boundaryMax = vec2( domain.x / 2.0,  domain.y / 2.0);
 
-#define binSize (bWidth)
-#define binMax (uvec2(domain / binSize))
-#define binCount (binMax.x * binMax.y)
 
-
+const float particleRadius = 0.25;//mm
+const float smoothingRadius = 4.0 * particleRadius; //mm
+const float binSize = smoothingRadius;
+const uvec2 binMax = uvec2(domain / binSize);
+const uint binCount = binMax.x * binMax.y;
 #endif

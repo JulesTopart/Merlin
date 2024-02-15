@@ -95,37 +95,20 @@ void AppLayer::SyncUniforms() {
 
 	settings.timestep.Sync(*solver);
 	settings.particleMass.Sync(*solver);
-	settings.smoothingRadius.Sync(*solver);
 	settings.restDensity.Sync(*solver);
 	settings.artificialViscosityMultiplier.Sync(*solver);
 	settings.artificialPressureMultiplier.Sync(*solver);
-	settings.bWidth.Sync(*solver);
 
 	particleShader->Use();
+	particleShader->SetUInt("numParticles",numParticles);
 	settings.restDensity.Sync(*particleShader);
-	settings.bWidth.Sync(*particleShader);
-
-	binShader->Use();
-	settings.bWidth.Sync(*binShader);
-
-	prefixSum->Use();
-	settings.bWidth.Sync(*prefixSum);
 }
 
 
 
 void AppLayer::ApplyBufferSettings() {
-	needBufferSettingsUpdate = false;
-	settings.bWidth.value() = settings.smoothingRadius.value(); //Width of a single bin in mm
-
-	Shared<Mesh> binInstance = Primitives::CreateQuadRectangle(settings.bWidth.value(), settings.bWidth.value(), true);
-	binInstance->Rename("bin");
-	binInstance->SetShader(binShader);
-	binSystem->SetMesh(binInstance);
-
 
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	settings.bThread = int(settings.bb.x / (settings.bWidth.value())) * int(settings.bb.y / (settings.bWidth.value())); //Total number of bin (thread)
 	settings.blockSize = floor(log2f(settings.bThread));
 	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
 	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
@@ -144,6 +127,9 @@ void AppLayer::ApplyBufferSettings() {
 
 	binBuffer->Bind();
 	binBuffer->Resize(settings.bThread);
+
+	particleSystem->SetInstancesCount(settings.pThread);
+	binSystem->SetInstancesCount(settings.bThread);
 	
 }
 
@@ -194,7 +180,7 @@ void AppLayer::InitPhysics() {
 	particleSystem->SetMesh(particle);
 	particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
 
-	Shared<Mesh> binInstance = Primitives::CreateQuadRectangle(settings.bWidth.value(), settings.bWidth.value(), true);
+	Shared<Mesh> binInstance = Primitives::CreateQuadRectangle(settings.bWidth, settings.bWidth, true);
 	binInstance->Rename("bin");
 	binInstance->SetShader(binShader);
 	binSystem = deprecated_ParticleSystem::Create("BinSystem", settings.bThread);
@@ -250,14 +236,14 @@ void AppLayer::ResetSimulation() {
 	
 	Console::info() << "Generating particles..." << Console::endl;
 
-	float spacing = settings.particleRadius.value() * 2.0;
+	float spacing = settings.particleRadius * 2.0;
 	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
 
 	Particle buf;
 	buf.mass = settings.particleMass.value();//inverse mass
 	buf.density = 1.0; // phase
 	buf.velocity = glm::vec2(0);
-	buf.pvelocity = glm::vec2(0);
+	buf.accel = glm::vec2(0);
 	
 	buf.phase = FLUID; // phase
 	glm::vec2 cubeSize = glm::vec2(50, 25);
@@ -278,16 +264,16 @@ void AppLayer::ResetSimulation() {
 	numParticles = cpu_particles.size();
 	particleSystem->SetInstancesCount(settings.pThread);
 	settings.pThread = numParticles;
+
 	SyncUniforms();
 	ApplyBufferSettings();
 
 	particleBuffer->Bind();
-	particleBuffer->Clear();
 	particleBuffer->Upload();
-	
+
 	binBuffer->Bind();
 	binBuffer->Clear();
-	
+
 	auto& cpu_sortedIndexBuffer = sortedIndexBuffer->GetDeviceBuffer();
 	for (int i = 0; i < settings.pThread; i++) cpu_sortedIndexBuffer[i] = i;
 	sortedIndexBuffer->Bind();
@@ -341,26 +327,25 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	float mouseState = (glfwGetMouseButton((GLFWwindow*)Application::Get().GetWindow().GetNativeWindow(), GLFW_MOUSE_BUTTON_LEFT) == (GLFW_PRESS));
 	solver->SetVec3("mousePos", glm::vec3(mouseX, mouseY, mouseState));
 	*/			
-	
-	GPU_PROFILE(nns_time,
-		NeigborSearch();
-	)
+	for (int i = 0; i < settings.solver_substep; i++) {
+		GPU_PROFILE(nns_time,
+			NeigborSearch();
+		)
 		
-	GPU_PROFILE(solver_substep_time,
-		for (int i = 0; i < settings.solver_substep; i++) {
-			
-			solver->Execute(2); //Predict position
-
-			for (int j = 0; j < settings.solver_iteration; j++) {
-				solver->Execute(3); //Solve floor collision constraint
-				solver->Execute(4); //Solve collision constraint
-			}
-
+		GPU_PROFILE(solver_substep_time,
+			solver->Execute(2);
 			if (integrate) {
+
+				for (int j = 0; j < settings.solver_iteration; j++) {
+					solver->Execute(3);
+					solver->Execute(4);
+				}
 				solver->Execute(5);
-				solver->Execute(6);
+				//solver->Execute(6);
+
 			}
-		})
+		)
+	}
 	elapsedTime += settings.timestep.value();
 	
 }
@@ -457,23 +442,31 @@ void AppLayer::OnImGuiRender() {
 		camera->SetPosition(model_matrix_translation);
 	}
 
-	needSettingsUpdate = needSettingsUpdate || ImGui::InputFloat("Time step", &sim_speed, 0.0, 5.0f);
-	needSettingsUpdate = needSettingsUpdate || ImGui::InputFloat("particle radius", &settings.particleRadius.value(), 0.0, 5.0);
-	needBufferSettingsUpdate = needBufferSettingsUpdate || ImGui::InputFloat("Smoothing radius", &settings.smoothingRadius.value(), 0.0, 5.0);
-
-	if (needBufferSettingsUpdate){
-		if(ImGui::SmallButton("Apply settings")) ApplyBufferSettings();
+	if (ImGui::InputFloat("Time step", &settings.timestep.value(), 0.0, 0.02f)) {
+		solver->Use();
+		solver->SetFloat("dt", settings.timestep.value());
 	}
 
-	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.1, 2.0));
-	ImGui::InputFloat("Rest density", &settings.restDensity.value(), 0.0, 2.0);
-	ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier.value(), 0.0, 10.0);
-	ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 10.0);
 
-	if (needSettingsUpdate) {
-		if (ImGui::SmallButton("Apply settings")) SyncUniforms();
+
+	if(ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.1, 2.0)){
+		solver->Use();
+		settings.particleMass.Sync(*solver);
 	}
-
+	if (ImGui::SliderFloat("Rest density", &settings.restDensity.value(), 0.0, 2.0)){
+		solver->Use();
+		settings.restDensity.Sync(*solver);
+		particleShader->Use();
+		settings.restDensity.Sync(*particleShader);
+	}
+	if (ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier.value(), 0.0, 10.0)){
+		solver->Use();
+		solver->SetFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
+	}
+	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 10.0)){
+		solver->Use();
+		solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.001);
+	}
 
 	static int colorMode = 0;
 	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Velocity", "Mass", "Neighbors" };
@@ -502,10 +495,10 @@ void AppLayer::OnImGuiRender() {
 
 		if (ImGui::SmallButton("X+")) { binTest++; changed = true; }
 		if (ImGui::SmallButton("X-")) { binTest--; changed = true; }
-		if (ImGui::SmallButton("Y+")) { binTest += (settings.bb.x / settings.bWidth.value()); changed = true; }
-		if (ImGui::SmallButton("Y-")) { binTest -= (settings.bb.x / settings.bWidth.value()); changed = true; }
-		if (ImGui::SmallButton("Z+")) { binTest += int(settings.bb.y / settings.bWidth.value()) * int(settings.bb.x / settings.bWidth.value()); changed = true; }
-		if (ImGui::SmallButton("Z-")) { binTest -= int(settings.bb.y / settings.bWidth.value()) * int(settings.bb.x / settings.bWidth.value()); changed = true; }
+		if (ImGui::SmallButton("Y+")) { binTest += (settings.bb.x / settings.bWidth); changed = true; }
+		if (ImGui::SmallButton("Y-")) { binTest -= (settings.bb.x / settings.bWidth); changed = true; }
+		if (ImGui::SmallButton("Z+")) { binTest += int(settings.bb.y / settings.bWidth) * int(settings.bb.x / settings.bWidth); changed = true; }
+		if (ImGui::SmallButton("Z-")) { binTest -= int(settings.bb.y / settings.bWidth) * int(settings.bb.x / settings.bWidth); changed = true; }
 
 		if (changed) {
 			binShader->Use();

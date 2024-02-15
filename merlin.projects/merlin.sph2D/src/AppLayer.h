@@ -70,9 +70,6 @@ private:
 	double render_time = 0; double render_start_time = 0;
 	double total_time = 0; double total_start_time = 0;
 
-	bool needBufferSettingsUpdate = false;
-	bool needSettingsUpdate = false;
-
 	float elapsedTime = 0;
 	bool paused = true;
 	bool integrate = true;

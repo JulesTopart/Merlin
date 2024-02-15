@@ -8,14 +8,15 @@ struct Particle{
 	vec2 position;
 	vec2 pposition;
 	vec2 velocity;
-	vec2 pvelocity;
+	vec2 accel;
 	float mass;
 	float density;
 	float nearDensity;
+	float lambda;
 	uint phase;
 	uint binIndex;
 	uint id;
-	float[2] padding;
+	float padding;
 };
 
 

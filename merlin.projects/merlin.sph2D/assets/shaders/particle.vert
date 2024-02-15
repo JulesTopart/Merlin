@@ -26,12 +26,6 @@ uniform vec2 WindowSize;
 uniform float zoomLevel = 20;
 
 void main() {
-	if (gl_InstanceID >= numParticles){
-		gl_PointSize = 0;
-		gl_Position =  projection * view * vec4(0,0,0,1);
-		return;
-	}
-
 	vec2 offset = particles[gl_InstanceID].position;
 	position = model * (vec4(_position + vec3(offset,0),1));
 
@@ -43,7 +37,7 @@ void main() {
 	uint binindex = particles[gl_InstanceID].binIndex;//getBinIndex(particles[sortedID].position);
 
 	bool test = false;//particles[sortedID].phase == UNUSED || (particles[sortedID].phase == BOUNDARY && showBoundary == 0);
-
+	color = vec4(1);
 	if(colorCycle == 0){ 
 		color = vec4(vec3(0.8), 1.0);
 	}else if(colorCycle == 1){ 
@@ -97,7 +91,7 @@ void main() {
 		mv = projection * view;
 		
 		gl_Position = screen_position;
-		gl_PointSize = particleRadius * WindowSize.y * 0.72 / zoomLevel;
+		gl_PointSize = particleRadius * WindowSize.y * 1.0 / zoomLevel;
 		if(colorCycle == 6 && !hTest && !(gl_InstanceID == testsortedID)) gl_PointSize = particleRadius * WindowSize.y * 0.3 / zoomLevel;
 		
 	}

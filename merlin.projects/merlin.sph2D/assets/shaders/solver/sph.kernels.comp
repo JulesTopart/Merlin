@@ -80,6 +80,57 @@ vec2 viscosityGradientKernel(vec2 r){
 
 
 
+float cubicKernel2D(float r) {
+  float result = 0;
+  float q = r / H;
+  if (q <= 1.0){
+    float q2 = q*q;
+    float q3 = q2*q;
+    if (q <= 0.5)
+      result = KERNEL_K * (6.0*q3 - 6.0*q2 + 1.0);
+    else
+      result = KERNEL_K * (2.0*pow(1.0 - q, 3));
+  }
+  return result;
+}
+
+float cubicKernel2D(vec2 r) {
+  return cubicKernel2D(length(r));
+}
+
+ 
+// Gradient of cubic spline kernel 2D 
+vec2 cubicKernel2D_Gradient(vec2 r){
+  vec2 result = vec2(0,0);
+  float rl = length(r);
+  float q = rl / H;
+  if (q <= 1.0){
+    if (rl > 1.0e-6){
+      vec2 gradq = r * (1.0 / (rl*H));
+      if (q <= 0.5){
+        result = gradq * (KERNEL_L*q*(3.0*q - 2.0)) ;
+      }
+      else {
+        float factor = (1.0 - q) * (1.0 - q);
+        result = gradq * (-KERNEL_L*factor) ;
+      }
+    }
+  }
+  return result;
+}
+
+
+vec2 spikyGradient(vec2 r) {
+  vec2 result = vec2(0,0);
+  float rl = length(r);
+  float q = rl / H;
+  if (q < 1.0 && rl > 1.0e-6) {
+    float coeff = -SPIKY_KERNEL_CONST * (H - rl);
+    result = r * (coeff / rl);
+  }
+  return result;
+}
+
 
 
 // --- POLY6 KERNEL ---
@@ -169,59 +220,5 @@ float Wvisc_lapl(vec4 r_v) {
 
 
 
-/*
-float cubicKernel2D(float r) {
-  float result = 0;
-  float q = r / H;
-  if (q <= 1.0){
-    float q2 = q*q;
-    float q3 = q2*q;
-    if (q <= 0.5)
-      result = KERNEL_K * (6.0*q3 - 6.0*q2 + 1.0);
-    else
-      result = KERNEL_K * (2.0*pow(1.0 - q, 3));
-  }
-  return result;
-}
-*/
-
-
-/*
-float cubicKernel2D(vec2 r) {
-  return cubicKernel2D(length(r));
-}
-
- 
-// Gradient of cubic spline kernel 2D 
-vec2 cubicKernel2D_Gradient(vec2 r){
-  vec2 result = vec2(0,0);
-  float rl = length(r);
-  float q = rl / H;
-  if (q <= 1.0){
-    if (rl > 1.0e-6){
-      vec2 gradq = r * (1.0 / (rl*H));
-      if (q <= 0.5){
-        result = gradq * (KERNEL_L*q*(3.0*q - 2.0)) ;
-      }
-      else {
-        float factor = (1.0 - q) * (1.0 - q);
-        result = gradq * (-KERNEL_L*factor) ;
-      }
-    }
-  }
-  return result;
-}
-
-
-vec2 spikyGradient(vec2 r) {
-  vec2 result = vec2(0,0);
-  float rl = length(r);
-  float q = rl / H;
-  if (q < 1.0 && rl > 1.0e-6) {
-    float coeff = -SPIKY_KERNEL_CONST * (H - rl);
-    result = r * (coeff / rl);
-  }
-  return result;
-}*/
 
 #endif
