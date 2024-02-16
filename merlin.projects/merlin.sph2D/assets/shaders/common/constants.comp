@@ -12,8 +12,9 @@
 #define GRANULAR 4
 #define BOUNDARY 5
 
-#define MAXNN 128
+#define MAXNN 64
 #define EPSILON 1e-6
+#define MAX_DELTA_PI 0.1
 
 
 // --- Domain ---

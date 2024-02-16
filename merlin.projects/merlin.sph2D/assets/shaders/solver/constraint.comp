@@ -22,38 +22,29 @@ vec2 solveFloorCollision(uint i){
 		}
 	}
 
-	return (correctedPosition - particles[i].pposition)/10.0;
+	return (correctedPosition - particles[i].pposition);
 }
 
 
-vec2 clampPosition(vec2 position){
-	vec2 correctedPosition = position;
-	for (int i = 0; i < 2; i++){
-		if (correctedPosition[i] < boundaryMin[i] + particleRadius)
-		{
-			correctedPosition[i] = boundaryMin[i] + particleRadius;
-			//velocity[i] *= boundaryDamping;
+vec2 clampToDomain(vec2 position){
 
-		}
-		else if (correctedPosition[i] > boundaryMax[i] - particleRadius)
-		{
-			correctedPosition[i] =  boundaryMax[i] - particleRadius;
-			//velocity[i] *= boundaryDamping;
-		}
-	}
+	position.x = max(position.x, boundaryMin.x + particleRadius);
+	position.x = min(position.x, boundaryMax.x - particleRadius);
+	position.y = max(position.y, boundaryMin.y + particleRadius);
+	position.y = min(position.y, boundaryMax.y - particleRadius);
 
-	return correctedPosition;
+	return position;
 }
 
 float computeDensity(uint i) {
-	float density = particleMass * cubicKernel2D(vec2(0.0));
+	float density = 0.0;
 	Particle pi = particles[i];
 
 	OVERNNS
 		Particle pj = particles[j];
 		float dist = distance(pi.position, pj.position);
 		if(dist > H) continue;
-		density += (1.0/dt) * pj.mass * cubicKernel2D(dist); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
+		density += (1.0/dt) * pj.mass * poly6(dist); //Fluid, solid or boundary (mass and pseudo mass stored at the same location : See init.comp)
 	OVERNNS_END
 	return  density;
 }
@@ -61,31 +52,26 @@ float computeDensity(uint i) {
 
 
 float computeLambda(uint i) {
-	Particle pi = particles[i];
-
     float rho0 = restDensity;
     float sumGradCj = 0;
     vec2 gradCi = vec2(0);
     float density = 0.0;
-    
-    OVERNNS_I
-		Particle pj = particles[j];
-        if(pj.phase != FLUID) continue;
-  
-		vec2 dist = pi.pposition - pj.pposition;
-		if(length(dist) > H) continue;
-		vec2 gradCj = cubicKernel2D_Gradient(dist);
-		if (j == i) {
-			gradCi += gradCj;
+    vec2 position = Xi;
+    OVERNNS_POS
+		vec2 dist = Rij;
+		if(length(dist) >= H) continue;
+		vec2 gradCj = spiky_grad(dist);
+		gradCi += gradCj;
+		if(i != j){
+			sumGradCj += dot(gradCj, gradCj);
+			density += Mj * poly6(dist);
 		}
-		sumGradCj += dot(gradCj, gradCj);
-		
-		density += pj.mass * cubicKernel2D(dist);
 	OVERNNS_END
-
-	particles[i].density = density;
-    float C = max((density / rho0) - 1, 0.0);
-    return -C / (sumGradCj + 1e-6);
+	sumGradCj += dot(gradCi, gradCi);
+	sumGradCj = max(sumGradCj, 1e-6);
+	particles[i].density = max(density, rho0);
+    float C = max((density / rho0) - 1.0, 0.0);
+    return -C / (sumGradCj/pow(rho0, 2));
 }
 
 
@@ -93,16 +79,16 @@ float computeLambda(uint i) {
 vec2 computePositionDelta(uint i) {
 	vec2 posDelta = vec2(0.0f);
 	float rho0 = restDensity;
-	Particle pi = particles[i];
-	if(pi.density -  restDensity < 1e-6) return posDelta;
+	float sCorr = 0.0;
+	if(Rhoi -  restDensity < 0) return posDelta;
 	OVERNNS
 		Particle pj = particles[j];
-		if( pj.phase != FLUID) continue;
-		  vec2 dist = pi.pposition - pj.pposition;
-          float sCorr = -(artificialPressureMultiplier) * pow(cubicKernel2D(dist) / cubicKernel2D(vec2(0.3*H,0)), 4);
-          vec2 dp_ij = spikyGradient(dist) * ((pi.lambda + pj.lambda + sCorr  ) / rho0);
-          posDelta += dp_ij;
+		vec2 dist = Rji;
+        sCorr = -artificialPressureMultiplier * pow(poly6(dist) / poly6(normalize(vec2(1)) * 0.2*H), 4);
+        posDelta += spikyGradient(dist) * (Lambi + Lambj + sCorr);
 	OVERNNS_END
+	posDelta /= rho0;
+	//posDelta = clamp(posDelta, -MAX_DELTA_PI, MAX_DELTA_PI);
 	return posDelta;
 }
 

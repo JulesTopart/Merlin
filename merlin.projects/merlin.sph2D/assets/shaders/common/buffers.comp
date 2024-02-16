@@ -20,6 +20,25 @@ struct Particle{
 };
 
 
+#define Xi particles[i].pposition
+#define Xj particles[j].pposition
+
+#define Mi particles[i].mass
+#define Mj particles[j].mass
+
+#define Vi particles[i].velocity
+#define Vj particles[j].velocity
+
+#define Lambi particles[i].lambda
+#define Lambj particles[j].lambda
+
+#define Rhoi particles[i].density
+#define Rhoj particles[j].density
+
+#define Rij (particles[j].pposition - particles[i].pposition)
+#define Rji (particles[i].pposition - particles[j].pposition)
+#define Dij distance(particles[i].pposition, particles[j].pposition)
+
 layout(std430) buffer ParticleBuffer {
 	Particle particles[];
 };

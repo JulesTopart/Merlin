@@ -96,8 +96,8 @@ void AppLayer::SyncUniforms() {
 	settings.timestep.Sync(*solver);
 	settings.particleMass.Sync(*solver);
 	settings.restDensity.Sync(*solver);
-	settings.artificialViscosityMultiplier.Sync(*solver);
-	settings.artificialPressureMultiplier.Sync(*solver);
+	solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.01);
+	solver->SetFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.01);
 
 	particleShader->Use();
 	particleShader->SetUInt("numParticles",numParticles);
@@ -260,6 +260,38 @@ void AppLayer::ResetSimulation() {
 				buf.binIndex = cpu_particles.size();
 				cpu_particles.push_back(buf);
 			}
+
+	/*
+	buf.phase = BOUNDARY; // phase
+	for (int xi = 0; xi <= settings.bb.x / spacing; xi++) {
+		float x = (xi * spacing) - (settings.bb.x / 2.0);
+		buf.id = cpu_particles.size();
+		buf.position.x = x;
+		buf.position.y = -(settings.bb.y / 2.0);
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
+
+		buf.position.y = settings.bb.y/2.0;
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
+	}
+
+	for (int yi = 0; yi <= settings.bb.y / spacing; yi++) {
+		float y = (yi * spacing) - (settings.bb.y / 2.0);
+		buf.id = cpu_particles.size();
+		buf.position.x = -(settings.bb.x / 2.0);
+		buf.position.y = y;
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
+
+		buf.position.x = settings.bb.x/2.0;
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
+	}*/
 	
 	numParticles = cpu_particles.size();
 	particleSystem->SetInstancesCount(settings.pThread);
@@ -328,14 +360,14 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->SetVec3("mousePos", glm::vec3(mouseX, mouseY, mouseState));
 	*/			
 	for (int i = 0; i < settings.solver_substep; i++) {
-		GPU_PROFILE(nns_time,
-			NeigborSearch();
-		)
+
 		
 		GPU_PROFILE(solver_substep_time,
 			solver->Execute(2);
+			GPU_PROFILE(nns_time,
+				NeigborSearch();
+			)
 			if (integrate) {
-
 				for (int j = 0; j < settings.solver_iteration; j++) {
 					solver->Execute(3);
 					solver->Execute(4);

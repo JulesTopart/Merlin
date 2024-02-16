@@ -35,11 +35,11 @@ struct Settings {
 	glm::vec2 bb = glm::vec2(150, 80);
 
 	// Physics Parameters
-	Uniform<float> timestep							= Uniform<float>("dt", 0.001);
+	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);
 	Uniform<float> restDensity						= Uniform<float>("restDensity", 1.0);
 	Uniform<float> particleMass						= Uniform<float>("particleMass", smoothingRadius * 0.28);
-	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 0.040);
-	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 0.0);
+	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 1.2);
+	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 0.55);
 
 	//Elastic solids
 	float stiffness = 0.0;
@@ -48,7 +48,7 @@ struct Settings {
 	GLuint pThread = 1000000; //Max Number of particles (thread) (10 milion)
 
 	//Solver settings
-	int solver_substep = 1;
+	int solver_substep = 4;
 	int solver_iteration = 10;
 	float overRelaxation = 1.0;
 

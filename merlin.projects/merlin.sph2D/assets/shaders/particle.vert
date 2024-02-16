@@ -21,7 +21,7 @@ uniform mat4 model;
 
 uniform int colorCycle = 0;
 uniform uint particleTest = 50;
-uniform int showBoundary;
+uniform int showBoundary = 0;
 uniform vec2 WindowSize;
 uniform float zoomLevel = 20;
 
@@ -36,7 +36,7 @@ void main() {
 	bool hTest = false;
 	uint binindex = particles[gl_InstanceID].binIndex;//getBinIndex(particles[sortedID].position);
 
-	bool test = false;//particles[sortedID].phase == UNUSED || (particles[sortedID].phase == BOUNDARY && showBoundary == 0);
+	bool test = particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0);
 	color = vec4(1);
 	if(colorCycle == 0){ 
 		color = vec4(vec3(0.8), 1.0);
