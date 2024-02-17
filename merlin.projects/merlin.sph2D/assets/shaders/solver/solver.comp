@@ -21,144 +21,63 @@ void main() {
 	uint i = gl_GlobalInvocationID.x;
 	if (i >= numParticles) return;
 	NNS(i, stage);
-	if(particles[i].phase != BOUNDARY)	SolveFluid(i, stage);
+	if(particles[i].meta.x != BOUNDARY)	SolveFluid(i, stage);
 }
 
 void NNS(uint i, uint simStep){
-	uint binIndex = getBinIndex(particles[i].pposition);
-	switch(simStep){ 
-		case 0 : //Bin sorting
-			particles[i].binIndex = binIndex;
-			atomicAdd(bins[binIndex].count, 1);
-			cpy_particles[i] = particles[i];
-		break;
-		case 1 : //Sort particle indices
-			particles[i].binIndex = binIndex;
-			uint newID = atomicAdd(bins[binIndex].index, -1) -1;
-			particles[newID] = cpy_particles[i];
-			sortedIndices[particles[newID].id] = newID;
-			particles[newID].mass = particleMass;
-		break;
+	uint binIndex = getBinIndex(Xi);
+	if(simStep == 0){ //Bin sorting
+		particles[i].meta.y = binIndex;
+		atomicAdd(bins[binIndex].count, 1);
+		cpy_particles[i] = particles[i];
+		return;
+	}
+	if(simStep == 1){//Sort particle indices
+		particles[i].meta.y = binIndex;
+		uint newID = atomicAdd(bins[binIndex].index, -1) -1;
+		particles[newID] = cpy_particles[i];
+		sortedIndices[particles[newID].meta.z] = newID;
+		return;
 	}
 }
 
 void SolveFluid(uint i, uint simStep) {
 	
-	switch(simStep){ 
-		//compute non pressure acceleration
-		case 2:
-			vec2 acceleration = vec2(0,-g);
-			particles[i].velocity += acceleration * dt;
-			particles[i].pposition = particles[i].position + particles[i].velocity * dt;
-		break;
+	if(simStep == 2){
+		vec2 acceleration = vec2(0,-g);
+		Vi += acceleration * dt;
+		Xi = xi + Vi * dt;
+		return;
+	}
 
-		//compute lagrange multiplier
-		case 3 :
-			particles[i].lambda = computeLambda(i);
-		break;
-		//correct density error and update position
-		case 4 :
-			particles[i].pposition += computePositionDelta(i);
-			particles[i].pposition += solveFloorCollision(i);
-			//particles[i].pposition = clampToDomain(particles[i].pposition);
-			
-		break;
-		case 5:
-			particles[i].velocity = (particles[i].pposition - particles[i].position)/dt;
-
-			vec2 xsphSum = vec2(0);
-			OVERNNS
-				Particle pj = particles[j];
-				vec2 dist = particles[i].position - particles[j].position;
-				vec2 Vij = particles[j].velocity - particles[i].velocity;
-				float Wij = cubicKernel2D(length(dist));
-				xsphSum -= artificialViscosityMultiplier * Vij * Wij * particles[j].density;
-			OVERNNS_END
-			particles[i].velocity -= xsphSum;
-
-			particles[i].position = particles[i].pposition;
-		break;
-		//End iteration
 		
+	if(simStep == 3){ //compute lagrange multiplier
+		Lambi = computeLambda(i);
+		return;
+	}
+		
+	if(simStep == 4){//correct density error and update position
+		Xi += computePositionDelta(i);
+		Xi += solveFloorCollision(i);
+		//particles[i].pposition = clampToDomain(particles[i].pposition);
+		return;
+	}
+	if(simStep == 5){//apply XSPH velocity correction
+		Vi = (Xi - xi)/dt;
+
+		vec2 xsphSum = vec2(0);
+
+		vec2 position = Xi;
+		OVERNNS
+			vec2 dist = Rji;
+			float Wij = cubicKernel2D(length(dist));
+			xsphSum -= artificialViscosityMultiplier * Vij * Wij * Rhoj;
+		OVERNNS_END
+		Vi -= xsphSum;
+
+		xi = Xi;
+		return;
 	}
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-/* unknown solver
-void SolveFluid(uint i, uint simStep) {
-	uint binIndex = getBinIndex(particles[i].position);
-	switch(simStep){
-		case 0 : //Bin sorting
-			particles[i].binIndex = binIndex;
-			atomicAdd(bins[binIndex].count, 1);
-			cpy_particles[i] = particles[i];
-		break;
-
-		case 1 : //Sort particle indices
-			uint newID = atomicAdd(bins[binIndex].index, -1) -1;
-			particles[newID] = cpy_particles[i];
-			sortedIndices[particles[newID].id] = newID;
-			particles[i].mass = particleMass;
-		break;
-		
-		case 2 : //compute lagrange multiplier
-			particles[i].density = computeDensity(particles[i].position);
-			//particles[i].nearDensity = computeNearDensity(particles[i].position);
-		break;
-
-		case 3 : //correct density error and update position
-			vec2 pressure_accel = vec2(0);
-			vec2 viscosity_accel = vec2(0);
-			vec2 gravity = vec2(0,-g);
-
-			OVERNNS
-				float Pi = artificialPressureMultiplier * (Rhoi - restDensity);
-				float Pj = artificialPressureMultiplier * (Rhoj - restDensity);
-				float Pij = - (Mj / Rhoj) * ( (Pi/(Rhoi*Rhoi)) + (Pj/(Rhoj*Rhoj)) );
-				pressure_accel += Pij * pressureGradientKernel(Rij);
-
-				vec2 Vij = - artificialViscosityMultiplier * (Mj / Rhoj) * ( (Vi/(Rhoi*Rhoi)) + (Vj/(Rhoj*Rhoj)) );
-				viscosity_accel += Vij * viscosityGradientKernel(Rij);
-			OVERNNS_END
-
-			particles[i].accel = pressure_accel + viscosity_accel + gravity;
-			particles[i].position += particles[i].velocity*dt + (0.5 * particles[i].accel * dt*dt);
-			
-			particles[i].position = min(max(particles[i].position, boundaryMin + vec2(particleRadius)), boundaryMax - vec2(particleRadius));
-
-		break;
-
-		case 4 :
-			vec2 pressure_accel1 = vec2(0);
-			vec2 viscosity_accel1 = vec2(0);
-			vec2 gravity1 = vec2(0,-g);
-
-			OVERNNS
-				float Pi = artificialPressureMultiplier * (Rhoi - restDensity);
-				float Pj = artificialPressureMultiplier * (Rhoj - restDensity);
-				float Pij = - (Mj / Rhoj) * ( (Pi/(Rhoi*Rhoi)) + (Pj/(Rhoj*Rhoj)) );
-				pressure_accel1 += Pij * pressureGradientKernel(Rij);
-
-				vec2 Vij = - artificialViscosityMultiplier * (Mj / Rhoj) * ( (Vi/(Rhoi*Rhoi)) + (Vj/(Rhoj*Rhoj)) );
-				viscosity_accel1 += Vij * viscosityGradientKernel(Rij);
-			OVERNNS_END
-
-			vec2 accel1 = pressure_accel1 + viscosity_accel1 + gravity1;
-			particles[i].velocity += particles[i].velocity + (0.5 * dt) * (particles[i].accel + accel1);
-		break;	
-	}
-}
-
-
-*/

@@ -34,6 +34,7 @@ void AppLayer::OnAttach(){
 	EnableGLDebugging();
 	//ImGui::LoadIniSettingsFromDisk("imgui.ini");
 	Console::SetLevel(ConsoleLevel::_INFO);
+	glfwSwapInterval(0);
 
 	InitGraphics();
 	InitPhysics();
@@ -67,24 +68,23 @@ float t = 0.0;
 
 void AppLayer::OnUpdate(Timestep ts){
 	cameraController->OnUpdate(ts);
-	PROFILE_END(total_start_time, total_time);
-	PROFILE_BEGIN(total_start_time);
+	//PROFILE_END(total_start_time, total_time);
+	//PROFILE_BEGIN(total_start_time);
 
 	updateFPS(ts);
 
-	if (!paused) {
-		GPU_PROFILE(solver_total_time,
-			Simulate(0.016);
-		)
-	}
-
-	
-	GPU_PROFILE(render_time,
+	//GPU_PROFILE(render_time,
 		renderer.Clear();
 		renderer.RenderScene(scene, *camera);
 
 		//qrenderer.Render();
-	)
+	//)
+
+	if (!paused) {
+		//GPU_PROFILE(solver_total_time,
+			Simulate(0.016);
+		//)
+	}
 }
 
 
@@ -93,15 +93,21 @@ void AppLayer::SyncUniforms() {
 
 	solver->Use();
 
-	settings.timestep.Sync(*solver);
+	//settings.timestep.Sync(*solver);
 	settings.particleMass.Sync(*solver);
 	settings.restDensity.Sync(*solver);
+	solver->SetUInt("numParticles", numParticles);
+	solver->SetFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
 	solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.01);
 	solver->SetFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.01);
 
 	particleShader->Use();
 	particleShader->SetUInt("numParticles",numParticles);
 	settings.restDensity.Sync(*particleShader);
+
+	prefixSum->Use();
+	prefixSum->SetUInt("dataSize", settings.bThread); //data size
+	prefixSum->SetUInt("blockSize", settings.blockSize); //block size
 }
 
 
@@ -116,17 +122,23 @@ void AppLayer::ApplyBufferSettings() {
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
+	/*
 	particleBuffer->Bind();
 	particleBuffer->Resize(settings.pThread);
+	particleBuffer->Unbind();
 
 	particleCpyBuffer->Bind();
 	particleCpyBuffer->Resize(settings.pThread);
+	particleCpyBuffer->Unbind();
 
 	sortedIndexBuffer->Bind();
 	sortedIndexBuffer->Resize(settings.pThread);
+	sortedIndexBuffer->Unbind();
 
 	binBuffer->Bind();
 	binBuffer->Resize(settings.bThread);
+	binBuffer->Unbind();
+	*/
 
 	particleSystem->SetInstancesCount(settings.pThread);
 	binSystem->SetInstancesCount(settings.bThread);
@@ -240,19 +252,16 @@ void AppLayer::ResetSimulation() {
 	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
 
 	Particle buf;
-	buf.mass = settings.particleMass.value();//inverse mass
-	buf.density = 1.0; // phase
 	buf.velocity = glm::vec2(0);
-	buf.accel = glm::vec2(0);
 	
 	buf.phase = FLUID; // phase
-	glm::vec2 cubeSize = glm::vec2(50, 25);
+	glm::vec2 cubeSize = glm::vec2(60, 70);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
 
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++)
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++){
-				float x = (xi * spacing) - (cubeSize.x / 2.0) - (50 - spacing);
-				float y = (yi * spacing) - (cubeSize.y / 2.0) - (-spacing + 40 - cubeSize.y / 2.0) ;
+				float x = ((xi + 1) * spacing) - (settings.bb.x/2.0);
+				float y = ((yi + 1) * spacing) - (settings.bb.y/2.0);
 				buf.id = cpu_particles.size();
 				buf.position.x = x;
 				buf.position.y = y;
@@ -302,28 +311,36 @@ void AppLayer::ResetSimulation() {
 
 	particleBuffer->Bind();
 	particleBuffer->Upload();
+	particleBuffer->Unbind();
 
 	binBuffer->Bind();
 	binBuffer->Clear();
+	binBuffer->Unbind();
 
+	sortedIndexBuffer->Bind();
+	sortedIndexBuffer->Download();
 	auto& cpu_sortedIndexBuffer = sortedIndexBuffer->GetDeviceBuffer();
 	for (int i = 0; i < settings.pThread; i++) cpu_sortedIndexBuffer[i] = i;
 	sortedIndexBuffer->Bind();
 	sortedIndexBuffer->Upload();
+	sortedIndexBuffer->Unbind();
 
 }
 
 
 void AppLayer::NeigborSearch() {
+	
+	//binBuffer->Bind();
+	//binBuffer->Clear(); //Reset neighbor search data
+	//binBuffer->Unbind();
+
+	prefixSum->Use();
+	prefixSum->Execute(4);// local prefix sum
+
 	solver->Use();
-	binBuffer->Bind();
-	binBuffer->Clear(); //Reset neighbor search data
 	solver->Execute(0); //Place particles in bins
 
 	prefixSum->Use();
-	prefixSum->SetUInt("dataSize", settings.bThread); //data size
-	prefixSum->SetUInt("blockSize", settings.blockSize); //block size
-
 	prefixSum->Execute(0);// local prefix sum
 
 	//Binary tree on rightmost element of blocks
@@ -350,34 +367,30 @@ void AppLayer::NeigborSearch() {
 void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->Use();
-	solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
-	solver->SetFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
+	//solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
+	//solver->SetFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
 	
-	/*
-	double mouseX, mouseY;
-	glfwGetCursorPos((GLFWwindow*)Application::Get().GetWindow().GetNativeWindow(), &mouseX, &mouseY);
-	float mouseState = (glfwGetMouseButton((GLFWwindow*)Application::Get().GetWindow().GetNativeWindow(), GLFW_MOUSE_BUTTON_LEFT) == (GLFW_PRESS));
-	solver->SetVec3("mousePos", glm::vec3(mouseX, mouseY, mouseState));
-	*/			
-	for (int i = 0; i < settings.solver_substep; i++) {
 
-		
-		GPU_PROFILE(solver_substep_time,
-			solver->Execute(2);
-			GPU_PROFILE(nns_time,
-				NeigborSearch();
-			)
-			if (integrate) {
+	//GPU_PROFILE(solver_substep_time,
+	for (int i = 0; i < settings.solver_substep; i++) {
+		solver->Execute(2);
+		//GPU_PROFILE(nns_time,
+			NeigborSearch();
+		//)
+
+		if (integrate) {
+			//GPU_PROFILE(jacobi_time,
 				for (int j = 0; j < settings.solver_iteration; j++) {
 					solver->Execute(3);
 					solver->Execute(4);
 				}
-				solver->Execute(5);
-				//solver->Execute(6);
+			//)
+			solver->Execute(5);
+			//solver->Execute(6);
 
-			}
-		)
+		}
 	}
+	//)
 	elapsedTime += settings.timestep.value();
 	
 }
@@ -542,9 +555,10 @@ void AppLayer::OnImGuiRender() {
 
 	ImGui::Begin("Performance");
 	ImGui::Text("Nearest Neighbor Search %.1f ms", nns_time);
-	ImGui::Text("Jacobi solver %.1f ms", solver_substep_time);
-	ImGui::Text("Physics %.1f ms", solver_total_time);
-	ImGui::Text("Render %.1f ms", render_time);
+	ImGui::Text("Substep solver %.1f ms", solver_substep_time - nns_time);
+	ImGui::Text("Jacobi iteration %.1f ms", jacobi_time);
+	ImGui::Text("Total physics time %.1f ms", solver_total_time);
+	ImGui::Text("Render time %.1f ms", render_time);
 	ImGui::Text("Total frame time %.1f ms", total_time);
 	ImGui::End();
 

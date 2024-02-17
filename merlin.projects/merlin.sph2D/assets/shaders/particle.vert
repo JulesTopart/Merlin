@@ -26,7 +26,8 @@ uniform vec2 WindowSize;
 uniform float zoomLevel = 20;
 
 void main() {
-	vec2 offset = particles[gl_InstanceID].position;
+	uint i = gl_InstanceID;
+	vec2 offset = xi;
 	position = model * (vec4(_position + vec3(offset,0),1));
 
 	uint testsortedID = sortedIndices[particleTest];
@@ -34,16 +35,16 @@ void main() {
 	bool binTest = true;
 	bool nnTest = false;
 	bool hTest = false;
-	uint binindex = particles[gl_InstanceID].binIndex;//getBinIndex(particles[sortedID].position);
+	uint binindex = particles[gl_InstanceID].meta.y;//getBinIndex(particles[sortedID].position);
 
-	bool test = particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0);
+	bool test = particles[gl_InstanceID].meta.x == UNUSED || (particles[gl_InstanceID].meta.x == BOUNDARY && showBoundary == 0);
 	color = vec4(1);
 	if(colorCycle == 0){ 
 		color = vec4(vec3(0.8), 1.0);
 	}else if(colorCycle == 1){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 2){ 
-		color = colorMap(map(particles[gl_InstanceID].density,0.9 * restDensity, 1.1 * restDensity), warmcool);
+		color = colorMap(map(Rhoi,0.9 * restDensity, 1.1 * restDensity), warmcool);
 	}else if(colorCycle == 3){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 4){ 
@@ -57,7 +58,7 @@ void main() {
 		}else{
 
 			binTest = false;
-			uvec2 binIndexVec2 = getBinCoord(particles[testsortedID].position);
+			uvec2 binIndexVec2 = getBinCoord(particles[testsortedID].position.xy);
 			for (int y = int(binIndexVec2.y) - 1; y <= int(binIndexVec2.y) + 1; y++) {
 				for (int x = int(binIndexVec2.x) - 1; x <= int(binIndexVec2.x) + 1; x++) {
 					if (x < 0 || y < 0) continue;
@@ -67,7 +68,7 @@ void main() {
 			}
 		
 
-			uint i = testsortedID;
+			vec2 position = particles[testsortedID].position.xy;
 			OVERNNS
 				if(gl_InstanceID == j){
 					nnTest = true;

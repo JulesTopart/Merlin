@@ -60,7 +60,7 @@ namespace Merlin::Graphics {
 	GLuint ShaderBase::GetUniformLocation(const char* uniform) const{
 		if (!IsCompiled()) return 0;
 		GLuint uniLoc = glGetUniformLocation(m_programID, uniform);
-		if (uniLoc == -1) LOG_WARN("Shader") << "(" << m_name << ") Invalid Uniform name : " << uniform << ", (or wrong binded shader)" << Console::endl;
+		if (uniLoc == -1);// LOG_WARN("Shader") << "(" << m_name << ") Invalid Uniform name : " << uniform << ", (or wrong binded shader)" << Console::endl;
 		return uniLoc;
 	}
 

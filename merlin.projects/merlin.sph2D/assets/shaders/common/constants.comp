@@ -2,8 +2,8 @@
 #ifndef INCLUDE_CONSTANTS_GLSL
 #define INCLUDE_CONSTANTS_GLSL
 
-#define BTHREAD 512
-#define PTHREAD 512
+#define BTHREAD 256
+#define PTHREAD 128
 
 #define UNUSED 0
 #define SOLID 1

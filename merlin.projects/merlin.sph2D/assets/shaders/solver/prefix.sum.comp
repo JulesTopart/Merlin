@@ -57,6 +57,16 @@ void main(){
         }
         bins[getIndexOf(bid, blockSize-1)].index = bins[getIndexOf(bid, blockSize-1)].sum; 
     break;
+    case 4:
+        for (uint i = 0; i < blockSize; i++) { //Load into global mem
+            bins[getIndexOf(bid,i)].sum = 0;
+            bins[getIndexOf(bid,i)].csum = 0;
+            bins[getIndexOf(bid,i)].count = 0;
+            bins[getIndexOf(bid,i)].index = 0;
+
+        }
+
+    break;
     }
     
 }

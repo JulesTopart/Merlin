@@ -14,15 +14,12 @@ struct Particle {
 	alignas(8) glm::vec2 position;
 	alignas(8) glm::vec2 pposition;
 	alignas(8) glm::vec2 velocity;
-	alignas(8) glm::vec2 accel;
-	float mass;
 	float density;
-	float neardensity;
 	float lambda;
 	GLuint phase;
 	GLuint binIndex;
 	GLuint id;
-	float padding;
+	GLuint padding;
 };
 
 struct Settings {
@@ -38,8 +35,8 @@ struct Settings {
 	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);
 	Uniform<float> restDensity						= Uniform<float>("restDensity", 1.0);
 	Uniform<float> particleMass						= Uniform<float>("particleMass", smoothingRadius * 0.28);
-	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 1.2);
-	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 0.55);
+	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 1.5);
+	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 3.9);
 
 	//Elastic solids
 	float stiffness = 0.0;
@@ -48,13 +45,13 @@ struct Settings {
 	GLuint pThread = 1000000; //Max Number of particles (thread) (10 milion)
 
 	//Solver settings
-	int solver_substep = 4;
-	int solver_iteration = 10;
+	int solver_substep = 3;
+	int solver_iteration = 3;
 	float overRelaxation = 1.0;
 
 	//calulated
-	GLuint pWkgSize = 512; //Number of thread per workgroup
-	GLuint bWkgSize = 512; //Number of thread per workgroup
+	GLuint pWkgSize = 128; //Number of thread per workgroup
+	GLuint bWkgSize = 256; //Number of thread per workgroup
 
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 	GLuint bThread = int(bb.x / (bWidth)) * int(bb.y / (bWidth)); //Total number of bin (thread)

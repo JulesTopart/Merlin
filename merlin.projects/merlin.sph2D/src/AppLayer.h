@@ -65,6 +65,7 @@ private:
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 
 	double nns_time = 0;
+	double jacobi_time = 0;
 	double solver_substep_time = 0;
 	double solver_total_time = 0;
 	double render_time = 0; double render_start_time = 0;

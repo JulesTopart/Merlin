@@ -57,7 +57,7 @@ namespace Merlin::Tensor {
 	}
 
 	void ComputeShader::Dispatch(GLuint x, GLuint y, GLuint z) {
-		Console::trace("ComputeShader") << "Dispatch: " << int(x) << "x" << int(y) << "x" << int(z) << Console::endl;
+		//Console::trace("ComputeShader") << "Dispatch: " << int(x) << "x" << int(y) << "x" << int(z) << Console::endl;
 		if (!IsCompiled()) { Console::error("ComputeShader") << m_name << " is not Compiled" << Console::endl; return; }
 		glDispatchCompute(x, y, z);
 	}

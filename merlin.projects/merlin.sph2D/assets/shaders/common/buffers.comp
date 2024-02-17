@@ -5,39 +5,33 @@
 //TODO generate this automatically
 
 struct Particle{
-	vec2 position;
-	vec2 pposition;
-	vec2 velocity;
-	vec2 accel;
-	float mass;
-	float density;
-	float nearDensity;
-	float lambda;
-	uint phase;
-	uint binIndex;
-	uint id;
-	float padding;
+	vec4 position;//position and pposition
+	vec4 velocity;//Velocity, density, lambda
+	uvec4 meta; //phase, binindex, id , padding
 };
 
+#define xi particles[i].position.xy
+#define xj particles[j].position.xy
 
-#define Xi particles[i].pposition
-#define Xj particles[j].pposition
+#define Xi particles[i].position.zw
+#define Xj particles[j].position.zw
 
-#define Mi particles[i].mass
-#define Mj particles[j].mass
+#define Mi particleMass
+#define Mj particleMass
 
-#define Vi particles[i].velocity
-#define Vj particles[j].velocity
+#define Vi particles[i].velocity.xy
+#define Vj particles[j].velocity.xy
 
-#define Lambi particles[i].lambda
-#define Lambj particles[j].lambda
+#define Lambi particles[i].velocity.w
+#define Lambj particles[j].velocity.w
 
-#define Rhoi particles[i].density
-#define Rhoj particles[j].density
+#define Rhoi particles[i].velocity.z
+#define Rhoj particles[j].velocity.z
 
-#define Rij (particles[j].pposition - particles[i].pposition)
-#define Rji (particles[i].pposition - particles[j].pposition)
-#define Dij distance(particles[i].pposition, particles[j].pposition)
+#define Vij (Vj - Vi)
+#define Rij (Xj - Xi)
+#define Rji (Xi - Xj)
+#define Dij distance(Xi, Xj)
 
 layout(std430) buffer ParticleBuffer {
 	Particle particles[];

@@ -42,7 +42,7 @@ void main() {
 			test = false;
 			uint testsortedID = sortedIndices[particleTest];
 
-			uvec2 binIndexVec = getBinCoord(particles[testsortedID].position);
+			uvec2 binIndexVec = getBinCoord(particles[testsortedID].position.xy);
 			ivec2 minBound = max(ivec2(binIndexVec) - 1, ivec2(0));
 			ivec2 maxBound = min(ivec2(binIndexVec) + 1, ivec2(binMax) - 1);
 			for (int y = minBound.y; y <= maxBound.y; y++) {
