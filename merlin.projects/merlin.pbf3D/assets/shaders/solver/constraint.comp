@@ -1,0 +1,87 @@
+//? #version 430
+#ifndef INCLUDE_CONSTRAINTS_GLSL
+#define INCLUDE_CONSTRAINTS_GLSL
+
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+
+
+
+vec3 solveFloorCollision(uint i){
+	vec3 correctedPosition = Xi;
+	for (int i = 0; i < 3; i++){
+		if (correctedPosition[i] - particleRadius <= boundaryMin[i] ){
+			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
+		}
+		else if (correctedPosition[i] + particleRadius >= boundaryMax[i])
+		{
+			correctedPosition[i] =  boundaryMax[i] - particleRadius;
+		}
+	}
+
+	return (correctedPosition - Xi);
+}
+
+
+vec3 clampToDomain(vec3 position){
+	position.x = max(position.x, boundaryMin.x + particleRadius);
+	position.x = min(position.x, boundaryMax.x - particleRadius);
+	position.y = max(position.y, boundaryMin.y + particleRadius);
+	position.y = min(position.y, boundaryMax.y - particleRadius);
+	position.z = max(position.z, boundaryMin.z + particleRadius);
+	position.z = min(position.z, boundaryMax.z - particleRadius);
+	return position;
+}
+
+
+float computeLambda(uint i) {
+    float rho0 = restDensity;
+    float sumGradCj = 0;
+    vec3 gradCi = vec3(0);
+    float density = 0.0;
+    vec3 position = Xi;
+    OVERNNS
+		vec3 dist = Rij;
+		if(length(dist) >= H) continue;
+		vec3 gradCj = spiky_grad(dist);
+		gradCi += gradCj;
+		if(i != j){
+			sumGradCj += dot(gradCj, gradCj);
+			density += Mj * poly6(dist);
+		}
+	OVERNNS_END
+	sumGradCj += dot(gradCi, gradCi);
+	sumGradCj = max(sumGradCj, 1e-6);
+	Rhoi = max(density, rho0);
+    float C = max((density / rho0) - 1.0, 0.0);
+    return -C / (sumGradCj/pow(rho0, 2));
+}
+
+
+//Compute position deltas w neigbor
+vec3 computePositionDelta(uint i) {
+	vec3 posDelta = vec3(0.0f);
+	float rho0 = restDensity;
+	float sCorr = 0.0;
+	if(Rhoi -  restDensity < 0) return posDelta;
+	vec3 position = Xi;
+	OVERNNS
+	if(j == i) continue;
+		vec3 dist = Rji;
+        sCorr = -artificialPressureMultiplier * pow(poly6(dist) / poly6(normalize(vec3(1)) * 0.2*H), 4);
+        posDelta += spikyGradient(dist) * (Lambi + Lambj + sCorr);
+	OVERNNS_END
+	posDelta /= rho0;
+	//posDelta = clamp(posDelta, -MAX_DELTA_PI, MAX_DELTA_PI);
+	return posDelta;
+}
+
+
+
+
+
+
+#endif

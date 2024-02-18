@@ -206,25 +206,11 @@ namespace Merlin::Graphics {
 				
 		shader->Use();
 		if (shader->SupportMaterial()) {
-			/*
-			if (mat->usePBR() && shader->SupportPBR()) {//todo remove this -> Replace by proper UBO management
-				shader->SetVec3("albedo", mat->albedo());
-				shader->SetFloat("metallic", mat->metallic());
-				shader->SetFloat("roughness", mat->roughness());
-				shader->SetFloat("ao", mat->ao());
-				shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
-			}
-			else {
-
-			}
-			*/
-
 			shader->SetVec3("ambient", mat->ambient());
 			shader->SetVec3("diffuse", mat->diffuse());
 			shader->SetVec3("specular", mat->specular());
 			shader->SetFloat("shininess", mat->shininess());
 			shader->SetVec3("viewPos", camera.GetPosition()); //Sync model matrix with GPU
-
 		}
 
 		shader->SetMat4("model", currentTransform); //Sync model matrix with GPU
@@ -233,12 +219,12 @@ namespace Merlin::Graphics {
 
 		if (shader->SupportTexture()) {
 			Texture*  tex;
-
 			tex = &mat->GetTexture(TextureType::COLOR);
 
 			if(tex){
 				shader->SetInt("skybox", 0);
 				shader->SetInt("hasColorTex", !tex->IsDefault());
+				bool test = !tex->IsDefault();
 
 				if (!tex->IsDefault()) {
 					tex->SetUnit(1); //Skybox is 0...

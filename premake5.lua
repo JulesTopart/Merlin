@@ -105,9 +105,8 @@ group ""
 	
 group "Projects"
 	include "merlin.projects/merlin.example"
-	include "merlin.projects/merlin.dem"
-	include "merlin.projects/merlin.sort"
 	include "merlin.projects/merlin.example2D"
-	include "merlin.projects/merlin.sph2D"
+	include "merlin.projects/merlin.sort"
+	include "merlin.projects/merlin.pbf2D"
 
-	include "merlin.projects/merlin.pbvef"
+	include "merlin.projects/merlin.pbf3D"

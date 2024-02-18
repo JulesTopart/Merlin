@@ -74,8 +74,8 @@ namespace Merlin::Graphics {
 		if (Input::IsMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
 			_deltaMousePos = _lastMousePos - newMousePos;
 
-			_dR.z = -_deltaMousePos.x;
-			_dR.y = _deltaMousePos.y;
+			_dR.z = -_deltaMousePos.x * std::min(_CameraSpeed * 0.5f, 50.0f);
+			_dR.y = _deltaMousePos.y * std::min(_CameraSpeed * 0.5f, 50.0f);
 		}
 
 		_lastMousePos = newMousePos;

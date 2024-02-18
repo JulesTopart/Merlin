@@ -116,7 +116,7 @@ namespace Merlin::Graphics {
 		if (m_cubeMap)
 			m_cubeMap->Bind(0);
 		else {
-			Console::trace("SkyBox") << "The cubemap is not initialized, Please use skybox.LoadCubeMap(...) of provide an existing cubemap" << Console::endl;
+			//Console::trace("SkyBox") << "The cubemap is not initialized, Please use skybox.LoadCubeMap(...) of provide an existing cubemap" << Console::endl;
 			//return;
 		}
 

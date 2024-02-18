@@ -36,6 +36,7 @@ namespace Merlin::Graphics {
         if (it != resources.end()) {
             return *it->second;
         }
+        Console::error("Ressource Manager") << name << " not found in library" << Console::endl;
         // Handle the case where the resource is not found
         throw;
     }
