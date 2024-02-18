@@ -35,8 +35,8 @@ struct Settings {
 	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);
 	Uniform<float> restDensity						= Uniform<float>("restDensity", 1.0);
 	Uniform<float> particleMass						= Uniform<float>("particleMass", smoothingRadius * 0.28);
-	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 1.5);
-	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 3.9);
+	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 0.5);
+	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 2.0);
 
 	//Elastic solids
 	float stiffness = 0.0;
@@ -46,7 +46,7 @@ struct Settings {
 
 	//Solver settings
 	int solver_substep = 3;
-	int solver_iteration = 3;
+	int solver_iteration = 6;
 	float overRelaxation = 1.0;
 
 	//calulated

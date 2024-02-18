@@ -33,7 +33,7 @@ AppLayer::~AppLayer(){}
 void AppLayer::OnAttach(){
 	EnableGLDebugging();
 	//ImGui::LoadIniSettingsFromDisk("imgui.ini");
-	Console::SetLevel(ConsoleLevel::_INFO);
+	Console::SetLevel(ConsoleLevel::_TRACE);
 	glfwSwapInterval(0);
 
 	InitGraphics();
@@ -68,22 +68,20 @@ float t = 0.0;
 
 void AppLayer::OnUpdate(Timestep ts){
 	cameraController->OnUpdate(ts);
-	//PROFILE_END(total_start_time, total_time);
-	//PROFILE_BEGIN(total_start_time);
+	PROFILE_END(total_start_time, total_time);
+	PROFILE_BEGIN(total_start_time);
 
 	updateFPS(ts);
 
-	//GPU_PROFILE(render_time,
+	GPU_PROFILE(render_time,
 		renderer.Clear();
 		renderer.RenderScene(scene, *camera);
-
-		//qrenderer.Render();
-	//)
+	)
 
 	if (!paused) {
-		//GPU_PROFILE(solver_total_time,
+		GPU_PROFILE(solver_total_time,
 			Simulate(0.016);
-		//)
+		)
 	}
 }
 
@@ -214,16 +212,17 @@ void AppLayer::InitPhysics() {
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
 	binBuffer = SSBO<Bin>::Create("BinBuffer");
 	binBuffer->Allocate(settings.bThread);
+	binBuffer->Unbind();
 
 	sortedIndexBuffer = SSBO<GLuint>::Create("SortedIndexBuffer");
 	sortedIndexBuffer->Allocate(settings.pThread);
-
+	sortedIndexBuffer->Unbind();
 
 	particleBuffer->SetBindingPoint(0);
 	particleCpyBuffer->SetBindingPoint(1);
 	sortedIndexBuffer->SetBindingPoint(2);
 	binBuffer->SetBindingPoint(3);
-	
+	binBuffer->Unbind();
 
 	//Attach Buffers
 	particleSystem->AddComputeShader(solver);
@@ -231,7 +230,6 @@ void AppLayer::InitPhysics() {
 	particleSystem->AddStorageBuffer(particleCpyBuffer);
 	particleSystem->AddStorageBuffer(sortedIndexBuffer);
 	particleSystem->AddStorageBuffer(binBuffer);
-
 
 	binSystem->AddComputeShader(prefixSum);
 	binSystem->AddStorageBuffer(binBuffer);
@@ -302,40 +300,31 @@ void AppLayer::ResetSimulation() {
 		cpu_particles.push_back(buf);
 	}*/
 	
+	Console::info() << "Uploading buffer on device..." << Console::endl;
+
 	numParticles = cpu_particles.size();
-	particleSystem->SetInstancesCount(settings.pThread);
 	settings.pThread = numParticles;
-
-	SyncUniforms();
+	particleSystem->SetInstancesCount(settings.pThread);
+	
 	ApplyBufferSettings();
-
+	SyncUniforms();
+	
 	particleBuffer->Bind();
 	particleBuffer->Upload();
 	particleBuffer->Unbind();
-
-	binBuffer->Bind();
-	binBuffer->Clear();
-	binBuffer->Unbind();
-
-	sortedIndexBuffer->Bind();
-	sortedIndexBuffer->Download();
+	
+	
 	auto& cpu_sortedIndexBuffer = sortedIndexBuffer->GetDeviceBuffer();
 	for (int i = 0; i < settings.pThread; i++) cpu_sortedIndexBuffer[i] = i;
 	sortedIndexBuffer->Bind();
 	sortedIndexBuffer->Upload();
 	sortedIndexBuffer->Unbind();
-
 }
 
 
 void AppLayer::NeigborSearch() {
-	
-	//binBuffer->Bind();
-	//binBuffer->Clear(); //Reset neighbor search data
-	//binBuffer->Unbind();
-
 	prefixSum->Use();
-	prefixSum->Execute(4);// local prefix sum
+	prefixSum->Execute(4);// clear bins
 
 	solver->Use();
 	solver->Execute(0); //Place particles in bins
@@ -367,30 +356,26 @@ void AppLayer::NeigborSearch() {
 void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->Use();
-	//solver->SetUInt("numParticles", numParticles); //Spawn particle after prediction
-	//solver->SetFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
-	
 
-	//GPU_PROFILE(solver_substep_time,
+	GPU_PROFILE(solver_substep_time,
 	for (int i = 0; i < settings.solver_substep; i++) {
 		solver->Execute(2);
-		//GPU_PROFILE(nns_time,
+		GPU_PROFILE(nns_time,
 			NeigborSearch();
-		//)
+		)
 
 		if (integrate) {
-			//GPU_PROFILE(jacobi_time,
+			GPU_PROFILE(jacobi_time,
 				for (int j = 0; j < settings.solver_iteration; j++) {
 					solver->Execute(3);
 					solver->Execute(4);
 				}
-			//)
+			)
 			solver->Execute(5);
-			//solver->Execute(6);
 
 		}
 	}
-	//)
+	)
 	elapsedTime += settings.timestep.value();
 	
 }
@@ -430,8 +415,6 @@ void AppLayer::OnImGuiRender() {
 	else {
 		if (ImGui::SmallButton("Pause simulation")) {
 			paused = !paused;
-			//particleBuffer->print();
-			//binBuffer->print();
 		}
 	}
 
@@ -455,7 +438,6 @@ void AppLayer::OnImGuiRender() {
 
 	if (ImGui::SmallButton("Reset simulation")) {
 		ResetSimulation();
-		//count = 1;
 	}
 
 	static bool Pstate = true;
@@ -475,10 +457,6 @@ void AppLayer::OnImGuiRender() {
 		particleShader->Use();
 		particleShader->SetInt("showBoundary", BBstate);
 	}
-
-	/*
-	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 50);
-	*/
 
 	ImGui::DragInt("Solver substep", &settings.solver_substep, 1, 1, 200);
 	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 200);

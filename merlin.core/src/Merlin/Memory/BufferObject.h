@@ -104,7 +104,7 @@ namespace Merlin::Memory{
 		else if(kb > 0.5)	Console::info("Buffer") << "allocating " << kb << "kB of GPU Memory" << Console::endl;
 		else Console::info("Buffer") << "allocating " << GLuint(m_bufferSize) << "bytes of GPU Memory" << Console::endl;
 
-		
+		m_cpuBuffer.resize(count);
 		glBufferData(m_target, m_bufferSize, data, usage);
 		if (data == NULL) Clear(); //Initiliaze with zero
 	}
@@ -141,9 +141,7 @@ namespace Merlin::Memory{
 		}
 		else {
 			Console::print() << m_cpuBuffer.size() * sizeof(T) << " | " << (long int)m_size << " | " << (long int)m_bufferSize << Console::endl;
-
-			memcpy(Map(), m_cpuBuffer.data(), m_cpuBuffer.size() * sizeof(T));
-			Unmap();
+			glBufferSubData(m_target, 0, m_cpuBuffer.size() * sizeof(T), m_cpuBuffer.data());
 		}
 	}
 

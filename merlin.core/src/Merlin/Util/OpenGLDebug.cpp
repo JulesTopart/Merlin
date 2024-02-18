@@ -20,10 +20,10 @@ namespace Merlin::Utils {
 				LOG_INFO("OpenGL Debug") << message << Console::endl;
 			break;
 		case GL_DEBUG_SEVERITY_NOTIFICATION:
-				LOG_TRACE("OpenGL Debug") << message << Console::endl;
+				//LOG_TRACE("OpenGL Debug") << message << Console::endl;
 			break;
 		default:
-				LOG_TRACE("OpenGL Debug") << message << Console::endl;
+			;// LOG_TRACE("OpenGL Debug") << message << Console::endl;
 			break;
 		}
 	}
