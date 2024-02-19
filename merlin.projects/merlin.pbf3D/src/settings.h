@@ -30,7 +30,7 @@ struct Settings {
 
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(100, 50, 80);
+	glm::vec3 bb = glm::vec3(200, 52, 80);
 
 	// Physics Parameters
 	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);
@@ -43,7 +43,7 @@ struct Settings {
 	float stiffness = 0.0;
 
 	//GPU Threading settings
-	GLuint pThread = 1000000; //Max Number of particles (thread) (10 milion)
+	GLuint pThread = 3000000; //Max Number of particles (thread) (10 milion)
 
 	//Solver settings
 	int solver_substep = 3;
@@ -51,7 +51,7 @@ struct Settings {
 	float overRelaxation = 1.0;
 
 	//calulated
-	GLuint pWkgSize = 128; //Number of thread per workgroup
+	GLuint pWkgSize = 1024; //Number of thread per workgroup
 	GLuint bWkgSize = 256; //Number of thread per workgroup
 
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed

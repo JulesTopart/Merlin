@@ -24,12 +24,12 @@ struct Particle {
 
 struct Settings {
 	const float particleRadius = 0.25;
-	const float smoothingRadius = 4 * particleRadius;
+	const float smoothingRadius = 5 * particleRadius;
 	const float bWidth = smoothingRadius;
 
 
 	//Boundary Volume dimensions
-	glm::vec2 bb = glm::vec2(150, 80);
+	glm::vec2 bb = glm::vec2(400, 400);
 
 	// Physics Parameters
 	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);
@@ -50,8 +50,8 @@ struct Settings {
 	float overRelaxation = 1.0;
 
 	//calulated
-	GLuint pWkgSize = 256; //Number of thread per workgroup
-	GLuint bWkgSize = 256; //Number of thread per workgroup
+	GLuint pWkgSize = 1024; //Number of thread per workgroup
+	GLuint bWkgSize = 128; //Number of thread per workgroup
 
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 	GLuint bThread = int(bb.x / (bWidth)) * int(bb.y / (bWidth)); //Total number of bin (thread)

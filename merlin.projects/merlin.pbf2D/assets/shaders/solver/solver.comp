@@ -31,8 +31,7 @@ void NNS(uint i, uint simStep){
 		particles[i].meta.z = 0;
 		cpy_particles[i] = particles[i];
 		return;
-	}
-	if(simStep == 1){//Sort particle indices
+	}else if(simStep == 1){//Sort particle indices
 		uint newID = atomicAdd(bins[cpy_particles[i].meta.y].index, -1) -1;
 		particles[newID] = cpy_particles[i];
 		sortedIndices[particles[newID].meta.z] = newID;
@@ -47,21 +46,15 @@ void SolveFluid(uint i, uint simStep) {
 		Vi += acceleration * dt;
 		Xi = xi + Vi * dt;
 		return;
-	}
-
-		
-	if(simStep == 3){ //compute lagrange multiplier
+	}else if(simStep == 3){ //compute lagrange multiplier
 		Lambi = computeLambda(i);
 		return;
-	}
-		
-	if(simStep == 4){//correct density error and update position
+	}else if(simStep == 4){//correct density error and update position
 		Xi += computePositionDelta(i);
 		Xi += solveFloorCollision(i);
 		//particles[i].pposition = clampToDomain(particles[i].pposition);
 		return;
-	}
-	if(simStep == 5){//apply XSPH velocity correction
+	}else if(simStep == 5){//apply XSPH velocity correction
 		Vi = (Xi - xi)/dt;
 
 		vec2 xsphSum = vec2(0);

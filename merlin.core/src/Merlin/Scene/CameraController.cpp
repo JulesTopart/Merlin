@@ -123,7 +123,7 @@ namespace Merlin::Graphics {
 	bool CameraController2D::OnMouseScrolled(MouseScrolledEvent& e)
 	{
 		_ZoomLevel -= e.GetYOffset() * 0.25f * _ZoomLevel;
-		_ZoomLevel = std::min<float>(_ZoomLevel, 100.f);
+		_ZoomLevel = std::min<float>(_ZoomLevel, 500.f);
 		_ZoomLevel = std::max<float>(_ZoomLevel, 0.1);
 		_Camera->setZoom(_ZoomLevel);
 		return false;

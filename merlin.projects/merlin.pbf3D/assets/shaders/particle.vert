@@ -44,7 +44,7 @@ void main() {
 	}else if(colorCycle == 1){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 2){ 
-		color = colorMap(map(Rhoi,0.9 * restDensity, 1.1 * restDensity), warmcool);
+		color = colorMap(map(Rhoi*1000,1000* restDensity, 1500 * restDensity), warmcool);
 	}else if(colorCycle == 3){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 4){ 
@@ -93,8 +93,8 @@ void main() {
 		mv = projection * view;
 		
 		gl_Position = screen_position;
-		gl_PointSize = 2.0*particleRadius*400.0/(gl_Position.w);
-		if(colorCycle == 5 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = 100.0/(gl_Position.w);
+		gl_PointSize = 4.0*particleRadius*400.0/(gl_Position.w);
+		if(colorCycle == 5 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = 400.0/(gl_Position.w);
 		
 	}
 }

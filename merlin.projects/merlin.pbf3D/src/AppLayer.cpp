@@ -220,7 +220,7 @@ void AppLayer::InitPhysics() {
 	particle->Rename("particle");
 	particle->SetShader(particleShader);
 	particleSystem->SetMesh(particle);
-	particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
+	particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 
 	Shared<Mesh> binInstance = Primitives::CreateQuadCube(settings.bWidth, false);
 	binInstance->Rename("bin");
@@ -286,7 +286,7 @@ void AppLayer::ResetSimulation() {
 	
 
 	buf.phase = FLUID; // phase
-	glm::vec3 cubeSize = glm::vec3(20, 20, 50);
+	glm::vec3 cubeSize = glm::vec3(80, 50, 30);
 	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
 
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
