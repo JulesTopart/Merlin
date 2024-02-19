@@ -286,7 +286,7 @@ void AppLayer::ResetSimulation() {
 	
 
 	buf.phase = FLUID; // phase
-	glm::vec3 cubeSize = glm::vec3(50, 50, 50);
+	glm::vec3 cubeSize = glm::vec3(20, 20, 50);
 	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
 
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {

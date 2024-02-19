@@ -48,7 +48,7 @@ void main() {
 	}else if(colorCycle == 3){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 4){ 
-		color = colorMap(map(length(particles[gl_InstanceID].velocity),0,1000.0), parula);
+		color = colorMap(map(length(particles[gl_InstanceID].velocity.xyz),0,600.0), parula);
 	}else if(colorCycle == 5){ 
 		color = vec4(randomColor(binindex), 1);
 	}else{ //NNS Test
