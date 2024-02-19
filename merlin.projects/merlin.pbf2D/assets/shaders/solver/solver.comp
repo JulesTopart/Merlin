@@ -25,16 +25,15 @@ void main() {
 }
 
 void NNS(uint i, uint simStep){
-	uint binIndex = getBinIndex(Xi);
 	if(simStep == 0){ //Bin sorting
-		particles[i].meta.y = binIndex;
-		atomicAdd(bins[binIndex].count, 1);
+		particles[i].meta.y = getBinIndex(Xi);
+		atomicAdd(bins[particles[i].meta.y].count, 1);
+		particles[i].meta.z = 0;
 		cpy_particles[i] = particles[i];
 		return;
 	}
 	if(simStep == 1){//Sort particle indices
-		particles[i].meta.y = binIndex;
-		uint newID = atomicAdd(bins[binIndex].index, -1) -1;
+		uint newID = atomicAdd(bins[cpy_particles[i].meta.y].index, -1) -1;
 		particles[newID] = cpy_particles[i];
 		sortedIndices[particles[newID].meta.z] = newID;
 		return;

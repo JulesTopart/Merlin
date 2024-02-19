@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 
 using namespace Merlin;
 using namespace Merlin::Utils;
@@ -253,14 +254,14 @@ void AppLayer::ResetSimulation() {
 	buf.velocity = glm::vec2(0);
 	
 	buf.phase = FLUID; // phase
-	glm::vec2 cubeSize = glm::vec2(60, 70);
+	glm::vec2 cubeSize = glm::vec2(70, 70);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
 
-	for (int xi = 0; xi <= cubeSize.x / spacing; xi++)
-		for (int yi = 0; yi <= cubeSize.y / spacing; yi++){
+	for (int yi = 0; yi <= cubeSize.y / spacing; yi++)
+		for (int xi = 0; xi <= cubeSize.x / spacing; xi++){
 				float x = ((xi + 1) * spacing) - (settings.bb.x/2.0);
 				float y = ((yi + 1) * spacing) - (settings.bb.y/2.0);
-				buf.id = cpu_particles.size();
+				buf.id = 0;// cpu_particles.size();
 				buf.position.x = x;
 				buf.position.y = y;
 				buf.pposition = buf.position;
@@ -315,7 +316,7 @@ void AppLayer::ResetSimulation() {
 	
 	
 	auto& cpu_sortedIndexBuffer = sortedIndexBuffer->GetDeviceBuffer();
-	for (int i = 0; i < settings.pThread; i++) cpu_sortedIndexBuffer[i] = i;
+	for (int i = 0; i < settings.pThread; i++) cpu_sortedIndexBuffer[i] = 0;
 	sortedIndexBuffer->Bind();
 	sortedIndexBuffer->Upload();
 	sortedIndexBuffer->Unbind();
@@ -572,14 +573,29 @@ void AppLayer::OnImGuiRender() {
 		sortedIndexBuffer->Bind();
 		sortedIndexBuffer->Download();
 
-		/*
-		std::vector<FluidParticle> sorted;
-		sorted.resize(particleBuffer->GetDeviceBuffer().size());
-
-		std::vector<FluidParticle> bugged;
+		std::vector<GLuint> sorted;
+		
 		for (int i = 0; i < numParticles; i++) {
-			sorted[particleBuffer->GetDeviceBuffer()[i].newIndex] = particleBuffer->GetDeviceBuffer()[i];
-		}*/
+			//sorted.push_back(particleBuffer->GetDeviceBuffer()[i].id);
+			sorted.push_back(sortedIndexBuffer->GetDeviceBuffer()[i]);
+		}
+
+		Console::info("Sorting") << "Sorted array has " << sorted.size() << " entry. " << numParticles - sorted.size() << " entry are missing" << Console::endl;
+
+		std::unordered_map<GLuint, GLuint> idmap;
+		for (int i = 0; i < sorted.size(); i++) {
+			idmap[sorted[i]] = sorted[i];
+		}
+
+		std::vector<GLuint> missings;
+		for (int i = 0; i < sorted.size(); i++) {
+			if (idmap.find(i) == idmap.end()) {
+				missings.push_back(i);
+			};
+		}
+
+
+		Console::info("Sorting") << "Sorted array has " << sorted.size() << " entry. ID Map has " << idmap.size() << " entry" << Console::endl;
 
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;

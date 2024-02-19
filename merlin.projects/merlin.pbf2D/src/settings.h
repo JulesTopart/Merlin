@@ -11,9 +11,9 @@ struct Bin {
 };
 
 struct Particle {
-	alignas(8) glm::vec2 position;
-	alignas(8) glm::vec2 pposition;
-	alignas(8) glm::vec2 velocity;
+	glm::vec2 position;
+	glm::vec2 pposition;
+	glm::vec2 velocity;
 	float density;
 	float lambda;
 	GLuint phase;
@@ -45,12 +45,12 @@ struct Settings {
 	GLuint pThread = 1000000; //Max Number of particles (thread) (10 milion)
 
 	//Solver settings
-	int solver_substep = 3;
+	int solver_substep = 4;
 	int solver_iteration = 6;
 	float overRelaxation = 1.0;
 
 	//calulated
-	GLuint pWkgSize = 128; //Number of thread per workgroup
+	GLuint pWkgSize = 256; //Number of thread per workgroup
 	GLuint bWkgSize = 256; //Number of thread per workgroup
 
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
