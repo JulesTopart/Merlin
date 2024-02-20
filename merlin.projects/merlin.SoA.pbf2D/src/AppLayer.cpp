@@ -209,7 +209,6 @@ void AppLayer::InitPhysics() {
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
-	Console::info() << "Particle struct size :" << sizeof(Particle) << Console::endl;
 	// Allocate Buffer and double buffering
 	positionBuffer = SSBO<glm::vec2>::Create("PositionBuffer", settings.pThread);
 	cpyPositionBuffer = SSBO<glm::vec2>::Create("cpyPositionBuffer",settings.pThread);
@@ -313,9 +312,11 @@ void AppLayer::ResetSimulation() {
 	settings.pThread = numParticles;
 	particleSystem->SetInstancesCount(settings.pThread);
 	
+	ApplyBufferSettings();
+	SyncUniforms();
+
 	positionBuffer->Bind();
 	positionBuffer->Upload();
-
 	predictedPositionBuffer->Bind();
 	positionBuffer->Upload();
 	velocityBuffer->Bind();
@@ -327,8 +328,7 @@ void AppLayer::ResetSimulation() {
 	metaBuffer->Bind();
 	metaBuffer->Upload();
 
-	ApplyBufferSettings();
-	SyncUniforms();
+
 }
 
 

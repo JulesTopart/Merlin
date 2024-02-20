@@ -111,3 +111,4 @@ group "Projects"
 
 	include "merlin.projects/merlin.pbf3D"
 	include "merlin.projects/merlin.SoA.pbf2D"
+	include "merlin.projects/merlin.SoA.pbf3D"
