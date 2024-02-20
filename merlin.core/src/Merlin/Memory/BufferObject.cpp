@@ -35,6 +35,7 @@ namespace Merlin::Memory {
 		m_bufferSize = 0;
 		m_name = "buffer" + std::to_string(instances++);
 		m_bufferID = -1;
+		m_bindingPoint = instances++;
 	}
 
 	GenericBufferObject::GenericBufferObject(const std::string& name, GLenum target) {
@@ -43,6 +44,7 @@ namespace Merlin::Memory {
 		m_bufferSize = 0;
 		m_name = name;
 		m_bufferID = -1;
+		m_bindingPoint = instances++;
 	}
 
 	GenericBufferObject::~GenericBufferObject() {

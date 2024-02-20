@@ -25,49 +25,8 @@ void ExampleLayer::OnAttach(){
 	Console::SetLevel(ConsoleLevel::_INFO);
 
 	Console::print() << "Generating data..." << Console::endl;
-	for (GLuint i = 0; i < n - 20; i++) {
-		if(i == 3);
-		else if (i == 675);
-		else if (i == 22512);
-		else if (i == 98465);
-		else if (i == 5441);
-		else if (i == 3216842);
-		else if (i == 354644);
-		else if (i == 5) {
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-			data.push_back(5);
-		}else if (i == 422) {
-			data.push_back(422);
-			data.push_back(422);
-			data.push_back(422);
-		}
-		else if (i == 18051) {
-			data.push_back(18051);
-			data.push_back(18051);
-			data.push_back(18051);
-		}else data.push_back(i);
+	for (GLuint i = 0; i < n; i++) {
+		data.push_back(i);
 	}
 
 	//debugVector(data);
@@ -94,11 +53,18 @@ void ExampleLayer::OnAttach(){
 	compactSumBuffer.Rename("compactSumBuffer");
 	compactSumBuffer.Allocate(blocks);
 
+	inDataBuffer.SetBindingPoint(0);
+	outDataBuffer.SetBindingPoint(1);
+	prefixSumBuffer.SetBindingPoint(2);
+	compactSumBuffer.SetBindingPoint(3);
+
+	prefixSum->Use();
 	prefixSum->Attach(inDataBuffer);
 	prefixSum->Attach(outDataBuffer);
 	prefixSum->Attach(prefixSumBuffer);
 	prefixSum->Attach(compactSumBuffer);
 
+	countingCount->Use();
 	countingCount->Attach(inDataBuffer);
 	countingCount->Attach(outDataBuffer);
 	countingCount->Attach(prefixSumBuffer);
