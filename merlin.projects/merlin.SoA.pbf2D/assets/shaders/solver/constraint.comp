@@ -1,0 +1,87 @@
+//? #version 430
+#ifndef INCLUDE_CONSTRAINTS_GLSL
+#define INCLUDE_CONSTRAINTS_GLSL
+
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+
+
+
+vec2 solveFloorCollision(uint i){
+	vec2 correctedPosition = Xi;
+	for (int i = 0; i < 2; i++){
+		if (correctedPosition[i] - particleRadius <= boundaryMin[i] ){
+			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
+		}
+		else if (correctedPosition[i] + particleRadius >= boundaryMax[i])
+		{
+			correctedPosition[i] =  boundaryMax[i] - particleRadius;
+		}
+	}
+
+	return (correctedPosition - Xi);
+}
+
+
+vec2 clampToDomain(vec2 position){
+
+	position.x = max(position.x, boundaryMin.x + particleRadius);
+	position.x = min(position.x, boundaryMax.x - particleRadius);
+	position.y = max(position.y, boundaryMin.y + particleRadius);
+	position.y = min(position.y, boundaryMax.y - particleRadius);
+
+	return position;
+}
+
+
+float computeLambda(uint i) {
+    float rho0 = restDensity;
+    float sumGradCj = 0;
+    vec2 gradCi = vec2(0);
+    float density = 0.0;
+    vec2 position = Xi;
+    OVERNNS
+		vec2 dist = Rij;
+		if(length(dist) >= H) continue;
+		vec2 gradCj = spiky_grad(dist);
+		gradCi += gradCj;
+		if(i != j){
+			sumGradCj += dot(gradCj, gradCj);
+			density += Mj * poly6(dist);
+		}
+	OVERNNS_END
+	sumGradCj += dot(gradCi, gradCi);
+	sumGradCj = max(sumGradCj, 1e-6);
+	Rhoi = max(density, rho0);
+    float C = max((density / rho0) - 1.0, 0.0);
+    return -C / (sumGradCj/pow(rho0, 2));
+}
+
+
+//Compute position deltas w neigbor
+vec2 computePositionDelta(uint i) {
+	vec2 posDelta = vec2(0.0f);
+	float rho0 = restDensity;
+	float sCorr = 0.0;
+	if(Rhoi -  restDensity < 0) return posDelta;
+	vec2 position = Xi;
+	OVERNNS
+	if(j == i) continue;
+		vec2 dist = Rji;
+        sCorr = -artificialPressureMultiplier * pow(poly6(dist) / poly6(normalize(vec2(1)) * 0.2*H), 4);
+        posDelta += spikyGradient(dist) * (B_Lambda(i) + B_Lambda(j) + sCorr);
+	OVERNNS_END
+	posDelta /= rho0;
+	//posDelta = clamp(posDelta, -MAX_DELTA_PI, MAX_DELTA_PI);
+	return posDelta;
+}
+
+
+
+
+
+
+#endif

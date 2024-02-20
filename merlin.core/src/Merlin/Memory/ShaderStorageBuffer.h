@@ -15,6 +15,7 @@ namespace Merlin::Memory {
 
 		static void copy(Shared<ShaderStorageBuffer> origin, Shared<ShaderStorageBuffer> target, GLsizeiptr size);
 		static Shared<ShaderStorageBuffer<T>> Create(std::string name);
+		static Shared<ShaderStorageBuffer<T>> Create(std::string name, GLsizeiptr size, GLenum usage = GL_STATIC_DRAW, T* data = NULL);
 
 	};
 
@@ -51,6 +52,14 @@ namespace Merlin::Memory {
 	SSBO_Ptr<T> ShaderStorageBuffer<T>::Create(std::string name) {
 		return std::make_shared<ShaderStorageBuffer>(name);
 	}
+
+	template <class T>
+	SSBO_Ptr<T> ShaderStorageBuffer<T>::Create(std::string name, GLsizeiptr size, GLenum usage, T* data) {
+		auto ptr = std::make_shared<ShaderStorageBuffer>(name);
+		ptr->Allocate(size, usage, data);
+		return ptr;
+	}
+
 
 	template <class T>
 	ShaderStorageBuffer<T>::~ShaderStorageBuffer() {}
