@@ -7,8 +7,8 @@ in vec2 texCoord;
 out vec4 FragColor;
 
 uniform vec3 viewPos;
-uniform vec3 lightPos = vec3(0,0,500);
-uniform vec4 lightColor;
+uniform vec3 lightPos = vec3(50,50,1000);
+uniform vec4 lightColor = vec4(1.0);
 
 uniform vec3 ambient = vec3(0.2);
 uniform vec3 diffuse = vec3(0.4);
@@ -37,10 +37,14 @@ vec4 pointLight(){
 	else N = normalize(normal);
 
 	// Reflection (using skybox)
+	
 	vec3 I = normalize(position - viewPos);
 	vec3 R = reflect(I, norm);
 	R = vec3(R.x, -R.z, -R.y);
-	vec3 skyColor = mix(vec3(1),textureLod(skybox, R, 6.0).rbg, shininess);
+	vec3 skyColor;
+	if(hasSkybox == 1) skyColor = mix(vec3(1),textureLod(skybox, R, 6.0).rbg, shininess);
+	else skyColor = vec3(-R.y*0.5+0.8);
+
 
 	vec3 ambientColor;
 	if (hasColorTex == 1) ambientColor = ambient * (texture(color0, uv).rgb + 5.0*normalize(skyColor));
