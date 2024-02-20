@@ -23,8 +23,8 @@ AppLayer::AppLayer() {
 	camera->setNearPlane(0.1f);
 	camera->setFarPlane(1800.0f);
 	camera->setFOV(60); //Use 90.0f as we are using cubemaps
-	camera->SetPosition(glm::vec3(0.0f, -140.0f, 40));
-	camera->SetRotation(glm::vec3(0, 20, -270));
+	camera->SetPosition(glm::vec3(0.0f, -300.0f, 80));
+	camera->SetRotation(glm::vec3(0, 10, -270));
 	cameraController = CreateShared<CameraController3D>(camera);
 	cameraController->SetZoomLevel(1);
 	cameraController->SetCameraSpeed(100);
@@ -168,9 +168,9 @@ void AppLayer::InitGraphics() {
 	//modelShader->noTexture();
 
 	particleShader->Use();
-	particleShader->SetInt("colorCycle", 0);
+	particleShader->SetInt("colorCycle", 4);
 	binShader->Use();
-	binShader->SetInt("colorCycle", 0);
+	binShader->SetInt("colorCycle", 4);
 
 	renderer.AddShader(particleShader);
 	renderer.AddShader(binShader);
@@ -195,10 +195,10 @@ void AppLayer::InitGraphics() {
 	floorSurface->Translate(glm::vec3(0.75, -0.25, 0));
 
 	Shared<Material> floorMat2 = CreateShared<Material>("floorMat2");
-	floorMat2->SetAmbient(glm::vec3(0.015));
-	floorMat2->SetDiffuse(glm::vec3(0.9));
-	floorMat2->SetSpecular(glm::vec3(0.95));
-	floorMat2->SetShininess(0.98);
+	floorMat2->SetAmbient(glm::vec3(0.02));
+	floorMat2->SetDiffuse(glm::vec3(0.95));
+	floorMat2->SetSpecular(glm::vec3(0.99));
+	floorMat2->SetShininess(0.99);
 	floorMat2->LoadTexture("assets/textures/bed.png", TextureType::COLOR);
 
 
@@ -319,7 +319,7 @@ void AppLayer::ResetSimulation() {
 	auto& cpu_meta = metaBuffer->GetDeviceBuffer();
 
 
-	glm::vec3 cubeSize = glm::vec3(80, 50, 30);
+	glm::vec3 cubeSize = glm::vec3(60, 195, 50);
 	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
 
 	numParticles = 0;
@@ -327,6 +327,24 @@ void AppLayer::ResetSimulation() {
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
 			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
 				float x = ((xi + 1) * spacing) - (settings.bb.x / 2.0);
+				float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
+				float z = ((zi + 1) * spacing);
+
+				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
+				cpu_velocity.push_back(glm::vec4(0));
+				cpu_density.push_back(0.0);
+				cpu_lambda.push_back(0.0);
+				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
+				numParticles++;
+			}
+		}
+	}
+
+	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
+		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
+			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
+				float x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
 				float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
 				float z = ((zi + 1) * spacing);
 
@@ -538,7 +556,7 @@ void AppLayer::OnImGuiRender() {
 		solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.001);
 	}
 
-	static int colorMode = 0;
+	static int colorMode = 4;
 	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Velocity", "Mass", "Neighbors" };
 	if (ImGui::ListBox("Colored field", &colorMode, options, 7)) {
 		particleShader->Use();

@@ -7,8 +7,7 @@
 #define B_X(buffer_index) ssbo_pposition[buffer_index].xyz
 #define B_M(buffer_index) particleMass
 #define B_V(buffer_index) ssbo_velocity[buffer_index].xyz
-#define B_Lambda(buffer_index) ssbo_lambda[buffer_index]
-#define B_Rho(buffer_index) ssbo_density[buffer_index]
+#define B_T(buffer_index) ssbo_temperature[buffer_index]
 #define B_Phase(buffer_index) ssbo_meta[buffer_index].x
 #define B_BinIndex(buffer_index) ssbo_meta[buffer_index].y
 #define B_ID(buffer_index) ssbo_meta[buffer_index].z
@@ -21,10 +20,10 @@
 #define Xj B_X(j).xyz
 #define Vi B_V(i).xyz
 #define Vj B_V(j).xyz
+#define Ti B_T(i)
+#define Tj B_T(j)
 #define Mi particleMass
 #define Mj particleMass
-#define Rhoi B_Rho(i)
-#define Rhoj B_Rho(j)
 
 #define Vij (Vj - Vi)
 #define Rij (Xj - Xi)
@@ -52,18 +51,11 @@ layout(std430) buffer cpyVelocityBuffer {
 	vec4 ssbo_cpy_velocity[];
 };
 
-layout(std430) buffer DensityBuffer {
-	float ssbo_density[];
+layout(std430) buffer TemperatureBuffer {
+	float ssbo_temperature[];
 };
-layout(std430) buffer cpyDensityBuffer {
-	float ssbo_cpy_density[];
-};
-
-layout(std430) buffer LambdaBuffer {
-	float ssbo_lambda[];
-};
-layout(std430) buffer cpyLambdaBuffer {
-	float ssbo_cpy_lambda[];
+layout(std430) buffer cpyTemperatureBuffer {
+	float ssbo_cpy_temperature[];
 };
 
 layout(std430) buffer MetaBuffer {

@@ -31,8 +31,7 @@ void NNS(uint i, uint simStep){
 		ssbo_cpy_position[i] = ssbo_position[i];
 		ssbo_cpy_pposition[i] = ssbo_pposition[i];
 		ssbo_cpy_velocity[i] = ssbo_velocity[i];
-		ssbo_cpy_density[i] = ssbo_density[i];
-		ssbo_cpy_lambda[i] = ssbo_lambda[i];
+		ssbo_cpy_temperature[i] = ssbo_temperature[i];
 		ssbo_cpy_meta[i] = ssbo_meta[i];
 
 		return;
@@ -42,8 +41,7 @@ void NNS(uint i, uint simStep){
 		ssbo_position[newID]  = ssbo_cpy_position[i];
 		ssbo_pposition[newID] = ssbo_cpy_pposition[i];
 		ssbo_velocity[newID]  = ssbo_cpy_velocity[i];
-		ssbo_density[newID]   = ssbo_cpy_density[i];
-		ssbo_lambda[newID]    = ssbo_cpy_lambda[i];
+		ssbo_temperature[newID]   = ssbo_cpy_temperature[i];
 		ssbo_meta[newID]      = ssbo_cpy_meta[i];
 
 		ssbo_meta[ssbo_meta[newID].z].z = newID;
@@ -56,17 +54,19 @@ void SolveDEM(uint i, uint simStep) {
 	
 	if(simStep == 2){
 		vec2 acceleration = vec2(0,-g);
-		Xi = xi + Vi * dt + acceleration * dt * dt;
+		Xi = xi + Vi * dt;
 		if(length(Xi - xi) < 0.001) Xi = xi; //particle sleeping
+		Xi += acceleration * dt * dt;
 		return;
 	}else if(simStep == 3){
 		Xi += solveFloorCollision(i);
 		return;
 	}else if(simStep == 4){
 		Xi += solveParticleCollision(i);
+		Ti += computeTemperatureDelta(i)*dt;
 		return;
 	}else if(simStep == 5){
-		Vi = (Xi - xi)/dt;
+		Vi = 0.998*(Xi - xi)/dt;
 		xi = Xi;
 		return;
 	}

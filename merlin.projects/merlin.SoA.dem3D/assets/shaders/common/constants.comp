@@ -28,4 +28,18 @@ const float smoothingRadius = 4.0 * particleRadius; //mm
 const float binSize = smoothingRadius;
 const uvec3 binMax = uvec3(domain / binSize);
 const uint binCount = binMax.x * binMax.y * binMax.z;
+
+// --- Heat Transfer ---
+const float ambientTemperature = 298.15;
+const float floorTemperature = 333.15;
+const float nozzleTemperature = 488.15;
+
+const float kPLA = 1.83e-4;// W / mm.K
+const float CpPLA = 4.0; // J / g.K
+
+const float kAmbient = 1.0e-4;
+const float kPlateau = 3.0e-4;
+
+const float kWater = 6.06e-4; // W / mm.K
+const float CpWater = 4.18; // J /g.K
 #endif

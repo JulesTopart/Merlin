@@ -6,7 +6,7 @@ uniform float restDensity = 1.0;//g/mm3
 uniform float particleMass = 1.0;//g
 
 uniform float dt = 0.005;//s
-uniform float g = 9.81f*100.0;//mm/s^-2
+uniform float g = 9.81f*1000.0;//mm/s^-2
 
 uniform float artificialPressureMultiplier = 0.0001;
 uniform float artificialViscosityMultiplier = 0.0001;

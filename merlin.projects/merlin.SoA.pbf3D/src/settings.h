@@ -24,18 +24,18 @@ struct Particle {
 };
 
 struct Settings {
-	const float particleRadius = 0.5;
+	const float particleRadius = 1.0;
 	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius;
 
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(200, 52, 80);
+	glm::vec3 bb = glm::vec3(300, 200, 80);
 
 	// Physics Parameters
 	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);
 	Uniform<float> restDensity						= Uniform<float>("restDensity", 1.0);
-	Uniform<float> particleMass						= Uniform<float>("particleMass", smoothingRadius * 0.28);
+	Uniform<float> particleMass						= Uniform<float>("particleMass", 8.0*smoothingRadius * 0.28);
 	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 0.5);
 	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 2.0);
 
@@ -46,7 +46,7 @@ struct Settings {
 	GLuint pThread = 3000000; //Max Number of particles (thread) (10 milion)
 
 	//Solver settings
-	int solver_substep = 3;
+	int solver_substep = 4;
 	int solver_iteration = 6;
 	float overRelaxation = 1.0;
 

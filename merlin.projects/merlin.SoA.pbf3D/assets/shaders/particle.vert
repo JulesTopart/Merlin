@@ -19,7 +19,7 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 model;
 
-uniform int colorCycle = 0;
+uniform int colorCycle = 4;
 uniform uint particleTest = 50;
 uniform int showBoundary = 0;
 uniform vec2 WindowSize;

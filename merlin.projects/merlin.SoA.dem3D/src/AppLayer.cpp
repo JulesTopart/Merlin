@@ -45,16 +45,14 @@ void AppLayer::OnAttach() {
 	particleShader->Attach(*positionBuffer);
 	particleShader->Attach(*predictedPositionBuffer);
 	particleShader->Attach(*velocityBuffer);
-	particleShader->Attach(*densityBuffer);
-	particleShader->Attach(*lambdaBuffer);
+	particleShader->Attach(*temperatureBuffer);
 	particleShader->Attach(*metaBuffer);
 
 	binShader->Use();
 	binShader->Attach(*positionBuffer);
 	binShader->Attach(*predictedPositionBuffer);
 	binShader->Attach(*velocityBuffer);
-	binShader->Attach(*densityBuffer);
-	binShader->Attach(*lambdaBuffer);
+	binShader->Attach(*temperatureBuffer);
 	binShader->Attach(*metaBuffer);
 	binShader->Attach(*binBuffer);
 
@@ -247,10 +245,8 @@ void AppLayer::InitPhysics() {
 	cpyPredictedPositionBuffer = SSBO<glm::vec4>::Create("cpyPredictedPositionBuffer", settings.pThread);
 	velocityBuffer = SSBO<glm::vec4>::Create("VelocityBuffer", settings.pThread);
 	cpyVelocityBuffer = SSBO<glm::vec4>::Create("cpyVelocityBuffer", settings.pThread);
-	densityBuffer = SSBO<float>::Create("DensityBuffer", settings.pThread);
-	cpyDensityBuffer = SSBO<float>::Create("cpyDensityBuffer", settings.pThread);
-	lambdaBuffer = SSBO<float>::Create("LambdaBuffer", settings.pThread);
-	cpyLambdaBuffer = SSBO<float>::Create("cpyLambdaBuffer", settings.pThread);
+	temperatureBuffer = SSBO<float>::Create("TemperatureBuffer", settings.pThread);
+	cpyTemperatureBuffer = SSBO<float>::Create("cpyTemperatureBuffer", settings.pThread);
 	metaBuffer = SSBO<glm::uvec4>::Create("MetaBuffer", settings.pThread);
 	cpymetaBuffer = SSBO<glm::uvec4>::Create("cpyMetaBuffer", settings.pThread);
 
@@ -266,13 +262,11 @@ void AppLayer::InitPhysics() {
 	cpyPredictedPositionBuffer->SetBindingPoint(3);
 	velocityBuffer->SetBindingPoint(4);
 	cpyVelocityBuffer->SetBindingPoint(5);
-	densityBuffer->SetBindingPoint(6);
-	cpyDensityBuffer->SetBindingPoint(7);
-	lambdaBuffer->SetBindingPoint(8);
-	cpyLambdaBuffer->SetBindingPoint(9);
-	metaBuffer->SetBindingPoint(10);
-	cpymetaBuffer->SetBindingPoint(11);
-	binBuffer->SetBindingPoint(13);
+	temperatureBuffer->SetBindingPoint(6);
+	cpyTemperatureBuffer->SetBindingPoint(7);
+	metaBuffer->SetBindingPoint(9);
+	cpymetaBuffer->SetBindingPoint(10);
+	binBuffer->SetBindingPoint(11);
 
 	//Attach Buffers
 	particleSystem->AddComputeShader(solver);
@@ -282,10 +276,8 @@ void AppLayer::InitPhysics() {
 	particleSystem->AddStorageBuffer(cpyPredictedPositionBuffer);
 	particleSystem->AddStorageBuffer(velocityBuffer);
 	particleSystem->AddStorageBuffer(cpyVelocityBuffer);
-	particleSystem->AddStorageBuffer(densityBuffer);
-	particleSystem->AddStorageBuffer(cpyDensityBuffer);
-	particleSystem->AddStorageBuffer(lambdaBuffer);
-	particleSystem->AddStorageBuffer(cpyLambdaBuffer);
+	particleSystem->AddStorageBuffer(temperatureBuffer);
+	particleSystem->AddStorageBuffer(cpyTemperatureBuffer);
 	particleSystem->AddStorageBuffer(metaBuffer);
 	particleSystem->AddStorageBuffer(cpymetaBuffer);
 	particleSystem->AddStorageBuffer(binBuffer);
@@ -304,8 +296,7 @@ void AppLayer::ResetSimulation() {
 	positionBuffer->FreeHostMemory();
 	predictedPositionBuffer->FreeHostMemory();
 	velocityBuffer->FreeHostMemory();
-	densityBuffer->FreeHostMemory();
-	lambdaBuffer->FreeHostMemory();
+	temperatureBuffer->FreeHostMemory();
 	metaBuffer->FreeHostMemory();
 
 	Console::info() << "Generating particles..." << Console::endl;
@@ -314,27 +305,25 @@ void AppLayer::ResetSimulation() {
 	auto& cpu_position = positionBuffer->GetDeviceBuffer();
 	auto& cpu_predictedPosition = predictedPositionBuffer->GetDeviceBuffer();
 	auto& cpu_velocity = velocityBuffer->GetDeviceBuffer();
-	auto& cpu_density = densityBuffer->GetDeviceBuffer();
-	auto& cpu_lambda = lambdaBuffer->GetDeviceBuffer();
+	auto& cpu_temperature = temperatureBuffer->GetDeviceBuffer();
 	auto& cpu_meta = metaBuffer->GetDeviceBuffer();
 
 
-	glm::vec3 cubeSize = glm::vec3(80, 50, 30);
+	glm::vec3 cubeSize = glm::vec3(40, 40, 40);
 	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
 
 	numParticles = 0;
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
 			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
-				float x = ((xi + 1) * spacing) - (settings.bb.x / 2.0);
-				float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
-				float z = ((zi + 1) * spacing);
+				float x = ((xi + 1) * spacing);
+				float y = ((yi + 1) * spacing);
+				float z = ((zi + 1) * spacing) + 10;
 
 				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
 				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
 				cpu_velocity.push_back(glm::vec4(0));
-				cpu_density.push_back(0.0);
-				cpu_lambda.push_back(0.0);
+				cpu_temperature.push_back(5.0 * xi + 298.15);
 				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
 				numParticles++;
 			}
@@ -355,10 +344,8 @@ void AppLayer::ResetSimulation() {
 	positionBuffer->Upload();
 	velocityBuffer->Bind();
 	velocityBuffer->Upload();
-	densityBuffer->Bind();
-	densityBuffer->Upload();
-	lambdaBuffer->Bind();
-	lambdaBuffer->Upload();
+	temperatureBuffer->Bind();
+	temperatureBuffer->Upload();
 	metaBuffer->Bind();
 	metaBuffer->Upload();
 
@@ -618,10 +605,8 @@ void AppLayer::OnImGuiRender() {
 		velocityBuffer->Download();
 		predictedPositionBuffer->Bind();
 		predictedPositionBuffer->Download();
-		lambdaBuffer->Bind();
-		lambdaBuffer->Download();
-		densityBuffer->Bind();
-		densityBuffer->Download();
+		temperatureBuffer->Bind();
+		temperatureBuffer->Download();
 		metaBuffer->Bind();
 		metaBuffer->Download();
 

@@ -8,38 +8,64 @@
 //?#include "../common/nns.comp"
 //?#include "sph.kernels.comp" 
 
+float computeTemperatureDelta(uint i) {
 
-float rand(float n){return 1e-2*fract(sin(n) * 43758.5453123);}
+	float temperatureDelta = 0.0;
+	vec2 position = Xi;
+	OVERNNS
+		if(j == i) continue;
+		float rhoj = Mj / (3.1415926*(4/3)*pow(particleRadius,3));
+		float lambda = (kWater / (CpWater * rhoj));
+		temperatureDelta += lambda*(Tj-Ti)/(Dij*1e-3);
+	OVERNNS_END
+	//temperatureDelta /= float(n);
+	/*
+	if(particles[i].position.z < H/2.0){
+		temperatureDelta += kPlateau * (floorTemperature - Ti);
+	}*/
+	//temperatureDelta += kAmbient * (ambientTemperature - Ti);
+	return temperatureDelta;
+}
 
-vec2 solveParticleCollision(uint i) {
-    int n = 0;
-    vec2 deltaPosition = vec2(0);
+vec2 solveParticleCollision(uint i){
+	int n = 0;
+	vec2 deltaPosition = vec2(0);
 	vec2 position = Xi;
 	vec2 pi = position;
-    OVERNNS
-        
-        vec2 pj = Xj;
-        float d0 = distance(pi, pj) - 2*particleRadius;
-        float vmax = 1e-6*particleRadius/dt;
-        float l0 = 2.0 * particleRadius;
-        float l = distance(pi, pj);
-        float C = l - l0 - rand(l);
+	OVERNNS
+		if(i == j) continue;
+		vec2 pj = Xj;
+		if(pi == pj) pj = pj + 1e-4;
+		vec2 diff = pi - pj;
+		float dist = length(diff);
+		if(dist >= 3.5*particleRadius) continue; //Ignore particle that are too far
+		float l0 = 3.0*particleRadius;
+		float l = dist; // Calculate the current length
+		// Calculate the constraint violation
+		float C = l - l0;
 
-        if (C >= 0 || abs(C) < 1e-6) continue;
+		if( C >= 0) continue;
+		// Calculate the gradient of the constraint function
+		vec2 gradC = normalize(diff);
+		 
+		// Calculate the effective mass matrix
+		float inverseMass = (1.0/Mi) + (1.0/Mj);
+		float compliance = 0.0000001; // Compliance of the constraints
+		float deltaLambda = -C / ( inverseMass + (compliance/ (dt * dt)));
 
-        vec2 gradC = normalize(pi - pj);
-        float inverseMass = (1.0 / Mi) + (1.0 / Mj);
 
-        float compliance = 1.0f / 1000;
-        float deltaLambda = -C / (inverseMass + (compliance / (dt * dt)));
+		// Calculate and apply the position corrections
+		deltaPosition += gradC * deltaLambda * Mi;
+		n++;
 
-        deltaPosition += gradC * deltaLambda * Mi;
-        n++;
-    OVERNNS_END
+	OVERNNS_END
 
-    if (n > 1) return deltaPosition / float(n);
-    else return deltaPosition;
+	if(n > 1) return deltaPosition/float(n);
+	else return deltaPosition;
 }
+
+
+
 
 vec2 solveFloorCollision(uint i){
 	vec2 correctedPosition = Xi;
@@ -53,7 +79,7 @@ vec2 solveFloorCollision(uint i){
 		}
 	}
 
-	return (correctedPosition - Xi);
+	return (correctedPosition - Xi)/6;
 }
 
 
@@ -68,51 +94,26 @@ vec2 clampToDomain(vec2 position){
 }
 
 
-float computeLambda(uint i) {
-    float rho0 = restDensity;
-    float sumGradCj = 0;
-    vec2 gradCi = vec2(0);
-    float density = 0.0;
-    vec2 position = Xi;
-    OVERNNS
-		vec2 dist = Rij;
-		if(length(dist) >= H) continue;
-		vec2 gradCj = spiky_grad(dist);
-		gradCi += gradCj;
-		if(i != j){
-			sumGradCj += dot(gradCj, gradCj);
-			density += Mj * poly6(dist);
-		}
-	OVERNNS_END
-	sumGradCj += dot(gradCi, gradCi);
-	sumGradCj = max(sumGradCj, 1e-6);
-	Rhoi = max(density, rho0);
-    float C = max((density / rho0) - 1.0, 0.0);
-    return -C / (sumGradCj/pow(rho0, 2));
-}
+/*
 
-
-//Compute position deltas w neigbor
-vec2 computePositionDelta(uint i) {
-	vec2 posDelta = vec2(0.0f);
-	float rho0 = restDensity;
-	float sCorr = 0.0;
-	if(Rhoi -  restDensity < 0) return posDelta;
-	vec2 position = Xi;
+vec4 solveFriction(uint i){
+	int n = 0;
+	vec4 deltaPosition = vec4(0);
 	OVERNNS
-	if(j == i) continue;
-		vec2 dist = Rji;
-        sCorr = -artificialPressureMultiplier * pow(poly6(dist) / poly6(normalize(vec2(1)) * 0.2*H), 4);
-        posDelta += spikyGradient(dist) * (B_Lambda(i) + B_Lambda(j) + sCorr);
+		if(particles[j].phase != GRANULAR) continue; //Ignore particle that are too far
+		float l0 = 2.0*particleRadius;
+		float l = distance(particles[i].new_position, particles[j].new_position); // Calculate the current length
+		// Calculate the constraint violation
+		float C = l - l0;
+
+		if( C >= 0 || abs(C) < 1e-06) continue;
+		float inverseMass = (1.0/particles[i].mass) + (1.0/particles[j].mass);
+		deltaPosition += (particles[i].mass/inverseMass) * ((particles[i].new_position - particles[i].position) - (particles[j].new_position - particles[j].position));
+		n++;
 	OVERNNS_END
-	posDelta /= rho0;
-	//posDelta = clamp(posDelta, -MAX_DELTA_PI, MAX_DELTA_PI);
-	return posDelta;
+	if(n > 1) return deltaPosition/float(n);
+	else return deltaPosition;
 }
 
-
-
-
-
-
+*/
 #endif

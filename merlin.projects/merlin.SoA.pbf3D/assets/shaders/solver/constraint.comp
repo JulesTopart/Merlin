@@ -14,15 +14,15 @@ vec3 solveFloorCollision(uint i){
 	vec3 correctedPosition = Xi;
 	for (int i = 0; i < 3; i++){
 		if (correctedPosition[i] - particleRadius <= boundaryMin[i] ){
-			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
+			correctedPosition[i] = (boundaryMin[i]) + particleRadius + 1e-2;;
 		}
 		else if (correctedPosition[i] + particleRadius >= boundaryMax[i])
 		{
-			correctedPosition[i] =  boundaryMax[i] - particleRadius;
+			correctedPosition[i] =  boundaryMax[i] - particleRadius - 1e-2;
 		}
 	}
 
-	return (correctedPosition - Xi);
+	return (correctedPosition - Xi)*0.8;
 }
 
 
@@ -55,6 +55,23 @@ float computeLambda(uint i) {
 	OVERNNS_END
 	sumGradCj += dot(gradCi, gradCi);
 	sumGradCj = max(sumGradCj, 1e-6);
+
+
+	float boundaryDensity = 0.0;
+
+
+	for (int i = 0; i < 3; i++){
+		float dist = distance(position[i], boundaryMin[i]);
+		if (dist < smoothingRadius){
+			boundaryDensity += 0.01*particleMass/dist;
+		}
+		dist = distance(position[i], boundaryMax[i]);
+		if (dist < smoothingRadius)
+		{
+			boundaryDensity += 0.01*particleMass/dist;
+		}
+	}
+	density += boundaryDensity;
 	Rhoi = max(density, rho0);
     float C = max((density / rho0) - 1.0, 0.0);
     return -C / (sumGradCj/pow(rho0, 2));

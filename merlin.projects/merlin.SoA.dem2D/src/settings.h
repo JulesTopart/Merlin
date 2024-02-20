@@ -24,7 +24,7 @@ struct Particle {
 
 struct Settings {
 	const float particleRadius = 0.25;
-	const float smoothingRadius = 5 * particleRadius;
+	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius;
 
 
@@ -34,7 +34,7 @@ struct Settings {
 	// Physics Parameters
 	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);
 	Uniform<float> restDensity						= Uniform<float>("restDensity", 1.0);
-	Uniform<float> particleMass						= Uniform<float>("particleMass", smoothingRadius * 0.28);
+	Uniform<float> particleMass						= Uniform<float>("particleMass", smoothingRadius);
 	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 0.5);
 	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 2.0);
 
@@ -46,7 +46,7 @@ struct Settings {
 
 	//Solver settings
 	int solver_substep = 4;
-	int solver_iteration = 6;
+	int solver_iteration = 15;
 	float overRelaxation = 1.0;
 
 	//calulated

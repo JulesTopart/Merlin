@@ -28,7 +28,7 @@ void main() {
 	position = vec3(model * vec4(_position*0.95 + offset + boundaryMin, 1.0f));
 	normal = _normal;
 
-	bool test = true;//bins[gl_InstanceID].count > 0;
+	bool test = bins[gl_InstanceID].count > 0;
 
 	color = vec4(1);
 	if(colorCycle == 1){
