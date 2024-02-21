@@ -70,7 +70,7 @@ namespace Merlin::Memory {
 		m_bindingPoint = bp;
 		Bind();
 		Console::info("ShaderBase") << name() << "( block id " << m_bufferID << ") is now bound to binding point " << m_bindingPoint << Console::endl;
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, m_bindingPoint, m_bufferID);
+		glBindBufferBase(m_target, m_bindingPoint, m_bufferID);
 	}
 
 	void GenericBufferObject::Generate(bool autoBind) {

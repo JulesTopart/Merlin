@@ -37,5 +37,5 @@ namespace Merlin::Graphics {
 		Shared<Shader> m_shader;
 
 	};
-
+	typedef Shared<SkyBox> SkyBox_Ptr;
 }

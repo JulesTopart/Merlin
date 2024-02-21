@@ -55,4 +55,5 @@ namespace Merlin::Memory {
     };
 
     typedef FrameBuffer FBO;
+    typedef Shared<FBO> FBO_Ptr;
 }

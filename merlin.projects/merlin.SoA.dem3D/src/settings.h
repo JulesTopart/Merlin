@@ -10,18 +10,6 @@ struct Bin {
 	GLuint index; //bin index
 };
 
-struct Particle {
-	glm::vec3 position;  //x, y, z
-	float density;  //density
-	glm::vec3 pposition; //X, Y, Z
-	float lambda;  //density
-	glm::vec3 velocity;  //vx, vy, vz, padding
-	float paddingf;  //density
-	GLuint phase;
-	GLuint binIndex;
-	GLuint id;
-	GLuint padding;
-};
 
 struct Settings {
 	const float particleRadius = 0.5;

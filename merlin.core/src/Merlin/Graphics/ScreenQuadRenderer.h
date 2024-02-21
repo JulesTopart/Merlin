@@ -19,7 +19,7 @@ namespace Merlin::Graphics {
 
 		inline VAO& GetVAO() { return m_vao; }
 		inline Shader& GetShader() { return m_shader; }
-		inline void SetShader(Shader shader) { m_shader = shader; }
+		inline void SetShader(Shader& shader) { m_shader = shader;  m_shader.Use(); m_shader.SetInt("screen", 0); }
 
 	private:
 		//Empty vertex array object for the binding quad
@@ -29,6 +29,7 @@ namespace Merlin::Graphics {
 	};
 
 	typedef ScreenQuadRenderer SQRenderer;
+	typedef Shared<ScreenQuadRenderer> ScreenQuadRenderer_Ptr;
 }
 
 
