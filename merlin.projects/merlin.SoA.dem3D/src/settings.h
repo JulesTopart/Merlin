@@ -47,7 +47,7 @@ struct Settings {
 
 	//Solver settings
 	int solver_substep = 4;
-	int solver_iteration = 15;
+	int solver_iteration = 8;
 	float overRelaxation = 1.0;
 
 	//calulated
