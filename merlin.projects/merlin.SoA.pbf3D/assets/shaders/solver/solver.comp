@@ -79,6 +79,7 @@ void SolveFluid(uint i, uint simStep) {
 
 		vec3 position = Xi;
 		OVERNNS
+			if(j == i) continue;
 			vec3 dist = Rji;
 			float Wij = poly6(length(dist));
 			xsphSum -= artificialViscosityMultiplier * Vij * Wij * Rhoj;

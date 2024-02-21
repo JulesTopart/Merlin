@@ -551,9 +551,9 @@ void AppLayer::OnImGuiRender() {
 		solver->Use();
 		solver->SetFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
 	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 10.0)) {
+	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 1000.0)) {
 		solver->Use();
-		solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.001);
+		solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value()*0.001);
 	}
 
 	static int colorMode = 4;
