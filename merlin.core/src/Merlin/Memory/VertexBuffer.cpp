@@ -2,7 +2,7 @@
 #include "VertexBuffer.h"
 #include "../Core/Console.h"
 
-namespace Merlin::Memory{
+namespace Merlin{
 	VertexBufferLayout Vertex::GetLayout() {
 		VertexBufferLayout layout;
 		layout.Push<float>(3); //Vertex pos

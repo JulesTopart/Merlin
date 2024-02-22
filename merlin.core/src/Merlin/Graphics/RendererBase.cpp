@@ -2,7 +2,7 @@
 #include "RendererBase.h"
 #include "Merlin/Core/Core.h"
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	RendererBase::RendererBase() {
 		backgroundColor = glm::vec4(0.6f, 0.6f, 0.6f, 1.0f);

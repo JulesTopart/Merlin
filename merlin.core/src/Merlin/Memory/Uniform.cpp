@@ -1,7 +1,7 @@
 #include "glpch.h"
 #include "Uniform.h"
 
-namespace Merlin::Memory {
+namespace Merlin {
 
 	template<>
 	void Uniform<int>::Sync(ShaderBase& shader) {

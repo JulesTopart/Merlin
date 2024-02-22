@@ -7,7 +7,7 @@
 
 #include <map>
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
     class Model : public RenderableObject {
     public:

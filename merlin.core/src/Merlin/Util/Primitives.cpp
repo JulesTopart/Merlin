@@ -2,7 +2,7 @@
 #include "Merlin/Util/Primitives.h"
 #include "Merlin/Memory/IndexBuffer.h"
 
-namespace Merlin::Utils {
+namespace Merlin {
 
 	Shared<Mesh> Primitives::CreateRectangle(float x, float y) {
 		Vertices v = {

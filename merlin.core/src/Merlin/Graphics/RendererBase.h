@@ -1,7 +1,7 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 
-namespace Merlin::Graphics {
+namespace Merlin {
 	class RendererBase {
 	public:
 		RendererBase();

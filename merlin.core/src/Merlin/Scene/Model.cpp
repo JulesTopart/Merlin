@@ -1,7 +1,7 @@
 #include "glpch.h"
 #include "Model.h"
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
 
     Model::Model(const std::string& name) : RenderableObject(name){

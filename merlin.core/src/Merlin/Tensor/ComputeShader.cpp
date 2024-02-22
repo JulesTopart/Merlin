@@ -10,7 +10,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-namespace Merlin::Tensor {
+namespace Merlin {
 
 	ComputeShader::ComputeShader(const std::string& n, const std::string& cspath) {
 		m_name = n;

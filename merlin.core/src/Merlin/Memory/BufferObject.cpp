@@ -1,7 +1,7 @@
 #include "glpch.h"
 #include "BufferObject.h"
 
-namespace Merlin::Memory {
+namespace Merlin {
 
 	std::string GenericBufferObject::TypeToString() {
 		switch (m_target) {

@@ -2,7 +2,7 @@
 #include "DataStream.h"
 
 
-namespace Merlin::Utils{
+namespace Merlin{
     DataStream::ByteOrder  DataStream::systemByteOrder() {
         const uint32_t t = 1;
         return (reinterpret_cast<const uint8_t*>(&t)) ? LittleEndian : BigEndian;

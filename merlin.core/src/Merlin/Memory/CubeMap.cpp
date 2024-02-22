@@ -4,7 +4,7 @@
 
 #include <stb_image.h>
 
-namespace Merlin::Memory {
+namespace Merlin {
 
     CubeMap::CubeMap(std::string right, std::string left, std::string top, std::string bottom, std::string front, std::string back) {
         _textureID = LoadCubeMap({ right, left, top, bottom, front, back });

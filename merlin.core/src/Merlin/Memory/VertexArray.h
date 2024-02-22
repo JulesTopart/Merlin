@@ -3,7 +3,7 @@
 #include "Merlin/Memory/VertexBuffer.h"
 #include <vector>
 
-namespace Merlin::Memory {
+namespace Merlin {
 
     class VertexArray {
     public:

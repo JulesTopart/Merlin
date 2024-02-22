@@ -11,10 +11,7 @@
 
 #include "glm/gtc/random.hpp"
 
-namespace Merlin::Tensor {
-
-	using namespace Merlin::Graphics;
-
+namespace Merlin {
 
 	enum class deprecated_ParticleSystemDisplayMode {
 		MESH,

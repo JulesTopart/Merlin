@@ -12,7 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Merlin/Core/Log.h"
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	Shared<Shader> Shader::Create(	const std::string& name, 
 									const std::string& vertex_file_path,

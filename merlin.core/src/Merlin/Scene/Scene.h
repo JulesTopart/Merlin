@@ -9,9 +9,7 @@
 #include "Merlin/Scene/deprecated_ParticleSystem.h"
 #include "Camera.h"
 
-using namespace Merlin::Tensor;
-
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	class Scene : public RenderableObject {
 		Shared<RenderableObject> _rootNode = nullptr;

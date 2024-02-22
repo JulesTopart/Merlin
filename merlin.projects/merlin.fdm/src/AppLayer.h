@@ -1,7 +1,7 @@
 #pragma once
 #include "settings.h"
 
-using namespace Merlin::Graphics;
+using namespace Merlin;
 
 #define UNUSED 0
 #define SOLID 1
@@ -59,15 +59,6 @@ private:
 	SSBO_Ptr<float> cpyLambdaBuffer; // Copy of the lambda buffer
 	SSBO_Ptr<glm::uvec4> metaBuffer; // Meta buffer containing phase, bin index, id, sortedID
 	SSBO_Ptr<glm::uvec4> cpymetaBuffer; // Copy of the meta buffer
-
-	SSBO_Ptr<glm::vec4> buffer_vertices; // Copy of the meta buffer
-	SSBO_Ptr<glm::vec4> buffer_normals; // Copy of the meta buffer
-	SSBO_Ptr<int> buffer_triangle_table; // Copy of the meta buffer
-	SSBO_Ptr<int> buffer_configuration_table; // Copy of the meta buffer
-
-	uint32_t vao_draw;
-	size_t max_number_of_vertices;
-
 
 	Shader_Ptr modelShader;
 	Shader_Ptr particleShader;

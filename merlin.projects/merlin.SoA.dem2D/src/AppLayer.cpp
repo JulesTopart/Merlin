@@ -6,9 +6,6 @@
 #include <algorithm>
 
 using namespace Merlin;
-using namespace Merlin::Utils;
-using namespace Merlin::Memory;
-using namespace Merlin::Graphics;
 
 #define PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 #define GPU_PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE glFinish(); VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;

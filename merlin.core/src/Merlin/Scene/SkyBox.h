@@ -3,11 +3,7 @@
 #include "Merlin/Memory/CubeMap.h"
 #include "Merlin/Graphics/RenderableObject.h"
 
-
-
-using namespace Merlin::Memory;
-
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	class SkyBox : public RenderableObject {
 	public:

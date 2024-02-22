@@ -5,9 +5,7 @@
 #include <iomanip>
 
 using namespace Merlin;
-using namespace Merlin::Utils;
-using namespace Merlin::Memory;
-using namespace Merlin::Graphics;
+
 
 #define PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 #define GPU_PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE glFinish(); VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
@@ -311,7 +309,7 @@ void AppLayer::ResetSimulation() {
 
 	glm::vec3 cubeSize = glm::vec3(40, 40, 40);
 	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
-
+	/*
 	numParticles = 0;
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
@@ -329,6 +327,25 @@ void AppLayer::ResetSimulation() {
 			}
 		}
 	}
+	*/
+	numParticles = 0;
+	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
+		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
+			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
+				float x = ((xi + 1) * spacing) - settings.bb.x / 2.0;
+				float y = ((yi + 1) * spacing) - cubeSize.y / 2.0;
+				float z = ((zi + 1) * spacing);
+
+				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
+				cpu_velocity.push_back(glm::vec4(0));
+				cpu_temperature.push_back(0.5 * xi * yi + 298.15);
+				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
+				numParticles++;
+			}
+		}
+	}
+
 
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 

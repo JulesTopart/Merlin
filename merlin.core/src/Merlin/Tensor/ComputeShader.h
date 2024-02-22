@@ -3,9 +3,9 @@
 #include "Merlin/Graphics/ShaderBase.h"
 #include "Merlin/Graphics/RessourceManager.h"
 
-namespace Merlin::Tensor{
+namespace Merlin{
 
-	class ComputeShader : public Graphics::ShaderBase {
+	class ComputeShader : public ShaderBase {
 	public:
 		ComputeShader(const std::string& n, const std::string& file_path = "");
 		~ComputeShader();

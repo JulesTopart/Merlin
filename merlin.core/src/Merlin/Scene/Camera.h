@@ -6,7 +6,7 @@
 
 using namespace Merlin;
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	enum class Projection {
 		Orthographic, 

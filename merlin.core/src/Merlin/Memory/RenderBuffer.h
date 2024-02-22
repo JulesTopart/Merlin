@@ -1,7 +1,7 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 
-namespace Merlin::Memory {
+namespace Merlin {
     class RenderBuffer
     {
     public:

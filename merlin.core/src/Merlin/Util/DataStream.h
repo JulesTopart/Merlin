@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <cassert>
 
-namespace Merlin::Utils {
+namespace Merlin {
     class DataStream {
     public:
         typedef std::vector<uint8_t> Storage;

@@ -3,7 +3,7 @@
 #include <stb_image.h>
 #include <filesystem>
 
-namespace Merlin::Memory {
+namespace Merlin {
 	TextureMultisampled::TextureMultisampled(TextureType t, int samples) : TextureBase(GL_TEXTURE_2D_MULTISAMPLE, t), _samples(samples){}
 
 	TextureMultisampled::~TextureMultisampled(){}

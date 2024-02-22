@@ -1,2 +1,2 @@
 include (solutiondir .. "/merlin.template/template.lua")
-newProject("merlin.fluid.rendering")
+newProject("merlin.fdm")

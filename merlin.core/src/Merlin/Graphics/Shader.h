@@ -6,7 +6,7 @@
 
 #include "ShaderBase.h"
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	class Shader : public ShaderBase {
 	public:

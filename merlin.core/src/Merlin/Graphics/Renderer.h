@@ -4,7 +4,7 @@
 #include "Merlin/Scene/Camera.h"
 #include <stack>
 
-namespace Merlin::Graphics {
+namespace Merlin {
 	class Renderer : public RendererBase{
 	public:
 		Renderer();

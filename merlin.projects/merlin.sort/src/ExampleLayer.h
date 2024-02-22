@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Merlin.h>
-using namespace Merlin::Graphics;
 
 const GLuint n = 512 * 512 * 512; //Number of data
 const GLuint wgSize = 512; //WorkGroup size

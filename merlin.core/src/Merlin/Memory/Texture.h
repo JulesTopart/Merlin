@@ -2,9 +2,7 @@
 #include "Merlin/Core/Core.h"
 #include "Merlin/Graphics/Shader.h"
 
-using namespace Merlin::Graphics;
-
-namespace Merlin::Memory {
+namespace Merlin {
 
 	enum class TextureType {
 		COLOR, NORMAL, ROUGHNESS, AMBIENT_OCCLUSION, EMISSION, DEPTH, HEIGHT, SHADOW

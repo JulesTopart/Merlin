@@ -5,7 +5,7 @@
 
 #include <unordered_map>
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
     template <typename T>
     class RessourceManager {

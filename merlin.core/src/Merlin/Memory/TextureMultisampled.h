@@ -3,7 +3,7 @@
 
 #include "Merlin/Memory/Texture.h"
 
-namespace Merlin::Memory {
+namespace Merlin {
 
 	class TextureMultisampled : public TextureBase{
 	public:

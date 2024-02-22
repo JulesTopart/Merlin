@@ -1,13 +1,10 @@
 #include "AppLayer.h"
-#include "MC.h"
+
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <iomanip>
 
 using namespace Merlin;
-using namespace Merlin::Utils;
-using namespace Merlin::Memory;
-using namespace Merlin::Graphics;
 
 #define PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 #define GPU_PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE glFinish(); VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
@@ -79,19 +76,14 @@ void AppLayer::OnUpdate(Timestep ts) {
 
 	GPU_PROFILE(render_time,
 		renderer.Clear();
-		renderer.RenderScene(scene, *camera);
-
-		modelShader->Use();
-		glBindVertexArray(vao_draw);
-		glDrawArrays(GL_TRIANGLES, 0, max_number_of_vertices);
-
+	renderer.RenderScene(scene, *camera);
 	)
 
-	if (!paused) {
-		GPU_PROFILE(solver_total_time,
-			Simulate(0.016);
-		)
-	}
+		if (!paused) {
+			GPU_PROFILE(solver_total_time,
+				Simulate(0.016);
+			)
+		}
 }
 
 
@@ -259,55 +251,6 @@ void AppLayer::InitPhysics() {
 	metaBuffer = SSBO<glm::uvec4>::Create("MetaBuffer", settings.pThread);
 	cpymetaBuffer = SSBO<glm::uvec4>::Create("cpyMetaBuffer", settings.pThread);
 
-
-
-
-	float twist = 0.0f;
-	float bend = 0.0f;
-	const auto volume_size = glm::uvec3{ 128, 128, 128 };
-	size_t debug_layer = volume_size.z / 2;
-	float isolevel = 0.0f;
-	bool wireframe = true;
-	const size_t max_triangles_per_cell = 5;
-	const size_t max_vertices_per_triangle = 3;
-	max_number_of_vertices = static_cast<size_t>(volume_size.x) *
-	static_cast<size_t>(volume_size.y) *
-	static_cast<size_t>(volume_size.z) * max_triangles_per_cell * max_vertices_per_triangle;
-
-	std::cout << "Max number of vertices : " << max_number_of_vertices << "\n";
-	/*
-	buffer_vertices = SSBO<glm::vec4>::Create("buffer_vertices", max_number_of_vertices);
-	glCreateBuffers(1, &buffer_vertices);
-	glNamedBufferStorage(buffer_vertices, buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-	glCreateBuffers(1, &buffer_normals);
-	glNamedBufferStorage(buffer_normals, buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-	glCreateBuffers(1, &buffer_triangle_table);
-	glNamedBufferStorage(buffer_triangle_table, sizeof(int) * 256 * 16, triangle_table, GL_DYNAMIC_STORAGE_BIT);
-
-	glCreateBuffers(1, &buffer_configuration_table);
-	glNamedBufferStorage(buffer_configuration_table, sizeof(int) * 256, edge_table, GL_DYNAMIC_STORAGE_BIT);
-
-	glCreateVertexArrays(1, &vao_draw);
-
-	glEnableVertexArrayAttrib(vao_draw, 0);
-	glEnableVertexArrayAttrib(vao_draw, 1);
-
-	glVertexArrayVertexBuffer(vao_draw, 0, buffer_vertices, 0, sizeof(glm::vec4));
-	glVertexArrayVertexBuffer(vao_draw, 1, buffer_normals, 0, sizeof(glm::vec4));
-
-	glVertexArrayAttribFormat(vao_draw, 0, 4, GL_FLOAT, false, 0);
-	glVertexArrayAttribFormat(vao_draw, 1, 4, GL_FLOAT, false, 0);
-
-	glVertexArrayAttribBinding(vao_draw, 0, 0);
-	glVertexArrayAttribBinding(vao_draw, 1, 1);
-	*/
-
-
-
-
-
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
 	binBuffer = SSBO<Bin>::Create("BinBuffer");
 	binBuffer->Allocate(settings.bThread);
@@ -327,11 +270,7 @@ void AppLayer::InitPhysics() {
 	metaBuffer->SetBindingPoint(10);
 	cpymetaBuffer->SetBindingPoint(11);
 	binBuffer->SetBindingPoint(13);
-	/*
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer_vertices);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, buffer_normals);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, buffer_triangle_table);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, buffer_configuration_table);*/
+
 	//Attach Buffers
 	particleSystem->AddComputeShader(solver);
 	particleSystem->AddStorageBuffer(positionBuffer);
@@ -581,6 +520,12 @@ void AppLayer::OnImGuiRender() {
 		particleShader->SetInt("showBoundary", BBstate);
 	}
 
+	static bool Whirlpool = false;
+	if (ImGui::Checkbox("whirlpool", &Whirlpool)) {
+		solver->Use();
+		solver->SetInt("whirlpool", Whirlpool);
+	}
+
 	ImGui::DragInt("Solver substep", &settings.solver_substep, 1, 1, 200);
 	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 200);
 
@@ -609,9 +554,9 @@ void AppLayer::OnImGuiRender() {
 		solver->Use();
 		solver->SetFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
 	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 10.0)) {
+	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 1000.0)) {
 		solver->Use();
-		solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.001);
+		solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value()*0.001);
 	}
 
 	static int colorMode = 4;

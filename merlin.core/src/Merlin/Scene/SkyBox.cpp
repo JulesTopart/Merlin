@@ -3,7 +3,7 @@
 #include "Merlin/Memory/VertexBuffer.h"
 #include "Merlin/Memory/IndexBuffer.h"
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	Shared<SkyBox> SkyBox::Create(std::string name, std::vector<std::string> paths) {
 		return std::make_shared<SkyBox>(name, paths);

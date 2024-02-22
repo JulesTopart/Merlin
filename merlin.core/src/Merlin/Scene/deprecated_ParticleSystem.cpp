@@ -3,7 +3,7 @@
 #include "Merlin/Memory/IndexBuffer.h"
 
 
-namespace Merlin::Tensor {
+namespace Merlin {
 
 	deprecated_GenericParticleSystem::deprecated_GenericParticleSystem() : RenderableObject() {}
 	deprecated_GenericParticleSystem::deprecated_GenericParticleSystem(const std::string& name, GLsizeiptr instances) : RenderableObject(name, ObjectType::PARTICLESYSTEM), m_instancesCount(instances){}

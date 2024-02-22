@@ -44,7 +44,7 @@ vec3 solveParticleCollision(uint i){
 		float l0 = 2.0*particleRadius;
 		float l = dist; // Calculate the current length
 		// Calculate the constraint violation
-		float C = l - l0 - rand(l);
+		float C = l - l0 - 0.01*rand(l);
 
 		if( C >= 0) continue;
 		// Calculate the gradient of the constraint function
@@ -52,7 +52,7 @@ vec3 solveParticleCollision(uint i){
 		 
 		// Calculate the effective mass matrix
 		float inverseMass = (1.0/Mi) + (1.0/Mj);
-		float compliance = 0.00000001; // Compliance of the constraints
+		float compliance = 0.000000001; // Compliance of the constraints
 		float deltaLambda = -C / ( inverseMass + (compliance/ (dt * dt)));
 
 

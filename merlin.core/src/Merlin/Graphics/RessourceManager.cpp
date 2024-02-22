@@ -2,7 +2,7 @@
 #include "RessourceManager.h"
 #include "Merlin/Util/Util.h"
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
     
 

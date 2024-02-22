@@ -8,7 +8,7 @@
 //#include <tiny_gltf.h>
 
 
-namespace Merlin::Utils {
+namespace Merlin {
 
 	// Load a model from the specified file and return a pointer to a new Mesh object
     Shared<Model> ModelLoader::LoadModel(const std::string& file_path) {
@@ -23,7 +23,7 @@ namespace Merlin::Utils {
             // Create a Mesh object using the parsed vertex and index data
             auto mesh = Mesh::Create("Mesh", vertices, indices);
             //mesh->CalculateNormals();
-            return Model::Create(Utils::GetFileName(file_path), mesh);
+            return Model::Create(GetFileName(file_path), mesh);
 
         }
         

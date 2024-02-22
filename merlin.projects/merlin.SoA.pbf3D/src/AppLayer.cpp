@@ -5,9 +5,7 @@
 #include <iomanip>
 
 using namespace Merlin;
-using namespace Merlin::Utils;
-using namespace Merlin::Memory;
-using namespace Merlin::Graphics;
+
 
 #define PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 #define GPU_PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE glFinish(); VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
@@ -521,6 +519,12 @@ void AppLayer::OnImGuiRender() {
 	if (ImGui::Checkbox("Show Boundaries", &BBstate)) {
 		particleShader->Use();
 		particleShader->SetInt("showBoundary", BBstate);
+	}
+
+	static bool Whirlpool = false;
+	if (ImGui::Checkbox("whirlpool", &Whirlpool)) {
+		solver->Use();
+		solver->SetInt("whirlpool", Whirlpool);
 	}
 
 	ImGui::DragInt("Solver substep", &settings.solver_substep, 1, 1, 200);

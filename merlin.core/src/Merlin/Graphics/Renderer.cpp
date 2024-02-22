@@ -2,7 +2,7 @@
 #include "Merlin/Core/Core.h"
 #include "Renderer.h"
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	Renderer::Renderer() : currentTransform(glm::mat4(1.0)) {}
 

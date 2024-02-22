@@ -4,7 +4,7 @@
 #include "Merlin/Graphics/Shader.h"
 #include <glm/glm.hpp>
 
-namespace Merlin::Graphics {
+namespace Merlin {
 	Material::Material(std::string name) : m_name(name) { LoadDefaultTexture(); }
 
     void Material::SetProperty(const MaterialProperty& props) {

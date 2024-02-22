@@ -1,8 +1,7 @@
 #pragma once
 #include "Merlin/Graphics/Mesh.h"
 
-namespace Merlin::Utils {
-	using namespace Merlin::Graphics;
+namespace Merlin {
 	class Primitives {
 	public:
 		// Load a model from the specified file and return a pointer to a new Mesh object

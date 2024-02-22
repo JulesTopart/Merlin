@@ -12,6 +12,7 @@
 
 layout (local_size_x = PTHREAD) in;
 void SolveDEM(uint i, uint simStep);
+void SolveGranularPBD(uint i, uint simStep);
 void NNS(uint i, uint simStep);
 
 uniform uint stage;
@@ -20,7 +21,7 @@ void main() {
 	uint i = gl_GlobalInvocationID.x;
 	if (i >= numParticles) return;
 	NNS(i, stage);
-	if(B_Phase(i) != BOUNDARY)	SolveDEM(i, stage);
+	if(B_Phase(i) != BOUNDARY)	SolveGranularPBD(i, stage);
 }
 
 void NNS(uint i, uint simStep){
@@ -48,12 +49,33 @@ void NNS(uint i, uint simStep){
 	}
 }
 
+void SolveGranularPBD(uint i, uint simStep) {
+	
+	if(simStep == 2){
+		vec3 acceleration = vec3(0, 0, -g);
+		Xi = xi + Vi * dt;
+		Xi += acceleration * dt * dt;
+		return;
+	}else if(simStep == 3){
+		Xi += solveFloorCollision(i);
+		return;
+	}else if(simStep == 4){
+		Xi += solveParticleCollision(i);
+		return;
+	}else if(simStep == 5){
+		Vi = 0.999*(Xi - xi)/dt;
+		Ti += computeTemperatureDelta(i)*dt;
+		xi = Xi;
+		return;
+	}
+
+}
+
 void SolveDEM(uint i, uint simStep) {
 	
 	if(simStep == 2){
 		vec3 acceleration = vec3(0, 0, -g);
 		Xi = xi + Vi * dt;
-		if(length(Xi - xi) < 0.001) Xi = xi; //particle sleeping
 		Xi += acceleration * dt * dt;
 		return;
 	}else if(simStep == 3){

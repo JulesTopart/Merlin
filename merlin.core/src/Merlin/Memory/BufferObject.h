@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glad/gl.h>
 
-namespace Merlin::Memory{
+namespace Merlin{
 
 	class GenericBufferObject {
 	public :
@@ -61,6 +61,7 @@ namespace Merlin::Memory{
 
 		void Allocate(GLsizeiptr size, GLenum usage = GL_STATIC_DRAW, T* data = NULL);
 		void LoadData(const std::vector<T>& data, GLenum usage = GL_STATIC_DRAW);
+		void LoadData(void* data, size_t size, GLenum usage = GL_STATIC_DRAW);
 
 		void Resize(GLsizeiptr count);
 
@@ -115,6 +116,14 @@ namespace Merlin::Memory{
 		// Allocate storage for the buffer object.
 		m_cpuBuffer = data;
 		Allocate(m_cpuBuffer.size(), usage, m_cpuBuffer.data());
+	}
+
+	//Declare template function in the header to initialize when including
+	template<class T>
+	void BufferObject<T>::LoadData(void* data, size_t size, GLenum usage) {
+		// Allocate storage for the buffer object.
+		Allocate(size/sizeof(T), usage,(T*)data);
+		Download();
 	}
 
 	template<class T>

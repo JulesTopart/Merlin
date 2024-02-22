@@ -6,9 +6,7 @@
 
 #include <map>
 
-using namespace Merlin::Memory;
-
-namespace Merlin::Graphics {
+namespace Merlin {
 
     struct MaterialProperty{
         glm::vec3 albedo = glm::vec3(0.0);

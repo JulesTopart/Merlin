@@ -4,7 +4,7 @@
 #include <filesystem>
 #include "Merlin/Core/Log.h"
 
-namespace Merlin::Memory {
+namespace Merlin {
 
 	TextureBase::TextureBase(GLenum target, TextureType t) : _type(t), _Target(target), _format(GL_RGB), _internalFormat(GL_RGB8) {
 		//Set the target based on the number of samples

@@ -4,29 +4,29 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace Merlin::Graphics {
+namespace Merlin {
 	
 	int RenderableObject::nextID = 0;
 
 	std::string RenderableObject::TypeToString(ObjectType ob) {
 
 		switch (ob){
-		case Merlin::Graphics::ObjectType::SCENE:
+		case Merlin::ObjectType::SCENE:
 			return "Scene";
 			break;
-		case Merlin::Graphics::ObjectType::MODEL:
+		case Merlin::ObjectType::MODEL:
 			return "Model";
 			break;
-		case Merlin::Graphics::ObjectType::MESH:
+		case Merlin::ObjectType::MESH:
 			return "Mesh";
 			break;
-		case Merlin::Graphics::ObjectType::SKYBOX:
+		case Merlin::ObjectType::SKYBOX:
 			return "SkyBox";
 			break;
-		case Merlin::Graphics::ObjectType::TRANSFORM:
+		case Merlin::ObjectType::TRANSFORM:
 			return "Transform";
 			break;
-		case Merlin::Graphics::ObjectType::PARTICLESYSTEM:
+		case Merlin::ObjectType::PARTICLESYSTEM:
 			return "ParticleSystem";
 			break;
 		default:

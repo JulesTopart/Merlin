@@ -9,7 +9,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	int ShaderBase::shader_instances = 0;
 
@@ -45,7 +45,7 @@ namespace Merlin::Graphics {
 	}
 
 
-	void ShaderBase::Attach(Memory::GenericBufferObject& buf) {
+	void ShaderBase::Attach(GenericBufferObject& buf) {
 		int block_index = glGetProgramResourceIndex(m_programID, GL_SHADER_STORAGE_BLOCK, buf.name().c_str());
 		if (block_index == -1) Console::error("ShaderBase") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
 		else {

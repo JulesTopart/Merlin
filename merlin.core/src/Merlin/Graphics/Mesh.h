@@ -5,9 +5,7 @@
 #include "Merlin/Memory/VertexArray.h"
 #include "Merlin/Graphics/RenderableObject.h"
 
-using namespace Merlin::Memory;
-
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	struct BoundingBox {
 		glm::vec3 min, max;

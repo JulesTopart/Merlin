@@ -1,9 +1,6 @@
 #include "TemplateLayer.h"
 
 using namespace Merlin;
-using namespace Merlin::Utils;
-using namespace Merlin::Memory;
-using namespace Merlin::Graphics;
 
 #include <iostream>
 #include <iomanip>

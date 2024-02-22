@@ -1,7 +1,7 @@
 #pragma once
 #include "Merlin/Core/Core.h"
 
-namespace Merlin::Memory{
+namespace Merlin{
 	class CubeMap{
 	public:
 		CubeMap(std::string right, std::string left, std::string top, std::string bottom, std::string front, std::string back);

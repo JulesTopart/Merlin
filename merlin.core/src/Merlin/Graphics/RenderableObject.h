@@ -3,9 +3,7 @@
 #include "Merlin/Scene/Camera.h"
 #include "Merlin/Memory/VertexArray.h"
 
-using namespace Merlin::Memory;
-
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	enum class ObjectType {
 		GENERIC,

@@ -5,9 +5,7 @@
 #include "Merlin/Memory/Texture.h"
 #include "Merlin/Memory/VertexArray.h"
 
-using namespace Merlin::Memory;
-
-namespace Merlin::Graphics {
+namespace Merlin {
 	class ScreenQuadRenderer : public RendererBase {
 	public:
 		// Constructor

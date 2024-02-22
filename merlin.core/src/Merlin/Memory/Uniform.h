@@ -1,8 +1,7 @@
 #pragma once
 #include "Merlin/Graphics/ShaderBase.h"
 #include <vector>
-namespace Merlin::Memory {
-	using namespace Merlin::Graphics;
+namespace Merlin {
 
 	template <class T>
 	class Uniform {

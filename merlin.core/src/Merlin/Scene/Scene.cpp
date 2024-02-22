@@ -2,7 +2,7 @@
 #include "Scene.h"
 #include "Merlin/Util/ModelLoader.h"
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
 
 	Scene::Scene(std::string name) : RenderableObject(name){

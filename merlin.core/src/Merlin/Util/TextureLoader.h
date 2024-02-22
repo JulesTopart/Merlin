@@ -2,10 +2,10 @@
 #include "Merlin/Core/Core.h"
 #include "Merlin/Memory/Texture.h"
 
-using namespace Merlin::Graphics;
-using namespace Merlin::Memory;
+using namespace Merlin;
+using namespace Merlin;
 
-namespace Merlin::Utils {
+namespace Merlin {
 
 	class TextureLoader {
 	public:

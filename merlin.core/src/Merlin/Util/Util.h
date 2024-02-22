@@ -3,7 +3,7 @@
 #include "Merlin/Core/Log.h"
 #include "Merlin/Graphics/Mesh.h"
 
-namespace Merlin::Utils {
+namespace Merlin {
 
 	enum class FileType {
 		OBJ,
@@ -24,7 +24,7 @@ namespace Merlin::Utils {
 }
 
 template<typename T>
-void  Merlin::Utils::debugVector(std::vector<T>& vec) {
+void  Merlin::debugVector(std::vector<T>& vec) {
 	Console::info("Vector") << " : " << Console::endl << "[";
 	for (GLuint i = 0; i < ((vec.size() > 100) ? 100 : vec.size() - 1); i++) {
 		Console::print() << vec[i] << ", ";

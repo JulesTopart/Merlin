@@ -1,7 +1,7 @@
 #include "glpch.h"
 #include "VertexArray.h"
 
-namespace Merlin::Memory {
+namespace Merlin {
 
 	VertexArray::VertexArray() {
 		glCreateVertexArrays(1, &ArrayID);

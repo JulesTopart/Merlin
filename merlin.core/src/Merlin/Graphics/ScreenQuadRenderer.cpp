@@ -1,9 +1,7 @@
 #include "glpch.h"
 #include "ScreenQuadRenderer.h"
 
-using namespace Merlin::Memory;
-
-namespace Merlin::Graphics {
+namespace Merlin {
 	ScreenQuadRenderer::ScreenQuadRenderer() : m_shader("screen"){
 
 		m_shader.Compile(

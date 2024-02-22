@@ -1,7 +1,7 @@
 #include "glpch.h"
 #include "FrameBuffer.h"
 
-namespace Merlin::Memory {
+namespace Merlin {
 
     GLint FrameBuffer::MaxColorAttachement = 0;
 

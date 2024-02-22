@@ -3,7 +3,7 @@
 #include "Merlin/Memory/BufferObject.h"
 #include "Merlin/Memory/Vertex.h"
 
-namespace Merlin::Memory {
+namespace Merlin {
 
     template<class T = Vertex>
 	class VertexBuffer : public BufferObject<T>{

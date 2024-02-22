@@ -4,7 +4,7 @@
 #include "Merlin/Core/Input.h"
 #include "Merlin/Core/KeyCodes.h"
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
 	void CameraController::SetZoomLevel(float zl)
 	{

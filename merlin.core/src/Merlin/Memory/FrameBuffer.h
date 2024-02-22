@@ -5,9 +5,7 @@
 #include "Merlin/Memory/TextureMultisampled.h"
 #include "Merlin/Memory/RenderBuffer.h"
 
-using namespace Merlin::Graphics;
-
-namespace Merlin::Memory {
+namespace Merlin {
 
     class FrameBuffer{
     public:

@@ -14,6 +14,7 @@ layout (local_size_x = PTHREAD) in;
 void SolveFluid(uint i, uint simStep);
 void NNS(uint i, uint simStep);
 
+uniform bool whirlpool = false;
 uniform uint stage;
 uniform vec4 sourcePos;
 // XPBD_Main
@@ -73,14 +74,26 @@ void SolveFluid(uint i, uint simStep) {
 		return;
 	}
 	if(simStep == 5){//apply XSPH velocity correction
+		if(isnan(Xi.x) || isnan(Xi.y) || isnan(Xi.z)) Xi = xi;
 		Vi = (Xi - xi)/dt;
+
+		if(whirlpool){
+		float radius = distance(Xi.xy, vec2(0,0));
+		if(radius < 80){
+			vec3 pos = normalize(vec3(Xi.xy,0));
+			float wi = 500;
+			vec3 Vdir = normalize(cross(pos, vec3(0,0,1)));
+			Vi += wi * radius  * Vdir * dt;
+		}}
 
 		vec3 xsphSum = vec3(0);
 
 		vec3 position = Xi;
 		OVERNNS
-			vec3 dist = Rji;
-			float Wij = poly6(length(dist));
+			if(j == i) continue;
+			float dist = Dij;
+			if(dist < 1e-6) continue;
+			float Wij = poly6(dist);
 			xsphSum -= artificialViscosityMultiplier * Vij * Wij * Rhoj;
 		OVERNNS_END
 		Vi -= xsphSum;

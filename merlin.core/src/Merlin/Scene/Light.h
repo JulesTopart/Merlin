@@ -3,7 +3,7 @@
 #include "Merlin/Graphics/RenderableObject.h"
 #include <glm/glm.hpp>
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
     enum class LightType {
         Directional,

@@ -3,7 +3,7 @@
 #include "Merlin/Util/Util.h"
 
 
-namespace Merlin::Utils {	
+namespace Merlin {	
 
 	FileType GetFileType(const std::string& file_path) {
 		std::string extension = GetFileExtension(file_path);

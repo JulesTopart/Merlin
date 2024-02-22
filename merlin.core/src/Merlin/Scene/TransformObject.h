@@ -8,7 +8,7 @@
 
 #include <map>
 
-namespace Merlin::Graphics {
+namespace Merlin {
 
     class TransformObject : public RenderableObject {
     public:

@@ -44,9 +44,10 @@ float computeLambda(uint i) {
     float density = 0.0;
     vec3 position = Xi;
     OVERNNS
-		vec3 dist = Rij;
-		if(length(dist) >= H) continue;
-		vec3 gradCj = spiky_grad(dist);
+		vec3 diff = Rij;
+		float dist = length(diff);
+		if(dist >= H || dist < 1e-6) continue;
+		vec3 gradCj = spiky_grad(diff);
 		gradCi += gradCj;
 		if(i != j){
 			sumGradCj += dot(gradCj, gradCj);

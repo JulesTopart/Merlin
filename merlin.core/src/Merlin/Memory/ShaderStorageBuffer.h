@@ -3,9 +3,7 @@
 #include "Merlin/Memory/BufferObject.h"
 #include "Merlin/Graphics/ShaderBase.h"
 
-using namespace Merlin::Graphics;
-
-namespace Merlin::Memory {
+namespace Merlin {
 	template<class T>
 	class ShaderStorageBuffer : public BufferObject<T>{
 	public:

@@ -1,7 +1,7 @@
 #pragma once
 #include "settings.h"
 
-using namespace Merlin::Graphics;
+using namespace Merlin;
 
 #define UNUSED 0
 #define SOLID 1

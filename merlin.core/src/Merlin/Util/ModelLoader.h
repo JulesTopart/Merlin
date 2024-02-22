@@ -6,10 +6,7 @@
 #include "Merlin/Memory/IndexBuffer.h"
 #include "Merlin/Util/Util.h"
 
-using namespace Merlin::Graphics;
-using namespace Merlin::Memory;
-
-namespace Merlin::Utils{
+namespace Merlin{
 
 	class ModelLoader {
 	public:

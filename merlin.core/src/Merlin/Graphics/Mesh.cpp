@@ -2,7 +2,7 @@
 #include "Mesh.h"
 #include "Merlin/Memory/IndexBuffer.h"
 
-namespace Merlin::Graphics {
+namespace Merlin {
 	Mesh::Mesh(std::string name) : RenderableObject(name) {
 		m_drawMode = GL_POINTS;
 		//Create VAO, VBO 

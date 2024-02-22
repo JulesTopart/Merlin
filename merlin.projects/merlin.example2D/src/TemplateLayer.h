@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Merlin.h>
-using namespace Merlin::Graphics;
+using namespace Merlin;
 
-class TemplateLayer : public Merlin::Layer
+class TemplateLayer : public Layer
 {
 public:
 	TemplateLayer();
@@ -11,8 +11,8 @@ public:
 
 	virtual void OnAttach() override;
 	virtual void OnDetach() override;
-	virtual void OnEvent(Merlin::Event& event) override;
-	virtual void OnUpdate(Merlin::Timestep ts) override;
+	virtual void OnEvent(Event& event) override;
+	virtual void OnUpdate(Timestep ts) override;
 	virtual void OnImGuiRender() override;
 private:
 
