@@ -1,6 +1,7 @@
 
 #pragma once
 #include <memory>
+#include "Merlin/Core/GLObject.h"
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

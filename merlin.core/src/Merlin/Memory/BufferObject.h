@@ -7,183 +7,221 @@
 
 namespace Merlin{
 
-	class GenericBufferObject {
-	public :
-
-		GenericBufferObject(GLenum target);
-		GenericBufferObject(const std::string& name, GLenum target);
-		~GenericBufferObject();
-
-		void Rename(const std::string& name);
-		void Generate(bool autoBind = true);
-		void Delete();
-
-		void Bind();
-		void BindAs(GLenum target);
-		void Unbind();
-
-		void SetBindingPoint(GLuint bp);
-		inline GLuint GetBindingPoint() const { return m_bindingPoint; }
-
-		void* Map();
-		void Unmap();
-
-		void Clear();
-
-		inline GLuint id() const { return m_bufferID; }
-		inline GLsizeiptr size() const { return m_size; }
-		inline GLsizeiptr bufferSize() const { return m_bufferSize; }
-		inline std::string name() const { return m_name; }
-
-	protected:
-		//Protected method
-		std::string TypeToString();
-
-		//Count buffer construction for named
-		inline static unsigned int instances = 0;
-
-		GLuint m_bindingPoint = 0;
-
-		GLuint m_bufferID; //OpenGL handle
-		GLsizeiptr m_size; //size in type instance
-		GLsizeiptr m_bufferSize; //size in need in allocated memory (in bytes)
-		GLenum m_target; //GL_ARRAY_BUFFER, GL_SHADER_STORAGE_BUFFER, ...
-		std::string m_name;
-		
+	enum class BufferTarget : GLenum {
+		ARRAY_BUFFER = GL_ARRAY_BUFFER,
+		ATOMIC_COUNTER_BUFFER = GL_ATOMIC_COUNTER_BUFFER,
+		COPY_READ_BUFFER = GL_COPY_READ_BUFFER,
+		COPY_WRITE_BUFFER = GL_COPY_WRITE_BUFFER,
+		DISPATCH_INDIRECT_BUFFER = GL_DISPATCH_INDIRECT_BUFFER,
+		DRAW_INDIRECT_BUFFER = GL_DRAW_INDIRECT_BUFFER,
+		ELEMENT_ARRAY_BUFFER = GL_ELEMENT_ARRAY_BUFFER,
+		PIXEL_PACK_BUFFER = GL_PIXEL_PACK_BUFFER,
+		PIXEL_UNPACK_BUFFER = GL_PIXEL_UNPACK_BUFFER,
+		QUERY_BUFFER = GL_QUERY_BUFFER,
+		SHADER_STORAGE_BUFFER = GL_SHADER_STORAGE_BUFFER,
+		TEXTURE_BUFFER = GL_TEXTURE_BUFFER,
+		TRANSFORM_FEEDBACK_BUFFER = GL_TRANSFORM_FEEDBACK_BUFFER,
+		UNIFORM_BUFFER = GL_UNIFORM_BUFFER
 	};
 
+	enum class BufferUsage : GLenum {
+		STREAM_DRAW = GL_STREAM_DRAW,
+		STREAM_READ = GL_STREAM_READ,
+		STREAM_COPY = GL_STREAM_COPY,
+		STATIC_DRAW = GL_STATIC_DRAW,
+		STATIC_READ = GL_STATIC_READ,
+		STATIC_COPY = GL_STATIC_COPY,
+		DYNAMIC_DRAW = GL_DYNAMIC_DRAW,
+		DYNAMIC_READ = GL_DYNAMIC_READ,
+		DYNAMIC_COPY = GL_DYNAMIC_COPY
+	};
+
+	class GenericBufferObject : public GLObject<> {
+	public :
+		GenericBufferObject(const std::string& name = "buffer");
+
+		void bind();
+		void bindAs(GLenum target);
+		void unbind();
+
+		void setBindingPoint(GLuint bp);
+
+		void* map();
+		void unmap();
+		void clear();
+
+		inline BufferTarget target() const { return m_target; }
+		inline GLsizeiptr size() const { return m_size; }
+		inline GLsizeiptr bufferSize() const { return m_bufferSize; }
+		inline GLuint bindingPoint() const { return m_bindingPoint; }
+
+	private:
+		inline static unsigned int m_bufferInstances = 0;
+
+		GLuint create();
+		static void destroy(GLuint id);
+		
+	protected:
+		std::string targetToString();
+
+		GLsizeiptr m_size = 0;//Number of bytes in buffer
+		GLsizeiptr m_bufferSize = 0;//Number of bytes in buffer
+
+		GLuint m_bindingPoint = 0;  //Current binding point
+		BufferTarget m_target;			//Buffer target binding
+		
+	};
+	typedef Shared<GenericBufferObject> GenericBufferObject_Ptr;
 
 	template <class T>
 	class BufferObject : public GenericBufferObject{
 	public:
-		BufferObject(GLenum target);
-		BufferObject(const std::string& name, GLenum target);
+		BufferObject(const std::string& name = "buffer"); //default constructor
+		BufferObject(BufferTarget target, const std::vector<T>&, BufferUsage usage); //Create and allocate at once
+		BufferObject(BufferTarget target, size_t size, const T* data, BufferUsage usage); //Create and allocate at once
 
-		void Allocate(GLsizeiptr size, GLenum usage = GL_STATIC_DRAW, T* data = NULL);
-		void LoadData(const std::vector<T>& data, GLenum usage = GL_STATIC_DRAW);
-		void LoadData(void* data, size_t size, GLenum usage = GL_STATIC_DRAW);
+		BufferObject(const BufferObject& cpy) = delete;
+		BufferObject(BufferObject&& mov) noexcept = default;
 
-		void Resize(GLsizeiptr count);
+		BufferObject& operator=(const BufferObject& cpy) = delete; //avoid copying the GLObject
+		BufferObject& operator=(BufferObject&& mov) noexcept = default; //allow to move the GLObject
 
-		std::vector<T>& Download(); //Download the device Buffer onto host memory
-		void Upload(); //Upload the host Buffer onto the device memory
+		void clear(); //Clear the device memory buffer (You need to allocate it again then)
 
-		void FreeMemory(); //Clear the buffer and free device and host memory from content
-		void FreeHostMemory(); //Clear the host memory buffer
-		void FreeDeviceMemory(); //Clear the device memory buffer (You need to allocate it again then)
+		void write(const std::vector<T>& data); //write data into device memory
+		void write(const std::vector<T>& data, BufferUsage);
+		void write(size_t offset, const std::vector<T>& data);
+
+		void writeRaw(size_t offset, size_t size, const T* data);
+		void writeRaw(size_t size, const T* data, BufferUsage usage = BufferUsage::STATIC_DRAW);
 		
-		void print();
 
-		inline std::vector<T>& GetDeviceBuffer() { return m_cpuBuffer;}
+		std::vector<T>& read() const; //Read buffer from device memory
+		void read(T* data) const; //Read buffer from device memoryonto given array pointer
+		void read(std::vector<T>& data) const; //Read buffer from device memory onto given vector array
+
+		void print(); //Print part of the array in console
 
 	protected:
-		GLenum m_usage;
-		std::vector<T> m_cpuBuffer; //Buffer on host memory
+		BufferUsage m_usage = BufferUsage::STATIC_DRAW;
 	};
 
 
+	//Implementation
+	template <class T>
+	BufferObject(BufferTarget, const T*, size_t, BufferUsage) -> BufferObject<T>; //Template type deduction
 
 	template<class T>
-	BufferObject<T>::BufferObject(GLenum target) : GenericBufferObject(target) {}
+	BufferObject<T>::BufferObject(const std::string& name) : GenericBufferObject(name) {}
 
 	template<class T>
-	BufferObject<T>::BufferObject(const std::string& name, GLenum target) : GenericBufferObject(name, target) {}
-
-	template<class T>
-	void BufferObject<T>::Allocate(GLsizeiptr count, GLenum usage, T* data) {
-		Generate(); //Generate and bind buffer
+	BufferObject<T>::BufferObject(BufferTarget target, size_t size, const T* data, BufferUsage usage) : GenericBufferObject() {
+		m_target = target;
 		m_usage = usage;
-		m_size = count;
-		m_bufferSize = count * sizeof(T);
-		float kb = m_bufferSize / 1000.0;
-		float mb = m_bufferSize / 1000000.0;
-		float gb = m_bufferSize / 1000000000.0;
-
-		Console::info("Buffer") << "allocating " << name().c_str() << " with " << int(m_size) << " objects" << Console::endl;
-		if(gb > 0.5)		Console::info("Buffer") << "allocating " << gb << "GB of GPU Memory" << Console::endl;
-		else if(mb > 0.5)	Console::info("Buffer") << "allocating " << mb << "MB of GPU Memory" << Console::endl;
-		else if(kb > 0.5)	Console::info("Buffer") << "allocating " << kb << "kB of GPU Memory" << Console::endl;
-		else Console::info("Buffer") << "allocating " << GLuint(m_bufferSize) << "bytes of GPU Memory" << Console::endl;
-
-		m_cpuBuffer.resize(count);
-		glBufferData(m_target, m_bufferSize, data, usage);
-		if (data == NULL) Clear(); //Initiliaze with zero
-	}
-
-	//Declare template function in the header to initialize when including
-	template<class T>
-	void BufferObject<T>::LoadData(const std::vector<T>& data, GLenum usage) {
-		// Allocate storage for the buffer object.
-		m_cpuBuffer = data;
-		Allocate(m_cpuBuffer.size(), usage, m_cpuBuffer.data());
-	}
-
-	//Declare template function in the header to initialize when including
-	template<class T>
-	void BufferObject<T>::LoadData(void* data, size_t size, GLenum usage) {
-		// Allocate storage for the buffer object.
-		Allocate(size/sizeof(T), usage,(T*)data);
-		Download();
+		m_bufferSize = size;
+		m_size = size / sizeof(T);
+		glNamedBufferData(
+			id(),
+			m_bufferSize,
+			data,
+			static_cast<GLenum>(m_usage)
+		);
 	}
 
 	template<class T>
-	void BufferObject<T>::Resize(GLsizeiptr size) {
-		// Allocate storage for the buffer object.
-		m_cpuBuffer.resize(size);
-		m_size = size;
-		m_bufferSize = size * sizeof(T);
-		glBufferData(m_target, m_bufferSize, m_cpuBuffer.data(), m_usage);
+	BufferObject<T>::BufferObject(BufferTarget target, const std::vector<T>& data, BufferUsage usage) : GenericBufferObject() {
+		m_target = target;
+		m_usage = usage;
+		m_bufferSize = data.size() * sizeof(T);
+		m_size = data.size();
+		glNamedBufferData(
+			id(),
+			m_bufferSize,
+			data.data(),
+			static_cast<GLenum>(m_usage)
+		);
 	}
 
 	template <class T>
-	std::vector<T>& BufferObject<T>::Download() {
-		m_cpuBuffer.resize(m_size);
-		memcpy(m_cpuBuffer.data(), Map(), m_bufferSize);
-		Unmap();
-		return m_cpuBuffer;
+	std::vector<T>& BufferObject<T>::read() const{
+		std::vector<T> result;
+		result.resize(m_bufferSize / sizeof(T));
+		read(result.data());
+		return result;
 	}
 
 	template <class T>
-	void BufferObject<T>::Upload() {
-		if (m_cpuBuffer.size() > m_size) {
-			Console::error("BufferObject") << "CPU buffer size is larger than device buffer. It can't be uploaded." << Console::endl;
+	void BufferObject<T>::read(T* data) const {
+		glGetNamedBufferSubData(id(), 0, m_bufferSize, data);
+	}
+
+	template <class T>
+	void BufferObject<T>::read(std::vector<T>& data) const {
+		read(data.data());
+	}
+
+	template <class T>
+	void BufferObject<T>::writeRaw(size_t size, const T* data, BufferUsage usage) {
+		m_usage = usage;
+		if (size != m_bufferSize) {
+			m_bufferSize = size;
+			m_size = size / sizeof(T);
+			float gb, mb, kb = size / 1000.0; mb = kb / 1000.0; gb = mb / 1000.0;
+			Console::info("Buffer") << "allocating " << name().c_str() << " with " << int(m_size) << " elements" << Console::endl;
+			if (gb > 0.5)		Console::info("Buffer") << "allocating " << gb << "GB of GPU Memory" << Console::endl;
+			else if (mb > 0.5)	Console::info("Buffer") << "allocating " << mb << "MB of GPU Memory" << Console::endl;
+			else if (kb > 0.5)	Console::info("Buffer") << "allocating " << kb << "kB of GPU Memory" << Console::endl;
+			else Console::info("Buffer") << "allocating " << GLuint(m_bufferSize) << "bytes of GPU Memory" << Console::endl;
+			glNamedBufferData(id(), size, data, static_cast<GLenum>(m_usage));
 		}
 		else {
-			Console::print() << m_cpuBuffer.size() * sizeof(T) << " | " << (long int)m_size << " | " << (long int)m_bufferSize << Console::endl;
-			glBufferSubData(m_target, 0, m_cpuBuffer.size() * sizeof(T), m_cpuBuffer.data());
+			glNamedBufferSubData(id(), 0, size, data);
 		}
 	}
 
-
 	template <class T>
-	void BufferObject<T>::FreeHostMemory() {
-		m_cpuBuffer = std::vector<T>();
+	void BufferObject<T>::writeRaw(size_t offset, size_t size, const T* data) {
+		if (offset + size < m_bufferSize) {
+			glNamedBufferSubData(id(), offset, size, data);
+		}
+		else {
+			Console::error("BufferObject") << "Invalid offset or size : out of range" << Console::endl;
+		}
 	}
 
 	template <class T>
-	void BufferObject<T>::FreeDeviceMemory() {
-		Delete();
+	void BufferObject<T>::write(const std::vector<T>& data) {
+		writeRaw(data.size() * sizeof(T), data.data());
+	}
+
+	template <class T>
+	void BufferObject<T>::write(const std::vector<T>& data, BufferUsage usage) {
+		writeRaw(data.size() * sizeof(T), data.data(), usage);
+	}
+
+	template <class T>
+	void BufferObject<T>::write(size_t offset, const std::vector<T>& data){
+		writeRaw(offset * sizeof(T), data.size() * sizeof(T), data.data());
 	}
 
 
 	template <class T>
-	void BufferObject<T>::FreeMemory() {
-		FreeHostMemory();
-		FreeDeviceMemory();
+	void BufferObject<T>::clear() {
+		glNamedBufferData(id(), 0, nullptr, m_usage);
 	}
 
 
 	template<typename T>
 	void BufferObject<T>::print() {
-		Bind();
-		Download();
+		bind();
+		std::vector<T> cpuBuffer = read();
 
 		Console::info("Buffer") << m_name << " : " << Console::endl << "[";
-		for (GLuint i = 0; i < ((m_cpuBuffer.size() > 100) ? 100 : m_cpuBuffer.size() - 1); i++) {
-			Console::print() << m_cpuBuffer[i] << ", ";
+		for (GLuint i = 0; i < ((cpuBuffer.size() > 100) ? 100 : cpuBuffer.size() - 1); i++) {
+			Console::print() << cpuBuffer[i] << ", ";
 		}
-		if (m_cpuBuffer.size() > 100) Console::print() << "..., ";
-		Console::print() << m_cpuBuffer[m_cpuBuffer.size() - 1] << "]" << Console::endl << Console::endl;
+		if (cpuBuffer.size() > 100) Console::print() << "..., ";
+		Console::print() << cpuBuffer[cpuBuffer.size() - 1] << "]" << Console::endl << Console::endl;
 	}
 
 }

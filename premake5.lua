@@ -116,3 +116,4 @@ group "Projects"
 	include "merlin.projects/merlin.SoA.dem3D"
 
 	include "merlin.projects/merlin.fdm"
+	include "merlin.projects/merlin.sandbox"

@@ -16,8 +16,8 @@ namespace Merlin {
 
 		//Create VAO, VBO
 		VBO vbo(m_vertices);
-		m_vao.AddBuffer(vbo, Vertex::GetLayout());
-		m_vao.Unbind();
+		m_vao.addBuffer(vbo, Vertex::GetLayout());
+		m_vao.unbind();
 
 		Console::info("Mesh") << "Loaded " << vertices.size() << " vertices." << Console::endl;
 	}
@@ -31,8 +31,9 @@ namespace Merlin {
 		//Create VAO, VBO
 		VBO vbo(m_vertices);
 		EBO ebo(m_indices);
-		m_vao.AddBuffer(vbo, Vertex::GetLayout());
-		m_vao.Unbind();
+		m_vao.bindBuffer(ebo);
+		m_vao.addBuffer(vbo, Vertex::GetLayout());
+		m_vao.unbind();
 
 		Console::info("Mesh") << "Loaded " << vertices.size() << " vertices." << Console::endl;
 	}
@@ -51,25 +52,25 @@ namespace Merlin {
 
 
 	void Mesh::Bind() {
-		m_vao.Bind();
+		m_vao.bind();
 	}
 
 	void Mesh::Unbind() {
-		m_vao.Unbind();
+		m_vao.unbind();
 	}
 
 	void Mesh::Draw() const {
-		m_vao.Bind();
-		if (m_indices.size() > 0) glDrawElements(m_drawMode, m_indices.size(), GL_UNSIGNED_INT, nullptr); //Draw elements using EBO
+		m_vao.bind();
+		if (m_indices.size() > 0) glDrawElements(m_drawMode, m_indices.size(), GL_UNSIGNED_INT, 0); //Draw elements using EBO
 		else glDrawArrays(m_drawMode, 0, m_vertices.size()); //Draw
-		m_vao.Unbind();
+		m_vao.unbind();
 	}
 
 	void Mesh::DrawInstanced(GLsizeiptr instances) const {
-		m_vao.Bind();
+		m_vao.bind();
 		if (m_indices.size() > 0) glDrawElementsInstanced(m_drawMode, m_indices.size(), GL_UNSIGNED_INT, nullptr, instances); //Draw elements using EBO
 		else glDrawArraysInstanced(m_drawMode, 0, m_vertices.size(), instances); //Draw
-		m_vao.Unbind();
+		m_vao.unbind();
 	}
 
 	void Mesh::CalculateBoundingBox() {
@@ -122,8 +123,9 @@ namespace Merlin {
 		//Update VAO, VBO
 		VBO vbo(m_vertices);
 		EBO ebo(m_indices);
-		m_vao.AddBuffer(vbo, Vertex::GetLayout());
-		m_vao.Unbind();
+		m_vao.bindBuffer(ebo);
+		m_vao.addBuffer(vbo, Vertex::GetLayout());
+		m_vao.unbind();
 	}
 
 	void Mesh::CalculateIndices(){
@@ -149,8 +151,9 @@ namespace Merlin {
 		//Update VAO, VBO
 		VBO vbo(m_vertices);
 		EBO ebo(m_indices);
-		m_vao.AddBuffer(vbo, Vertex::GetLayout());
-		m_vao.Unbind();
+		m_vao.bindBuffer(ebo);
+		m_vao.addBuffer(vbo, Vertex::GetLayout());
+		m_vao.unbind();
 	}
 
 

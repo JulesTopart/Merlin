@@ -49,15 +49,15 @@ namespace Merlin {
 		};
 
 		//Create VAO, VBO
-		m_vao.Bind(); //bind the VAO
+		m_vao.bind(); //bind the VAO
 		VBO vbo(skyboxVertices);
 		EBO ebo(skyboxIndices);
 
 		VertexBufferLayout layout;
 		layout.Push<float>(3); //Vertex pos
 
-		m_vao.AddBuffer(vbo,layout);
-		m_vao.Unbind();
+		m_vao.addBuffer(vbo,layout);
+		m_vao.unbind();
 
 	}
 
@@ -100,12 +100,11 @@ namespace Merlin {
 		//Create VAO, VBO
 		VBO vbo(skyboxVertices);
 		EBO ebo(skyboxIndices);
-
+		m_vao.bindBuffer(ebo);
 		VertexBufferLayout layout;
 		layout.Push<float>(3); //Vertex pos
-		
-		m_vao.AddBuffer(vbo, layout);
-		m_vao.Unbind();
+		m_vao.addBuffer(vbo, layout);
+		m_vao.unbind();
 
 		LoadCubeMap(paths);
 
@@ -121,9 +120,9 @@ namespace Merlin {
 		}
 
 		// Render the skybox cube
-		m_vao.Bind();
+		m_vao.bind();
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-		m_vao.Unbind();
+		m_vao.unbind();
 
 		//if (m_cubeMap);
 			//m_cubeMap->Unbind();

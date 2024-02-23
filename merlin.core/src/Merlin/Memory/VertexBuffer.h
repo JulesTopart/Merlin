@@ -9,17 +9,12 @@ namespace Merlin {
 	class VertexBuffer : public BufferObject<T>{
 	public:
         VertexBuffer(std::vector<T>& vertices);
-		~VertexBuffer();
 	};
 
     template<class T>
-    inline VertexBuffer<T>::VertexBuffer(std::vector<T>& vertices) : BufferObject<T>(GL_ARRAY_BUFFER) {
-        this->LoadData(vertices, GL_STATIC_DRAW);
-        Console::trace("VertexBuffer") << "VertexBuffer " << this->m_bufferID << " allocated. " << Console::endl;
+    inline VertexBuffer<T>::VertexBuffer(std::vector<T>& vertices) : BufferObject<T>(BufferTarget::ARRAY_BUFFER, vertices, BufferUsage::STATIC_DRAW) {
+        Console::trace("VertexBuffer") << "VertexBuffer " << this->id() << " allocated. " << Console::endl;
     }
-
-    template<class T>
-    inline VertexBuffer<T>::~VertexBuffer() {}
 
     template<class T = Vertex>
     using VBO = VertexBuffer<T>;//Shorter alias

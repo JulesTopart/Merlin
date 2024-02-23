@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Merlin.h>
-using namespace Merlin::Graphics;
 
 class TemplateLayer : public Merlin::Layer
 {

@@ -3,24 +3,24 @@
 
 namespace Merlin {
 
-	std::string GenericBufferObject::TypeToString() {
+	std::string GenericBufferObject::targetToString() {
 		switch (m_target) {
-		case(GL_ARRAY_BUFFER):
+		case(BufferTarget::ARRAY_BUFFER):
 			return "VertexBuffer";
 			break;
-		case(GL_ELEMENT_ARRAY_BUFFER):
+		case(BufferTarget::ELEMENT_ARRAY_BUFFER):
 			return "IndexBuffer";
 			break;
-		case(GL_QUERY_BUFFER):
+		case(BufferTarget::QUERY_BUFFER):
 			return "QueryBuffer";
 			break;
-		case(GL_TEXTURE_BUFFER):
+		case(BufferTarget::TEXTURE_BUFFER):
 			return "TextureBuffer";
 			break;
-		case(GL_UNIFORM_BUFFER):
+		case(BufferTarget::UNIFORM_BUFFER):
 			return "UniformBuffer";
 			break;
-		case(GL_SHADER_STORAGE_BUFFER):
+		case(BufferTarget::SHADER_STORAGE_BUFFER):
 			return "ShaderStorageBuffer";
 			break;
 		default:
@@ -29,84 +29,57 @@ namespace Merlin {
 		}
 	}
 
-	GenericBufferObject::GenericBufferObject(GLenum target) {
-		m_target = target;
-		m_size = 0;
+	GenericBufferObject::GenericBufferObject(const std::string& name) : GLObject(create(), destroy){
 		m_bufferSize = 0;
-		m_name = "buffer" + std::to_string(instances++);
-		m_bufferID = -1;
-		m_bindingPoint = instances++;
+		m_bindingPoint = m_bufferInstances;
+		rename(name == "buffer" ? name + std::to_string(m_bufferInstances) : name);
+		m_bufferInstances++;
 	}
 
-	GenericBufferObject::GenericBufferObject(const std::string& name, GLenum target) {
-		m_target = target;
-		m_size = 0;
-		m_bufferSize = 0;
-		m_name = name;
-		m_bufferID = -1;
-		m_bindingPoint = instances++;
+	GLuint GenericBufferObject::create() {
+		GLuint ID;
+		glCreateBuffers(1, &ID);
+		return ID;
+	}
+	void GenericBufferObject::destroy(GLuint ID) {
+		glDeleteBuffers(1, &ID);
 	}
 
-	GenericBufferObject::~GenericBufferObject() {
-		// Delete a buffer object name.
-		Delete();
-	}
-
-	void GenericBufferObject::Rename(const std::string& name) {
-		m_name = name;
-	}
-
-	void* GenericBufferObject::Map() {
+	void* GenericBufferObject::map() {
 		// Map the buffer object to a pointer.
-		return glMapBuffer(m_target, GL_READ_WRITE);
+		return glMapBuffer(static_cast<GLenum>(m_target), GL_READ_WRITE);
 	}
 
-	void GenericBufferObject::Unmap() {
+	void GenericBufferObject::unmap() {
 		// Unmap the buffer object.
-		glUnmapBuffer(m_target);
+		glUnmapBuffer(static_cast<GLenum>(m_target));
 	}
 
-	void GenericBufferObject::SetBindingPoint(GLuint bp) {
+	void GenericBufferObject::setBindingPoint(GLuint bp) {
 		m_bindingPoint = bp;
-		Bind();
-		Console::info("ShaderBase") << name() << "( block id " << m_bufferID << ") is now bound to binding point " << m_bindingPoint << Console::endl;
-		glBindBufferBase(m_target, m_bindingPoint, m_bufferID);
+		bind();
+		Console::info("ShaderBase") << name() << "( block id " << id() << ") is now bound to binding point " << m_bindingPoint << Console::endl;
+		glBindBufferBase(static_cast<GLenum>(m_target), m_bindingPoint, id());
 	}
 
-	void GenericBufferObject::Generate(bool autoBind) {
-		if (m_bufferID == -1) {
-			// Generate a buffer object if not yet generated.
-			glGenBuffers(1, &m_bufferID);
-			Console::trace("BufferObject") << TypeToString() << "Object" << m_bufferID << " created. " << Console::endl;
-		}
-		if (autoBind) Bind();
-	}
 
-	void GenericBufferObject::Delete() {
-		if (m_bufferID != -1) {
-			// Delete buffer object if exist.
-			glDeleteBuffers(1, &m_bufferID);
-			Console::trace("BufferObject") << TypeToString() << "Object" << m_bufferID << " deleted. Freed " << m_bufferSize / 1000000.0 << "Mb of device Memory" << Console::endl;
-		}
-	}
-
-	void GenericBufferObject::Bind() {
+	void GenericBufferObject::bind() {
 		// Bind the buffer object to the shader storage buffer target.
-		glBindBuffer(m_target, m_bufferID);
+		glBindBuffer(static_cast<GLenum>(m_target), id());
 	}
 
-	void GenericBufferObject::BindAs(GLenum target) {
+	void GenericBufferObject::bindAs(GLenum target) {
 		// Bind the buffer object to the shader storage buffer target.
-		glBindBuffer(target, m_bufferID);
+		glBindBuffer(target, id());
 	}
 
-	void GenericBufferObject::Unbind() {
+	void GenericBufferObject::unbind() {
 		// Bind the buffer object to the shader storage buffer target.
-		glBindBuffer(m_target, 0);
+		glBindBuffer(static_cast<GLenum>(m_target), 0);
 	}
 
-	void GenericBufferObject::Clear() {
+	void GenericBufferObject::clear() {
 		GLubyte val = 0;
-		glClearBufferData(m_target, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &val);
+		glClearBufferData(static_cast<GLenum>(m_target), GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &val);
 	}
 }

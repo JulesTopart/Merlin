@@ -3,26 +3,31 @@
 
 namespace Merlin {
 
-	VertexArray::VertexArray() {
-		glCreateVertexArrays(1, &ArrayID);
-		Bind();
-		Console::success("VertexArray") << "VertexArray " << ArrayID << " generated. " << Console::endl;
+	VertexArray::VertexArray() : GLObject(create(), destroy){}
+
+	GLuint VertexArray::create() {
+		GLuint id;
+		glCreateVertexArrays(1, &id);
+		Console::success("VertexArray") << "VertexArray " << id << " generated. " << Console::endl;
+		return id;
+	}
+	void VertexArray::destroy(GLuint ID) {
+		Console::trace("VertexArray") << "VertexArray " << ID << " deleted. " << Console::endl;
+		glDeleteVertexArrays(1, &ID);
 	}
 
-	VertexArray::~VertexArray() {
-		glDeleteVertexArrays(1, &ArrayID);
-		Console::trace("VertexArray") << "VertexArray " << ArrayID << " deleted. " << Console::endl;
+	void VertexArray::bind() const{
+		if (id() == -1) Console::error("VertexArray") << "VAO is not generated yet" << Console::endl; //Already exist
+		else glBindVertexArray(id());
 	}
 
-	void VertexArray::Bind() const{
-		if (ArrayID == -1) Console::error("VertexArray") << "VAO is not generated yet" << Console::endl; //Already exist
-		else glBindVertexArray(ArrayID);
-	}
-
-	void VertexArray::Unbind() const{
+	void VertexArray::unbind() const{
 		glBindVertexArray(0);
 	}
 
+	void VertexArray::bindBuffer(IndexBuffer& ib) {
+		glVertexArrayElementBuffer(id(), ib.id());
+	}
 	
 
 }

@@ -20,20 +20,38 @@ namespace Merlin {
 		POINT_SPRITE_SHADED
 	};
 
-	
 	class ParticleSystem : public RenderableObject {
+	public:
+		ParticleSystem(std::string name) : RenderableObject(name) {
+
+		}
+
+		template<typename T>
+		void AddField(const std::string& name) {
+			SSBO_Ptr<T> f = SSBO<T>::Create(name, m_instancesCount);
+			m_fields[name] = f;
+		}
+
+		template<typename T>
+		SSBO_Ptr<T> GetField(std::string name) {
+
+		}
+
+		template<typename T>
+		void SetField(std::string name, SSBO_Ptr<T> field) {
+
+		}
 
 
 	protected:
-		//Geometry
+		//Rendering
 		Shared<Mesh> m_geometry;
 		GLsizeiptr m_instancesCount = 1;
-
-
 		ParticleSystemDisplayMode m_displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
 
-		//Compute shaders
-		std::vector<Shared<ComputeShader>> m_shaders; //Shader to compute the particle position
+		//Simulation
+		std::vector<ComputeShader_Ptr> m_shaders; //Shader to compute the particle position
+		std::map<std::string, GenericBufferObject_Ptr> m_fields; //Buffer to store particles fields
 
 	};
 

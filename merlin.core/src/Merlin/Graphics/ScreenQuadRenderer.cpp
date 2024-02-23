@@ -15,7 +15,7 @@ namespace Merlin {
 
 	void ScreenQuadRenderer::Render() {
 		m_shader.Use(); //Activate shader
-		m_vao.Bind(); //Bind empty geometry
+		m_vao.bind(); //Bind empty geometry
 		glDisable(GL_DEPTH_TEST);
 		glDrawArrays(GL_TRIANGLES, 0, 6); //Draw a screen squad
 		glEnable(GL_DEPTH_TEST);
@@ -27,12 +27,12 @@ namespace Merlin {
 		m_shader.SetInt("mode", tex->GetFormat() == GL_DEPTH_COMPONENT); //Activate shader
 		
 		tex->SyncTextureUnit(m_shader, "screen");
-		m_vao.Bind(); //Bind empty geometry
+		m_vao.bind(); //Bind empty geometry
 		
 		glDisable(GL_DEPTH_TEST);
 		glDrawArrays(GL_TRIANGLES, 0, 6); //Draw a screen squad
 		tex->Unbind(); //Unind Texture
-		m_vao.Unbind(); //Unind geometry
+		m_vao.unbind(); //Unind geometry
 		glEnable(GL_DEPTH_TEST);
 	}
 

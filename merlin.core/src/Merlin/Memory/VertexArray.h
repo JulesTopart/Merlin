@@ -1,40 +1,56 @@
 #pragma once
 #include "Merlin/Core/Core.h"
+#include "Merlin/Memory/IndexBuffer.h"
 #include "Merlin/Memory/VertexBuffer.h"
 #include <vector>
 
 namespace Merlin {
 
-    class VertexArray {
+    class VertexArray : GLObject<> {
     public:
         VertexArray();
-        ~VertexArray();
         
-        void Bind() const;
-        void Unbind() const;
+        void bind() const;
+        void unbind() const;
+
+        void bindBuffer(IndexBuffer& ib);
 
         template<class T = Vertex>
-        void AddBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout);
+        void bindBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout);
+
+        template<class T = Vertex>
+        void addBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout);
 
     private:
-        
-        GLuint ArrayID = -1;
+        GLuint create();
+        static void destroy(GLuint ID);
     };
 
     using VAO = VertexArray;
 
 
     template<class T>
-    void VertexArray::AddBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout) {
-	    vb.Bind();
+    void VertexArray::bindBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout) {
+        glVertexArrayVertexBuffer(id(), vb.bindingPoint(), vb.id(), 0, layout.GetStride());
+    }
+
+
+    template<class T>
+    void VertexArray::addBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout) {
 	    const auto& elements = layout.GetElements();
 	    unsigned int offset = 0;
+
+        bindBuffer<T>(vb, layout);
+
+        for (unsigned int i = 0; i < elements.size(); i++)
+            glEnableVertexArrayAttrib(id(), i);
+
 	    for (unsigned int i = 0; i < elements.size(); i++) {
 		    const auto& element = elements[i];
-		    glEnableVertexAttribArray(i);
-		    glVertexAttribPointer(i, element.count, element.type, element.normalized, layout.GetStride(), (const void*)offset);
-		    offset += element.count * VertexBufferElement::GetTypeSize(element.type);
+            glVertexArrayAttribFormat(id(), i, element.count, element.type, element.normalized, offset);
+            offset += element.count * VertexBufferElement::GetTypeSize(element.type);
 	    }
-	    vb.Unbind();
+        for (unsigned int i = 0; i < elements.size(); i++)
+            glVertexArrayAttribBinding(id(), i, 0);
     }
 }

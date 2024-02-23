@@ -1,9 +1,6 @@
 #include "TemplateLayer.h"
 
 using namespace Merlin;
-using namespace Merlin::Utils;
-using namespace Merlin::Memory;
-using namespace Merlin::Graphics;
 
 #include <iostream>
 #include <iomanip>
@@ -16,7 +13,8 @@ TemplateLayer::TemplateLayer(){
 	camera->setNearPlane(0.1f);
 	camera->setFarPlane(1000.0f);
 	camera->setFOV(45.0f); //Use 90.0f as we are using cubemaps
-	camera->SetPosition(glm::vec3(-2.0f, 0.0f, 1.0f));
+	camera->SetPosition(glm::vec3(-3.0f, 0.0f, 0.0f));
+	camera->SetRotation(glm::vec3(20.0f, 0.0f, 0.0f));
 	cameraController = CreateShared<CameraController3D>(camera);
 }
 
@@ -35,17 +33,8 @@ void TemplateLayer::OnAttach(){
 	modelShader->noTexture();
 	renderer.AddShader(modelShader);
 
-	std::vector<std::string> skyBoxPath = {
-		"./assets/textures/skybox/right.jpg",
-		"./assets/textures/skybox/left.jpg",
-		"./assets/textures/skybox/bottom.jpg",
-		"./assets/textures/skybox/top.jpg",
-		"./assets/textures/skybox/front.jpg",
-		"./assets/textures/skybox/back.jpg"
-	};
-
 	Shared<Shader> skyShader = Shader::Create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
-	sky = CreateShared<SkyBox>("Sky", skyBoxPath);
+	sky = CreateShared<SkyBox>("Sky");
 	sky->SetShader(skyShader);
 	scene.Add(sky);
 

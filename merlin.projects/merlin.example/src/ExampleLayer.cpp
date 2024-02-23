@@ -38,6 +38,7 @@ void ExampleLayer::OnAttach(){
 	modelShader->noTexture();
 	renderer.AddShader(modelShader);
 
+
 	std::vector<std::string> skyBoxPath = {
 		"./assets/textures/skybox/right.jpg",
 		"./assets/textures/skybox/left.jpg",
@@ -47,17 +48,17 @@ void ExampleLayer::OnAttach(){
 		"./assets/textures/skybox/back.jpg"
 	};
 
-	Shared<Shader> skyShader = Shader::Create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
-	sky = CreateShared<SkyBox>("Sky", skyBoxPath);
-	sky->SetShader(skyShader);
-	scene.Add(sky);
+	//Shared<Shader> skyShader = Shader::Create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
+	//sky = CreateShared<SkyBox>("Sky", skyBoxPath);
+	//sky->SetShader(skyShader);
+	//scene.Add(sky);
 
 	Shared<Model> model = Model::Create("sphere1", GetModel());
 	model->SetMaterial("jade");
-	model->SetShader("model");
+	//model->SetShader("model");
 	scene.Add(model);
 
-
+	
 	light = Model::Create("light", Primitives::CreateSphere(0.05));
 	Shared<Material> lightMat = CreateShared<Material>("lightMat");
 	lightMat->SetAmbient(glm::vec3(1));
@@ -65,17 +66,14 @@ void ExampleLayer::OnAttach(){
 	lightMat->SetSpecular(glm::vec3(1));
 	lightMat->SetShininess(0.1);
 	light->SetMaterial(lightMat);
-
-
-
 	light->Translate(glm::vec3(2.8, 2, 0.6));
-
 	scene.Add(light);
-
+	
+	/*
 	modelShader->Use();
 	modelShader->SetVec3("lightPos", light->position());
 	modelShader->SetVec4("lightColor", glm::vec4(1));
-
+	*/
 	scene.SetCamera(camera);
 }
 
@@ -91,12 +89,12 @@ float t = 0.0;
 void ExampleLayer::OnUpdate(Timestep ts){
 	cameraController->OnUpdate(ts);
 
-	t += ts;
-	float x = light->position().x;
-	float y = light->position().y;
-	light->Translate(glm::vec3(cos(t) - x, sin(t) - y, 0.0));
-	modelShader->Use();
-	modelShader->SetVec3("lightPos", light->position());
+	//t += ts;
+	//float x = light->position().x;
+	//float y = light->position().y;
+	//light->Translate(glm::vec3(cos(t) - x, sin(t) - y, 0.0));
+	//modelShader->Use();
+	//modelShader->SetVec3("lightPos", light->position());
 
 	renderer.Clear();
 	renderer.RenderScene(scene, *camera);
