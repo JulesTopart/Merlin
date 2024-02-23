@@ -40,17 +40,14 @@ namespace Merlin {
 	    const auto& elements = layout.GetElements();
 	    unsigned int offset = 0;
 
-        bindBuffer<T>(vb, layout);
-
-        for (unsigned int i = 0; i < elements.size(); i++)
-            glEnableVertexArrayAttrib(id(), i);
-
 	    for (unsigned int i = 0; i < elements.size(); i++) {
 		    const auto& element = elements[i];
+            glEnableVertexArrayAttrib(id(), i);
+            glVertexArrayAttribBinding(id(), i, vb.bindingPoint());
             glVertexArrayAttribFormat(id(), i, element.count, element.type, element.normalized, offset);
             offset += element.count * VertexBufferElement::GetTypeSize(element.type);
 	    }
-        for (unsigned int i = 0; i < elements.size(); i++)
-            glVertexArrayAttribBinding(id(), i, 0);
+
+        bindBuffer<T>(vb, layout);
     }
 }

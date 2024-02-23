@@ -29,10 +29,18 @@ namespace Merlin {
 		}
 	}
 
-	GenericBufferObject::GenericBufferObject(const std::string& name) : GLObject(create(), destroy){
+
+	GenericBufferObject::GenericBufferObject(const std::string& name, BufferTarget target) : GLObject(create(), destroy) {
+		m_target = target;
 		m_bufferSize = 0;
 		m_bindingPoint = m_bufferInstances;
 		rename(name == "buffer" ? name + std::to_string(m_bufferInstances) : name);
+		m_bufferInstances++;
+	}
+	GenericBufferObject::GenericBufferObject(BufferTarget target) : GLObject(create(), destroy){
+		m_target = target;
+		m_bufferSize = 0;
+		m_bindingPoint = m_bufferInstances;
 		m_bufferInstances++;
 	}
 
@@ -70,7 +78,7 @@ namespace Merlin {
 
 	void GenericBufferObject::bindAs(GLenum target) {
 		// Bind the buffer object to the shader storage buffer target.
-		glBindBuffer(target, id());
+		glBindBuffer(static_cast<GLenum>(m_target), id());
 	}
 
 	void GenericBufferObject::unbind() {

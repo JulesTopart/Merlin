@@ -222,25 +222,22 @@ void AppLayer::InitPhysics() {
 
 
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
-	binBuffer = SSBO<Bin>::Create("BinBuffer");
-	binBuffer->Allocate(settings.bThread);
-	binBuffer->Unbind();
-
+	binBuffer = SSBO<Bin>::Create("BinBuffer", settings.bThread);
 
 	// Set binding points for position and its copy
-	positionBuffer->SetBindingPoint(0);
-	cpyPositionBuffer->SetBindingPoint(1);
-	predictedPositionBuffer->SetBindingPoint(2);
-	cpyPredictedPositionBuffer->SetBindingPoint(3);
-	velocityBuffer->SetBindingPoint(4);
-	cpyVelocityBuffer->SetBindingPoint(5);
-	densityBuffer->SetBindingPoint(6);
-	cpyDensityBuffer->SetBindingPoint(7);
-	lambdaBuffer->SetBindingPoint(8);
-	cpyLambdaBuffer->SetBindingPoint(9);
-	metaBuffer->SetBindingPoint(10);
-	cpymetaBuffer->SetBindingPoint(11);
-	binBuffer->SetBindingPoint(13);
+	positionBuffer->setBindingPoint(0);
+	cpyPositionBuffer->setBindingPoint(1);
+	predictedPositionBuffer->setBindingPoint(2);
+	cpyPredictedPositionBuffer->setBindingPoint(3);
+	velocityBuffer->setBindingPoint(4);
+	cpyVelocityBuffer->setBindingPoint(5);
+	densityBuffer->setBindingPoint(6);
+	cpyDensityBuffer->setBindingPoint(7);
+	lambdaBuffer->setBindingPoint(8);
+	cpyLambdaBuffer->setBindingPoint(9);
+	metaBuffer->setBindingPoint(10);
+	cpymetaBuffer->setBindingPoint(11);
+	binBuffer->setBindingPoint(13);
 
 	//Attach Buffers
 	particleSystem->AddComputeShader(solver);
@@ -269,23 +266,23 @@ void AppLayer::InitPhysics() {
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
-	positionBuffer->FreeHostMemory();
-	predictedPositionBuffer->FreeHostMemory();
-	velocityBuffer->FreeHostMemory();
-	densityBuffer->FreeHostMemory();
-	lambdaBuffer->FreeHostMemory();
-	metaBuffer->FreeHostMemory();
+	positionBuffer->clear();
+	predictedPositionBuffer->clear();
+	velocityBuffer->clear();
+	densityBuffer->clear();
+	lambdaBuffer->clear();
+	metaBuffer->clear();
 	
 	Console::info() << "Generating particles..." << Console::endl;
 
 	float spacing = settings.particleRadius * 2.0;
 
-	auto& cpu_position = positionBuffer->GetDeviceBuffer();
-	auto& cpu_predictedPosition = predictedPositionBuffer->GetDeviceBuffer();
-	auto& cpu_velocity = velocityBuffer->GetDeviceBuffer();
-	auto& cpu_density = densityBuffer->GetDeviceBuffer();
-	auto& cpu_lambda = lambdaBuffer->GetDeviceBuffer();
-	auto& cpu_meta = metaBuffer->GetDeviceBuffer();
+	auto cpu_position = positionBuffer->read();
+	auto cpu_predictedPosition = predictedPositionBuffer->read();
+	auto cpu_velocity = velocityBuffer->read();
+	auto cpu_density = densityBuffer->read();
+	auto cpu_lambda = lambdaBuffer->read();
+	auto cpu_meta = metaBuffer->read();
 
 	glm::vec2 cubeSize = glm::vec2(100, 250);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
@@ -312,18 +309,13 @@ void AppLayer::ResetSimulation() {
 	ApplyBufferSettings();
 	SyncUniforms();
 
-	positionBuffer->Bind();
-	positionBuffer->Upload();
-	predictedPositionBuffer->Bind();
-	positionBuffer->Upload();
-	velocityBuffer->Bind();
-	velocityBuffer->Upload();
-	densityBuffer->Bind();
-	densityBuffer->Upload();
-	lambdaBuffer->Bind();
-	lambdaBuffer->Upload();
-	metaBuffer->Bind();
-	metaBuffer->Upload();
+	positionBuffer->write(cpu_position);
+	predictedPositionBuffer->write(cpu_predictedPosition);
+	velocityBuffer->write(cpu_velocity);
+	densityBuffer->write(cpu_density);
+	lambdaBuffer->write(cpu_lambda);
+	metaBuffer->write(cpu_meta);
+
 
 
 }
@@ -572,27 +564,20 @@ void AppLayer::OnImGuiRender() {
 	}
 
 	if (ImGui::Button("Debug")) {
-		positionBuffer->Bind();
-		positionBuffer->Download();
-		velocityBuffer->Bind();
-		velocityBuffer->Download();
-		predictedPositionBuffer->Bind();
-		predictedPositionBuffer->Download();
-		lambdaBuffer->Bind();
-		lambdaBuffer->Download();
-		densityBuffer->Bind();
-		densityBuffer->Download();
-		metaBuffer->Bind();
-		metaBuffer->Download();
 
-		binBuffer->Bind();
-		binBuffer->Download();
+		auto cpu_position = positionBuffer->read();
+		auto cpu_predictedPosition = predictedPositionBuffer->read();
+		auto cpu_velocity = velocityBuffer->read();
+		auto cpu_density = densityBuffer->read();
+		auto cpu_lambda = lambdaBuffer->read();
+		auto cpu_meta = metaBuffer->read();
+		auto cpu_bin = binBuffer->read();
 
 		std::vector<GLuint> sorted;
 		
 		for (int i = 0; i < numParticles; i++) {
 			//sorted.push_back(particleBuffer->GetDeviceBuffer()[i].id);
-			sorted.push_back(metaBuffer->GetDeviceBuffer()[i].w);
+			sorted.push_back(cpu_meta[i].w);
 		}
 
 		Console::info("Sorting") << "Sorted array has " << sorted.size() << " entry. " << numParticles - sorted.size() << " entry are missing" << Console::endl;

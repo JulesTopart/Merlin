@@ -38,22 +38,22 @@ void ExampleLayer::OnAttach(){
 	prefixSum->SetWorkgroupLayout(bwgCount);
 	countingCount->SetWorkgroupLayout(wgCount);
 
-	inDataBuffer.Rename("inDataBuffer");
-	inDataBuffer.LoadData(unsorted);
+	inDataBuffer.rename("inDataBuffer");
+	inDataBuffer.write(unsorted);
 
-	outDataBuffer.Rename("outDataBuffer");
-	outDataBuffer.LoadData(unsorted);
+	outDataBuffer.rename("outDataBuffer");
+	outDataBuffer.write(unsorted);
 
-	prefixSumBuffer.Rename("prefixSumBuffer");
-	prefixSumBuffer.Allocate(data.size());
+	prefixSumBuffer.rename("prefixSumBuffer");
+	prefixSumBuffer.reserve(data.size());
 
-	compactSumBuffer.Rename("compactSumBuffer");
-	compactSumBuffer.Allocate(blocks);
+	compactSumBuffer.rename("compactSumBuffer");
+	compactSumBuffer.reserve(blocks);
 
-	inDataBuffer.SetBindingPoint(0);
-	outDataBuffer.SetBindingPoint(1);
-	prefixSumBuffer.SetBindingPoint(2);
-	compactSumBuffer.SetBindingPoint(3);
+	inDataBuffer.setBindingPoint(0);
+	outDataBuffer.setBindingPoint(1);
+	prefixSumBuffer.setBindingPoint(2);
+	compactSumBuffer.setBindingPoint(3);
 
 	prefixSum->Use();
 	prefixSum->Attach(inDataBuffer);
@@ -108,15 +108,14 @@ void ExampleLayer::OnAttach(){
 	Console::success("Sorting") << "Computation finished in " << detla << "s (" << detla * 1000.0 << " ms)" << Console::endl;
 	outDataBuffer.print();
 
-	std::vector<GLuint> buf = outDataBuffer.Download();
+	std::vector<GLuint> buf = outDataBuffer.read();
 	GLuint check = 0;
-	GLuint error = 0;
+	GLuint error = data.size() - buf.size();
 	for (GLuint i : buf) {
 		if (i != data[check]) error++;
 		check++;
 	}
 	Console::success("Checking result") << "got" << error <<  " errors " << Console::endl;
-
 
 	time = (double)glfwGetTime();
 	std::sort(data.begin(), data.end());

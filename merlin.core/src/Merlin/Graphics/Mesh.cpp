@@ -15,10 +15,10 @@ namespace Merlin {
 		m_vertices = vertices;
 
 		//Create VAO, VBO
+		m_vao.bind();
 		VBO vbo(m_vertices);
 		m_vao.addBuffer(vbo, Vertex::GetLayout());
 		m_vao.unbind();
-
 		Console::info("Mesh") << "Loaded " << vertices.size() << " vertices." << Console::endl;
 	}
 
@@ -28,13 +28,14 @@ namespace Merlin {
 		m_vertices = vertices;
 		m_indices = indices;
 
+
 		//Create VAO, VBO
+		m_vao.bind();
 		VBO vbo(m_vertices);
 		EBO ebo(m_indices);
-		m_vao.bindBuffer(ebo);
 		m_vao.addBuffer(vbo, Vertex::GetLayout());
+		m_vao.bindBuffer(ebo);
 		m_vao.unbind();
-
 		Console::info("Mesh") << "Loaded " << vertices.size() << " vertices." << Console::endl;
 	}
 
