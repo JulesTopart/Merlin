@@ -26,6 +26,7 @@ namespace Merlin{
 	};
 
 	enum class BufferUsage : GLenum {
+		DEFAULT_USAGE = 0,
 		STREAM_DRAW = GL_STREAM_DRAW,
 		STREAM_READ = GL_STREAM_READ,
 		STREAM_COPY = GL_STREAM_COPY,
@@ -39,8 +40,7 @@ namespace Merlin{
 
 	class GenericBufferObject : public GLObject<> {
 	public :
-		GenericBufferObject(BufferTarget target = BufferTarget::ARRAY_BUFFER); //default constructor
-		GenericBufferObject(const std::string& name, BufferTarget target = BufferTarget::ARRAY_BUFFER); //default constructor
+		GenericBufferObject(BufferTarget target = BufferTarget::ARRAY_BUFFER, const std::string& name = "buffer"); //default constructor
 
 		void bind();
 		void bindAs(GLenum target);
@@ -78,11 +78,15 @@ namespace Merlin{
 	template <class T>
 	class BufferObject : public GenericBufferObject{
 	public:
-		BufferObject(BufferTarget target = BufferTarget::ARRAY_BUFFER); //default constructor
-		BufferObject(const std::string& name = "buffer", BufferTarget target = BufferTarget::ARRAY_BUFFER); //default constructor
-		BufferObject(BufferTarget target, const std::vector<T>&, BufferUsage usage); //Create and allocate at once
-		BufferObject(BufferTarget target, size_t size, const T* data, BufferUsage usage); //Create and allocate at once
-		BufferObject(const std::string& name, BufferTarget target, size_t size, const T* data, BufferUsage usage); //Create and allocate at once
+		BufferObject(BufferTarget target = BufferTarget::ARRAY_BUFFER);
+		BufferObject(BufferTarget target, const std::vector<T>&, BufferUsage usage);
+		BufferObject(BufferTarget target, size_t count, BufferUsage usage);
+		BufferObject(BufferTarget target, size_t size, const T* data, BufferUsage usage); 
+
+		BufferObject(BufferTarget target, const std::string& name);
+		BufferObject(BufferTarget target, const std::string& name, const std::vector<T>&, BufferUsage usage);
+		BufferObject(BufferTarget target, const std::string& name, size_t count, BufferUsage usage); 
+		BufferObject(BufferTarget target, const std::string& name, size_t size, const T* data, BufferUsage usage);
 
 		BufferObject(const BufferObject& cpy) = delete;
 		BufferObject(BufferObject&& mov) noexcept = default;
@@ -95,14 +99,13 @@ namespace Merlin{
 		void reserve(size_t size); //allcate space into device memory
 		void reserveRaw(size_t size); //allcate space into device memory
 
-		void write(const std::vector<T>& data); //write data into device memory
-		void write(const std::vector<T>& data, BufferUsage);
-		void write(size_t offset, const std::vector<T>& data);
+		void write(const std::vector<T>& data, BufferUsage = BufferUsage::DEFAULT_USAGE); //write data into device memory
+		void writeSub(size_t offset, const std::vector<T>& data);
 
-		void writeRaw(size_t offset, size_t size, const T* data);
-		void writeRaw(size_t size, const T* data, BufferUsage usage = BufferUsage::STATIC_DRAW);
+		void writeRaw(size_t size, const T* data, BufferUsage = BufferUsage::DEFAULT_USAGE);
+		void writeSubRaw(size_t offset, size_t size, const T* data);
 		
-
+		std::vector<T> getEmptyArray() const; //Read buffer from device memory
 		std::vector<T> read() const; //Read buffer from device memory
 		void read(T* data) const; //Read buffer from device memoryonto given array pointer
 		void read(std::vector<T>& data) const; //Read buffer from device memory onto given vector array
@@ -113,7 +116,6 @@ namespace Merlin{
 		BufferUsage m_usage = BufferUsage::STATIC_DRAW;
 	};
 
-
 	//Implementation
 	template <class T>
 	BufferObject(BufferTarget, const T*, size_t, BufferUsage) -> BufferObject<T>; //Template type deduction
@@ -122,25 +124,44 @@ namespace Merlin{
 	BufferObject<T>::BufferObject(BufferTarget target) : GenericBufferObject(target) {}
 
 	template<class T>
-	BufferObject<T>::BufferObject(const std::string& name, BufferTarget target) : GenericBufferObject(name, target) {}
-
-	template<class T>
-	BufferObject<T>::BufferObject(BufferTarget target, size_t size, const T* data, BufferUsage usage) : GenericBufferObject(target) {
-		m_usage = usage;
-		writeRaw(size, data, m_usage);
-	}
-
-	template<class T>
-	BufferObject<T>::BufferObject(const std::string& name, BufferTarget target, size_t size, const T* data, BufferUsage usage) : GenericBufferObject(name, target) {
-		m_usage = usage;
-		writeRaw(size, data, m_usage);
-	}
-
-	template<class T>
 	BufferObject<T>::BufferObject(BufferTarget target, const std::vector<T>& data, BufferUsage usage) : GenericBufferObject(target) {
 		m_usage = usage;
-		writeRaw(data.size() * sizeof(T), data.data(), m_usage);
+		write(data);
 	}
+
+	template<class T>
+	BufferObject<T>::BufferObject(BufferTarget target, size_t count, BufferUsage usage) : GenericBufferObject(target) {
+		m_usage = usage;
+		reserve(count);
+	}
+
+	template<class T>
+	BufferObject<T>::BufferObject(BufferTarget target, size_t size, const T* data, BufferUsage usage) {
+		m_usage = usage;
+		writeRaw(size, data, usage);
+	}
+
+	template<class T>
+	BufferObject<T>::BufferObject(BufferTarget target, const std::string& name) : GenericBufferObject(target, name) {}
+
+	template<class T>
+	BufferObject<T>::BufferObject(BufferTarget target, const std::string& name, const std::vector<T>& data, BufferUsage usage) : GenericBufferObject(target, name) {
+		m_usage = usage;
+		write(data);
+	}
+
+	template<class T>
+	BufferObject<T>::BufferObject(BufferTarget target, const std::string& name, size_t count, BufferUsage usage) : GenericBufferObject(target, name) {
+		m_usage = usage;
+		reserve(count);
+	}
+
+	template<class T>
+	BufferObject<T>::BufferObject(BufferTarget target, const std::string& name, size_t size, const T* data, BufferUsage usage) : GenericBufferObject(target, name) {
+		m_usage = usage;
+		writeRaw(size, data, usage);
+	}
+
 
 	template <class T>
 	std::vector<T> BufferObject<T>::read() const{
@@ -148,6 +169,11 @@ namespace Merlin{
 		result.resize(m_bufferSize / sizeof(T));
 		read(result.data());
 		return result;
+	}
+
+	template <class T>
+	std::vector<T> BufferObject<T>::getEmptyArray() const {
+		return std::vector<T>();
 	}
 
 	template <class T>
@@ -162,17 +188,21 @@ namespace Merlin{
 
 	template <class T>
 	void BufferObject<T>::reserve(size_t size) {
-		writeRaw(size * sizeof(T), nullptr);
+		auto buf = getEmptyArray();
+		buf.resize(size);
+		write(buf);
 	}
 
 	template <class T>
 	void BufferObject<T>::reserveRaw(size_t size) {
-		writeRaw(size, nullptr);
+		auto buf = getEmptyArray();
+		buf.resize(size/sizeof(T));
+		write(buf);
 	}
 
 	template <class T>
 	void BufferObject<T>::writeRaw(size_t size, const T* data, BufferUsage usage) {
-		m_usage = usage;
+		if(usage != BufferUsage::DEFAULT_USAGE) m_usage = usage;
 		if (size != m_bufferSize) {
 			m_bufferSize = size;
 			m_size = size / sizeof(T);
@@ -190,7 +220,7 @@ namespace Merlin{
 	}
 
 	template <class T>
-	void BufferObject<T>::writeRaw(size_t offset, size_t size, const T* data) {
+	void BufferObject<T>::writeSubRaw(size_t offset, size_t size, const T* data) {
 		if (offset + size < m_bufferSize) {
 			glNamedBufferSubData(id(), offset, size, data);
 		}
@@ -200,23 +230,20 @@ namespace Merlin{
 	}
 
 	template <class T>
-	void BufferObject<T>::write(const std::vector<T>& data) {
-		writeRaw(data.size() * sizeof(T), data.data());
-	}
-
-	template <class T>
 	void BufferObject<T>::write(const std::vector<T>& data, BufferUsage usage) {
 		writeRaw(data.size() * sizeof(T), data.data(), usage);
 	}
 
 	template <class T>
-	void BufferObject<T>::write(size_t offset, const std::vector<T>& data){
+	void BufferObject<T>::writeSub(size_t offset, const std::vector<T>& data){
 		writeRaw(offset * sizeof(T), data.size() * sizeof(T), data.data());
 	}
 
 
 	template <class T>
 	void BufferObject<T>::clear() {
+		m_bufferSize = 0;
+		m_size = 0;
 		glNamedBufferData(id(), 0, nullptr, static_cast<GLenum>(m_usage));
 	}
 

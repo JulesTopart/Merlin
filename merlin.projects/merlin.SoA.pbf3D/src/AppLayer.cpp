@@ -80,11 +80,11 @@ void AppLayer::OnUpdate(Timestep ts) {
 	renderer.RenderScene(scene, *camera);
 	)
 
-		if (!paused) {
-			GPU_PROFILE(solver_total_time,
-				Simulate(0.016);
-			)
-		}
+	if (!paused) {
+		GPU_PROFILE(solver_total_time,
+			Simulate(0.016);
+		)
+	}
 }
 
 
@@ -121,25 +121,6 @@ void AppLayer::ApplyBufferSettings() {
 
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
-
-	/*
-	particleBuffer->Bind();
-	particleBuffer->Resize(settings.pThread);
-	particleBuffer->Unbind();
-
-	particleCpyBuffer->Bind();
-	particleCpyBuffer->Resize(settings.pThread);
-	particleCpyBuffer->Unbind();
-
-	sortedIndexBuffer->Bind();
-	sortedIndexBuffer->Resize(settings.pThread);
-	sortedIndexBuffer->Unbind();
-
-	binBuffer->Bind();
-	binBuffer->Resize(settings.bThread);
-	binBuffer->Unbind();
-	*/
-
 	particleSystem->SetInstancesCount(settings.pThread);
 	binSystem->SetInstancesCount(settings.bThread);
 
@@ -253,24 +234,22 @@ void AppLayer::InitPhysics() {
 	cpymetaBuffer = SSBO<glm::uvec4>::Create("cpyMetaBuffer", settings.pThread);
 
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
-	binBuffer = SSBO<Bin>::Create("BinBuffer");
-	binBuffer->Allocate(settings.bThread);
-	binBuffer->Unbind();
+	binBuffer = SSBO<Bin>::Create("BinBuffer", settings.bThread);
 
 	// Set binding points for position and its copy
-	positionBuffer->SetBindingPoint(0);
-	cpyPositionBuffer->SetBindingPoint(1);
-	predictedPositionBuffer->SetBindingPoint(2);
-	cpyPredictedPositionBuffer->SetBindingPoint(3);
-	velocityBuffer->SetBindingPoint(4);
-	cpyVelocityBuffer->SetBindingPoint(5);
-	densityBuffer->SetBindingPoint(6);
-	cpyDensityBuffer->SetBindingPoint(7);
-	lambdaBuffer->SetBindingPoint(8);
-	cpyLambdaBuffer->SetBindingPoint(9);
-	metaBuffer->SetBindingPoint(10);
-	cpymetaBuffer->SetBindingPoint(11);
-	binBuffer->SetBindingPoint(13);
+	positionBuffer->setBindingPoint(0);
+	cpyPositionBuffer->setBindingPoint(1);
+	predictedPositionBuffer->setBindingPoint(2);
+	cpyPredictedPositionBuffer->setBindingPoint(3);
+	velocityBuffer->setBindingPoint(4);
+	cpyVelocityBuffer->setBindingPoint(5);
+	densityBuffer->setBindingPoint(6);
+	cpyDensityBuffer->setBindingPoint(7);
+	lambdaBuffer->setBindingPoint(8);
+	cpyLambdaBuffer->setBindingPoint(9);
+	metaBuffer->setBindingPoint(10);
+	cpymetaBuffer->setBindingPoint(11);
+	binBuffer->setBindingPoint(13);
 
 	//Attach Buffers
 	particleSystem->AddComputeShader(solver);
@@ -299,22 +278,15 @@ void AppLayer::InitPhysics() {
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
-	positionBuffer->FreeHostMemory();
-	predictedPositionBuffer->FreeHostMemory();
-	velocityBuffer->FreeHostMemory();
-	densityBuffer->FreeHostMemory();
-	lambdaBuffer->FreeHostMemory();
-	metaBuffer->FreeHostMemory();
-
 	Console::info() << "Generating particles..." << Console::endl;
 
 	float spacing = settings.particleRadius * 2.0;
-	auto& cpu_position = positionBuffer->GetDeviceBuffer();
-	auto& cpu_predictedPosition = predictedPositionBuffer->GetDeviceBuffer();
-	auto& cpu_velocity = velocityBuffer->GetDeviceBuffer();
-	auto& cpu_density = densityBuffer->GetDeviceBuffer();
-	auto& cpu_lambda = lambdaBuffer->GetDeviceBuffer();
-	auto& cpu_meta = metaBuffer->GetDeviceBuffer();
+	auto cpu_position = positionBuffer->getEmptyArray();
+	auto cpu_predictedPosition = predictedPositionBuffer->getEmptyArray();
+	auto cpu_velocity = velocityBuffer->getEmptyArray();
+	auto cpu_density = densityBuffer->getEmptyArray();
+	auto cpu_lambda = lambdaBuffer->getEmptyArray();
+	auto cpu_meta = metaBuffer->getEmptyArray();
 
 
 	glm::vec3 cubeSize = glm::vec3(60, 195, 50);
@@ -365,18 +337,12 @@ void AppLayer::ResetSimulation() {
 	ApplyBufferSettings();
 	SyncUniforms();
 
-	positionBuffer->Bind();
-	positionBuffer->Upload();
-	predictedPositionBuffer->Bind();
-	positionBuffer->Upload();
-	velocityBuffer->Bind();
-	velocityBuffer->Upload();
-	densityBuffer->Bind();
-	densityBuffer->Upload();
-	lambdaBuffer->Bind();
-	lambdaBuffer->Upload();
-	metaBuffer->Bind();
-	metaBuffer->Upload();
+	positionBuffer->write(cpu_position);
+	predictedPositionBuffer->write(cpu_predictedPosition);
+	velocityBuffer->write(cpu_velocity);
+	densityBuffer->write(cpu_density);
+	lambdaBuffer->write(cpu_lambda);
+	metaBuffer->write(cpu_meta);
 
 }
 
@@ -634,31 +600,9 @@ void AppLayer::OnImGuiRender() {
 	}
 
 	if (ImGui::Button("Debug")) {
-		positionBuffer->Bind();
-		positionBuffer->Download();
-		velocityBuffer->Bind();
-		velocityBuffer->Download();
-		predictedPositionBuffer->Bind();
-		predictedPositionBuffer->Download();
-		lambdaBuffer->Bind();
-		lambdaBuffer->Download();
-		densityBuffer->Bind();
-		densityBuffer->Download();
-		metaBuffer->Bind();
-		metaBuffer->Download();
-
-		binBuffer->Bind();
-		binBuffer->Download();
-
-		/*
-		std::vector<FluidParticle> sorted;
-		sorted.resize(particleBuffer->GetDeviceBuffer().size());
-
-		std::vector<FluidParticle> bugged;
-		for (int i = 0; i < numParticles; i++) {
-			sorted[particleBuffer->GetDeviceBuffer()[i].newIndex] = particleBuffer->GetDeviceBuffer()[i];
-		}*/
-
+		auto buf = positionBuffer->read();
+		auto buf0 = metaBuffer->read();
+		auto buf1 = binBuffer->read();
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;
 	}

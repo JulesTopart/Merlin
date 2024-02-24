@@ -30,17 +30,11 @@ namespace Merlin {
 	}
 
 
-	GenericBufferObject::GenericBufferObject(const std::string& name, BufferTarget target) : GLObject(create(), destroy) {
+	GenericBufferObject::GenericBufferObject(BufferTarget target, const std::string& name) : GLObject(create(), destroy) {
 		m_target = target;
 		m_bufferSize = 0;
 		m_bindingPoint = m_bufferInstances;
 		rename(name == "buffer" ? name + std::to_string(m_bufferInstances) : name);
-		m_bufferInstances++;
-	}
-	GenericBufferObject::GenericBufferObject(BufferTarget target) : GLObject(create(), destroy){
-		m_target = target;
-		m_bufferSize = 0;
-		m_bindingPoint = m_bufferInstances;
 		m_bufferInstances++;
 	}
 

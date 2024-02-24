@@ -2,25 +2,11 @@
 #include <Merlin.h>
 #include <glm/glm.hpp>
 
-
 struct Bin {
 	GLuint count; //particle count in the bin
 	GLuint sum;   //global sum
 	GLuint csum;  //local sum
 	GLuint index; //bin index
-};
-
-struct Particle {
-	glm::vec3 position;  //x, y, z
-	float density;  //density
-	glm::vec3 pposition; //X, Y, Z
-	float lambda;  //density
-	glm::vec3 velocity;  //vx, vy, vz, padding
-	float paddingf;  //density
-	GLuint phase;
-	GLuint binIndex;
-	GLuint id;
-	GLuint padding;
 };
 
 struct Settings {
@@ -51,7 +37,7 @@ struct Settings {
 	float overRelaxation = 1.0;
 
 	//calulated
-	GLuint pWkgSize = 1024; //Number of thread per workgroup
+	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint bWkgSize = 256; //Number of thread per workgroup
 
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed

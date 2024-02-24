@@ -55,8 +55,8 @@ namespace Merlin {
 
 		VertexBufferLayout layout;
 		layout.Push<float>(3); //Vertex pos
-
-		m_vao.addBuffer(vbo,layout);
+		m_vao.addBuffer(vbo, layout);
+		m_vao.bindBuffer(ebo);
 		m_vao.unbind();
 
 	}
@@ -100,10 +100,11 @@ namespace Merlin {
 		//Create VAO, VBO
 		VBO vbo(skyboxVertices);
 		EBO ebo(skyboxIndices);
-		m_vao.bindBuffer(ebo);
+		
 		VertexBufferLayout layout;
 		layout.Push<float>(3); //Vertex pos
 		m_vao.addBuffer(vbo, layout);
+		m_vao.bindBuffer(ebo);
 		m_vao.unbind();
 
 		LoadCubeMap(paths);

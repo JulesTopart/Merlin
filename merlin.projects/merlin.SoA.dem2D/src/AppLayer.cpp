@@ -218,23 +218,21 @@ void AppLayer::InitPhysics() {
 
 
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
-	binBuffer = SSBO<Bin>::Create("BinBuffer");
-	binBuffer->Allocate(settings.bThread);
-	binBuffer->Unbind();
+	binBuffer = SSBO<Bin>::Create("BinBuffer",settings.bThread);
 
 
 	// Set binding points for position and its copy
-	positionBuffer->SetBindingPoint(0);
-	cpyPositionBuffer->SetBindingPoint(1);
-	predictedPositionBuffer->SetBindingPoint(2);
-	cpyPredictedPositionBuffer->SetBindingPoint(3);
-	velocityBuffer->SetBindingPoint(4);
-	cpyVelocityBuffer->SetBindingPoint(5);
-	temperatureBuffer->SetBindingPoint(6);
-	cpyTemperatureBuffer->SetBindingPoint(7);
-	metaBuffer->SetBindingPoint(9);
-	cpymetaBuffer->SetBindingPoint(10);
-	binBuffer->SetBindingPoint(11);
+	positionBuffer->setBindingPoint(0);
+	cpyPositionBuffer->setBindingPoint(1);
+	predictedPositionBuffer->setBindingPoint(2);
+	cpyPredictedPositionBuffer->setBindingPoint(3);
+	velocityBuffer->setBindingPoint(4);
+	cpyVelocityBuffer->setBindingPoint(5);
+	temperatureBuffer->setBindingPoint(6);
+	cpyTemperatureBuffer->setBindingPoint(7);
+	metaBuffer->setBindingPoint(9);
+	cpymetaBuffer->setBindingPoint(10);
+	binBuffer->setBindingPoint(11);
 
 	//Attach Buffers
 	particleSystem->AddComputeShader(solver);
@@ -261,21 +259,16 @@ void AppLayer::InitPhysics() {
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
-	positionBuffer->FreeHostMemory();
-	predictedPositionBuffer->FreeHostMemory();
-	velocityBuffer->FreeHostMemory();
-	temperatureBuffer->FreeHostMemory();
-	metaBuffer->FreeHostMemory();
 	
 	Console::info() << "Generating particles..." << Console::endl;
 
 	float spacing = settings.particleRadius * 2.0;
 
-	auto& cpu_position = positionBuffer->GetDeviceBuffer();
-	auto& cpu_predictedPosition = predictedPositionBuffer->GetDeviceBuffer();
-	auto& cpu_velocity = velocityBuffer->GetDeviceBuffer();
-	auto& cpu_temperature = temperatureBuffer->GetDeviceBuffer();
-	auto& cpu_meta = metaBuffer->GetDeviceBuffer();
+	auto cpu_position = positionBuffer->getEmptyArray();
+	auto cpu_predictedPosition = predictedPositionBuffer->getEmptyArray();
+	auto cpu_velocity = velocityBuffer->getEmptyArray();
+	auto cpu_temperature = temperatureBuffer->getEmptyArray();
+	auto cpu_meta = metaBuffer->getEmptyArray();
 
 	glm::vec2 cubeSize = glm::vec2(100, 250);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
@@ -301,17 +294,11 @@ void AppLayer::ResetSimulation() {
 	ApplyBufferSettings();
 	SyncUniforms();
 
-	positionBuffer->Bind();
-	positionBuffer->Upload();
-	predictedPositionBuffer->Bind();
-	positionBuffer->Upload();
-	velocityBuffer->Bind();
-	velocityBuffer->Upload();
-	temperatureBuffer->Bind();
-	temperatureBuffer->Upload();
-	metaBuffer->Bind();
-	metaBuffer->Upload();
-
+	positionBuffer->write(cpu_position);
+	predictedPositionBuffer->write(cpu_predictedPosition);
+	velocityBuffer->write(cpu_velocity);
+	temperatureBuffer->write(cpu_temperature);
+	metaBuffer->write(cpu_meta);
 
 }
 
@@ -559,44 +546,6 @@ void AppLayer::OnImGuiRender() {
 	}
 
 	if (ImGui::Button("Debug")) {
-		positionBuffer->Bind();
-		positionBuffer->Download();
-		velocityBuffer->Bind();
-		velocityBuffer->Download();
-		predictedPositionBuffer->Bind();
-		predictedPositionBuffer->Download();
-		temperatureBuffer->Bind();
-		temperatureBuffer->Download();
-		metaBuffer->Bind();
-		metaBuffer->Download();
-
-		binBuffer->Bind();
-		binBuffer->Download();
-
-		std::vector<GLuint> sorted;
-		
-		for (int i = 0; i < numParticles; i++) {
-			//sorted.push_back(particleBuffer->GetDeviceBuffer()[i].id);
-			sorted.push_back(metaBuffer->GetDeviceBuffer()[i].w);
-		}
-
-		Console::info("Sorting") << "Sorted array has " << sorted.size() << " entry. " << numParticles - sorted.size() << " entry are missing" << Console::endl;
-
-		std::unordered_map<GLuint, GLuint> idmap;
-		for (int i = 0; i < sorted.size(); i++) {
-			idmap[sorted[i]] = sorted[i];
-		}
-
-		std::vector<GLuint> missings;
-		for (int i = 0; i < sorted.size(); i++) {
-			if (idmap.find(i) == idmap.end()) {
-				missings.push_back(i);
-			};
-		}
-
-
-		Console::info("Sorting") << "Sorted array has " << sorted.size() << " entry. ID Map has " << idmap.size() << " entry" << Console::endl;
-
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;
 	}
