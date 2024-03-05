@@ -32,8 +32,8 @@ struct Settings {
 	GLuint pThread = 3000000; //Max Number of particles (thread) (10 milion)
 
 	//Solver settings
-	int solver_substep = 4;
-	int solver_iteration = 6;
+	int solver_substep = 2;
+	int solver_iteration = 1;
 	float overRelaxation = 1.0;
 
 	//calulated

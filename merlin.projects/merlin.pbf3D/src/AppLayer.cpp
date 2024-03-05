@@ -233,25 +233,16 @@ void AppLayer::InitPhysics() {
 
 	//Allocate Buffers
 	Console::info() << "Particle struct size :" << sizeof(Particle) << Console::endl;
-	particleBuffer = SSBO<Particle>::Create("ParticleBuffer");
-	particleBuffer->Allocate(settings.pThread);
-	particleCpyBuffer = SSBO<Particle>::Create("ParticleCpyBuffer");
-	particleCpyBuffer->Allocate(settings.pThread);
-
+	particleBuffer = SSBO<Particle>::Create("ParticleBuffer",settings.pThread);
+	particleCpyBuffer = SSBO<Particle>::Create("ParticleCpyBuffer",settings.pThread);
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
-	binBuffer = SSBO<Bin>::Create("BinBuffer");
-	binBuffer->Allocate(settings.bThread);
-	binBuffer->Unbind();
+	binBuffer = SSBO<Bin>::Create("BinBuffer",settings.bThread);
+	sortedIndexBuffer = SSBO<GLuint>::Create("SortedIndexBuffer",settings.pThread);
 
-	sortedIndexBuffer = SSBO<GLuint>::Create("SortedIndexBuffer");
-	sortedIndexBuffer->Allocate(settings.pThread);
-	sortedIndexBuffer->Unbind();
-
-	particleBuffer->SetBindingPoint(0);
-	particleCpyBuffer->SetBindingPoint(1);
-	sortedIndexBuffer->SetBindingPoint(2);
-	binBuffer->SetBindingPoint(3);
-	binBuffer->Unbind();
+	particleBuffer->setBindingPoint(0);
+	particleCpyBuffer->setBindingPoint(1);
+	sortedIndexBuffer->setBindingPoint(2);
+	binBuffer->setBindingPoint(3);
 
 	//Attach Buffers
 	particleSystem->AddComputeShader(solver);
@@ -271,12 +262,12 @@ void AppLayer::InitPhysics() {
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
-	particleBuffer->FreeHostMemory();
+	particleBuffer->clear();
 	
 	Console::info() << "Generating particles..." << Console::endl;
 
 	float spacing = settings.particleRadius * 2.0;
-	auto& cpu_particles = particleBuffer->GetDeviceBuffer();
+	auto cpu_particles = particleBuffer->getEmptyArray();
 
 	Particle buf;
 	buf.velocity = glm::vec3(0);
@@ -343,16 +334,10 @@ void AppLayer::ResetSimulation() {
 	ApplyBufferSettings();
 	SyncUniforms();
 	
-	particleBuffer->Bind();
-	particleBuffer->Upload();
-	particleBuffer->Unbind();
+	particleBuffer->bind();
+	particleBuffer->write(cpu_particles);
+	particleBuffer->unbind();
 	
-	
-	auto& cpu_sortedIndexBuffer = sortedIndexBuffer->GetDeviceBuffer();
-	for (int i = 0; i < settings.pThread; i++) cpu_sortedIndexBuffer[i] = i;
-	sortedIndexBuffer->Bind();
-	sortedIndexBuffer->Upload();
-	sortedIndexBuffer->Unbind();
 }
 
 
@@ -603,22 +588,6 @@ void AppLayer::OnImGuiRender() {
 	}
 
 	if (ImGui::Button("Debug")) {
-		particleBuffer->Bind();
-		particleBuffer->Download();
-		binBuffer->Bind();
-		binBuffer->Download();
-		sortedIndexBuffer->Bind();
-		sortedIndexBuffer->Download();
-
-		/*
-		std::vector<FluidParticle> sorted;
-		sorted.resize(particleBuffer->GetDeviceBuffer().size());
-
-		std::vector<FluidParticle> bugged;
-		for (int i = 0; i < numParticles; i++) {
-			sorted[particleBuffer->GetDeviceBuffer()[i].newIndex] = particleBuffer->GetDeviceBuffer()[i];
-		}*/
-
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;
 	}

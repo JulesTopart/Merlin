@@ -15,6 +15,7 @@ void SolveFluid(uint i, uint simStep);
 void NNS(uint i, uint simStep);
 
 uniform bool whirlpool = false;
+uniform float whirlpoolIntensity = 50;
 uniform uint stage;
 uniform vec4 sourcePos;
 // XPBD_Main
@@ -81,7 +82,7 @@ void SolveFluid(uint i, uint simStep) {
 		float radius = distance(Xi.xy, vec2(0,0));
 		if(radius < 80){
 			vec3 pos = normalize(vec3(Xi.xy,0));
-			float wi = 500;
+			float wi = whirlpoolIntensity;
 			vec3 Vdir = normalize(cross(pos, vec3(0,0,1)));
 			Vi += wi * radius  * Vdir * dt;
 		}}

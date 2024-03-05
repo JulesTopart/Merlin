@@ -22,7 +22,7 @@ AppLayer::AppLayer(){
 	camera->setFarPlane(10.0f);
 	camera->Translate(glm::vec3(0, 0, 1));
 	cameraController = CreateShared<CameraController2D>(camera);
-	cameraController->SetZoomLevel(20);
+	cameraController->SetZoomLevel(250);
 	cameraController->SetCameraSpeed(100);
 }
 
@@ -178,6 +178,8 @@ void AppLayer::InitGraphics() {
 	mdl->EnableWireFrameMode();
 	scene.Add(mdl);
 
+	particleShader->Use();
+	particleShader->SetFloat("zoomLevel", camera->GetZoom());
 	//scene.Add(TransformObject::Create("origin"));
 
 }

@@ -449,7 +449,7 @@ void AppLayer::OnImGuiRender() {
 
 
 	static bool transparency = true;
-	if (ImGui::Checkbox("Particle transparency", &transparency)) {
+	if (ImGui::Checkbox("Particle shading", &transparency)) {
 		if (transparency) particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 		else particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
 	}
@@ -524,6 +524,12 @@ void AppLayer::OnImGuiRender() {
 	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 1000.0)) {
 		solver->Use();
 		solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value()*0.001);
+	}
+
+	static float whirlpool = 50;
+	if (ImGui::SliderFloat("Whirlpool", &whirlpool, 0.0, 1000.0)) {
+		solver->Use();
+		solver->SetFloat("whirlpoolIntensity", whirlpool);
 	}
 
 	static int colorMode = 4;

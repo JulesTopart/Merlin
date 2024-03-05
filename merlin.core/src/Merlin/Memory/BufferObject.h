@@ -257,8 +257,10 @@ namespace Merlin{
 		for (GLuint i = 0; i < std::min(int(cpuBuffer.size()), 100); ++i) {
 			Console::print() << cpuBuffer[i] << ", ";
 		}
-		if (cpuBuffer.size() > 100) Console::print() << "..., ";
-		else if (cpuBuffer.size() > 0) Console::print() << cpuBuffer[cpuBuffer.size() - 1];
+		if (cpuBuffer.size() > 100) {
+			Console::print() << "..., ";
+			Console::print() << cpuBuffer[cpuBuffer.size() - 1];
+		}
 		else if (cpuBuffer.empty()) Console::print() << "empty";
 		Console::print() << "]" << Console::endl << Console::endl;
 		
