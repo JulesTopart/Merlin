@@ -15,66 +15,66 @@ using namespace Merlin;
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
 AppLayer::AppLayer(){
-	Window* w = &Application::Get().GetWindow();
-	int height = w->GetHeight();
-	int width = w->GetWidth();
-	camera = CreateShared<Camera>(width, height, Projection::Orthographic);
+	Window* w = &Application::get().getWindow();
+	int height = w->getHeight();
+	int width = w->getWidth();
+	camera = createShared<Camera>(width, height, Projection::Orthographic);
 	camera->setNearPlane(0.0f);
 	camera->setFarPlane(10.0f);
-	camera->Translate(glm::vec3(0, 0, 1));
-	cameraController = CreateShared<CameraController2D>(camera);
-	cameraController->SetZoomLevel(20);
-	cameraController->SetCameraSpeed(100);
+	camera->translate(glm::vec3(0, 0, 1));
+	cameraController = createShared<CameraController2D>(camera);
+	cameraController->setZoomLevel(20);
+	cameraController->setCameraSpeed(100);
 }
 
 AppLayer::~AppLayer(){}
 
-void AppLayer::OnAttach(){
-	EnableGLDebugging();
+void AppLayer::onAttach(){
+	enableGLDebugging();
 	//ImGui::LoadIniSettingsFromDisk("imgui.ini");
-	Console::SetLevel(ConsoleLevel::_TRACE);
+	Console::setLevel(ConsoleLevel::_TRACE);
 	glfwSwapInterval(0);
 
 	InitGraphics();
 	InitPhysics();
 
-	particleShader->Use();
-	particleShader->Attach(*particleBuffer);
-	particleShader->Attach(*sortedIndexBuffer);
-	particleShader->Attach(*binBuffer);
+	particleShader->use();
+	particleShader->attach(*particleBuffer);
+	particleShader->attach(*sortedIndexBuffer);
+	particleShader->attach(*binBuffer);
 
-	binShader->Use();
-	binShader->Attach(*particleBuffer);
-	binShader->Attach(*sortedIndexBuffer);
-	binShader->Attach(*binBuffer);
+	binShader->use();
+	binShader->attach(*particleBuffer);
+	binShader->attach(*sortedIndexBuffer);
+	binShader->attach(*binBuffer);
 
 	ResetSimulation();
 }
 
-void AppLayer::OnDetach(){}
+void AppLayer::onDetach(){}
 
-void AppLayer::OnEvent(Event& event){
-	camera->OnEvent(event);
-	cameraController->OnEvent(event);
+void AppLayer::onEvent(Event& event){
+	camera->onEvent(event);
+	cameraController->onEvent(event);
 
-	if (event.GetEventType() == EventType::MouseScrolled) {
-		particleShader->Use();
-		particleShader->SetFloat("zoomLevel", camera->GetZoom());
+	if (event.getEventType() == EventType::MouseScrolled) {
+		particleShader->use();
+		particleShader->setFloat("zoomLevel", camera->getZoom());
 	}
 }
 
 float t = 0.0;
 
-void AppLayer::OnUpdate(Timestep ts){
-	cameraController->OnUpdate(ts);
+void AppLayer::onUpdate(Timestep ts){
+	cameraController->onUpdate(ts);
 	PROFILE_END(total_start_time, total_time);
 	PROFILE_BEGIN(total_start_time);
 
 	updateFPS(ts);
 
 	GPU_PROFILE(render_time,
-		renderer.Clear();
-		renderer.RenderScene(scene, *camera);
+		renderer.clear();
+		renderer.renderScene(scene, *camera);
 	)
 
 	if (!paused) {
@@ -88,23 +88,23 @@ void AppLayer::OnUpdate(Timestep ts){
 
 void AppLayer::SyncUniforms() {
 
-	solver->Use();
+	solver->use();
 
-	//settings.timestep.Sync(*solver);
-	settings.particleMass.Sync(*solver);
-	settings.restDensity.Sync(*solver);
-	solver->SetUInt("numParticles", numParticles);
-	solver->SetFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
-	solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.01);
-	solver->SetFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.01);
+	//settings.timestep.sync(*solver);
+	settings.particleMass.sync(*solver);
+	settings.restDensity.sync(*solver);
+	solver->setUInt("numParticles", numParticles);
+	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
+	solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.01);
+	solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.01);
 
-	particleShader->Use();
-	particleShader->SetUInt("numParticles",numParticles);
-	settings.restDensity.Sync(*particleShader);
+	particleShader->use();
+	particleShader->setUInt("numParticles",numParticles);
+	settings.restDensity.sync(*particleShader);
 
-	prefixSum->Use();
-	prefixSum->SetUInt("dataSize", settings.bThread); //data size
-	prefixSum->SetUInt("blockSize", settings.blockSize); //block size
+	prefixSum->use();
+	prefixSum->setUInt("dataSize", settings.bThread); //data size
+	prefixSum->setUInt("blockSize", settings.blockSize); //block size
 }
 
 
@@ -120,116 +120,116 @@ void AppLayer::ApplyBufferSettings() {
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
 	/*
-	particleBuffer->Bind();
-	particleBuffer->Resize(settings.pThread);
-	particleBuffer->Unbind();
+	particleBuffer->bind();
+	particleBuffer->resize(settings.pThread);
+	particleBuffer->unbind();
 
-	particleCpyBuffer->Bind();
-	particleCpyBuffer->Resize(settings.pThread);
-	particleCpyBuffer->Unbind();
+	particleCpyBuffer->bind();
+	particleCpyBuffer->resize(settings.pThread);
+	particleCpyBuffer->unbind();
 
-	sortedIndexBuffer->Bind();
-	sortedIndexBuffer->Resize(settings.pThread);
-	sortedIndexBuffer->Unbind();
+	sortedIndexBuffer->bind();
+	sortedIndexBuffer->resize(settings.pThread);
+	sortedIndexBuffer->unbind();
 
-	binBuffer->Bind();
-	binBuffer->Resize(settings.bThread);
-	binBuffer->Unbind();
+	binBuffer->bind();
+	binBuffer->resize(settings.bThread);
+	binBuffer->unbind();
 	*/
 
-	particleSystem->SetInstancesCount(settings.pThread);
-	binSystem->SetInstancesCount(settings.bThread);
+	particleSystem->setInstancesCount(settings.pThread);
+	binSystem->setInstancesCount(settings.bThread);
 	
 }
 
 void AppLayer::InitGraphics() {
-	// Init OpenGL stuff
-	renderer.Initialize();
-	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
-	renderer.EnableTransparency();
-	renderer.EnableSampleShading();
+	// init OpenGL stuff
+	renderer.initialize();
+	renderer.setBackgroundColor(0.203, 0.203, 0.203, 1.0);
+	renderer.enableTransparency();
+	renderer.enableSampleShading();
 
-	particleShader = Shader::Create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
+	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
 	particleShader->noTexture();
 	particleShader->noMaterial();
-	particleShader->SetVec3("lightPos", glm::vec3(0, -200, 1000));
+	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
 
-	binShader = Shader::Create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
+	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
 	binShader->noTexture();
 	binShader->noMaterial();
 
-	particleShader->Use();
-	particleShader->SetInt("colorCycle", 0);
-	binShader->Use();
-	binShader->SetInt("colorCycle", 0);
+	particleShader->use();
+	particleShader->setInt("colorCycle", 0);
+	binShader->use();
+	binShader->setInt("colorCycle", 0);
 	 
-	renderer.AddShader(particleShader);
-	renderer.AddShader(binShader);
+	renderer.addShader(particleShader);
+	renderer.addShader(binShader);
 
-	//qrenderer.SetShader(Shader("screen", "assets/shaders/screen.space.vert", "assets/shaders/screen.space.frag"));
+	//qrenderer.setShader(Shader("screen", "assets/shaders/screen.space.vert", "assets/shaders/screen.space.frag"));
 
-	Model_Ptr mdl = Model::Create("bbox", Primitives::CreateQuadRectangle(settings.bb.x, settings.bb.y, true));
-	mdl->EnableWireFrameMode();
-	scene.Add(mdl);
+	Model_Ptr mdl = Model::create("bbox", Primitives::createQuadRectangle(settings.bb.x, settings.bb.y, true));
+	mdl->enableWireFrameMode();
+	scene.add(mdl);
 
-	//scene.Add(TransformObject::Create("origin"));
+	//scene.Add(TransformObject::create("origin"));
 
 }
 
 void AppLayer::InitPhysics() {
 	//Compute Shaders
-	solver = StagedComputeShader::Create("solver", "assets/shaders/solver/solver.comp", 6);
-	prefixSum = StagedComputeShader::Create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
+	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6);
+	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 
-	//Create particle system
-	particleSystem = deprecated_ParticleSystem::Create("ParticleSystem", settings.pThread);
-	Shared<Mesh> particle = Primitives::CreatePoint();
-	particle->Rename("particle");
-	particle->SetShader(particleShader);
-	particleSystem->SetMesh(particle);
-	particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
+	//create particle system
+	particleSystem = deprecated_ParticleSystem::create("ParticleSystem", settings.pThread);
+	Shared<Mesh> particle = Primitives::createPoint();
+	particle->rename("particle");
+	particle->setShader(particleShader);
+	particleSystem->setMesh(particle);
+	particleSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
 
-	Shared<Mesh> binInstance = Primitives::CreateQuadRectangle(settings.bWidth, settings.bWidth, true);
-	binInstance->Rename("bin");
-	binInstance->SetShader(binShader);
-	binSystem = deprecated_ParticleSystem::Create("BinSystem", settings.bThread);
-	binSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::MESH);
-	binSystem->SetMesh(binInstance);
-	binSystem->EnableWireFrameMode();
+	Shared<Mesh> binInstance = Primitives::createQuadRectangle(settings.bWidth, settings.bWidth, true);
+	binInstance->rename("bin");
+	binInstance->setShader(binShader);
+	binSystem = deprecated_ParticleSystem::create("BinSystem", settings.bThread);
+	binSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::MESH);
+	binSystem->setMesh(binInstance);
+	binSystem->enableWireFrameMode();
 
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
 
-	//Allocate Buffers
+	//reserve Buffers
 	Console::info() << "Particle struct size :" << sizeof(Particle) << Console::endl;
-	particleBuffer = SSBO<Particle>::Create("ParticleBuffer",settings.pThread);
-	particleCpyBuffer = SSBO<Particle>::Create("ParticleCpyBuffer",settings.pThread);
+	particleBuffer = SSBO<Particle>::create("ParticleBuffer",settings.pThread);
+	particleCpyBuffer = SSBO<Particle>::create("ParticleCpyBuffer",settings.pThread);
 
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
-	binBuffer = SSBO<Bin>::Create("BinBuffer",settings.bThread);
+	binBuffer = SSBO<Bin>::create("BinBuffer",settings.bThread);
 
-	sortedIndexBuffer = SSBO<GLuint>::Create("SortedIndexBuffer",settings.pThread);
+	sortedIndexBuffer = SSBO<GLuint>::create("SortedIndexBuffer",settings.pThread);
 
 	particleBuffer->setBindingPoint(0);
 	particleCpyBuffer->setBindingPoint(1);
 	sortedIndexBuffer->setBindingPoint(2);
 	binBuffer->setBindingPoint(3);
 
-	//Attach Buffers
-	particleSystem->AddComputeShader(solver);
-	particleSystem->AddStorageBuffer(particleBuffer);
-	particleSystem->AddStorageBuffer(particleCpyBuffer);
-	particleSystem->AddStorageBuffer(sortedIndexBuffer);
-	particleSystem->AddStorageBuffer(binBuffer);
+	//attach Buffers
+	particleSystem->addComputeShader(solver);
+	particleSystem->addStorageBuffer(particleBuffer);
+	particleSystem->addStorageBuffer(particleCpyBuffer);
+	particleSystem->addStorageBuffer(sortedIndexBuffer);
+	particleSystem->addStorageBuffer(binBuffer);
 
-	binSystem->AddComputeShader(prefixSum);
-	binSystem->AddStorageBuffer(binBuffer);
+	binSystem->addComputeShader(prefixSum);
+	binSystem->addStorageBuffer(binBuffer);
 	
-	scene.Add(particleSystem);
-	scene.Add(binSystem);
+	scene.add(particleSystem);
+	scene.add(binSystem);
 	//scene.Add(constraintSystem);
-	binSystem->Hide();
+	binSystem->hide();
 }
 
 void AppLayer::ResetSimulation() {
@@ -296,7 +296,7 @@ void AppLayer::ResetSimulation() {
 
 	numParticles = cpu_particles.size();
 	settings.pThread = numParticles;
-	particleSystem->SetInstancesCount(settings.pThread);
+	particleSystem->setInstancesCount(settings.pThread);
 	
 	ApplyBufferSettings();
 	SyncUniforms();
@@ -308,14 +308,14 @@ void AppLayer::ResetSimulation() {
 
 
 void AppLayer::NeigborSearch() {
-	prefixSum->Use();
-	prefixSum->Execute(4);// clear bins
+	prefixSum->use();
+	prefixSum->execute(4);// clear bins
 
-	solver->Use();
-	solver->Execute(0); //Place particles in bins
+	solver->use();
+	solver->execute(0); //Place particles in bins
 
-	prefixSum->Use();
-	prefixSum->Execute(0);// local prefix sum
+	prefixSum->use();
+	prefixSum->execute(0);// local prefix sum
 
 	//Binary tree on rightmost element of blocks
 	GLuint steps = settings.blockSize;
@@ -325,26 +325,26 @@ void AppLayer::NeigborSearch() {
 	for (GLuint step = 0; step < steps; step++) {
 		// Calls the parallel operation
 
-		space.Sync(*prefixSum);
-		prefixSum->Execute(1);
-		prefixSum->Execute(2);
+		space.sync(*prefixSum);
+		prefixSum->execute(1);
+		prefixSum->execute(2);
 
 		space.value *= 2;
 	}
-	prefixSum->Execute(3);
+	prefixSum->execute(3);
 
-	solver->Use();
-	solver->Execute(1); //Sort
+	solver->use();
+	solver->execute(1); //Sort
 }
 
 
 void AppLayer::Simulate(Merlin::Timestep ts) {
 
-	solver->Use();
+	solver->use();
 
 	GPU_PROFILE(solver_substep_time,
 	for (int i = 0; i < settings.solver_substep; i++) {
-		solver->Execute(2);
+		solver->execute(2);
 		GPU_PROFILE(nns_time,
 			NeigborSearch();
 		)
@@ -352,11 +352,11 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 		if (integrate) {
 			GPU_PROFILE(jacobi_time,
 				for (int j = 0; j < settings.solver_iteration; j++) {
-					solver->Execute(3);
-					solver->Execute(4);
+					solver->execute(3);
+					solver->execute(4);
 				}
 			)
-			solver->Execute(5);
+			solver->execute(5);
 
 		}
 	}
@@ -377,7 +377,7 @@ void AppLayer::updateFPS(Timestep ts) {
 
 
 
-void AppLayer::OnImGuiRender() {
+void AppLayer::onImGuiRender() {
 	//ImGui::ShowDemoWindow();
 	ImGui::DockSpaceOverViewport((ImGuiViewport*)0, ImGuiDockNodeFlags_PassthruCentralNode);
 	ImGui::Begin("Infos");
@@ -406,16 +406,16 @@ void AppLayer::OnImGuiRender() {
 
 	static bool transparency = true;
 	if (ImGui::Checkbox("Particle transparency", &transparency)) {
-		if (transparency) particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
-		else particleSystem->SetDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
+		if (transparency) particleSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
+		else particleSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
 	}
 
 	static bool showbed = true;
 	if (ImGui::Checkbox("Show build plate", &showbed)) {
-		auto bedRef = scene.GetChild("bed");
+		auto bedRef = scene.getChild("bed");
 		if (bedRef) {
-			if (showbed) scene.GetChild("bed")->Show();
-			else scene.GetChild("bed")->Hide();
+			if (showbed) scene.getChild("bed")->show();
+			else scene.getChild("bed")->hide();
 		}
 	}
 
@@ -427,72 +427,72 @@ void AppLayer::OnImGuiRender() {
 
 	static bool Pstate = true;
 	if (ImGui::Checkbox("Show Particles", &Pstate)) {
-		if (Pstate) particleSystem->Show();
-		else particleSystem->Hide();
+		if (Pstate) particleSystem->show();
+		else particleSystem->hide();
 	}
 
 	static bool Bstate = false;
 	if (ImGui::Checkbox("Show Bins", &Bstate)) {
-		if (Bstate) binSystem->Show();
-		else binSystem->Hide();
+		if (Bstate) binSystem->show();
+		else binSystem->hide();
 	}
 
 	static bool BBstate = false;
 	if (ImGui::Checkbox("Show Boundaries", &BBstate)) {
-		particleShader->Use();
-		particleShader->SetInt("showBoundary", BBstate);
+		particleShader->use();
+		particleShader->setInt("showBoundary", BBstate);
 	}
 
 	ImGui::DragInt("Solver substep", &settings.solver_substep, 1, 1, 200);
 	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 200);
 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
-		camera->SetPosition(model_matrix_translation);
+		camera->setPosition(model_matrix_translation);
 	}
 
 	if (ImGui::InputFloat("Time step", &settings.timestep.value(), 0.0, 0.02f)) {
-		solver->Use();
-		solver->SetFloat("dt", settings.timestep.value());
+		solver->use();
+		solver->setFloat("dt", settings.timestep.value());
 	}
 
 
 
 	if(ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.1, 2.0)){
-		solver->Use();
-		settings.particleMass.Sync(*solver);
+		solver->use();
+		settings.particleMass.sync(*solver);
 	}
 	if (ImGui::SliderFloat("Rest density", &settings.restDensity.value(), 0.0, 2.0)){
-		solver->Use();
-		settings.restDensity.Sync(*solver);
-		particleShader->Use();
-		settings.restDensity.Sync(*particleShader);
+		solver->use();
+		settings.restDensity.sync(*solver);
+		particleShader->use();
+		settings.restDensity.sync(*particleShader);
 	}
 	if (ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier.value(), 0.0, 10.0)){
-		solver->Use();
-		solver->SetFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
+		solver->use();
+		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
 	}
 	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 10.0)){
-		solver->Use();
-		solver->SetFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.001);
+		solver->use();
+		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.001);
 	}
 
 	static int colorMode = 0;
 	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Velocity", "Mass", "Neighbors" };
 	if (ImGui::ListBox("Colored field", &colorMode, options, 7)) {
-		particleShader->Use();
-		particleShader->SetInt("colorCycle", colorMode);
-		binShader->Use();
-		binShader->SetInt("colorCycle", colorMode);
+		particleShader->use();
+		particleShader->setInt("colorCycle", colorMode);
+		binShader->use();
+		binShader->setInt("colorCycle", colorMode);
 	}
 
 	static int particleTest = 50;
 	static int binTest = 1459;
 	if (colorMode == 6) {
 		if (ImGui::DragInt("Particle to test", &particleTest)) {
-			particleShader->Use();
-			particleShader->SetUInt("particleTest", particleTest);
-			binShader->Use();
-			binShader->SetUInt("particleTest", particleTest);
+			particleShader->use();
+			particleShader->setUInt("particleTest", particleTest);
+			binShader->use();
+			binShader->setUInt("particleTest", particleTest);
 		}
 
 		ImGui::LabelText("Bin selector", "");
@@ -509,8 +509,8 @@ void AppLayer::OnImGuiRender() {
 		if (ImGui::SmallButton("Z-")) { binTest -= int(settings.bb.y / settings.bWidth) * int(settings.bb.x / settings.bWidth); changed = true; }
 
 		if (changed) {
-			binShader->Use();
-			binShader->SetUInt("binTest", binTest);
+			binShader->use();
+			binShader->setUInt("binTest", binTest);
 		}
 	}
 
@@ -530,8 +530,8 @@ void AppLayer::OnImGuiRender() {
 	static int stepSolver = 0;
 	ImGui::SliderInt("Solver Step", &stepSolver, 0.0, 5.0f);
 	if (ImGui::Button("Execute Solver")) {
-		solver->Use();
-		solver->Execute(stepSolver);
+		solver->use();
+		solver->execute(stepSolver);
 	}
 
 	ImGui::LabelText("PrefixSum", "");
@@ -539,8 +539,8 @@ void AppLayer::OnImGuiRender() {
 	ImGui::LabelText("Solver", "");
 	ImGui::SliderInt("PrefixSum Step", &stepPrefix, 0.0, 3.0f);
 	if (ImGui::Button("Execute PrefixSum Step")) {
-		prefixSum->Use();
-		prefixSum->Execute(stepPrefix);
+		prefixSum->use();
+		prefixSum->execute(stepPrefix);
 	}
 
 	if (ImGui::Button("Step Simulation")) {

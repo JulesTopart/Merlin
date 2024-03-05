@@ -27,7 +27,7 @@
 template<typename T>
 using Scope = std::unique_ptr<T>;
 template<typename T, typename ... Args>
-constexpr Scope<T> CreateScope(Args&& ... args)
+constexpr Scope<T> createScope(Args&& ... args)
 {
 	return std::make_unique<T>(std::forward<Args>(args)...);
 }
@@ -35,7 +35,7 @@ constexpr Scope<T> CreateScope(Args&& ... args)
 template<typename T>
 using Shared = std::shared_ptr<T>;
 template<typename T, typename ... Args>
-constexpr Shared<T> CreateShared(Args&& ... args)
+constexpr Shared<T> createShared(Args&& ... args)
 {
 	return std::make_shared<T>(std::forward<Args>(args)...);
 }

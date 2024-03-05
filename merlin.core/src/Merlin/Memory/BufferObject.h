@@ -94,7 +94,7 @@ namespace Merlin{
 		BufferObject& operator=(const BufferObject& cpy) = delete; //avoid copying the GLObject
 		BufferObject& operator=(BufferObject&& mov) noexcept = default; //allow to move the GLObject
 
-		void clear(); //Clear the device memory buffer (You need to allocate it again then)
+		void clear(); //Clear the device memory buffer (You need to reserve it again then)
 
 		void reserve(size_t size); //allcate space into device memory
 		void reserveRaw(size_t size); //allcate space into device memory
@@ -110,7 +110,7 @@ namespace Merlin{
 		void read(T* data) const; //Read buffer from device memoryonto given array pointer
 		void read(std::vector<T>& data) const; //Read buffer from device memory onto given vector array
 
-		void print(); //Print part of the array in console
+		void print(); //print part of the array in console
 
 	protected:
 		BufferUsage m_usage = BufferUsage::STATIC_DRAW;

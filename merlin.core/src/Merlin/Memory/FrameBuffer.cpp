@@ -22,35 +22,35 @@ namespace Merlin {
         glDeleteFramebuffers(1, &_FrameBufferID);
     }
 
-    void FrameBuffer::Bind(GLenum target){
+    void FrameBuffer::bind(GLenum target){
         glBindFramebuffer(target, _FrameBufferID);
     }
 
-    void FrameBuffer::Unbind(){
+    void FrameBuffer::unbind(){
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void FrameBuffer::Resize(GLsizei width, GLsizei height) {
+    void FrameBuffer::resize(GLsizei width, GLsizei height) {
         // Update the dimensions of the framebuffer
         _width = width;
         _height = height;
 
-        // Resize each of the textures attached to the framebuffer
+        // resize each of the textures attached to the framebuffer
         for (const auto& tex : textures) {
-            tex->Bind();
-            tex->Resize(width, height);
-            tex->Unbind();
+            tex->bind();
+            tex->resize(width, height);
+            tex->unbind();
         }
 
-        // Resize the depth texture, if it exists
+        // resize the depth texture, if it exists
         if (depth_stencil_rbo) {
-            depth_stencil_rbo->Bind();
-            depth_stencil_rbo->Resize(width, height);
-            depth_stencil_rbo->Unbind();
+            depth_stencil_rbo->bind();
+            depth_stencil_rbo->resize(width, height);
+            depth_stencil_rbo->unbind();
         }
     }
 
-    void FrameBuffer::Print() const {
+    void FrameBuffer::print() const {
         Console::info("FrameBuffer") << "The current FrameBuffer contain : " << Console::endl;
 
         for (GLsizei i = 0; i < textures.size(); i++) {
@@ -59,7 +59,7 @@ namespace Merlin {
         if (depth_stencil_rbo)  Console::info("\t:") << "GL_DEPTH_STENCIL_ATTACHMENT" << Console::endl;
     }
 
-    void FrameBuffer::CheckErrors(std::string e) const {
+    void FrameBuffer::checkErrors(std::string e) const {
         // Check that the framebuffer is complete
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -67,21 +67,21 @@ namespace Merlin {
         }
     }
 
-    void FrameBuffer::AddColorAttachment(Shared<TextureBase> tex) {
+    void FrameBuffer::addColorAttachment(Shared<TextureBase> tex) {
         if (textures.size() == MaxColorAttachement) {
             Console::error("FrameBuffer") << "This framebuffer cannot handle more color attachment (" << textures.size() << "/" << MaxColorAttachement << ")" << Console::endl;
             return;
         }
 
         textures.push_back(tex);
-        // Attach the texture to the framebuffer as a color attachment
-        tex->Bind();
+        // attach the texture to the framebuffer as a color attachment
+        tex->bind();
         m_attatchments.push_back(GL_COLOR_ATTACHMENT0 + textures.size() - 1);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, m_attatchments.back(), tex->GetTarget(), tex->id(), 0);
-        CheckErrors("Error creating GL_COLOR_ATTACHMENT");
+        glFramebufferTexture2D(GL_FRAMEBUFFER, m_attatchments.back(), tex->getTarget(), tex->id(), 0);
+        checkErrors("Error creating GL_COLOR_ATTACHMENT");
     }
 
-    void FrameBuffer::AddDepthStencilAttachment(Shared<RenderBuffer> rbo) {
+    void FrameBuffer::addDepthStencilAttachment(Shared<RenderBuffer> rbo) {
         if (depth_stencil_rbo) {
             Console::error("FrameBuffer") << "GL_DEPTH_STENCIL_ATTACHMENT already set as a RBO !" << Console::endl;
             return;
@@ -93,17 +93,17 @@ namespace Merlin {
         }
 
         depth_stencil_rbo = rbo;
-        // Attach the renderbuffer to the framebuffer as a depth attachment
-        rbo->Bind();
+        // attach the renderbuffer to the framebuffer as a depth attachment
+        rbo->bind();
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo->id());
 
 
 
         // Check that the framebuffer is complete
-        CheckErrors("Error creating GL_DEPTH_STENCIL_ATTACHMENT");
+        checkErrors("Error creating GL_DEPTH_STENCIL_ATTACHMENT");
     }
 
-    void FrameBuffer::AddDepthStencilAttachment(Shared<TextureBase> tex) {
+    void FrameBuffer::addDepthStencilAttachment(Shared<TextureBase> tex) {
         if (depth_stencil_rbo) {
             Console::error("FrameBuffer") << "GL_DEPTH_STENCIL_ATTACHMENT already set as a RBO !" << Console::endl;
             return;
@@ -113,35 +113,35 @@ namespace Merlin {
             Console::error("FrameBuffer") << "GL_DEPTH_ATTACHMENT already set as a Texture !" << Console::endl;
             return;
         }
-        // Create Framebuffer Texture
+        // create Framebuffer Texture
         depth_texture = tex;
-        depth_texture->Bind();
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_texture->GetTarget(), depth_texture->id(), 0);
+        depth_texture->bind();
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_texture->getTarget(), depth_texture->id(), 0);
 
         // Check that the framebuffer is complete
-        CheckErrors("Error creating GL_DEPTH_STENCIL_ATTACHMENT");
+        checkErrors("Error creating GL_DEPTH_STENCIL_ATTACHMENT");
     }
 
-    void FrameBuffer::RenderAttachement(GLuint id) {
-        Bind(GL_READ_FRAMEBUFFER);
+    void FrameBuffer::renderAttachement(GLuint id) {
+        bind(GL_READ_FRAMEBUFFER);
         glReadBuffer(GL_COLOR_ATTACHMENT0 + id);
-        //fbo->Bind(GL_DRAW_FRAMEBUFFER);
+        //fbo->bind(GL_DRAW_FRAMEBUFFER);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         // Copy the multisampled framebuffer to the non-multisampled framebuffer, applying multisample resolve filters as needed
         glBlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-        Bind();
+        bind();
     }
 
-    std::shared_ptr<RenderBuffer> FrameBuffer::CreateRenderBufferAttachment(GLenum format, GLuint samples){
+    std::shared_ptr<RenderBuffer> FrameBuffer::createRenderBufferAttachment(GLenum format, GLuint samples){
         std::shared_ptr<RenderBuffer> rbo = std::make_shared<RenderBuffer>(samples);
-        rbo->Bind();
-        rbo->AllocateStorage(_width, _height, format);
+        rbo->bind();
+        rbo->reserve(_width, _height, format);
         return rbo;
     }
 
-    std::shared_ptr<TextureBase> FrameBuffer::CreateTextureAttachment(GLenum format, GLuint samples) {
+    std::shared_ptr<TextureBase> FrameBuffer::createTextureAttachment(GLenum format, GLuint samples) {
         
-        // Create Framebuffer Texture
+        // create Framebuffer Texture
         std::shared_ptr<TextureBase> tex;
         if (samples > 0) {
             tex = std::make_shared<TextureMultisampled>(TextureType::COLOR, samples);
@@ -149,30 +149,30 @@ namespace Merlin {
         else {
             tex = std::make_shared<Texture>();
             if (const auto tx = std::dynamic_pointer_cast<Texture>(tex)) {
-                tx->SetInterpolationMode(GL_LINEAR, GL_LINEAR);
-                tx->SetRepeatMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+                tx->setInterpolationMode(GL_LINEAR, GL_LINEAR);
+                tx->setRepeatMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
             }
         }
 
-        tex->Bind();
-        tex->Allocate(_width, _height, format);
+        tex->bind();
+        tex->reserve(_width, _height, format);
 
         return tex;
     }
 
-    std::shared_ptr<FrameBuffer> FrameBuffer::Create(int width, int height) {
+    std::shared_ptr<FrameBuffer> FrameBuffer::create(int width, int height) {
         return std::make_shared<FrameBuffer>(width, height);
     }
 
-    std::shared_ptr<TextureBase> FrameBuffer::GetColorAttachment(GLsizei id) {
+    std::shared_ptr<TextureBase> FrameBuffer::getColorAttachment(GLsizei id) {
         return textures[id];
     }
 
-    std::shared_ptr<TextureBase> FrameBuffer::GetDepthAttachement() {
+    std::shared_ptr<TextureBase> FrameBuffer::getDepthAttachement() {
         return depth_texture;
     }
 
-    void FrameBuffer::SetDrawBuffer(std::vector<unsigned int> buffers) {
+    void FrameBuffer::setDrawBuffer(std::vector<unsigned int> buffers) {
 
         if (buffers.size() == 0) {
             buffers = m_attatchments;

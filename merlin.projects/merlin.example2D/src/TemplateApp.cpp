@@ -8,12 +8,12 @@ public:
 	Template()
 		: Application("OpenGL Application")
 	{
-		PushLayer(new TemplateLayer());
+		pushLayer(new TemplateLayer());
 	}
 };
 
 int main()
 {
 	std::unique_ptr<Template> app = std::make_unique<Template>();
-	app->Run();
+	app->run();
 }

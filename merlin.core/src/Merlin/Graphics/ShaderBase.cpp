@@ -24,10 +24,10 @@ namespace Merlin {
 	}
 
 	ShaderBase::~ShaderBase() {
-		Delete();
+		destroy();
 	}
 
-	void ShaderBase::Delete() {
+	void ShaderBase::destroy() {
 		LOG_TRACE("ShaderBase") << "Shader " << m_programID << " deleted. " << Console::endl;
 		if (m_compiled != 0) {
 			glDeleteProgram(m_programID);
@@ -35,9 +35,9 @@ namespace Merlin {
 		}
 	}
 
-	void ShaderBase::Use() const {
+	void ShaderBase::use() const {
 		//LOG_TRACE("Shader") << "Using program : " << m_programID << Console::endl;
-		if (!IsCompiled()) {
+		if (!isCompiled()) {
 			//LOG_ERROR("Shader") << "Failed to bind shader. Program is not compiled" << Console::endl;
 			return;
 		}
@@ -45,7 +45,7 @@ namespace Merlin {
 	}
 
 
-	void ShaderBase::Attach(GenericBufferObject& buf) {
+	void ShaderBase::attach(GenericBufferObject& buf) {
 		int block_index = glGetProgramResourceIndex(m_programID, GL_SHADER_STORAGE_BLOCK, buf.name().c_str());
 		if (block_index == -1) Console::error("ShaderBase") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
 		else {
@@ -56,64 +56,64 @@ namespace Merlin {
 		}
 	}
 
-	//TODO : Bind the shaders automatically before setting uniforms.
-	GLuint ShaderBase::GetUniformLocation(const char* uniform) const{
-		if (!IsCompiled()) return 0;
+	//TODO : bind the shaders automatically before setting uniforms.
+	GLuint ShaderBase::getUniformLocation(const char* uniform) const{
+		if (!isCompiled()) return 0;
 		GLuint uniLoc = glGetUniformLocation(m_programID, uniform);
 		if (uniLoc == -1);// LOG_WARN("Shader") << "(" << m_name << ") Invalid Uniform name : " << uniform << ", (or wrong binded shader)" << Console::endl;
 		return uniLoc;
 	}
 
-	void ShaderBase::SetUInt(const std::string name, GLuint value) const {
-		if (!IsCompiled()) return;
-		int uniformLocation = GetUniformLocation(name.c_str());
+	void ShaderBase::setUInt(const std::string name, GLuint value) const {
+		if (!isCompiled()) return;
+		int uniformLocation = getUniformLocation(name.c_str());
 		glUniform1ui(uniformLocation, value);
 	}
 
-	void ShaderBase::SetInt(const std::string name, GLint value) const {
-		if (!IsCompiled()) return;
-		int uniformLocation = GetUniformLocation(name.c_str());
+	void ShaderBase::setInt(const std::string name, GLint value) const {
+		if (!isCompiled()) return;
+		int uniformLocation = getUniformLocation(name.c_str());
 		glUniform1i(uniformLocation, value);
 	}
 
-	void ShaderBase::SetFloat(const std::string name, GLfloat value) const {
-		if (!IsCompiled()) return;
-		int uniformLocation = GetUniformLocation(name.c_str());
+	void ShaderBase::setFloat(const std::string name, GLfloat value) const {
+		if (!isCompiled()) return;
+		int uniformLocation = getUniformLocation(name.c_str());
 		glUniform1f(uniformLocation, value);
 	}
 
-	void ShaderBase::SetDouble(const std::string name, GLdouble value) const {
-		if (!IsCompiled()) return;
-		int uniformLocation = GetUniformLocation(name.c_str());
+	void ShaderBase::setDouble(const std::string name, GLdouble value) const {
+		if (!isCompiled()) return;
+		int uniformLocation = getUniformLocation(name.c_str());
 		glUniform1d(uniformLocation, value);
 	}
 
-	void ShaderBase::SetMat4(const std::string name, glm::mat4 mat) const {
-		if (!IsCompiled()) return;
-		glUniformMatrix4fv(GetUniformLocation(name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+	void ShaderBase::setMat4(const std::string name, glm::mat4 mat) const {
+		if (!isCompiled()) return;
+		glUniformMatrix4fv(getUniformLocation(name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 	}
 
-	void ShaderBase::SetVec4(const std::string name, glm::vec4 value) const {
-		if (!IsCompiled()) return;
-		glUniform4fv(GetUniformLocation(name.c_str()), 1, glm::value_ptr(value));
+	void ShaderBase::setVec4(const std::string name, glm::vec4 value) const {
+		if (!isCompiled()) return;
+		glUniform4fv(getUniformLocation(name.c_str()), 1, glm::value_ptr(value));
 	}
 
-	void ShaderBase::SetVec3(const std::string name, glm::vec3 value) const {
-		if (!IsCompiled()) return;
-		glUniform3fv(GetUniformLocation(name.c_str()), 1, glm::value_ptr(value));
+	void ShaderBase::setVec3(const std::string name, glm::vec3 value) const {
+		if (!isCompiled()) return;
+		glUniform3fv(getUniformLocation(name.c_str()), 1, glm::value_ptr(value));
 	}
 
-	void ShaderBase::SetVec2(const std::string name, glm::vec2 value) const {
-		if (!IsCompiled()) return;
-		glUniform2fv(GetUniformLocation(name.c_str()), 1, glm::value_ptr(value));
+	void ShaderBase::setVec2(const std::string name, glm::vec2 value) const {
+		if (!isCompiled()) return;
+		glUniform2fv(getUniformLocation(name.c_str()), 1, glm::value_ptr(value));
 	}
 
-	void ShaderBase::SetIntArray(const std::string name, GLint* values, uint32_t count) const {
-		if (!IsCompiled()) return;
-		glUniform2iv( GetUniformLocation(name.c_str()), count, values);
+	void ShaderBase::setIntArray(const std::string name, GLint* values, uint32_t count) const {
+		if (!isCompiled()) return;
+		glUniform2iv( getUniformLocation(name.c_str()), count, values);
 	}
 
-	std::string ShaderBase::ReadSrc(const std::string& filename)
+	std::string ShaderBase::readSrc(const std::string& filename)
 	{
 		std::ifstream in(filename, std::ios::binary);
 		if (in) {
@@ -134,7 +134,7 @@ namespace Merlin {
 				std::string includeFile = includeMatch[1].str();
 				std::string absPath = path + "/" + includeFile;
 
-				std::string includeContent = ReadSrc(absPath); // Recursive call to load included file's content
+				std::string includeContent = readSrc(absPath); // Recursive call to load included file's content
 				contents = std::regex_replace(contents, includeRegex, includeContent, std::regex_constants::format_first_only);
 			}
 
@@ -151,7 +151,7 @@ namespace Merlin {
 
 	/*
 	// Reads a text file and outputs a string with everything in the text file
-	std::string ShaderBase::ReadSrc(const std::string filename)
+	std::string ShaderBase::readSrc(const std::string filename)
 	{
 		std::ifstream in(filename, std::ios::binary);
 		if (in) {
@@ -172,7 +172,7 @@ namespace Merlin {
 	*/
 
 	/*
-	std::shared_ptr<ShaderBase> ShaderBase::Create(const std::string& name) {
+	std::shared_ptr<ShaderBase> ShaderBase::create(const std::string& name) {
 		return std::make_shared<ShaderBase>(name);
 	}
 	*/

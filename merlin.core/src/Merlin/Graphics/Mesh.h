@@ -17,42 +17,42 @@ namespace Merlin {
 		Mesh(std::string name, std::vector<Vertex>& vertices, GLuint mode = GL_TRIANGLES);
 		Mesh(std::string name, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode = GL_TRIANGLES);
 
-		void Bind();
-		void Unbind();
+		void bind();
+		void unbind();
 
-		void Draw() const;
-		void DrawInstanced(GLsizeiptr instanced) const;
+		void draw() const;
+		void drawInstanced(GLsizeiptr instanced) const;
 
-		void CalculateBoundingBox();
-		void CalculateNormals();
-		void CalculateIndices();
-		void RemoveUnusedVertices();
-		void UpdateVAO();
+		void calculateBoundingBox();
+		void calculateNormals();
+		void calculateIndices();
+		void removeUnusedVertices();
+		void updateVAO();
 
-		inline void SetDrawMode(GLuint mode) { m_drawMode = mode; }
-		inline void SetShader(Shared<Shader> shader) { m_shader = shader; }
-		inline void SetMaterial(Shared<Material> material) { m_material = material; }
-		inline void SetShader(std::string shaderName) { m_shaderName = shaderName; }
-		inline void SetMaterial(std::string materialName) { m_materialName = materialName; }
+		inline void setDrawMode(GLuint mode) { m_drawMode = mode; }
+		inline void setShader(Shared<Shader> shader) { m_shader = shader; }
+		inline void setMaterial(Shared<Material> material) { m_material = material; }
+		inline void setShader(std::string shaderName) { m_shaderName = shaderName; }
+		inline void setMaterial(std::string materialName) { m_materialName = materialName; }
 
-		inline bool HasIndices() const { return m_indices.size() > 0; }
-		inline bool HasShader() const { return m_shader != nullptr; }
-		inline bool HasMaterial() const { return m_material != nullptr; }
+		inline bool hasIndices() const { return m_indices.size() > 0; }
+		inline bool hasShader() const { return m_shader != nullptr; }
+		inline bool hasMaterial() const { return m_material != nullptr; }
 
-		inline GLuint GetDrawMode() const { return m_drawMode; }
-		inline const std::vector<Vertex>& GetVertices() const { return m_vertices;  }
-		inline const std::vector<GLuint>& GetIndices() const{ return m_indices; }
-		inline const glm::mat4& GetTransform() const { return m_transform; }
-		inline const Shader& GetShader() const { return *m_shader; }
-		inline const std::string& GetShaderName() const { return m_shaderName; }
-		inline const Material& GetMaterial() const { return *m_material; }
-		inline const std::string& GetMaterialName() const { return m_materialName; }
+		inline GLuint getDrawMode() const { return m_drawMode; }
+		inline const std::vector<Vertex>& getVertices() const { return m_vertices;  }
+		inline const std::vector<GLuint>& getIndices() const{ return m_indices; }
+		inline const glm::mat4& getTransform() const { return m_transform; }
+		inline const Shader& getShader() const { return *m_shader; }
+		inline const std::string& getShaderName() const { return m_shaderName; }
+		inline const Material& getMaterial() const { return *m_material; }
+		inline const std::string& getMaterialName() const { return m_materialName; }
 
-		inline BoundingBox GetBoundingBox() const { return m_bbox; }
+		inline BoundingBox getBoundingBox() const { return m_bbox; }
 
-		static Shared<Mesh> Create(std::string name);
-		static Shared<Mesh> Create(std::string name, std::vector<Vertex>& vertices, GLuint mode = GL_TRIANGLES);
-		static Shared<Mesh> Create(std::string name, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode = GL_TRIANGLES);
+		static Shared<Mesh> create(std::string name);
+		static Shared<Mesh> create(std::string name, std::vector<Vertex>& vertices, GLuint mode = GL_TRIANGLES);
+		static Shared<Mesh> create(std::string name, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode = GL_TRIANGLES);
 
 	private:
 		VAO m_vao;

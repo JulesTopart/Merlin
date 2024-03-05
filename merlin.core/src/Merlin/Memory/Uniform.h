@@ -12,7 +12,7 @@ namespace Merlin {
 			return m_data;
 		}
 
-		void Sync(ShaderBase& shader);
+		void sync(ShaderBase& shader);
 
 	private:
 		T m_data;

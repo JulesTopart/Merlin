@@ -24,41 +24,41 @@ namespace Merlin {
 		s_Instance = this;
 
 
-		InitWindow(name, width, height, vsync, multisampling, fullscreen);
-		PrintHeader();
+		initWindow(name, width, height, vsync, multisampling, fullscreen);
+		printHeader();
 
 		m_ImGuiLayer = new ImGuiLayer();
-		PushOverlay(m_ImGuiLayer);
+		pushOverlay(m_ImGuiLayer);
 	}
 
-	void Application::InitWindow(const std::string& name, uint32_t width, uint32_t height, bool vsync, bool multisampling, bool fullscreen) {
-		m_Window = std::unique_ptr<Window>(Window::Create({ name, width, height, vsync, multisampling, fullscreen }));
-		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+	void Application::initWindow(const std::string& name, uint32_t width, uint32_t height, bool vsync, bool multisampling, bool fullscreen) {
+		m_Window = std::unique_ptr<Window>(Window::create({ name, width, height, vsync, multisampling, fullscreen }));
+		m_Window->setEventCallback(BIND_EVENT_FN(onEvent));
 	}
 
-	void Application::ToggleVSync() {
-
-	}
-
-	void Application::ToggleFullscreen() {
+	void Application::toggleVSync() {
 
 	}
 
-	void Application::DisableMSAA() {
+	void Application::toggleFullscreen() {
 
 	}
 
-	void Application::ToggleMSAA() {
+	void Application::disableMSAA() {
 
 	}
 
-	void Application::EnableMSAA(MSAA_PRESET preset) {
+	void Application::toggleMSAA() {
+
+	}
+
+	void Application::enableMSAA(MSAA_PRESET preset) {
 
 	}
 
 
 
-	void Application::PrintHeader() const {
+	void Application::printHeader() const {
 		//int deviceMem;
 		//glGetIntegerv(GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &deviceMem);
 
@@ -74,31 +74,31 @@ namespace Merlin {
 			<< "| -------------- | " << "------------------------------------------------------------" << "|" << Console::endl;
 	}
 
-	void Application::PushLayer(Layer* layer)
+	void Application::pushLayer(Layer* layer)
 	{
-		m_LayerStack.PushLayer(layer);
+		m_LayerStack.pushLayer(layer);
 	}
 
-	void Application::PushOverlay(Layer* layer)
+	void Application::pushOverlay(Layer* layer)
 	{
-		m_LayerStack.PushOverlay(layer);
+		m_LayerStack.pushOverlay(layer);
 	}
 
-	void Application::OnEvent(Event& e)
+	void Application::onEvent(Event& e)
 	{
 		EventDispatcher dispatcher(e);
-		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
-		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OnWindowResized));
+		dispatcher.dispatch<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
+		dispatcher.dispatch<WindowResizeEvent>(BIND_EVENT_FN(onWindowResized));
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
 		{
-			(*--it)->OnEvent(e);
+			(*--it)->onEvent(e);
 			if (e.Handled)
 				break;
 		}
 	}
 
-	void Application::Run()
+	void Application::run()
 	{
 		while (m_Running)
 		{
@@ -107,28 +107,28 @@ namespace Merlin {
 			m_LastFrameTime = time;
 
 			for (Layer* layer : m_LayerStack)
-				layer->OnUpdate(timestep);
+				layer->onUpdate(timestep);
 
-			m_ImGuiLayer->Begin();
+			m_ImGuiLayer->begin();
 			for (Layer* layer : m_LayerStack)
-				layer->OnImGuiRender();
-			m_ImGuiLayer->End();
+				layer->onImGuiRender();
+			m_ImGuiLayer->end();
 
-			m_Window->OnUpdate();
+			m_Window->onUpdate();
 
 		}
 	}
 
-	bool Application::OnWindowClose(WindowCloseEvent& e)
+	bool Application::onWindowClose(WindowCloseEvent& e)
 	{
 		m_Running = false;
 		return true;
 	}	
 
-	bool Application::OnWindowResized(WindowResizeEvent& e)
+	bool Application::onWindowResized(WindowResizeEvent& e)
 	{
-		if (e.GetHeight() == 0 || e.GetWidth() == 0) return false;
-		glViewport(0, 0, e.GetWidth(), e.GetHeight());
+		if (e.getHeight() == 0 || e.getWidth() == 0) return false;
+		glViewport(0, 0, e.getWidth(), e.getHeight());
 		return false;
 	}
 

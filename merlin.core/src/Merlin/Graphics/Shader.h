@@ -19,28 +19,28 @@ namespace Merlin {
 
 		~Shader();
 
-		void Delete() override;
-		void Compile(const std::string& vertex_file_path,
+		void destroy() override;
+		void compile(const std::string& vertex_file_path,
 			const std::string& fragment_file_path,
 			const std::string& geometry_file_path = "");
 
-		void CompileFromSrc(const std::string& vertex_src,
+		void compileFromSrc(const std::string& vertex_src,
 			const std::string& fragment_src,
 			const std::string& geometry_src = "");
 
-		static Shared<Shader> Create(	const std::string& name,
+		static Shared<Shader> create(	const std::string& name,
 										const std::string& vertex_file_path,
 										const std::string& fragment_file_path,
 										const std::string& geometry_file_path = "");
 
-		inline bool SupportTexture() const		{ return _supportTexture; }
-		inline bool SupportMaterial() const		{ return _supportMaterial; }
+		inline bool supportTexture() const		{ return _supportTexture; }
+		inline bool supportMaterial() const		{ return _supportMaterial; }
 		inline void noMaterial()	{ _supportMaterial = false; }
 		inline void noTexture()	{ _supportTexture = false; }
 
 	protected:
 
-		void CompileShader(const std::string& name, const std::string& src, GLuint id);
+		void compileShader(const std::string& name, const std::string& src, GLuint id);
 
 
 		bool _supportTexture = true;

@@ -15,48 +15,48 @@ namespace Merlin {
 		glDeleteTextures(1, &_TextureID);
 	}
 
-	void TextureBase::Bind() {
+	void TextureBase::bind() {
 		// Activate the appropriate texture unit (offsetting from Texture0 using the _unit)
 		glActiveTexture(GL_TEXTURE0 + _unit);
-		// Bind the texture to the appropriate target
+		// bind the texture to the appropriate target
 		glBindTexture(_Target, _TextureID);
 	}
 
-	void TextureBase::Bind(GLuint unit) {
+	void TextureBase::bind(GLuint unit) {
 		// Activate the appropriate texture unit (offsetting from Texture0 using the unit parameter)
 		glActiveTexture(GL_TEXTURE0 + unit);
-		// Bind the texture to the appropriate target
+		// bind the texture to the appropriate target
 		glBindTexture(_Target, _TextureID);
 
 	}
 
-	void TextureBase::BindImage() {
+	void TextureBase::bindImage() {
 		// Activate the appropriate texture unit (offsetting from Texture0 using the _unit)
 		glActiveTexture(GL_TEXTURE0 + _unit);
-		// Bind the texture to the appropriate target
+		// bind the texture to the appropriate target
 		glBindImageTexture(_unit, _TextureID,0, GL_FALSE, 0, GL_READ_WRITE, _internalFormat);
 	}
 
-	void TextureBase::BindImage(GLuint unit) {
+	void TextureBase::bindImage(GLuint unit) {
 		// Activate the appropriate texture unit (offsetting from Texture0 using the _unit)
 		glActiveTexture(GL_TEXTURE0 + unit);
-		// Bind the texture to the appropriate target
+		// bind the texture to the appropriate target
 		glBindImageTexture(_unit, _TextureID, 0, GL_FALSE, 0, GL_READ_WRITE, _internalFormat);
 	}
 
-	void TextureBase::Unbind() {
-		// Unbind the texture to the appropriate target
+	void TextureBase::unbind() {
+		// unbind the texture to the appropriate target
 		glBindTexture(_Target, 0);
 
 	}
 
-	void TextureBase::SetUnit(GLuint unit) {
+	void TextureBase::setUnit(GLuint unit) {
 		_unit = unit;
 	}
 
 
-	void TextureBase::SyncTextureUnit(const ShaderBase& shader, const std::string uniform) {
-		shader.SetInt(uniform, _unit);
+	void TextureBase::syncTextureUnit(const ShaderBase& shader, const std::string uniform) {
+		shader.setInt(uniform, _unit);
 	}
 
 
@@ -103,59 +103,59 @@ namespace Merlin {
 
 	Texture::~Texture() {}
 
-	void Texture::GenerateMipMap() {
-		glGenerateMipmap(GetTarget());
+	void Texture::generateMipMap() {
+		glGenerateMipmap(getTarget());
 	}
 
-	void Texture::SetInterpolationMode(GLuint settingMin, GLuint settingMag) {
-		if (GetTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
+	void Texture::setInterpolationMode(GLuint settingMin, GLuint settingMag) {
+		if (getTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
 			Console::error("Texture") << "You cannot set interpolation filter on a multisampled texture" << Console::endl;
 			return;
 		}
-		glTexParameteri(GetTarget(), GL_TEXTURE_MIN_FILTER, settingMin);
-		glTexParameteri(GetTarget(), GL_TEXTURE_MAG_FILTER, settingMag);
+		glTexParameteri(getTarget(), GL_TEXTURE_MIN_FILTER, settingMin);
+		glTexParameteri(getTarget(), GL_TEXTURE_MAG_FILTER, settingMag);
 	}
 
-	void Texture::SetRepeatMode(GLuint _wrapS, GLuint _wrapT) {
-		if (GetTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
+	void Texture::setRepeatMode(GLuint _wrapS, GLuint _wrapT) {
+		if (getTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
 			Console::error("Texture") << "You cannot set warp behavior on a multisampled texture" << Console::endl;
 			return;
 		}
-		glTexParameteri(GetTarget(), GL_TEXTURE_WRAP_S, _wrapS);
-		glTexParameteri(GetTarget(), GL_TEXTURE_WRAP_T, _wrapT);
+		glTexParameteri(getTarget(), GL_TEXTURE_WRAP_S, _wrapS);
+		glTexParameteri(getTarget(), GL_TEXTURE_WRAP_T, _wrapT);
 	}
 
-	void Texture::SetBorderColor4f(float colors[4]) {
+	void Texture::setBorderColor4f(float colors[4]) {
 		
-		if (GetTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
+		if (getTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
 			Console::error("Texture") << "You cannot set a border color on a multisampled texture" << Console::endl;
 			return;
 		}
-		glTexParameterfv(GetTarget(), GL_TEXTURE_BORDER_COLOR, colors);
+		glTexParameterfv(getTarget(), GL_TEXTURE_BORDER_COLOR, colors);
 	}
 
-	void Texture::SetBorderColor4f(float R, float G, float B, float A) {
-		if (GetTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
+	void Texture::setBorderColor4f(float R, float G, float B, float A) {
+		if (getTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
 			Console::error("Texture") << "You cannot set a border color on a multisampled texture" << Console::endl;
 			return;
 		}
 		
 		float colors[4] = { R,G,B,A };
-		glTexParameterfv(GetTarget(), GL_TEXTURE_BORDER_COLOR, colors);
+		glTexParameterfv(getTarget(), GL_TEXTURE_BORDER_COLOR, colors);
 	}
 
-	void Texture::Resize(GLsizei width, GLsizei height) {
+	void Texture::resize(GLsizei width, GLsizei height) {
 		// Update the dimensions of the texture
 		_width = width;
 		_height = height;
 
-		// Bind the texture
-		Bind();
-		// Resize the texture using glTexImage2D
-		glTexImage2D(GetTarget(), 0, _format, width, height, 0, _format, GL_UNSIGNED_BYTE, nullptr);
+		// bind the texture
+		bind();
+		// resize the texture using glTexImage2D
+		glTexImage2D(getTarget(), 0, _format, width, height, 0, _format, GL_UNSIGNED_BYTE, nullptr);
 	}
 
-	void Texture::Allocate(int width, int height, GLenum format, GLenum internalformat) {
+	void Texture::reserve(int width, int height, GLenum format, GLenum internalformat) {
 		// Update the dimensions of the texture
 		_width = width;
 		_height = height;
@@ -163,14 +163,14 @@ namespace Merlin {
 		if (internalformat == GL_INVALID_ENUM)_internalFormat = GL_RGBA32F;
 		else _internalFormat = internalformat;
 
-		// Resize the texture using glTexImage2D
-		LoadFromData(nullptr, width, height, format);
-		SetInterpolationMode(GL_LINEAR, GL_LINEAR);
-		SetRepeatMode(GL_REPEAT, GL_REPEAT);
-		//glTexImage2D(GetTarget(), 0, _internalFormat, _width, _height, 0, _format, GL_UNSIGNED_BYTE, data);
+		// resize the texture using glTexImage2D
+		loadFromData(nullptr, width, height, format);
+		setInterpolationMode(GL_LINEAR, GL_LINEAR);
+		setRepeatMode(GL_REPEAT, GL_REPEAT);
+		//glTexImage2D(getTarget(), 0, _internalFormat, _width, _height, 0, _format, GL_UNSIGNED_BYTE, data);
 	}
 
-	void Texture::LoadFromFile(const std::string img_file_path) {
+	void Texture::loadFromFile(const std::string img_file_path) {
 		int widthImg, heightImg, nrChannels;
 
 		// Flips the image so it appears right side up
@@ -186,21 +186,21 @@ namespace Merlin {
 		}else {
 			Console::info("Texture") << "Texture : (" << img_file_path << ") loaded sucessfully." << Console::endl;
 
-			LoadFromData(bytes, widthImg, heightImg, format);
-			GenerateMipMap();
+			loadFromData(bytes, widthImg, heightImg, format);
+			generateMipMap();
 		}
 		stbi_image_free(bytes);
 	}
 
 
 
-	void Texture::LoadFromData(unsigned char* data, int width, int height, GLenum format) {
+	void Texture::loadFromData(unsigned char* data, int width, int height, GLenum format) {
 		_width = width;
 		_height = height;
 		_format = format;
 		_internalFormat = _format == GL_RGBA ? GL_RGBA32F : format;
 
-		glTexImage2D(GetTarget(), 0, _internalFormat, _width, _height, 0, _format, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(getTarget(), 0, _internalFormat, _width, _height, 0, _format, GL_UNSIGNED_BYTE, data);
 	}
 
 

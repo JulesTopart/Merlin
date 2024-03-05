@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 #include <string>
 
-#define GLLOG() Console::LogGLError()
-#define GLDEBUG(x) Console::ClearGLError(); x; Console::CheckGLError(__FILENAME__, __LINE__);
+#define GLLOG() Console::logGLError()
+#define GLDEBUG(x) Console::clearGLError(); x; Console::checkGLError(__FILENAME__, __LINE__);
 #define GL_(x) GLDEBUG(x)
 
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
@@ -75,14 +75,14 @@ namespace Merlin {
 
 		static void printProgress(double percentage);
 
-		static void ClearGLError();
-		static void LogGLError();
-		static void CheckGLError(std::string file, int line);
+		static void clearGLError();
+		static void logGLError();
+		static void checkGLError(std::string file, int line);
 
 		inline static std::string setprecision(int i) { return "\033[0m"; };
 
-		inline static ConsoleLevel GetLevel() { return _level; };
-		inline static void  SetLevel(ConsoleLevel l) { _level = l; };
+		inline static ConsoleLevel getLevel() { return _level; };
+		inline static void  setLevel(ConsoleLevel l) { _level = l; };
 		static void write(std::string content);
 
 	private:

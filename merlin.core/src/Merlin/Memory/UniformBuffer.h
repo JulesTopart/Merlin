@@ -10,7 +10,7 @@ namespace Merlin {
 		UniformBuffer(std::string name);
 		~UniformBuffer();
 
-		void Attach(const ShaderBase& sh, GLuint bindingPoint); //Link the program buffer to the right binding point
+		void attach(const ShaderBase& sh, GLuint bindingPoint); //Link the program buffer to the right binding point
 		static void copy(Shared<UniformBuffer> origin, Shared<UniformBuffer> target, GLsizeiptr size);
 
 	};
@@ -23,7 +23,7 @@ namespace Merlin {
 	}
 
 	template<class T>
-	void UniformBuffer<T>::Attach(const ShaderBase& sh, GLuint bindingPoint) {
+	void UniformBuffer<T>::attach(const ShaderBase& sh, GLuint bindingPoint) {
 		int block_index = glGetProgramResourceIndex(sh.id(), GL_SHADER_STORAGE_BLOCK, m_name.c_str());
 		if (block_index == -1) Console::error("SSBO") << "Block " << m_name << " not found in shader '" << sh.name() << "'. Did you bind it properly ?" << Console::endl;
 		else {

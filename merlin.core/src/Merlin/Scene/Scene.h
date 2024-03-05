@@ -20,18 +20,18 @@ namespace Merlin {
 		Scene(std::string name = "scene");
 		~Scene() {};
 
-		void Add(Shared<Model>);
-		void Add(Shared<deprecated_GenericParticleSystem>);
-		void Add(Shared<Light>);
-		void Add(Shared<SkyBox>);
-		void Add(Shared<TransformObject> t);
+		void add(Shared<Model>);
+		void add(Shared<deprecated_GenericParticleSystem>);
+		void add(Shared<Light>);
+		void add(Shared<SkyBox>);
+		void add(Shared<TransformObject> t);
 
-		void SetCamera(Shared<Camera> camera);
+		void setCamera(Shared<Camera> camera);
 		Camera& camera();
 
 		const std::list<Shared<RenderableObject>>& nodes() const;
 
-		inline static Shared<Scene> Create() { return CreateShared<Scene>(); };
+		inline static Shared<Scene> create() { return createShared<Scene>(); };
 	};
 	
 }

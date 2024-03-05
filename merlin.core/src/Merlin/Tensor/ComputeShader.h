@@ -10,18 +10,18 @@ namespace Merlin{
 		ComputeShader(const std::string& n, const std::string& file_path = "");
 		~ComputeShader();
 
-		void Delete() override;
-		void Compile(const std::string& file_path);
-		void CompileFromSrc(const std::string& src);
+		void destroy() override;
+		void compile(const std::string& file_path);
+		void compileFromSrc(const std::string& src);
 		
-		void Dispatch(); //Execute using the default WorkgroupLayout
-		void Dispatch(GLuint width, GLuint height = 1, GLuint layers = 1); //Execute using the given WorkgroupLayout
+		void dispatch(); //execute using the default WorkgroupLayout
+		void dispatch(GLuint width, GLuint height = 1, GLuint layers = 1); //execute using the given WorkgroupLayout
 		void SetWorkgroupLayout(GLuint width, GLuint height = 1, GLuint layers = 1); // Set current workgroup Layout
 
-		void Wait();
-		void Barrier(GLbitfield barrier = GL_ALL_BARRIER_BITS);
+		void wait();
+		void barrier(GLbitfield barrier = GL_ALL_BARRIER_BITS);
 
-		void PrintLimits();
+		void printLimits();
 
 	protected:
 		glm::uvec3 m_wkgrpLayout;
@@ -33,18 +33,18 @@ namespace Merlin{
 	public:
 		StagedComputeShader(const std::string& n, const std::string& file_path, GLuint numberOfStage);
 
-		void ExecuteAll();
-		void Execute(GLuint stage);
-		void Execute(GLuint start, GLuint end);
-		void Step();
+		void executeAll();
+		void execute(GLuint stage);
+		void execute(GLuint start, GLuint end);
+		void step();
 
-		inline void SetStageCount(GLuint n) { m_stageCount = n; }
-		inline void SetStage(GLuint n) { m_stage = n; }
-		inline void Reset() { m_stage = 0; }
-		inline GLuint GetStage() const { return m_stage; }
-		inline GLuint GetStageCount() const { return m_stageCount; }
+		inline void setStageCount(GLuint n) { m_stageCount = n; }
+		inline void setStage(GLuint n) { m_stage = n; }
+		inline void reset() { m_stage = 0; }
+		inline GLuint getStage() const { return m_stage; }
+		inline GLuint getStageCount() const { return m_stageCount; }
 
-		static Shared<StagedComputeShader> Create(const std::string& n, const std::string& file_path, GLuint numberOfStage) { return CreateShared<StagedComputeShader>(n, file_path, numberOfStage); };
+		static Shared<StagedComputeShader> create(const std::string& n, const std::string& file_path, GLuint numberOfStage) { return createShared<StagedComputeShader>(n, file_path, numberOfStage); };
 
 	protected:
 		GLuint m_stage = 0;
@@ -56,10 +56,10 @@ namespace Merlin{
 	class ComputeShaderLibrary : public RessourceManager<ComputeShader>{
 	public:
 		ComputeShaderLibrary();
-		inline void Add(Shared<ComputeShader> shader) { RessourceManager::Add(shader->name(), shader); };
+		inline void add(Shared<ComputeShader> shader) { RessourceManager::add(shader->name(), shader); };
 
-		void Dispatch(const std::string& key);
-		void Dispatch(const std::string& key, GLuint width, GLuint height = 1, GLuint layers = 1);
+		void dispatch(const std::string& key);
+		void dispatch(const std::string& key, GLuint width, GLuint height = 1, GLuint layers = 1);
 
 	};
 

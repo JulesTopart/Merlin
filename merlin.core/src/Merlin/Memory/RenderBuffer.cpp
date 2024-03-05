@@ -7,7 +7,7 @@ namespace Merlin {
 		// Generate a new renderbuffer object
 		glGenRenderbuffers(1, &_RenderbufferID);
 
-		// Bind the renderbuffer object to the GL_RENDERBUFFER target
+		// bind the renderbuffer object to the GL_RENDERBUFFER target
 		glBindRenderbuffer(GL_RENDERBUFFER, _RenderbufferID);
 	}
 
@@ -16,27 +16,27 @@ namespace Merlin {
 		glDeleteRenderbuffers(1, &_RenderbufferID);
 	}
 
-	void RenderBuffer::Bind() {
-		// Bind the renderbuffer object to the GL_RENDERBUFFER target
+	void RenderBuffer::bind() {
+		// bind the renderbuffer object to the GL_RENDERBUFFER target
 		glBindRenderbuffer(GL_RENDERBUFFER, _RenderbufferID);
 	}
 
-	void RenderBuffer::Unbind() {
+	void RenderBuffer::unbind() {
 		// Unind the renderbuffer object to the GL_RENDERBUFFER target
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
-	void RenderBuffer::Resize(GLsizei width, GLsizei height) {
-		// Allocate storage for the renderbuffer
+	void RenderBuffer::resize(GLsizei width, GLsizei height) {
+		// reserve storage for the renderbuffer
 		if (_samples > 0)
 			glRenderbufferStorageMultisample(GL_RENDERBUFFER, _samples, _format, width, height);
 		else
 			glRenderbufferStorage(GL_RENDERBUFFER, _format, width, height);
 	}
 
-	void RenderBuffer::AllocateStorage(GLsizei width, GLsizei height, GLenum format) {
+	void RenderBuffer::reserve(GLsizei width, GLsizei height, GLenum format) {
 		_format = format;
-		// Allocate storage for the renderbuffer
+		// reserve storage for the renderbuffer
 		if(_samples > 0)
 			glRenderbufferStorageMultisample(GL_RENDERBUFFER, _samples, format, width, height);
 		else

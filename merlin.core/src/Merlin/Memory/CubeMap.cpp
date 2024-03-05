@@ -7,28 +7,28 @@
 namespace Merlin {
 
     CubeMap::CubeMap(std::string right, std::string left, std::string top, std::string bottom, std::string front, std::string back) {
-        _textureID = LoadCubeMap({ right, left, top, bottom, front, back });
+        _textureID = loadCubeMap({ right, left, top, bottom, front, back });
 
     }
 
     CubeMap::CubeMap(const std::vector<std::string>& faces) {
-        _textureID = LoadCubeMap(faces);
+        _textureID = loadCubeMap(faces);
     }
 
     CubeMap::~CubeMap() {
         glDeleteTextures(1, &_textureID);
     }
 
-    void CubeMap::Bind(unsigned int unit) const {
+    void CubeMap::bind(unsigned int unit) const {
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textureID);
     }
 
-    void CubeMap::Unbind() const {
+    void CubeMap::unbind() const {
         glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     }
 
-    GLuint CubeMap::LoadCubeMap(const std::vector<std::string>& faces) {
+    GLuint CubeMap::loadCubeMap(const std::vector<std::string>& faces) {
         GLuint textureID;
         glGenTextures(1, &textureID);
         glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);

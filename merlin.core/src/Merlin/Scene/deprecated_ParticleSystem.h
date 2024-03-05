@@ -32,17 +32,17 @@ namespace Merlin {
 		deprecated_GenericParticleSystem();
 		deprecated_GenericParticleSystem(const std::string& name, GLsizeiptr instances);
 
-		void Draw(const Shader& shader) const; //Draw the mesh
+		void draw(const Shader& shader) const; //draw the mesh
 
-		inline void SetInstancesCount(GLuint t) { m_instancesCount = t; }
+		inline void setInstancesCount(GLuint t) { m_instancesCount = t; }
 		//Meshs
-		inline void SetMesh(Shared<Mesh> geometry) { m_geometry = geometry; }
-		inline Shared<Mesh> GetMesh() const { return m_geometry; }
+		inline void setMesh(Shared<Mesh> geometry) { m_geometry = geometry; }
+		inline Shared<Mesh> getMesh() const { return m_geometry; }
 
-		inline void SetDisplayMode(deprecated_ParticleSystemDisplayMode mode) { m_displayMode = mode; }
-		inline deprecated_ParticleSystemDisplayMode GetDisplayMode() const { return m_displayMode; }
+		inline void setDisplayMode(deprecated_ParticleSystemDisplayMode mode) { m_displayMode = mode; }
+		inline deprecated_ParticleSystemDisplayMode getDisplayMode() const { return m_displayMode; }
 
-		inline void AddComputeShader(Shared<ComputeShader> cs) { m_shaders.push_back(cs); };
+		inline void addComputeShader(Shared<ComputeShader> cs) { m_shaders.push_back(cs); };
 
 	protected : 
 		GLsizeiptr m_instancesCount = 1;
@@ -66,18 +66,18 @@ namespace Merlin {
 		deprecated_ParticleSystem(std::string name, GLsizeiptr maxCount) : deprecated_GenericParticleSystem(name, maxCount) {}
 		~deprecated_ParticleSystem() {};
 
-		//void Update(Timestep ts);//Execute all linked compute shader
-		//void Execute(Shared<ComputeShader> step, bool autoBind = true); //Execute compute shader once
+		//void Update(Timestep ts);//execute all linked compute shader
+		//void execute(Shared<ComputeShader> step, bool autoBind = true); //execute compute shader once
 
-		inline static Shared<deprecated_ParticleSystem> Create(std::string name, GLsizeiptr instances) {
-			return CreateShared<deprecated_ParticleSystem>(name, instances);
+		inline static Shared<deprecated_ParticleSystem> create(std::string name, GLsizeiptr instances) {
+			return createShared<deprecated_ParticleSystem>(name, instances);
 		};
 
-		inline void AddStorageBuffer(Shared<GenericBufferObject> buffer) {
+		inline void addStorageBuffer(Shared<GenericBufferObject> buffer) {
 			m_buffers.push_back(buffer);
 			if (m_shaders.size() == 0) Console::info("ParticleSystem") << "Shader list is empty. Load particle system shader before adding buffer to enable automatic shader attach or attach them manually" << Console::endl;
 			for (Shared<ComputeShader> shader : m_shaders) {
-				shader->Attach(*buffer);
+				shader->attach(*buffer);
 			}
 		}
 

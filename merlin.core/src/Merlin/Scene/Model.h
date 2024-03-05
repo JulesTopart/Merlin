@@ -16,20 +16,20 @@ namespace Merlin {
         Model(const std::string& name, const Shared<Mesh>& mesh);
         Model(const std::string& name, const std::vector<Shared<Mesh>>& mesh);
 
-        void AddMesh(const Shared<Mesh>& mesh);
-        void Draw(const Camera& camera) const;
+        void addMesh(const Shared<Mesh>& mesh);
+        void draw(const Camera& camera) const;
 
 
-        void SetShader(const Shared<Shader>& shader);
-        void SetMaterial(const Shared<Material>& material);
-        void SetShader(const std::string& shader);
-        void SetMaterial(const std::string& material);
+        void setShader(const Shared<Shader>& shader);
+        void setMaterial(const Shared<Material>& material);
+        void setShader(const std::string& shader);
+        void setMaterial(const std::string& material);
 
         inline const std::vector<Shared<Mesh>>& meshes() const { return m_meshes; }
 
-        static Shared<Model> Create(std::string name);
-        static Shared<Model> Create(const std::string& name, const Shared<Mesh>& mesh);
-        static Shared<Model> Create(const std::string& name, const std::vector<Shared<Mesh>>& mesh);
+        static Shared<Model> create(std::string name);
+        static Shared<Model> create(const std::string& name, const Shared<Mesh>& mesh);
+        static Shared<Model> create(const std::string& name, const std::vector<Shared<Mesh>>& mesh);
 
 
 

@@ -15,31 +15,31 @@ namespace Merlin {
 		ShaderBase(std::string name);
 		virtual ~ShaderBase();
 
-		virtual void Use() const;
-		virtual void Delete();
+		virtual void use() const;
+		virtual void destroy();
 
-		GLuint GetUniformLocation(const char*) const;
+		GLuint getUniformLocation(const char*) const;
 
-		void SetInt(const std::string name, GLint value) const;
-		void SetUInt(const std::string name, GLuint value) const;
-		void SetFloat(const std::string name, GLfloat value) const;
-		void SetDouble(const std::string name, GLdouble value) const;
-		void SetVec2(const std::string name, glm::vec2 value) const;
-		void SetVec3(const std::string name, glm::vec3 value) const;
-		void SetVec4(const std::string name, glm::vec4 value) const;
-		void SetMat4(const std::string name, glm::mat4 mat) const;
-		void SetIntArray(const std::string name, GLint* values, uint32_t count) const;
+		void setInt(const std::string name, GLint value) const;
+		void setUInt(const std::string name, GLuint value) const;
+		void setFloat(const std::string name, GLfloat value) const;
+		void setDouble(const std::string name, GLdouble value) const;
+		void setVec2(const std::string name, glm::vec2 value) const;
+		void setVec3(const std::string name, glm::vec3 value) const;
+		void setVec4(const std::string name, glm::vec4 value) const;
+		void setMat4(const std::string name, glm::mat4 mat) const;
+		void setIntArray(const std::string name, GLint* values, uint32_t count) const;
 
-		void Attach(GenericBufferObject& buf);
+		void attach(GenericBufferObject& buf);
 
 		inline const GLuint id() const { return m_programID; }
-		inline void SetID(GLuint _id_) { m_programID = _id_; };
+		inline void setID(GLuint _id_) { m_programID = _id_; };
 
 		inline const std::string name() const { return m_name; }
-		inline const bool IsCompiled() const { return m_compiled; }
+		inline const bool isCompiled() const { return m_compiled; }
 
-		//static std::shared_ptr<ShaderBase> Create(const std::string& name);
-		static std::string ReadSrc(const std::string& filename);
+		//static std::shared_ptr<ShaderBase> create(const std::string& name);
+		static std::string readSrc(const std::string& filename);
 
 	protected:
 		std::string m_name;
@@ -55,7 +55,7 @@ namespace Merlin {
 	class UniformObject {
 	public:
 		UniformObject(const std::string& name) : m_name(name), value() {};
-		void Sync(Merlin::ShaderBase& shader) const;
+		void sync(Merlin::ShaderBase& shader) const;
 
 		T value;
 	protected:
@@ -63,47 +63,47 @@ namespace Merlin {
 	};
 
 	template<class T>
-	inline void UniformObject<T>::Sync(Merlin::ShaderBase& shader) const {
+	inline void UniformObject<T>::sync(Merlin::ShaderBase& shader) const {
 		Console::error("UniformObject") << "This uniform type is not supported yet in this class" << Console::endl;
 	}
 
 	template<>
-	inline void UniformObject<int>::Sync(Merlin::ShaderBase& shader) const {
-		shader.SetInt(m_name, value);
+	inline void UniformObject<int>::sync(Merlin::ShaderBase& shader) const {
+		shader.setInt(m_name, value);
 	}
 
 	template<>
-	inline void UniformObject<unsigned int>::Sync(Merlin::ShaderBase& shader) const {
-		shader.SetUInt(m_name, value);
+	inline void UniformObject<unsigned int>::sync(Merlin::ShaderBase& shader) const {
+		shader.setUInt(m_name, value);
 	}
 
 	template<>
-	inline void UniformObject<float>::Sync(Merlin::ShaderBase& shader) const {
-		shader.SetFloat(m_name, value);
+	inline void UniformObject<float>::sync(Merlin::ShaderBase& shader) const {
+		shader.setFloat(m_name, value);
 	}
 
 	template<>
-	inline void UniformObject<glm::vec2>::Sync(Merlin::ShaderBase& shader) const {
-		shader.SetVec2(m_name, value);
+	inline void UniformObject<glm::vec2>::sync(Merlin::ShaderBase& shader) const {
+		shader.setVec2(m_name, value);
 	}
 
 	template<>
-	inline void UniformObject<glm::vec3>::Sync(Merlin::ShaderBase& shader) const {
-		shader.SetVec3(m_name, value);
+	inline void UniformObject<glm::vec3>::sync(Merlin::ShaderBase& shader) const {
+		shader.setVec3(m_name, value);
 	}
 
 	template<>
-	inline void UniformObject<glm::vec4>::Sync(Merlin::ShaderBase& shader) const {
-		shader.SetVec4(m_name, value);
+	inline void UniformObject<glm::vec4>::sync(Merlin::ShaderBase& shader) const {
+		shader.setVec4(m_name, value);
 	}
 
 	template<>
-	inline void UniformObject<glm::mat4>::Sync(Merlin::ShaderBase& shader) const {
-		shader.SetMat4(m_name, value);
+	inline void UniformObject<glm::mat4>::sync(Merlin::ShaderBase& shader) const {
+		shader.setMat4(m_name, value);
 	}
 
 	template<>
-	inline void UniformObject<std::vector<int>>::Sync(Merlin::ShaderBase& shader) const {
-		shader.SetIntArray(m_name, (GLint*)(value.data()), value.size());
+	inline void UniformObject<std::vector<int>>::sync(Merlin::ShaderBase& shader) const {
+		shader.setIntArray(m_name, (GLint*)(value.data()), value.size());
 	}
 }

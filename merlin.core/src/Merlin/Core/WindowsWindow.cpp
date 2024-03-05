@@ -18,26 +18,26 @@ namespace Merlin {
 		Console::info("GLFW Windows") << "GLFW Error" << error << " : " << description << Console::endl;
 	}
 
-	Window* Window::Create(const WindowProps& props)
+	Window* Window::create(const WindowProps& props)
 	{
 		return new WindowsWindow(props);
 	}
 
 	WindowsWindow::WindowsWindow(const WindowProps& props)
 	{
-		Init(props);
+		init(props);
 	}
 
 	WindowsWindow::~WindowsWindow()
 	{
-		Shutdown();
+		shutdown();
 	}
 
-	void WindowsWindow::Init(const WindowProps& props)
+	void WindowsWindow::init(const WindowProps& props)
 	{
 		m_Data.Title = props.Title;
-		m_Data.Width = props.Width;
-		m_Data.Height = props.Height;
+		m_Data.width = props.width;
+		m_Data.height = props.height;
 		m_Data.VSync = props.VSync;
 		m_Data.MSAA = props.MSAA;
 
@@ -51,7 +51,7 @@ namespace Merlin {
 
 		if(props.MSAA) glfwWindowHint(GLFW_SAMPLES, 8);
 
-		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
+		m_Window = glfwCreateWindow((int)props.width, (int)props.height, m_Data.Title.c_str(), nullptr, nullptr);
 
 		glfwMakeContextCurrent(m_Window);
 		int version = gladLoadGL(glfwGetProcAddress);
@@ -60,14 +60,14 @@ namespace Merlin {
 		//OpenGl is ready
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
-		if (props.VSync)SetVSync(true);
+		if (props.VSync)setVSync(true);
 
 		// Set GLFW callbacks
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-			data.Width = width;
-			data.Height = height;
+			data.width = width;
+			data.height = height;
 
 			WindowResizeEvent event(width, height);
 			data.EventCallback(event);
@@ -153,18 +153,18 @@ namespace Merlin {
 		});
 	}
 
-	void WindowsWindow::Shutdown()
+	void WindowsWindow::shutdown()
 	{
 		glfwDestroyWindow(m_Window);
 	}
 
-	void WindowsWindow::OnUpdate()
+	void WindowsWindow::onUpdate()
 	{
 		glfwPollEvents();
 		glfwSwapBuffers(m_Window);
 	}
 
-	void WindowsWindow::SetVSync(bool enabled)
+	void WindowsWindow::setVSync(bool enabled)
 	{
 		if (enabled)
 			glfwSwapInterval(1);
@@ -174,7 +174,7 @@ namespace Merlin {
 		m_Data.VSync = enabled;
 	}
 
-	bool WindowsWindow::IsVSync() const
+	bool WindowsWindow::isVSync() const
 	{
 		return m_Data.VSync;
 	}

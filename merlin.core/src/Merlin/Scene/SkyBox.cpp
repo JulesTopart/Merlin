@@ -5,10 +5,10 @@
 
 namespace Merlin {
 
-	Shared<SkyBox> SkyBox::Create(std::string name, std::vector<std::string> paths) {
+	Shared<SkyBox> SkyBox::create(std::string name, std::vector<std::string> paths) {
 		return std::make_shared<SkyBox>(name, paths);
 	}
-	Shared<SkyBox> SkyBox::Create(std::string name) {
+	Shared<SkyBox> SkyBox::create(std::string name) {
 		return std::make_shared<SkyBox>(name);
 	}
 
@@ -48,13 +48,13 @@ namespace Merlin {
 			6, 2, 3
 		};
 
-		//Create VAO, VBO
+		//create VAO, VBO
 		m_vao.bind(); //bind the VAO
 		VBO vbo(skyboxVertices);
 		EBO ebo(skyboxIndices);
 
 		VertexBufferLayout layout;
-		layout.Push<float>(3); //Vertex pos
+		layout.push<float>(3); //Vertex pos
 		m_vao.addBuffer(vbo, layout);
 		m_vao.bindBuffer(ebo);
 		m_vao.unbind();
@@ -97,26 +97,26 @@ namespace Merlin {
 			6, 2, 3
 		};
 
-		//Create VAO, VBO
+		//create VAO, VBO
 		VBO vbo(skyboxVertices);
 		EBO ebo(skyboxIndices);
 		
 		VertexBufferLayout layout;
-		layout.Push<float>(3); //Vertex pos
+		layout.push<float>(3); //Vertex pos
 		m_vao.addBuffer(vbo, layout);
 		m_vao.bindBuffer(ebo);
 		m_vao.unbind();
 
-		LoadCubeMap(paths);
+		loadCubeMap(paths);
 
 	}
 
-	void SkyBox::Draw() const {
+	void SkyBox::draw() const {
 
 		if (m_cubeMap)
-			m_cubeMap->Bind(0);
+			m_cubeMap->bind(0);
 		else {
-			//Console::trace("SkyBox") << "The cubemap is not initialized, Please use skybox.LoadCubeMap(...) of provide an existing cubemap" << Console::endl;
+			//Console::trace("SkyBox") << "The cubemap is not initialized, Please use skybox.loadCubeMap(...) of provide an existing cubemap" << Console::endl;
 			//return;
 		}
 
@@ -126,12 +126,12 @@ namespace Merlin {
 		m_vao.unbind();
 
 		//if (m_cubeMap);
-			//m_cubeMap->Unbind();
+			//m_cubeMap->unbind();
 
 	}
 
-	void SkyBox::LoadCubeMap(std::vector<std::string> paths){
-		m_cubeMap = CreateShared<CubeMap>(paths);
+	void SkyBox::loadCubeMap(std::vector<std::string> paths){
+		m_cubeMap = createShared<CubeMap>(paths);
 	}
 
 

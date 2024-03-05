@@ -10,7 +10,7 @@ namespace Merlin {
 	class TextureLoader {
 	public:
 		// Load a texture from the specified file and return a pointer to a new Texture object
-		static Shared<Texture> LoadTexture(const std::string& filepath);
+		static Shared<Texture> loadTexture(const std::string& filepath);
 
 	private:
 
@@ -21,9 +21,9 @@ namespace Merlin {
 			UNKNOWN
 		};
 
-		static FileType GetFileType(const std::string& filepath);
-		static std::string GetFileExtension(const std::string& filepath);
-		static std::string GetFileName(const std::string& filepath);
+		static FileType getFileType(const std::string& filepath);
+		static std::string getFileExtension(const std::string& filepath);
+		static std::string getFileName(const std::string& filepath);
 
 
 	};

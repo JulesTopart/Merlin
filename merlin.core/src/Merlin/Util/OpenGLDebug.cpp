@@ -3,7 +3,7 @@
 
 namespace Merlin {
 
-	void OpenGLLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+	void openGLLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 	{
 		switch (severity)
 		{
@@ -28,9 +28,9 @@ namespace Merlin {
 		}
 	}
 
-	void EnableGLDebugging()
+	void enableGLDebugging()
 	{
-		glDebugMessageCallback(OpenGLLogMessage, nullptr);
+		glDebugMessageCallback(openGLLogMessage, nullptr);
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	}

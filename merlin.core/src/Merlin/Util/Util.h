@@ -13,9 +13,9 @@ namespace Merlin {
 		UNKNOWN
 	};
 
-	FileType GetFileType(const std::string& file_path);
-	std::string GetFileExtension(const std::string& filepath);
-	std::string GetFileName(const std::string& filepath);
+	FileType getFileType(const std::string& file_path);
+	std::string getFileExtension(const std::string& filepath);
+	std::string getFileName(const std::string& filepath);
 
 	template<typename T>
 	void debugVector(std::vector<T>& vec);

@@ -15,25 +15,25 @@ namespace Merlin {
 		Application(const std::string& name = "OpenGL Sandbox", uint32_t width = 1280, uint32_t height = 720, bool vsync = true, bool multisampling = true, bool fullscreen = false);
 		virtual ~Application() = default;
 
-		void Run();
-		void OnEvent(Event& e);
+		void run();
+		void onEvent(Event& e);
 
-		void PushLayer(Layer* layer);
-		void PushOverlay(Layer* layer);
-		void PrintHeader() const;
+		void pushLayer(Layer* layer);
+		void pushOverlay(Layer* layer);
+		void printHeader() const;
 
-		void ToggleVSync();
-		void ToggleFullscreen();
-		void DisableMSAA();
-		void ToggleMSAA();
-		void EnableMSAA(MSAA_PRESET preset);
+		void toggleVSync();
+		void toggleFullscreen();
+		void disableMSAA();
+		void toggleMSAA();
+		void enableMSAA(MSAA_PRESET preset);
 
-		inline Window& GetWindow() { return *m_Window; }
-		inline static Application& Get() { return *s_Instance; }
+		inline Window& getWindow() { return *m_Window; }
+		inline static Application& get() { return *s_Instance; }
 	private:
-		bool OnWindowClose(WindowCloseEvent& e);
-		bool OnWindowResized(WindowResizeEvent& e);
-		void InitWindow(const std::string& name, uint32_t width, uint32_t height, bool vsync, bool multisampling, bool fullscreen);
+		bool onWindowClose(WindowCloseEvent& e);
+		bool onWindowResized(WindowResizeEvent& e);
+		void initWindow(const std::string& name, uint32_t width, uint32_t height, bool vsync, bool multisampling, bool fullscreen);
 
 		std::unique_ptr<Window> m_Window;
 		ImGuiLayer* m_ImGuiLayer;

@@ -14,14 +14,14 @@ namespace Merlin {
 		ImGuiLayer();
 		~ImGuiLayer() = default;
 
-		virtual void OnAttach() override;
-		virtual void OnDetach() override;
+		virtual void onAttach() override;
+		virtual void onDetach() override;
 
-		void Begin();
-		void End();
+		void begin();
+		void end();
 
-		virtual void OnEvent(Event& event);
-		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+		virtual void onEvent(Event& event);
+		bool onMouseButtonPressed(MouseButtonPressedEvent& e);
 	private:
 		float m_Time = 0.0f;
 	};

@@ -11,20 +11,20 @@ namespace Merlin {
 		SkyBox(std::string name, std::vector<std::string> paths);
 		~SkyBox() {};
 
-		void Draw() const;
+		void draw() const;
 
-		void LoadCubeMap(std::vector<std::string> paths);
-		inline void SetCubeMap(const Shared<CubeMap> cubemap) { m_cubeMap = cubemap; }
+		void loadCubeMap(std::vector<std::string> paths);
+		inline void setCubeMap(const Shared<CubeMap> cubemap) { m_cubeMap = cubemap; }
 
-		inline bool HasShader() const { return m_shader != nullptr; }
-		inline bool HasCubeMap() const { return m_cubeMap != nullptr; }
-		inline const Shader& GetShader() const { return *m_shader; }
-		inline void SetShader(Shared<Shader> shader) { m_shader = shader; }
-		inline const std::string& GetShaderName() const { return m_shaderName; }
-		inline void SetShader(std::string shaderName) { m_shaderName = shaderName; }
+		inline bool hasShader() const { return m_shader != nullptr; }
+		inline bool hasCubeMap() const { return m_cubeMap != nullptr; }
+		inline const Shader& getShader() const { return *m_shader; }
+		inline void setShader(Shared<Shader> shader) { m_shader = shader; }
+		inline const std::string& getShaderName() const { return m_shaderName; }
+		inline void setShader(std::string shaderName) { m_shaderName = shaderName; }
 
-		static Shared<SkyBox>Create(std::string name);
-		static Shared<SkyBox>Create(std::string name, std::vector<std::string> paths);
+		static Shared<SkyBox>create(std::string name);
+		static Shared<SkyBox>create(std::string name, std::vector<std::string> paths);
 
 	private:
 		VAO m_vao;

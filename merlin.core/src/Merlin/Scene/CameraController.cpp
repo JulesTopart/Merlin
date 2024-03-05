@@ -6,7 +6,7 @@
 
 namespace Merlin {
 
-	void CameraController::SetZoomLevel(float zl)
+	void CameraController::setZoomLevel(float zl)
 	{
 		_ZoomLevel = zl;
 		_Camera->setZoom(zl);
@@ -14,64 +14,64 @@ namespace Merlin {
 
 	CameraController3D::CameraController3D(Shared<Camera> cam) : CameraController(cam) {}
 
-	void CameraController3D::OnUpdate(Timestep ts)
+	void CameraController3D::onUpdate(Timestep ts)
 	{
-		if (Input::IsKeyPressed(MRL_KEY_A))
+		if (Input::isKeyPressed(MRL_KEY_A))
 		{
 			_dU.x -= _CameraSpeed *ts;
 		}
-		else if (Input::IsKeyPressed(MRL_KEY_D))
+		else if (Input::isKeyPressed(MRL_KEY_D))
 		{
 			_dU.x += _CameraSpeed *ts;
 		}
 
-		if (Input::IsKeyPressed(MRL_KEY_W))
+		if (Input::isKeyPressed(MRL_KEY_W))
 		{
 			_dU.y += _CameraSpeed *ts;
 		}
-		else if (Input::IsKeyPressed(MRL_KEY_S))
+		else if (Input::isKeyPressed(MRL_KEY_S))
 		{
 			_dU.y -= _CameraSpeed *ts;
 		}
 
-		if (Input::IsKeyPressed(MRL_KEY_LEFT_CONTROL))
+		if (Input::isKeyPressed(MRL_KEY_LEFT_CONTROL))
 		{
 			_dU.z -= _CameraSpeed * ts;
 		}
-		else if (Input::IsKeyPressed(MRL_KEY_SPACE))
+		else if (Input::isKeyPressed(MRL_KEY_SPACE))
 		{
 			_dU.z += _CameraSpeed * ts;
 		}
 
 		
-		if (Input::IsKeyPressed(MRL_KEY_Q))
+		if (Input::isKeyPressed(MRL_KEY_Q))
 			_dR.x += _CameraSpeed;
-		if (Input::IsKeyPressed(MRL_KEY_E))
+		if (Input::isKeyPressed(MRL_KEY_E))
 			_dR.x -= _CameraSpeed;
 
 		_dR *= ts * 2.0;
-		_Camera->Translate(_dU);
+		_Camera->translate(_dU);
 
-		if (_Camera->GetRotation().y + _dR.y > -90 && _Camera->GetRotation().y + _dR.y < 90)
-			_Camera->Rotate(_dR);
+		if (_Camera->getRotation().y + _dR.y > -90 && _Camera->getRotation().y + _dR.y < 90)
+			_Camera->rotate(_dR);
 
 		_dU = glm::vec3(0.0f);
 		_dR = glm::vec3(0.0f);
 	}
 
-	void CameraController3D::OnEvent(Event& e)
+	void CameraController3D::onEvent(Event& e)
 	{
 		EventDispatcher dispatcher(e);
-		dispatcher.Dispatch<MouseScrolledEvent>(MERLIN_BIND_EVENT_FN(CameraController3D::OnMouseScrolled));
-		dispatcher.Dispatch<MouseMovedEvent>(MERLIN_BIND_EVENT_FN(CameraController3D::OnMouseMoved));
+		dispatcher.dispatch<MouseScrolledEvent>(MERLIN_BIND_EVENT_FN(CameraController3D::onMouseScrolled));
+		dispatcher.dispatch<MouseMovedEvent>(MERLIN_BIND_EVENT_FN(CameraController3D::onMouseMoved));
 	}
 
 
-	bool CameraController3D::OnMouseMoved(MouseMovedEvent& e) {
-		glm::vec2 newMousePos = glm::vec2(e.GetX(), e.GetY());
+	bool CameraController3D::onMouseMoved(MouseMovedEvent& e) {
+		glm::vec2 newMousePos = glm::vec2(e.getX(), e.getY());
 		
 
-		if (Input::IsMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
+		if (Input::isMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
 			_deltaMousePos = _lastMousePos - newMousePos;
 
 			_dR.z = -_deltaMousePos.x * std::min(_CameraSpeed * 0.5f, 50.0f);
@@ -82,9 +82,9 @@ namespace Merlin {
 		return false;
 	}
 
-	bool CameraController3D::OnMouseScrolled(MouseScrolledEvent& e)
+	bool CameraController3D::onMouseScrolled(MouseScrolledEvent& e)
 	{
-		_CameraSpeed += e.GetYOffset() * 0.25f * _CameraSpeed;
+		_CameraSpeed += e.getYOffset() * 0.25f * _CameraSpeed;
 		_CameraSpeed = std::max<float>(_CameraSpeed, 0.25f);
 		return false;
 	}
@@ -92,27 +92,27 @@ namespace Merlin {
 
 	CameraController2D::CameraController2D(Shared<Camera> cam) : CameraController(cam){}
 
-	void CameraController2D::OnUpdate(Timestep ts)
+	void CameraController2D::onUpdate(Timestep ts)
 	{
-		if (Input::IsKeyPressed(MRL_KEY_A))
+		if (Input::isKeyPressed(MRL_KEY_A))
 			_dU.x -= _CameraSpeed * ts;
-		else if (Input::IsKeyPressed(MRL_KEY_D))
+		else if (Input::isKeyPressed(MRL_KEY_D))
 			_dU.x += _CameraSpeed * ts;
-		if (Input::IsKeyPressed(MRL_KEY_W))
+		if (Input::isKeyPressed(MRL_KEY_W))
 			_dU.y -= _CameraSpeed * ts;
-		else if (Input::IsKeyPressed(MRL_KEY_S))
+		else if (Input::isKeyPressed(MRL_KEY_S))
 			_dU.y += _CameraSpeed * ts;
 
-		_Camera->Translate(_dU);
+		_Camera->translate(_dU);
 
 		_dU = glm::vec3(0.0f);
 	}
 
-	void CameraController2D::OnEvent(Event& e)
+	void CameraController2D::onEvent(Event& e)
 	{
 		EventDispatcher dispatcher(e);
-		dispatcher.Dispatch<MouseScrolledEvent>(MERLIN_BIND_EVENT_FN(CameraController2D::OnMouseScrolled));
-		dispatcher.Dispatch<MouseMovedEvent>(MERLIN_BIND_EVENT_FN(CameraController2D::OnMouseMoved));
+		dispatcher.dispatch<MouseScrolledEvent>(MERLIN_BIND_EVENT_FN(CameraController2D::onMouseScrolled));
+		dispatcher.dispatch<MouseMovedEvent>(MERLIN_BIND_EVENT_FN(CameraController2D::onMouseMoved));
 	}
 	
 
@@ -120,23 +120,23 @@ namespace Merlin {
 
 
 
-	bool CameraController2D::OnMouseScrolled(MouseScrolledEvent& e)
+	bool CameraController2D::onMouseScrolled(MouseScrolledEvent& e)
 	{
-		_ZoomLevel -= e.GetYOffset() * 0.25f * _ZoomLevel;
+		_ZoomLevel -= e.getYOffset() * 0.25f * _ZoomLevel;
 		_ZoomLevel = std::min<float>(_ZoomLevel, 500.f);
 		_ZoomLevel = std::max<float>(_ZoomLevel, 0.1);
 		_Camera->setZoom(_ZoomLevel);
 		return false;
 	}
 
-	bool CameraController2D::OnMouseMoved(MouseMovedEvent& e) {
-		glm::vec2 newMousePos = glm::vec2(e.GetX(), e.GetY());
+	bool CameraController2D::onMouseMoved(MouseMovedEvent& e) {
+		glm::vec2 newMousePos = glm::vec2(e.getX(), e.getY());
 
-		if (Input::IsMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
+		if (Input::isMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
 			_deltaMousePos = _lastMousePos - newMousePos;
 
-			_dU.x = _CameraSpeed * _deltaMousePos.x / _Camera->Width();
-			_dU.y = _CameraSpeed * _deltaMousePos.y / _Camera->Height();
+			_dU.x = _CameraSpeed * _deltaMousePos.x / _Camera->width();
+			_dU.y = _CameraSpeed * _deltaMousePos.y / _Camera->height();
 		}
 
 		_lastMousePos = newMousePos;

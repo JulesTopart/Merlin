@@ -10,11 +10,11 @@ namespace Merlin {
 			TextureMultisampled(TextureType t = TextureType::COLOR, int samples = 4);
 			~TextureMultisampled();
 
-			void Resize(GLsizei width, GLsizei height) override;
-			void Allocate(int width, int height,  GLenum format = GL_RGBA, GLenum internalformat = GL_INVALID_ENUM) override;
+			void resize(GLsizei width, GLsizei height) override;
+			void reserve(int width, int height,  GLenum format = GL_RGBA, GLenum internalformat = GL_INVALID_ENUM) override;
 
-			void LoadFromFile(const std::string img_file_path, GLenum format = GL_RGBA);
-			void LoadFromData(unsigned char* data, int width, int height, GLenum format = GL_RGBA);
+			void loadFromFile(const std::string img_file_path, GLenum format = GL_RGBA);
+			void loadFromData(unsigned char* data, int width, int height, GLenum format = GL_RGBA);
 
 
 		private:

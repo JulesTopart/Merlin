@@ -16,7 +16,7 @@ namespace Merlin {
 	{
 	}
 
-	void ImGuiLayer::OnAttach()
+	void ImGuiLayer::onAttach()
 	{
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -87,33 +87,33 @@ namespace Merlin {
      
         }
 
-		Application& app = Application::Get();
-		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
+		Application& app = Application::get();
+		GLFWwindow* window = static_cast<GLFWwindow*>(app.getWindow().getNativeWindow());
 
 		// Setup Platform/Renderer bindings
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
 
-	void ImGuiLayer::OnDetach()
+	void ImGuiLayer::onDetach()
 	{
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
 	
-	void ImGuiLayer::Begin()
+	void ImGuiLayer::begin()
 	{
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 	}
 
-	void ImGuiLayer::End()
+	void ImGuiLayer::end()
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		Application& app = Application::Get();
-		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
+		Application& app = Application::get();
+		io.DisplaySize = ImVec2((float)app.getWindow().getWidth(), (float)app.getWindow().getHeight());
 
 		// Rendering
 		ImGui::Render();
@@ -128,13 +128,13 @@ namespace Merlin {
 		}
 	}
 
-	void ImGuiLayer::OnEvent(Event& event)
+	void ImGuiLayer::onEvent(Event& event)
 	{
 		EventDispatcher dispatcher(event);
-		dispatcher.Dispatch<MouseButtonPressedEvent>(MERLIN_BIND_EVENT_FN(ImGuiLayer::OnMouseButtonPressed));
+		dispatcher.dispatch<MouseButtonPressedEvent>(MERLIN_BIND_EVENT_FN(ImGuiLayer::onMouseButtonPressed));
 	}
 
-	bool ImGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
+	bool ImGuiLayer::onMouseButtonPressed(MouseButtonPressedEvent& e)
 	{
 		ImGuiIO io = ImGui::GetIO();
 		return io.WantCaptureMouse;

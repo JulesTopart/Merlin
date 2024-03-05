@@ -24,7 +24,7 @@ namespace Merlin {
         unsigned int count;
         unsigned char normalized;
 
-        static unsigned int GetTypeSize(unsigned int type) {
+        static unsigned int getTypeSize(unsigned int type) {
             switch (type) {
             case GL_FLOAT:          return 4;
             case GL_UNSIGNED_INT:   return 4;
@@ -39,33 +39,33 @@ namespace Merlin {
         VertexBufferLayout() : m_Stride(0) {}
 
         template<typename T>
-        void Push(unsigned int count) {
+        void push(unsigned int count) {
             assert(false);
         }
 
         template<>
-        void Push<float>(unsigned int count) {
+        void push<float>(unsigned int count) {
             m_Elements.push_back({ GL_FLOAT, count, GL_FALSE });
-            m_Stride += VertexBufferElement::GetTypeSize(GL_FLOAT) * count;
+            m_Stride += VertexBufferElement::getTypeSize(GL_FLOAT) * count;
         }
 
         template<>
-        void Push<unsigned int>(unsigned int count) {
+        void push<unsigned int>(unsigned int count) {
             m_Elements.push_back({ GL_UNSIGNED_INT, count, GL_FALSE });
-            m_Stride += VertexBufferElement::GetTypeSize(GL_UNSIGNED_INT) * count;
+            m_Stride += VertexBufferElement::getTypeSize(GL_UNSIGNED_INT) * count;
         }
 
         template<>
-        void Push<unsigned char>(unsigned int count) {
+        void push<unsigned char>(unsigned int count) {
             m_Elements.push_back({ GL_UNSIGNED_BYTE, count, GL_TRUE });
-            m_Stride += VertexBufferElement::GetTypeSize(GL_BYTE) * count;
+            m_Stride += VertexBufferElement::getTypeSize(GL_BYTE) * count;
         }
 
         inline const std::vector<VertexBufferElement>
-            GetElements() const { return m_Elements; }
+            getElements() const { return m_Elements; }
 
         inline unsigned int
-            GetStride() const { return m_Stride; }
+            getStride() const { return m_Stride; }
 
     private:
         std::vector<VertexBufferElement> m_Elements;

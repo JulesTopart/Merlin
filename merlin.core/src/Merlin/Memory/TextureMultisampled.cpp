@@ -8,32 +8,32 @@ namespace Merlin {
 
 	TextureMultisampled::~TextureMultisampled(){}
 
-	void TextureMultisampled::Resize(GLsizei width, GLsizei height) {
+	void TextureMultisampled::resize(GLsizei width, GLsizei height) {
 		// Update the dimensions of the texture
 		_width = width;
 		_height = height;
 
-		// Bind the texture
-		Bind();
-		// Resize the texture using glTexImage2D
-		glTexImage2DMultisample(GetTarget(), _samples, _format, _width, _height, GL_TRUE);
+		// bind the texture
+		bind();
+		// resize the texture using glTexImage2D
+		glTexImage2DMultisample(getTarget(), _samples, _format, _width, _height, GL_TRUE);
 	}
 
 
-	void TextureMultisampled::Allocate(int width, int height, GLenum format, GLenum internalformat) {
+	void TextureMultisampled::reserve(int width, int height, GLenum format, GLenum internalformat) {
 		// Update the dimensions of the texture
 		_width = width;
 		_height = height;
 		_format = format;
 		if (internalformat == GL_INVALID_ENUM) _internalFormat = _format;
 
-		// Resize the texture using glTexImage2D
+		// resize the texture using glTexImage2D
 
-		glTexImage2DMultisample(GetTarget(), _samples, _format, _width, _height, GL_TRUE);
+		glTexImage2DMultisample(getTarget(), _samples, _format, _width, _height, GL_TRUE);
 	
 	}
 
-	void TextureMultisampled::LoadFromFile(const std::string img_file_path, GLenum format) {
+	void TextureMultisampled::loadFromFile(const std::string img_file_path, GLenum format) {
 
 		int widthImg, heightImg, numColCh;
 		// Flips the image so it appears right side up
@@ -47,18 +47,18 @@ namespace Merlin {
 		else {
 			Console::info("Texture") << "Texture : (" << img_file_path << ") loaded sucessfully." << Console::endl;
 
-			LoadFromData(bytes, widthImg, heightImg, format);
+			loadFromData(bytes, widthImg, heightImg, format);
 		}
 		stbi_image_free(bytes);
 	}
 
-	void TextureMultisampled::LoadFromData(unsigned char* data, int width, int height, GLenum format) {
+	void TextureMultisampled::loadFromData(unsigned char* data, int width, int height, GLenum format) {
 		_width = width;
 		_height = height;
 		_format = format;
 		//_internalFormat = _format == GL_RGBA ? GL_RGBA32F : format;
 
-		glTexImage2DMultisample(GetTarget(), _samples, _internalFormat, _width, _height, GL_TRUE);
+		glTexImage2DMultisample(getTarget(), _samples, _internalFormat, _width, _height, GL_TRUE);
 	}
 
 }

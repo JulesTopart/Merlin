@@ -18,73 +18,73 @@ namespace Merlin {
         m_transform = glm::mat4(1.0f);
     }
 
-    Shared<Model> Model::Create(std::string name) {
-        return CreateShared<Model>(name);
+    Shared<Model> Model::create(std::string name) {
+        return createShared<Model>(name);
     }
 
-    Shared<Model> Model::Create(const std::string& name, const Shared<Mesh>& mesh) {
-        return CreateShared<Model>(name, mesh);
+    Shared<Model> Model::create(const std::string& name, const Shared<Mesh>& mesh) {
+        return createShared<Model>(name, mesh);
     }
 
-    Shared<Model> Model::Create(const std::string& name, const std::vector<Shared<Mesh>>& meshes) {
-        return CreateShared<Model>(name, meshes);
+    Shared<Model> Model::create(const std::string& name, const std::vector<Shared<Mesh>>& meshes) {
+        return createShared<Model>(name, meshes);
     }
 
 
-    void Model::AddMesh(const Shared<Mesh>& mesh) {
+    void Model::addMesh(const Shared<Mesh>& mesh) {
         m_meshes.push_back(mesh);
     }
 
-	void Model::SetShader(const Shared<Shader>& shader) {
+	void Model::setShader(const Shared<Shader>& shader) {
 		for (auto& mesh : m_meshes) {
-			mesh->SetShader(shader);
+			mesh->setShader(shader);
 		}
 	}
 
-	void Model::SetMaterial(const Shared<Material>& material) {
+	void Model::setMaterial(const Shared<Material>& material) {
 		for (auto& mesh : m_meshes) {
-			mesh->SetMaterial(material);
+			mesh->setMaterial(material);
 		}
 	}
 
-	void Model::SetShader(const std::string& shader) {
+	void Model::setShader(const std::string& shader) {
 		for (auto& mesh : m_meshes) {
-			mesh->SetShader(shader);
+			mesh->setShader(shader);
 		}
 	}
 
-	void Model::SetMaterial(const std::string& material) {
+	void Model::setMaterial(const std::string& material) {
 		for (auto& mesh : m_meshes) {
-			mesh->SetMaterial(material);
+			mesh->setMaterial(material);
 		}
 	}
 
 
-    void Model::Draw(const Camera& camera) const {
+    void Model::draw(const Camera& camera) const {
         for (const auto& mesh : m_meshes) {
-            if (mesh->HasMaterial() && mesh->HasShader()) {
-				const Shader* shader = &mesh->GetShader();
-				const Material& mat = mesh->GetMaterial();
+            if (mesh->hasMaterial() && mesh->hasShader()) {
+				const Shader* shader = &mesh->getShader();
+				const Material& mat = mesh->getMaterial();
 
-				shader->SetVec3("ambient", mat.ambient());
-				shader->SetVec3("diffuse", mat.diffuse());
-				shader->SetVec3("specular", mat.specular());
-				shader->SetFloat("shininess", mat.shininess());
+				shader->setVec3("ambient", mat.ambient());
+				shader->setVec3("diffuse", mat.diffuse());
+				shader->setVec3("specular", mat.specular());
+				shader->setFloat("shininess", mat.shininess());
 
 				//manage camera,transform, textures
 
 				Texture* tex;
-				tex = &mat.GetTexture(TextureType::COLOR);
-				tex->SetUnit(0);
-				tex->SyncTextureUnit(*shader, (tex->typeToString()));
-				tex->Bind();
+				tex = &mat.getTexture(TextureType::COLOR);
+				tex->setUnit(0);
+				tex->syncTextureUnit(*shader, (tex->typeToString()));
+				tex->bind();
 
-				tex = &mat.GetTexture(TextureType::ROUGHNESS);
-				tex->SetUnit(1);
-				tex->SyncTextureUnit(*shader, (tex->typeToString()));
-				tex->Bind();
+				tex = &mat.getTexture(TextureType::ROUGHNESS);
+				tex->setUnit(1);
+				tex->syncTextureUnit(*shader, (tex->typeToString()));
+				tex->bind();
 
-				mesh->Draw();
+				mesh->draw();
             }
         }
     }

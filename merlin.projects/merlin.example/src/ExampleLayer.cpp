@@ -6,37 +6,37 @@ using namespace Merlin;
 #include <iomanip>
 
 ExampleLayer::ExampleLayer(){
-	Window* w = &Application::Get().GetWindow();
-	int height = w->GetHeight();
-	int width = w->GetWidth();
-	camera = CreateShared<Camera>(width, height, Projection::Perspective);
+	Window* w = &Application::get().getWindow();
+	int height = w->getHeight();
+	int width = w->getWidth();
+	camera = createShared<Camera>(width, height, Projection::Perspective);
 	camera->setNearPlane(0.001f);
 	camera->setFarPlane(3000.0f);
 	camera->setFOV(45.0f); //Use 90.0f as we are using cubemaps
-	camera->SetPosition(glm::vec3(-3.0f, 0.0f, 0.3f));
-	cameraController = CreateShared<CameraController3D>(camera);
+	camera->setPosition(glm::vec3(-3.0f, 0.0f, 0.3f));
+	cameraController = createShared<CameraController3D>(camera);
 }
 
 ExampleLayer::~ExampleLayer(){}
 
 Shared<Mesh> GetModel() {
-	//return ModelLoader::LoadModel("assets/models/cube.stl")->meshes()[0];
-	Shared<Mesh> m = Primitives::CreateSphere(0.5, 40, 40);
+	//return ModelLoader::loadModel("assets/models/cube.stl")->meshes()[0];
+	Shared<Mesh> m = Primitives::createSphere(0.5, 40, 40);
 	return m;
 }
 
-void ExampleLayer::OnAttach(){
-	EnableGLDebugging();
-	Console::SetLevel(ConsoleLevel::_INFO);
+void ExampleLayer::onAttach(){
+	enableGLDebugging();
+	Console::setLevel(ConsoleLevel::_INFO);
 
-	renderer.Initialize();
-	renderer.EnableSampleShading();
-	renderer.SetBackgroundColor(0.203, 0.203, 0.203, 1.0);
+	renderer.initialize();
+	renderer.enableSampleShading();
+	renderer.setBackgroundColor(0.203, 0.203, 0.203, 1.0);
 
-	modelShader = Shader::Create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
-	modelShader = Shader::Create("model", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
+	modelShader = Shader::create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
+	modelShader = Shader::create("model", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
 	modelShader->noTexture();
-	renderer.AddShader(modelShader);
+	renderer.addShader(modelShader);
 
 	
 	std::vector<std::string> skyBoxPath = {
@@ -48,66 +48,66 @@ void ExampleLayer::OnAttach(){
 		"./assets/textures/skybox/back.jpg"
 	};
 
-	Shared<Shader> skyShader = Shader::Create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
-	sky = CreateShared<SkyBox>("Sky", skyBoxPath);
-	sky->SetShader(skyShader);
-	scene.Add(sky);
+	Shared<Shader> skyShader = Shader::create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
+	sky = createShared<SkyBox>("Sky", skyBoxPath);
+	sky->setShader(skyShader);
+	scene.add(sky);
 
-	Shared<Model> model = Model::Create("sphere1", GetModel());
-	model->SetMaterial("jade");
-	model->SetShader("model");
-	scene.Add(model);
+	Shared<Model> model = Model::create("sphere1", GetModel());
+	model->setMaterial("jade");
+	model->setShader("model");
+	scene.add(model);
 
 	
-	light = Model::Create("light", Primitives::CreateSphere(0.05));
+	light = Model::create("light", Primitives::createSphere(0.05));
 	
-	Shared<Material> lightMat = CreateShared<Material>("lightMat");
-	lightMat->SetAmbient(glm::vec3(1));
-	lightMat->SetDiffuse(glm::vec3(1));
-	lightMat->SetSpecular(glm::vec3(1));
-	lightMat->SetShininess(0.1);
-	light->SetMaterial(lightMat);
-	light->Translate(glm::vec3(2.8, 2, 0.6));
-	scene.Add(light);
+	Shared<Material> lightMat = createShared<Material>("lightMat");
+	lightMat->setAmbient(glm::vec3(1));
+	lightMat->setDiffuse(glm::vec3(1));
+	lightMat->setSpecular(glm::vec3(1));
+	lightMat->setShininess(0.1);
+	light->setMaterial(lightMat);
+	light->translate(glm::vec3(2.8, 2, 0.6));
+	scene.add(light);
 	
 	
-	modelShader->Use();
-	modelShader->SetVec3("lightPos", light->position());
-	modelShader->SetVec4("lightColor", glm::vec4(1));
+	modelShader->use();
+	modelShader->setVec3("lightPos", light->position());
+	modelShader->setVec4("lightColor", glm::vec4(1));
 	
-	scene.SetCamera(camera);
+	scene.setCamera(camera);
 }
 
-void ExampleLayer::OnDetach(){}
+void ExampleLayer::onDetach(){}
 
-void ExampleLayer::OnEvent(Event& event){
-	camera->OnEvent(event);
-	cameraController->OnEvent(event);
+void ExampleLayer::onEvent(Event& event){
+	camera->onEvent(event);
+	cameraController->onEvent(event);
 }
 
 float t = 0.0;
 
-void ExampleLayer::OnUpdate(Timestep ts){
-	cameraController->OnUpdate(ts);
+void ExampleLayer::onUpdate(Timestep ts){
+	cameraController->onUpdate(ts);
 
 	t += ts;
 	float x = light->position().x;
 	float y = light->position().y;
-	light->Translate(glm::vec3(cos(t) - x, sin(t) - y, 0.0));
-	modelShader->Use();
-	modelShader->SetVec3("lightPos", light->position());
+	light->translate(glm::vec3(cos(t) - x, sin(t) - y, 0.0));
+	modelShader->use();
+	modelShader->setVec3("lightPos", light->position());
 
-	renderer.Clear();
-	renderer.RenderScene(scene, *camera);
+	renderer.clear();
+	renderer.renderScene(scene, *camera);
 }
 
-void ExampleLayer::OnImGuiRender()
+void ExampleLayer::onImGuiRender()
 {
 	ImGui::Begin("Camera");
 
-	model_matrix_translation = camera->GetPosition();
+	model_matrix_translation = camera->getPosition();
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
-		camera->SetPosition(model_matrix_translation);
+		camera->setPosition(model_matrix_translation);
 
 	}
 	ImGui::End();
@@ -126,7 +126,7 @@ void ExampleLayer::OnImGuiRender()
 					ImGui::Text(node->name().c_str());
 				}
 				
-				// Draw the node's children
+				// draw the node's children
 				traverseNodes(node->children());
 
 				ImGui::TreePop();
@@ -134,7 +134,7 @@ void ExampleLayer::OnImGuiRender()
 		}
 	};
 
-	// Draw the scene graph starting from the root node
+	// draw the scene graph starting from the root node
 	ImGui::Begin("Scene Graph");
 	traverseNodes(scene.nodes());
 	ImGui::End();

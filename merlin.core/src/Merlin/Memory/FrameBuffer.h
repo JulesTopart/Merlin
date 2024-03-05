@@ -12,31 +12,31 @@ namespace Merlin {
         FrameBuffer(int width, int height);
         ~FrameBuffer();
 
-        void Bind(GLenum target = GL_FRAMEBUFFER);
-        void Unbind();
+        void bind(GLenum target = GL_FRAMEBUFFER);
+        void unbind();
 
-        void Resize(GLsizei width, GLsizei height);
-        void Print() const;
+        void resize(GLsizei width, GLsizei height);
+        void print() const;
 
         inline GLuint const id() { return _FrameBufferID; }
 
-        void SetDrawBuffer(std::vector<unsigned int> buffers = std::vector<unsigned int>());
-        std::shared_ptr<TextureBase> GetColorAttachment(GLsizei id);
-        std::shared_ptr<TextureBase> GetDepthAttachement();
-        void AddColorAttachment(Shared<TextureBase> tex);
-        void AddDepthStencilAttachment(Shared<RenderBuffer> rbo);
-        void AddDepthStencilAttachment(Shared<TextureBase> tex);
+        void setDrawBuffer(std::vector<unsigned int> buffers = std::vector<unsigned int>());
+        std::shared_ptr<TextureBase> getColorAttachment(GLsizei id);
+        std::shared_ptr<TextureBase> getDepthAttachement();
+        void addColorAttachment(Shared<TextureBase> tex);
+        void addDepthStencilAttachment(Shared<RenderBuffer> rbo);
+        void addDepthStencilAttachment(Shared<TextureBase> tex);
 
-        void RenderAttachement(GLuint id);
+        void renderAttachement(GLuint id);
 
-        std::shared_ptr<TextureBase> CreateTextureAttachment(GLenum format, GLuint samples = 0);
-        std::shared_ptr<RenderBuffer> CreateRenderBufferAttachment(GLenum format, GLuint samples = 0);
+        std::shared_ptr<TextureBase> createTextureAttachment(GLenum format, GLuint samples = 0);
+        std::shared_ptr<RenderBuffer> createRenderBufferAttachment(GLenum format, GLuint samples = 0);
 
-        static std::shared_ptr<FrameBuffer> Create(int width, int height);
+        static std::shared_ptr<FrameBuffer> create(int width, int height);
         
     private:
 
-        void CheckErrors(std::string prefix) const;
+        void checkErrors(std::string prefix) const;
 
         std::vector<GLuint> m_attatchments;
         std::vector<std::shared_ptr<TextureBase>> textures;

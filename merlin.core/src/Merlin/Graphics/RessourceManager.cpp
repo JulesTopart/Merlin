@@ -15,7 +15,7 @@ namespace Merlin {
 
 	void ShaderLibrary::LoadDefaultShaders() {
 
-		Shared<Shader> defaultShader = CreateShared<Shader>("default");
+		Shared<Shader> defaultShader = createShared<Shader>("default");
 
 		std::string vertexSrc =
 			"#version 330 core\n"
@@ -63,13 +63,13 @@ namespace Merlin {
 			"FragColor = vec4(_ambient + _diffuse + _specular, 1.0f);\n"
 			"}";
 
-		defaultShader->CompileFromSrc(vertexSrc, fragmentSrc);
+		defaultShader->compileFromSrc(vertexSrc, fragmentSrc);
 		defaultShader->noTexture();
 		//defaultShader->noMaterial();
-		Add(defaultShader);
+		add(defaultShader);
 
 		/*
-		Shared<Shader> debugShader = Shader::Create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom");
+		Shared<Shader> debugShader = Shader::create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom");
 		debugShader->noTexture();
 		debugShader->noMaterial();
 		Add(debugShader);*/
@@ -81,195 +81,195 @@ namespace Merlin {
 
 	void MaterialLibrary::LoadDefaultMaterials() {
 
-		Material_Ptr defaultMaterial = CreateShared<Material>("default");
-		defaultMaterial->SetAmbient(glm::vec3(0.6, 0.6, 0.6));
-		defaultMaterial->SetDiffuse(glm::vec3(0.4, 0.4, 0.4));
-		defaultMaterial->SetSpecular(glm::vec3(0.2, 0.2, 0.2));
-		defaultMaterial->SetShininess(0.5);
+		Material_Ptr defaultMaterial = createShared<Material>("default");
+		defaultMaterial->setAmbient(glm::vec3(0.6, 0.6, 0.6));
+		defaultMaterial->setDiffuse(glm::vec3(0.4, 0.4, 0.4));
+		defaultMaterial->setSpecular(glm::vec3(0.2, 0.2, 0.2));
+		defaultMaterial->setShininess(0.5);
 
-		Material_Ptr aluminum = CreateShared<Material>("aluminum");
-		aluminum->SetAlbedo(glm::vec3(0.912, 0.914, 0.920));
-		aluminum->SetMetallic(1);
-		aluminum->SetRoughness(0.0);
-		aluminum->SetAmbientOcclusion(0.6);
+		Material_Ptr aluminum = createShared<Material>("aluminum");
+		aluminum->setAlbedo(glm::vec3(0.912, 0.914, 0.920));
+		aluminum->setMetallic(1);
+		aluminum->setRoughness(0.0);
+		aluminum->setAmbientOcclusion(0.6);
 
-		Shared<Material> emerald = CreateShared<Material>("emerald");
-		emerald->SetAmbient(glm::vec3(0.0215, 0.1745, 0.0215));
-		emerald->SetDiffuse(glm::vec3(0.07568, 0.61424, 0.07568));
-		emerald->SetSpecular(glm::vec3(0.633, 0.727811, 0.633));
-		emerald->SetShininess(0.6);
+		Shared<Material> emerald = createShared<Material>("emerald");
+		emerald->setAmbient(glm::vec3(0.0215, 0.1745, 0.0215));
+		emerald->setDiffuse(glm::vec3(0.07568, 0.61424, 0.07568));
+		emerald->setSpecular(glm::vec3(0.633, 0.727811, 0.633));
+		emerald->setShininess(0.6);
 
-		Shared<Material> jade = CreateShared<Material>("jade");
-		jade->SetAmbient(glm::vec3(0.135, 0.2225, 0.1575));
-		jade->SetDiffuse(glm::vec3(0.54, 0.89, 0.63));
-		jade->SetSpecular(glm::vec3(0.316228, 0.316228, 0.316228));
-		jade->SetShininess(0.1);
+		Shared<Material> jade = createShared<Material>("jade");
+		jade->setAmbient(glm::vec3(0.135, 0.2225, 0.1575));
+		jade->setDiffuse(glm::vec3(0.54, 0.89, 0.63));
+		jade->setSpecular(glm::vec3(0.316228, 0.316228, 0.316228));
+		jade->setShininess(0.1);
 
-		Shared<Material> obsidian = CreateShared<Material>("obsidian");
-		obsidian->SetAmbient(glm::vec3(0.05375, 0.05, 0.06625));
-		obsidian->SetDiffuse(glm::vec3(0.18275, 0.17, 0.22525));
-		obsidian->SetSpecular(glm::vec3(0.332741, 0.328634, 0.346435));
-		obsidian->SetShininess(0.3);
+		Shared<Material> obsidian = createShared<Material>("obsidian");
+		obsidian->setAmbient(glm::vec3(0.05375, 0.05, 0.06625));
+		obsidian->setDiffuse(glm::vec3(0.18275, 0.17, 0.22525));
+		obsidian->setSpecular(glm::vec3(0.332741, 0.328634, 0.346435));
+		obsidian->setShininess(0.3);
 
-		Shared<Material> pearl = CreateShared<Material>("pearl");
-		pearl->SetAmbient(glm::vec3(0.25, 0.20725, 0.20725));
-		pearl->SetDiffuse(glm::vec3(1, 0.829, 0.829));
-		pearl->SetSpecular(glm::vec3(0.296648, 0.296648, 0.296648));
-		pearl->SetShininess(0.088);
+		Shared<Material> pearl = createShared<Material>("pearl");
+		pearl->setAmbient(glm::vec3(0.25, 0.20725, 0.20725));
+		pearl->setDiffuse(glm::vec3(1, 0.829, 0.829));
+		pearl->setSpecular(glm::vec3(0.296648, 0.296648, 0.296648));
+		pearl->setShininess(0.088);
 
-		Shared<Material> ruby = CreateShared<Material>("ruby");
-		ruby->SetAmbient(glm::vec3(0.1745, 0.01175, 0.01175));
-		ruby->SetDiffuse(glm::vec3(0.61424, 0.04136, 0.04136));
-		ruby->SetSpecular(glm::vec3(0.727811, 0.626959, 0.626959));
-		ruby->SetShininess(0.6);
+		Shared<Material> ruby = createShared<Material>("ruby");
+		ruby->setAmbient(glm::vec3(0.1745, 0.01175, 0.01175));
+		ruby->setDiffuse(glm::vec3(0.61424, 0.04136, 0.04136));
+		ruby->setSpecular(glm::vec3(0.727811, 0.626959, 0.626959));
+		ruby->setShininess(0.6);
 
-		Shared<Material> turquoise = CreateShared<Material>("turquoise");
-		turquoise->SetAmbient(glm::vec3(0.1, 0.18725, 0.1745));
-		turquoise->SetDiffuse(glm::vec3(0.396, 0.74151, 0.69102));
-		turquoise->SetSpecular(glm::vec3(0.297254, 0.30829, 0.306678));
-		turquoise->SetShininess(0.1);
+		Shared<Material> turquoise = createShared<Material>("turquoise");
+		turquoise->setAmbient(glm::vec3(0.1, 0.18725, 0.1745));
+		turquoise->setDiffuse(glm::vec3(0.396, 0.74151, 0.69102));
+		turquoise->setSpecular(glm::vec3(0.297254, 0.30829, 0.306678));
+		turquoise->setShininess(0.1);
 
-		Shared<Material> brass = CreateShared<Material>("brass");
-		brass->SetAmbient(glm::vec3(0.329412, 0.223529, 0.027451));
-		brass->SetDiffuse(glm::vec3(0.780392, 0.568627, 0.113725));
-		brass->SetSpecular(glm::vec3(0.992157, 0.941176, 0.807843));
-		brass->SetShininess(0.21794872);
+		Shared<Material> brass = createShared<Material>("brass");
+		brass->setAmbient(glm::vec3(0.329412, 0.223529, 0.027451));
+		brass->setDiffuse(glm::vec3(0.780392, 0.568627, 0.113725));
+		brass->setSpecular(glm::vec3(0.992157, 0.941176, 0.807843));
+		brass->setShininess(0.21794872);
 
-		Shared<Material> bronze = CreateShared<Material>("bronze");
-		bronze->SetAmbient(glm::vec3(0.2125, 0.1275, 0.054));
-		bronze->SetDiffuse(glm::vec3(0.714, 0.4284, 0.18144));
-		bronze->SetSpecular(glm::vec3(0.393548, 0.271906, 0.166721));
-		bronze->SetShininess(0.2);
+		Shared<Material> bronze = createShared<Material>("bronze");
+		bronze->setAmbient(glm::vec3(0.2125, 0.1275, 0.054));
+		bronze->setDiffuse(glm::vec3(0.714, 0.4284, 0.18144));
+		bronze->setSpecular(glm::vec3(0.393548, 0.271906, 0.166721));
+		bronze->setShininess(0.2);
 
-		Shared<Material> chrome = CreateShared<Material>("chrome");
-		chrome->SetAmbient(glm::vec3(0.25, 0.25, 0.25));
-		chrome->SetDiffuse(glm::vec3(0.4, 0.4, 0.4));
-		chrome->SetSpecular(glm::vec3(0.774597, 0.774597, 0.774597));
-		chrome->SetShininess(0.6);
+		Shared<Material> chrome = createShared<Material>("chrome");
+		chrome->setAmbient(glm::vec3(0.25, 0.25, 0.25));
+		chrome->setDiffuse(glm::vec3(0.4, 0.4, 0.4));
+		chrome->setSpecular(glm::vec3(0.774597, 0.774597, 0.774597));
+		chrome->setShininess(0.6);
 
-		Shared<Material> copper = CreateShared<Material>("copper");
-		copper->SetAmbient(glm::vec3(0.19125, 0.0735, 0.0225));
-		copper->SetDiffuse(glm::vec3(0.7038, 0.27048, 0.0828));
-		copper->SetSpecular(glm::vec3(0.256777, 0.137622, 0.086014));
-		copper->SetShininess(0.1);
+		Shared<Material> copper = createShared<Material>("copper");
+		copper->setAmbient(glm::vec3(0.19125, 0.0735, 0.0225));
+		copper->setDiffuse(glm::vec3(0.7038, 0.27048, 0.0828));
+		copper->setSpecular(glm::vec3(0.256777, 0.137622, 0.086014));
+		copper->setShininess(0.1);
 
-		Shared<Material> gold = CreateShared<Material>("gold");
-		gold->SetAmbient(glm::vec3(0.24725, 0.1995, 0.0745));
-		gold->SetDiffuse(glm::vec3(0.75164, 0.60648, 0.22648));
-		gold->SetSpecular(glm::vec3(0.628281, 0.555802, 0.366065));
-		gold->SetShininess(0.4);
+		Shared<Material> gold = createShared<Material>("gold");
+		gold->setAmbient(glm::vec3(0.24725, 0.1995, 0.0745));
+		gold->setDiffuse(glm::vec3(0.75164, 0.60648, 0.22648));
+		gold->setSpecular(glm::vec3(0.628281, 0.555802, 0.366065));
+		gold->setShininess(0.4);
 
-		Shared<Material> silver = CreateShared<Material>("silver");
-		silver->SetAmbient(glm::vec3(0.19225, 0.19225, 0.19225));
-		silver->SetDiffuse(glm::vec3(0.50754, 0.50754, 0.50754));
-		silver->SetSpecular(glm::vec3(0.508273, 0.508273, 0.508273));
-		silver->SetShininess(0.4);
+		Shared<Material> silver = createShared<Material>("silver");
+		silver->setAmbient(glm::vec3(0.19225, 0.19225, 0.19225));
+		silver->setDiffuse(glm::vec3(0.50754, 0.50754, 0.50754));
+		silver->setSpecular(glm::vec3(0.508273, 0.508273, 0.508273));
+		silver->setShininess(0.4);
 
-		Shared<Material> black_plastic = CreateShared<Material>("black plastic");
-		black_plastic->SetAmbient(glm::vec3(0.0, 0.0, 0.0));
-		black_plastic->SetDiffuse(glm::vec3(0.01, 0.01, 0.01));
-		black_plastic->SetSpecular(glm::vec3(0.50, 0.50, 0.50));
-		black_plastic->SetShininess(0.25);
+		Shared<Material> black_plastic = createShared<Material>("black plastic");
+		black_plastic->setAmbient(glm::vec3(0.0, 0.0, 0.0));
+		black_plastic->setDiffuse(glm::vec3(0.01, 0.01, 0.01));
+		black_plastic->setSpecular(glm::vec3(0.50, 0.50, 0.50));
+		black_plastic->setShininess(0.25);
 
-		Shared<Material> cyan_plastic = CreateShared<Material>("cyan plastic");
-		cyan_plastic->SetAmbient(glm::vec3(0.0, 0.1, 0.06));
-		cyan_plastic->SetDiffuse(glm::vec3(0.0, 0.50980392, 0.50980392));
-		cyan_plastic->SetSpecular(glm::vec3(0.50196078, 0.50196078, 0.50196078));
-		cyan_plastic->SetShininess(0.25);
+		Shared<Material> cyan_plastic = createShared<Material>("cyan plastic");
+		cyan_plastic->setAmbient(glm::vec3(0.0, 0.1, 0.06));
+		cyan_plastic->setDiffuse(glm::vec3(0.0, 0.50980392, 0.50980392));
+		cyan_plastic->setSpecular(glm::vec3(0.50196078, 0.50196078, 0.50196078));
+		cyan_plastic->setShininess(0.25);
 
-		Shared<Material> green_plastic = CreateShared<Material>("green plastic");
-		green_plastic->SetAmbient(glm::vec3(0.0, 0.0, 0.0));
-		green_plastic->SetDiffuse(glm::vec3(0.1, 0.35, 0.1));
-		green_plastic->SetSpecular(glm::vec3(0.45, 0.55, 0.45));
-		green_plastic->SetShininess(0.25);
+		Shared<Material> green_plastic = createShared<Material>("green plastic");
+		green_plastic->setAmbient(glm::vec3(0.0, 0.0, 0.0));
+		green_plastic->setDiffuse(glm::vec3(0.1, 0.35, 0.1));
+		green_plastic->setSpecular(glm::vec3(0.45, 0.55, 0.45));
+		green_plastic->setShininess(0.25);
 
-		Shared<Material> red_plastic = CreateShared<Material>("red plastic");
-		red_plastic->SetAmbient(glm::vec3(0.0, 0.0, 0.0));
-		red_plastic->SetDiffuse(glm::vec3(0.5, 0.0, 0.0));
-		red_plastic->SetSpecular(glm::vec3(0.7, 0.6, 0.6));
-		red_plastic->SetShininess(0.25);
+		Shared<Material> red_plastic = createShared<Material>("red plastic");
+		red_plastic->setAmbient(glm::vec3(0.0, 0.0, 0.0));
+		red_plastic->setDiffuse(glm::vec3(0.5, 0.0, 0.0));
+		red_plastic->setSpecular(glm::vec3(0.7, 0.6, 0.6));
+		red_plastic->setShininess(0.25);
 
-		Shared<Material> white_plastic = CreateShared<Material>("white plastic");
-		white_plastic->SetAmbient(glm::vec3(0.0, 0.0, 0.0));
-		white_plastic->SetDiffuse(glm::vec3(0.55, 0.55, 0.55));
-		white_plastic->SetSpecular(glm::vec3(0.70, 0.70, 0.70));
-		white_plastic->SetShininess(0.25);
+		Shared<Material> white_plastic = createShared<Material>("white plastic");
+		white_plastic->setAmbient(glm::vec3(0.0, 0.0, 0.0));
+		white_plastic->setDiffuse(glm::vec3(0.55, 0.55, 0.55));
+		white_plastic->setSpecular(glm::vec3(0.70, 0.70, 0.70));
+		white_plastic->setShininess(0.25);
 
-		Shared<Material> yellow_plastic = CreateShared<Material>("yellow plastic");
-		yellow_plastic->SetAmbient(glm::vec3(0.0, 0.0, 0.0));
-		yellow_plastic->SetDiffuse(glm::vec3(0.5, 0.5, 0.0));
-		yellow_plastic->SetSpecular(glm::vec3(0.60, 0.60, 0.50));
-		yellow_plastic->SetShininess(0.25);
+		Shared<Material> yellow_plastic = createShared<Material>("yellow plastic");
+		yellow_plastic->setAmbient(glm::vec3(0.0, 0.0, 0.0));
+		yellow_plastic->setDiffuse(glm::vec3(0.5, 0.5, 0.0));
+		yellow_plastic->setSpecular(glm::vec3(0.60, 0.60, 0.50));
+		yellow_plastic->setShininess(0.25);
 
-		Shared<Material> black_rubber = CreateShared<Material>("black rubber");
-		black_rubber->SetAmbient(glm::vec3(0.02, 0.02, 0.02));
-		black_rubber->SetDiffuse(glm::vec3(0.01, 0.01, 0.01));
-		black_rubber->SetSpecular(glm::vec3(0.4, 0.4, 0.4));
-		black_rubber->SetShininess(0.078125);
+		Shared<Material> black_rubber = createShared<Material>("black rubber");
+		black_rubber->setAmbient(glm::vec3(0.02, 0.02, 0.02));
+		black_rubber->setDiffuse(glm::vec3(0.01, 0.01, 0.01));
+		black_rubber->setSpecular(glm::vec3(0.4, 0.4, 0.4));
+		black_rubber->setShininess(0.078125);
 
-		Shared<Material> cyan_rubber = CreateShared<Material>("cyan rubber");
-		cyan_rubber->SetAmbient(glm::vec3(0.0, 0.05, 0.05));
-		cyan_rubber->SetDiffuse(glm::vec3(0.4, 0.5, 0.5));
-		cyan_rubber->SetSpecular(glm::vec3(0.04, 0.7, 0.7));
-		cyan_rubber->SetShininess(0.078125);
+		Shared<Material> cyan_rubber = createShared<Material>("cyan rubber");
+		cyan_rubber->setAmbient(glm::vec3(0.0, 0.05, 0.05));
+		cyan_rubber->setDiffuse(glm::vec3(0.4, 0.5, 0.5));
+		cyan_rubber->setSpecular(glm::vec3(0.04, 0.7, 0.7));
+		cyan_rubber->setShininess(0.078125);
 
-		Shared<Material> blue_rubber = CreateShared<Material>("blue rubber");
-		blue_rubber->SetAmbient(glm::vec3(0.0, 0.00, 0.05));
-		blue_rubber->SetDiffuse(glm::vec3(0.3, 0.3, 0.5));
-		blue_rubber->SetSpecular(glm::vec3(0.04, 0.04, 0.7));
-		blue_rubber->SetShininess(0.078125);
+		Shared<Material> blue_rubber = createShared<Material>("blue rubber");
+		blue_rubber->setAmbient(glm::vec3(0.0, 0.00, 0.05));
+		blue_rubber->setDiffuse(glm::vec3(0.3, 0.3, 0.5));
+		blue_rubber->setSpecular(glm::vec3(0.04, 0.04, 0.7));
+		blue_rubber->setShininess(0.078125);
 
-		Shared<Material> green_rubber = CreateShared<Material>("green rubber");
-		green_rubber->SetAmbient(glm::vec3(0.0, 0.05, 0.0));
-		green_rubber->SetDiffuse(glm::vec3(0.4, 0.5, 0.4));
-		green_rubber->SetSpecular(glm::vec3(0.04, 0.7, 0.04));
-		green_rubber->SetShininess(0.078125);
+		Shared<Material> green_rubber = createShared<Material>("green rubber");
+		green_rubber->setAmbient(glm::vec3(0.0, 0.05, 0.0));
+		green_rubber->setDiffuse(glm::vec3(0.4, 0.5, 0.4));
+		green_rubber->setSpecular(glm::vec3(0.04, 0.7, 0.04));
+		green_rubber->setShininess(0.078125);
 
-		Shared<Material> red_rubber = CreateShared<Material>("red rubber");
-		red_rubber->SetAmbient(glm::vec3(0.05, 0.0, 0.0));
-		red_rubber->SetDiffuse(glm::vec3(0.5, 0.4, 0.4));
-		red_rubber->SetSpecular(glm::vec3(0.7, 0.04, 0.04));
-		red_rubber->SetShininess(0.078125);
+		Shared<Material> red_rubber = createShared<Material>("red rubber");
+		red_rubber->setAmbient(glm::vec3(0.05, 0.0, 0.0));
+		red_rubber->setDiffuse(glm::vec3(0.5, 0.4, 0.4));
+		red_rubber->setSpecular(glm::vec3(0.7, 0.04, 0.04));
+		red_rubber->setShininess(0.078125);
 
-		Shared<Material> white_rubber = CreateShared<Material>("white rubber");
-		white_rubber->SetAmbient(glm::vec3(0.05, 0.05, 0.05));
-		white_rubber->SetDiffuse(glm::vec3(0.5, 0.5, 0.5));
-		white_rubber->SetSpecular(glm::vec3(0.7, 0.7, 0.7));
-		white_rubber->SetShininess(0.078125);
+		Shared<Material> white_rubber = createShared<Material>("white rubber");
+		white_rubber->setAmbient(glm::vec3(0.05, 0.05, 0.05));
+		white_rubber->setDiffuse(glm::vec3(0.5, 0.5, 0.5));
+		white_rubber->setSpecular(glm::vec3(0.7, 0.7, 0.7));
+		white_rubber->setShininess(0.078125);
 
-		Shared<Material> yellow_rubber = CreateShared<Material>("yellow rubber");
-		yellow_rubber->SetAmbient(glm::vec3(0.05, 0.05, 0.0));
-		yellow_rubber->SetDiffuse(glm::vec3(0.5, 0.5, 0.4));
-		yellow_rubber->SetSpecular(glm::vec3(0.7, 0.7, 0.04));
-		yellow_rubber->SetShininess(0.078125);
+		Shared<Material> yellow_rubber = createShared<Material>("yellow rubber");
+		yellow_rubber->setAmbient(glm::vec3(0.05, 0.05, 0.0));
+		yellow_rubber->setDiffuse(glm::vec3(0.5, 0.5, 0.4));
+		yellow_rubber->setSpecular(glm::vec3(0.7, 0.7, 0.04));
+		yellow_rubber->setShininess(0.078125);
 
-		Add(defaultMaterial);
-		Add(aluminum);
-		Add(emerald);
-		Add(jade);
-		Add(obsidian);
-		Add(pearl);
-		Add(ruby);
-		Add(turquoise);
-		Add(brass);
-		Add(bronze);
-		Add(chrome);
-		Add(copper);
-		Add(gold);
-		Add(silver);
-		Add(black_plastic);
-		Add(cyan_plastic);
-		Add(green_plastic);
-		Add(red_plastic);
-		Add(white_plastic);
-		Add(yellow_plastic);
-		Add(black_rubber);
-		Add(cyan_rubber);
-		Add(blue_rubber);
-		Add(green_rubber);
-		Add(red_rubber);
-		Add(white_rubber);
-		Add(yellow_rubber);
+		add(defaultMaterial);
+		add(aluminum);
+		add(emerald);
+		add(jade);
+		add(obsidian);
+		add(pearl);
+		add(ruby);
+		add(turquoise);
+		add(brass);
+		add(bronze);
+		add(chrome);
+		add(copper);
+		add(gold);
+		add(silver);
+		add(black_plastic);
+		add(cyan_plastic);
+		add(green_plastic);
+		add(red_plastic);
+		add(white_plastic);
+		add(yellow_plastic);
+		add(black_rubber);
+		add(cyan_rubber);
+		add(blue_rubber);
+		add(green_rubber);
+		add(red_rubber);
+		add(white_rubber);
+		add(yellow_rubber);
 
 
 	}

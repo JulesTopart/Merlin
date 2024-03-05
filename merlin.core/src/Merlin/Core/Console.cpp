@@ -10,23 +10,23 @@ namespace Merlin {
 
 	ConsoleStream::ConsoleStream(ConsoleLevel level, std::string origin) {
 		_level = level;
-		if (level >= Console::GetLevel()) {
+		if (level >= Console::getLevel()) {
 			if (origin == "") Console::write(getFont(level) + getHeader(level) + endFont());
 			else Console::write(getFont(level) + "[" + origin + "]: " + endFont());
 		}
 	}
 
-	void Console::ClearGLError() {
+	void Console::clearGLError() {
 		while (glGetError() != GL_NO_ERROR);
 	}
 
-	void Console::LogGLError() {
+	void Console::logGLError() {
 		while (GLenum error = glGetError()) {
 			Console::error("OpenGL Error") << "(" << error << ")" << Console::endl;
 		}
 	}
 
-	void Console::CheckGLError(std::string file, int line) {
+	void Console::checkGLError(std::string file, int line) {
 		while (GLenum error = glGetError()) {
 			Console::error("OpenGL Error") << "(" << error << ")" << " at line " << line << " in " << file << Console::endl;
 		}
@@ -173,7 +173,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(char i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += i + ConsoleStream::endFont();
 
@@ -183,7 +183,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(signed short i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += std::to_string(i) + ConsoleStream::endFont();
 
@@ -193,7 +193,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(unsigned short i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += std::to_string(i) + ConsoleStream::endFont();
 
@@ -203,7 +203,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(signed int i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += std::to_string(i) + ConsoleStream::endFont();
 
@@ -213,7 +213,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(unsigned int i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += std::to_string(i) + ConsoleStream::endFont();
 
@@ -223,7 +223,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(signed long i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += std::to_string(i) + ConsoleStream::endFont();
 
@@ -233,7 +233,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(unsigned long i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += std::to_string(i) + ConsoleStream::endFont();
 
@@ -243,7 +243,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(size_t i){
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += std::to_string(i) + ConsoleStream::endFont();
 
@@ -254,7 +254,7 @@ namespace Merlin {
 
 
 	ConsoleStream ConsoleStream::operator<<(float i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += std::to_string(i) + ConsoleStream::endFont();
 
@@ -264,7 +264,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(double i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += std::to_string(i) + ConsoleStream::endFont();
 
@@ -274,7 +274,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(const std::string& i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += i + ConsoleStream::endFont();
 
@@ -285,7 +285,7 @@ namespace Merlin {
 
 
 	ConsoleStream ConsoleStream::operator<<(const char* i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			str += i + ConsoleStream::endFont();
 
@@ -295,7 +295,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(const void* i) {
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			std::stringstream address;
 			address << i;
@@ -307,7 +307,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(std::ostream os){
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			std::stringstream ss;
 			ss << os.rdbuf();
@@ -319,7 +319,7 @@ namespace Merlin {
 	}
 
 	ConsoleStream ConsoleStream::operator<<(glm::vec3 v){
-		if (_level >= Console::GetLevel()) {
+		if (_level >= Console::getLevel()) {
 			std::string str = this->font();
 			std::stringstream ss;
 			ss << "[" << v.x << ", " << v.y << ", " << v.z << "]";

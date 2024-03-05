@@ -14,25 +14,25 @@ namespace Merlin {
 		TextureBase(GLenum target, TextureType t = TextureType::COLOR);
 		~TextureBase();
 
-		void Bind();
-		void Bind(GLuint unit);
-		void BindImage();
-		void BindImage(GLuint unit);
-		void Unbind();
+		void bind();
+		void bind(GLuint unit);
+		void bindImage();
+		void bindImage(GLuint unit);
+		void unbind();
 
 
-		void SetUnit(GLuint unit);
-		void SyncTextureUnit(const ShaderBase& shader, const std::string uniform);
+		void setUnit(GLuint unit);
+		void syncTextureUnit(const ShaderBase& shader, const std::string uniform);
 
-		virtual void Allocate(int width, int height, GLenum format = GL_RGBA, GLenum internalformat = GL_INVALID_ENUM) = 0;
-		virtual void Resize(GLsizei width, GLsizei height) = 0;
+		virtual void reserve(int width, int height, GLenum format = GL_RGBA, GLenum internalformat = GL_INVALID_ENUM) = 0;
+		virtual void resize(GLsizei width, GLsizei height) = 0;
 
-		inline const GLenum GetFormat() const { return _format; }
-		inline const GLenum GetTarget() const { return _Target; }
+		inline const GLenum getFormat() const { return _format; }
+		inline const GLenum getTarget() const { return _Target; }
 		inline const TextureType type() const { return _type; }
 		std::string typeToString() const;
 
-		inline bool IsDefault() { return _width == 1 && _height == 1; }
+		inline bool isDefault() { return _width == 1 && _height == 1; }
 
 		inline const GLuint id() const { return _TextureID; }
 	protected:
@@ -56,18 +56,18 @@ namespace Merlin {
 		Texture(TextureType t);
 		~Texture();
 
-		void SetInterpolationMode(GLuint minFilter = GL_LINEAR, GLuint magFilter = GL_LINEAR);
-		void SetRepeatMode(GLuint _wrapS = GL_CLAMP_TO_BORDER, GLuint _wrapT = GL_CLAMP_TO_BORDER);
+		void setInterpolationMode(GLuint minFilter = GL_LINEAR, GLuint magFilter = GL_LINEAR);
+		void setRepeatMode(GLuint _wrapS = GL_CLAMP_TO_BORDER, GLuint _wrapT = GL_CLAMP_TO_BORDER);
 
-		void SetBorderColor4f(float colors[4]);
-		void SetBorderColor4f(float R, float G, float B, float A);
+		void setBorderColor4f(float colors[4]);
+		void setBorderColor4f(float R, float G, float B, float A);
 
-		void GenerateMipMap();
+		void generateMipMap();
 
-		void Allocate(int width, int height, GLenum format = GL_RGBA, GLenum internalformat = GL_INVALID_ENUM) override;
-		void Resize(GLsizei width, GLsizei height) override;
-		void LoadFromFile(const std::string img_file_path);
-		void LoadFromData(unsigned char* data, int width, int height, GLenum format = GL_RGBA);
+		void reserve(int width, int height, GLenum format = GL_RGBA, GLenum internalformat = GL_INVALID_ENUM) override;
+		void resize(GLsizei width, GLsizei height) override;
+		void loadFromFile(const std::string img_file_path);
+		void loadFromData(unsigned char* data, int width, int height, GLenum format = GL_RGBA);
 
 	private:
 

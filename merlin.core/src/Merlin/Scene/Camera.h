@@ -20,50 +20,50 @@ namespace Merlin {
 		Camera(float width, float height, Projection = Projection::Perspective );
 
 		//Event
-		void OnEvent(Event& e);
+		void onEvent(Event& e);
 
-		void Translate(float dx, float dy, float dz);//3D
-		void Translate(float dx, float dy);//2D
-		void Translate(glm::vec3 du3d);
-		void Translate(glm::vec2 du2d);
+		void translate(float dx, float dy, float dz);//3D
+		void translate(float dx, float dy);//2D
+		void translate(glm::vec3 du3d);
+		void translate(glm::vec2 du2d);
 
-		void Rotate(float dRx, float dRy, float dRz);
-		void Rotate(glm::vec3 dR);
+		void rotate(float dRx, float dRy, float dRz);
+		void rotate(glm::vec3 dR);
 
 		bool isOrthoGraphic() const { return _projection == Projection::Orthographic; }
 		//bool () const { return _projection == Projection::Orthographic; }
 
-		void Reset();
-		void ResetProjection();
+		void reset();
+		void resetProjection();
 
-		inline void setZoom(float zoom) { _zoom = zoom; ResetProjection();}
-		inline void setFOV(float fov) { _fov = fov; ResetProjection(); }
-		inline void setNearPlane(float np) { _nearPlane = np; ResetProjection();}
-		inline void setFarPlane(float fp) { _farPlane = fp; ResetProjection();}
+		inline void setZoom(float zoom) { _zoom = zoom; resetProjection();}
+		inline void setFOV(float fov) { _fov = fov; resetProjection(); }
+		inline void setNearPlane(float np) { _nearPlane = np; resetProjection();}
+		inline void setFarPlane(float fp) { _farPlane = fp; resetProjection();}
 
-		inline const float GetZoom() const { return _zoom; }
-		inline const float GetAspectRatio() const { return _AspectRatio; }
-		inline const int Width() const { return _width; }
-		inline const int Height() const { return _height; }
+		inline const float getZoom() const { return _zoom; }
+		inline const float getAspectRatio() const { return _AspectRatio; }
+		inline const int width() const { return _width; }
+		inline const int height() const { return _height; }
 
-		const glm::vec3& GetPosition() const { return _Position; }
-		void SetPosition(const glm::vec3& position) { _Position = position; RecalculateViewMatrix(); }
-		const glm::vec3& GetTarget() const { return _Target; }
-		void SetTarget(const glm::vec3& target) { _Target = target; RecalculateViewMatrix(); }
-		glm::vec3 GetRotation() const { return _Rotation; }
-		void SetRotation(glm::vec3 rotation) { _Rotation = rotation; RecalculateViewMatrix(); }
+		const glm::vec3& getPosition() const { return _Position; }
+		void setPosition(const glm::vec3& position) { _Position = position; recalculateViewMatrix(); }
+		const glm::vec3& getTarget() const { return _Target; }
+		void setTarget(const glm::vec3& target) { _Target = target; recalculateViewMatrix(); }
+		glm::vec3 getRotation() const { return _Rotation; }
+		void setRotation(glm::vec3 rotation) { _Rotation = rotation; recalculateViewMatrix(); }
 
-		glm::vec3 Right() const { return _Right; }
-		glm::vec3 Front() const { return _Front; }
-		glm::vec3 Up() const { return _Up; }
+		glm::vec3 right() const { return _Right; }
+		glm::vec3 front() const { return _Front; }
+		glm::vec3 up() const { return _Up; }
 
-		const glm::mat4& GetProjectionMatrix() const { return _ProjectionMatrix; }
-		const glm::mat4& GetViewMatrix() const { return _ViewMatrix; }
-		const glm::mat4& GetViewProjectionMatrix() const { return _ViewProjectionMatrix; }
+		const glm::mat4& getProjectionMatrix() const { return _ProjectionMatrix; }
+		const glm::mat4& getViewMatrix() const { return _ViewMatrix; }
+		const glm::mat4& getViewProjectionMatrix() const { return _ViewProjectionMatrix; }
 
 	private:
-		void RecalculateViewMatrix();
-		bool OnWindowResized(WindowResizeEvent& e);
+		void recalculateViewMatrix();
+		bool onWindowResized(WindowResizeEvent& e);
 
 		Projection _projection;
 

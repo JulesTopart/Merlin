@@ -9,11 +9,11 @@ public:
 	TemplateLayer();
 	virtual ~TemplateLayer();
 
-	virtual void OnAttach() override;
-	virtual void OnDetach() override;
-	virtual void OnEvent(Event& event) override;
-	virtual void OnUpdate(Timestep ts) override;
-	virtual void OnImGuiRender() override;
+	virtual void onAttach() override;
+	virtual void onDetach() override;
+	virtual void onEvent(Event& event) override;
+	virtual void onUpdate(Timestep ts) override;
+	virtual void onImGuiRender() override;
 private:
 
 	Shared<Camera> camera;

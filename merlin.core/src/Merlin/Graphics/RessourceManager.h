@@ -12,10 +12,10 @@ namespace Merlin {
     public:
         RessourceManager() = default;
 
-        void Add(const std::string& name, std::shared_ptr<T> resource);
-        const T& Get(const std::string& name);
-        std::shared_ptr<T> Share(const std::string& name);
-        bool Exist(const std::string& name);
+        void add(const std::string& name, std::shared_ptr<T> resource);
+        const T& get(const std::string& name);
+        std::shared_ptr<T> share(const std::string& name);
+        bool exist(const std::string& name);
 
         inline unsigned int size() { return resources.size(); };
 
@@ -24,14 +24,14 @@ namespace Merlin {
     };
 
     template <typename T>
-    void RessourceManager<T>::Add(const std::string& name, std::shared_ptr<T> resource) {
-        if (RessourceManager<T>::Exist(name)) Console::warn("RessourceManager") << name << " already exist, it has be overrided" << Console::endl;
+    void RessourceManager<T>::add(const std::string& name, std::shared_ptr<T> resource) {
+        if (RessourceManager<T>::exist(name)) Console::warn("RessourceManager") << name << " already exist, it has be overrided" << Console::endl;
         resources[name] = resource;
 
     }
 
     template <typename T>
-    const T& RessourceManager<T>::Get(const std::string& name) {
+    const T& RessourceManager<T>::get(const std::string& name) {
         auto it = resources.find(name);
         if (it != resources.end()) {
             return *it->second;
@@ -42,7 +42,7 @@ namespace Merlin {
     }
 
     template <typename T>
-    std::shared_ptr<T> RessourceManager<T>::Share(const std::string& name) {
+    std::shared_ptr<T> RessourceManager<T>::share(const std::string& name) {
         auto it = resources.find(name);
         if (it != resources.end()) {
             return it->second;
@@ -52,7 +52,7 @@ namespace Merlin {
     }
 
     template <typename T>
-    bool RessourceManager<T>::Exist(const std::string& name) {
+    bool RessourceManager<T>::exist(const std::string& name) {
         return resources.find(name) != resources.end();
     }
 
@@ -60,7 +60,7 @@ namespace Merlin {
     class ShaderLibrary : public RessourceManager<Shader> {
     public:
         ShaderLibrary();
-        inline void Add(Shared<Shader> shader){ RessourceManager::Add(shader->name(), shader); };
+        inline void add(Shared<Shader> shader){ RessourceManager::add(shader->name(), shader); };
 
     private: 
         void LoadDefaultShaders();
@@ -69,7 +69,7 @@ namespace Merlin {
     class MaterialLibrary : public RessourceManager<Material> {
     public:
         MaterialLibrary();
-        inline void Add(Shared<Material> mat) { RessourceManager::Add(mat->name(), mat); };
+        inline void add(Shared<Material> mat) { RessourceManager::add(mat->name(), mat); };
 
     private:
         void LoadDefaultMaterials();

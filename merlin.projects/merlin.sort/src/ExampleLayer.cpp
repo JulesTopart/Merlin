@@ -9,17 +9,17 @@ using namespace Merlin;
 #include <GLFW/glfw3.h>
 
 ExampleLayer::ExampleLayer(){
-	Window* w = &Application::Get().GetWindow();
-	int height = w->GetHeight();
-	int width = w->GetWidth();
+	Window* w = &Application::get().getWindow();
+	int height = w->getHeight();
+	int width = w->getWidth();
 }
 
 ExampleLayer::~ExampleLayer(){}
 
 
-void ExampleLayer::OnAttach(){
-	EnableGLDebugging();
-	Console::SetLevel(ConsoleLevel::_INFO);
+void ExampleLayer::onAttach(){
+	enableGLDebugging();
+	Console::setLevel(ConsoleLevel::_INFO);
 
 	Console::print() << "Generating data..." << Console::endl;
 	for (GLuint i = 0; i < n; i++) {
@@ -32,9 +32,9 @@ void ExampleLayer::OnAttach(){
 	std::shuffle(unsorted.begin(), unsorted.end(), std::default_random_engine());
 	//debugVector(data);
 
-	//Init buffers
-	prefixSum = CreateShared<StagedComputeShader>( "prefix.sum", "./assets/shaders/prefix.sum.comp", 4);
-	countingCount = CreateShared<StagedComputeShader>("counting.count", "./assets/shaders/counting.count.comp", 2);
+	//init buffers
+	prefixSum = createShared<StagedComputeShader>( "prefix.sum", "./assets/shaders/prefix.sum.comp", 4);
+	countingCount = createShared<StagedComputeShader>("counting.count", "./assets/shaders/counting.count.comp", 2);
 	prefixSum->SetWorkgroupLayout(bwgCount);
 	countingCount->SetWorkgroupLayout(wgCount);
 
@@ -55,32 +55,32 @@ void ExampleLayer::OnAttach(){
 	prefixSumBuffer.setBindingPoint(2);
 	compactSumBuffer.setBindingPoint(3);
 
-	prefixSum->Use();
-	prefixSum->Attach(inDataBuffer);
-	prefixSum->Attach(outDataBuffer);
-	prefixSum->Attach(prefixSumBuffer);
-	prefixSum->Attach(compactSumBuffer);
+	prefixSum->use();
+	prefixSum->attach(inDataBuffer);
+	prefixSum->attach(outDataBuffer);
+	prefixSum->attach(prefixSumBuffer);
+	prefixSum->attach(compactSumBuffer);
 
-	countingCount->Use();
-	countingCount->Attach(inDataBuffer);
-	countingCount->Attach(outDataBuffer);
-	countingCount->Attach(prefixSumBuffer);
+	countingCount->use();
+	countingCount->attach(inDataBuffer);
+	countingCount->attach(outDataBuffer);
+	countingCount->attach(prefixSumBuffer);
 
 	inDataBuffer.print();
 
 	Console::info("Sorting") << "Starting..." << Console::endl;
 	double time = (double) glfwGetTime();
 
-	countingCount->Use();
-	countingCount->Execute(0);
+	countingCount->use();
+	countingCount->execute(0);
 	
 	prefixSumBuffer.print();
 
 	Console::print() << "Data : " << unsorted.size() << " uint values" << Console::endl;
 	Console::print() << "Parallelizing counting sort over " << blocks << " blocks ( " << blockSize << " values per blocks)" << Console::endl;
 
-	prefixSum->Use();
-	prefixSum->Execute(0);
+	prefixSum->use();
+	prefixSum->execute(0);
 	
 	//Binary tree on rightmost element of blocks
 	GLuint steps = blockSize;
@@ -90,17 +90,17 @@ void ExampleLayer::OnAttach(){
 	for (GLuint step = 0; step < blockSize; step++) {
 		// Calls the parallel operation
 		
-		space.Sync(*prefixSum);
-		prefixSum->Execute(1);
-		prefixSum->Execute(2);
+		space.sync(*prefixSum);
+		prefixSum->execute(1);
+		prefixSum->execute(2);
 
 		space.value *= 2;
 	}
 
-	prefixSum->Execute(3);
+	prefixSum->execute(3);
 
-	countingCount->Use();
-	countingCount->Execute(1);
+	countingCount->use();
+	countingCount->execute(1);
 
 	glFinish();
 	prefixSumBuffer.print();
@@ -127,19 +127,19 @@ void ExampleLayer::OnAttach(){
 	
 }
 
-void ExampleLayer::OnDetach(){
+void ExampleLayer::onDetach(){
 
 }
 
-void ExampleLayer::OnEvent(Event& event){
+void ExampleLayer::onEvent(Event& event){
 
 }
 
-void ExampleLayer::OnUpdate(Timestep ts){
+void ExampleLayer::onUpdate(Timestep ts){
 
 }
 
-void ExampleLayer::OnImGuiRender()
+void ExampleLayer::onImGuiRender()
 {
 	
 }

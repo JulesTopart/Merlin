@@ -9,12 +9,12 @@ public:
 	Example()
 		: Application("OpenGL Examples")
 	{
-		PushLayer(new ExampleLayer());
+		pushLayer(new ExampleLayer());
 	}
 };
 
 int main()
 {
 	std::unique_ptr<Example> app = std::make_unique<Example>();
-	app->Run();
+	app->run();
 }

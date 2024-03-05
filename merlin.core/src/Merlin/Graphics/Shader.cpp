@@ -14,12 +14,12 @@
 
 namespace Merlin {
 
-	Shared<Shader> Shader::Create(	const std::string& name, 
+	Shared<Shader> Shader::create(	const std::string& name, 
 									const std::string& vertex_file_path,
 									const std::string& fragment_file_path,
 									const std::string& geometry_file_path) {
 
-		return CreateShared<Shader>(name, vertex_file_path, fragment_file_path, geometry_file_path);
+		return createShared<Shader>(name, vertex_file_path, fragment_file_path, geometry_file_path);
 	}
 
 	Shader::Shader() : ShaderBase() {}
@@ -31,16 +31,16 @@ namespace Merlin {
 		const std::string gpath) : ShaderBase(n) {
 
 		if (vpath != "" && fpath != "") {
-			Compile(vpath, fpath, gpath);
-			if (IsCompiled()) Use();
+			compile(vpath, fpath, gpath);
+			if (isCompiled()) use();
 		}
 	}
 
 	Shader::~Shader() {
-		Delete();
+		destroy();
 	}
 
-	void Shader::Delete() {
+	void Shader::destroy() {
 		LOG_TRACE("Shader") << "Destructing Shader " << id() << " deleted. " << Console::endl;
 		if (m_compiled != 0) {
 
@@ -51,7 +51,7 @@ namespace Merlin {
 	}
 
 
-	void Shader::CompileShader(const std::string& name, const std::string& src, GLuint id) {
+	void Shader::compileShader(const std::string& name, const std::string& src, GLuint id) {
 
 		GLint Result = GL_FALSE;
 		int InfoLogLength;
@@ -77,7 +77,7 @@ namespace Merlin {
 
 
 	
-	void Shader::Compile(const std::string& vertex_file_path,
+	void Shader::compile(const std::string& vertex_file_path,
 		const std::string& fragment_file_path,
 		const std::string& geometry_file_path) {
 		m_compiled = true;
@@ -88,22 +88,22 @@ namespace Merlin {
 
 		// Read vertexFile and fragmentFile and store the strings
 		LOG_INFO() << "Importing shader source... : " << vertex_file_path << Console::endl;
-		VertexShaderSrc = ReadSrc(vertex_file_path);
+		VertexShaderSrc = readSrc(vertex_file_path);
 
 		LOG_INFO() << "Importing shader source... : " << fragment_file_path << Console::endl;
-		FragmentShaderSrc = ReadSrc(fragment_file_path);
+		FragmentShaderSrc = readSrc(fragment_file_path);
 
 		if (geometry_file_path != "") {
 			LOG_INFO() << "Importing shader source... : " << geometry_file_path << Console::endl;
-			GeomShaderSrc = ReadSrc(geometry_file_path);
+			GeomShaderSrc = readSrc(geometry_file_path);
 		}
 
-		CompileFromSrc(VertexShaderSrc, FragmentShaderSrc, GeomShaderSrc);
+		compileFromSrc(VertexShaderSrc, FragmentShaderSrc, GeomShaderSrc);
 
 	}
 
 
-	void Shader::CompileFromSrc(const std::string& VertexShaderSrc,
+	void Shader::compileFromSrc(const std::string& VertexShaderSrc,
 								const std::string& FragmentShaderSrc,
 								const std::string& GeomShaderSrc) {
 		m_compiled = true;
@@ -116,12 +116,12 @@ namespace Merlin {
 
 
 		// Compile Vertex Shader
-		CompileShader("Vertex", VertexShaderSrc, vertexShaderID);
-		CompileShader("Fragment", FragmentShaderSrc, fragmentShaderID);
+		compileShader("Vertex", VertexShaderSrc, vertexShaderID);
+		compileShader("Fragment", FragmentShaderSrc, fragmentShaderID);
 		if (GeomShaderSrc != "")
-			CompileShader("Vertex", GeomShaderSrc, geometryShaderID);
+			compileShader("Vertex", GeomShaderSrc, geometryShaderID);
 
-		SetID(glCreateProgram());
+		setID(glCreateProgram());
 
 		LOG_INFO("Shader") << "Creating program n " << id() << "..." << Console::endl;
 

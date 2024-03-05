@@ -12,12 +12,12 @@ namespace Merlin {
 		ScreenQuadRenderer();
 
 		// Render the screen quad
-		void Render();
-		void Render(const Shared<TextureBase>& tex);
+		void render();
+		void render(const Shared<TextureBase>& tex);
 
-		inline VAO& GetVAO() { return m_vao; }
-		inline Shader& GetShader() { return m_shader; }
-		inline void SetShader(Shader& shader) { m_shader = shader;  m_shader.Use(); m_shader.SetInt("screen", 0); }
+		inline VAO& getVAO() { return m_vao; }
+		inline Shader& getShader() { return m_shader; }
+		inline void setShader(Shader& shader) { m_shader = shader;  m_shader.use(); m_shader.setInt("screen", 0); }
 
 	private:
 		//Empty vertex array object for the binding quad

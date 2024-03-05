@@ -8,11 +8,11 @@ namespace Merlin {
         RenderBuffer(int samples = 0);
         ~RenderBuffer();
 
-        void Bind();
-        void Unbind();
-        void Resize(GLsizei width, GLsizei height);
+        void bind();
+        void unbind();
+        void resize(GLsizei width, GLsizei height);
         
-        void AllocateStorage(GLsizei width, GLsizei height, GLenum internalFormat);
+        void reserve(GLsizei width, GLsizei height, GLenum internalFormat);
 
         inline GLuint id() const { return _RenderbufferID; }
 

@@ -31,13 +31,13 @@ namespace Merlin {
 
     template<class T>
     void VertexArray::bindBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout) {
-        glVertexArrayVertexBuffer(id(), vb.bindingPoint(), vb.id(), 0, layout.GetStride());
+        glVertexArrayVertexBuffer(id(), vb.bindingPoint(), vb.id(), 0, layout.getStride());
     }
 
 
     template<class T>
     void VertexArray::addBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout) {
-	    const auto& elements = layout.GetElements();
+	    const auto& elements = layout.getElements();
 	    unsigned int offset = 0;
 
 	    for (unsigned int i = 0; i < elements.size(); i++) {
@@ -45,7 +45,7 @@ namespace Merlin {
             glEnableVertexArrayAttrib(id(), i);
             glVertexArrayAttribBinding(id(), i, vb.bindingPoint());
             glVertexArrayAttribFormat(id(), i, element.count, element.type, element.normalized, offset);
-            offset += element.count * VertexBufferElement::GetTypeSize(element.type);
+            offset += element.count * VertexBufferElement::getTypeSize(element.type);
 	    }
 
         bindBuffer<T>(vb, layout);

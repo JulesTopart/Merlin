@@ -7,26 +7,26 @@ namespace Merlin {
 		RendererBase();
 		~RendererBase();
 
-		virtual void Clear();
-		void SetBackgroundColor(float r, float g, float b, float a);
+		virtual void clear();
+		void setBackgroundColor(float r, float g, float b, float a);
 
-		void EnableTransparency();
-		void DisableTransparency();
+		void enableTransparency();
+		void disableTransparency();
 
-		void EnableSampleShading();
-		void DisableSampleShading();
+		void enableSampleShading();
+		void disableSampleShading();
 
-		void EnableMultisampling();
-		void DisableMultisampling();
+		void enableMultisampling();
+		void disableMultisampling();
 
-		void EnableFaceCulling();
-		void DisableFaceCulling();
+		void enableFaceCulling();
+		void disableFaceCulling();
 
-		void EnableDepthTest();
-		void DisableDepthTest();
+		void enableDepthTest();
+		void disableDepthTest();
 
-		void EnableCubeMap();
-		void DisableCubeMap();
+		void enableCubeMap();
+		void disableCubeMap();
 
 
 	private:

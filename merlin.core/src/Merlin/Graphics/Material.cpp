@@ -5,39 +5,39 @@
 #include <glm/glm.hpp>
 
 namespace Merlin {
-	Material::Material(std::string name) : m_name(name) { LoadDefaultTexture(); }
+	Material::Material(std::string name) : m_name(name) { loadDefaultTexture(); }
 
-    void Material::SetProperty(const MaterialProperty& props) {
+    void Material::setProperty(const MaterialProperty& props) {
 		m_props = props;
     }
 
-    void Material::SetAmbient(const glm::vec3& ambient) { m_props.ambient = ambient;}
+    void Material::setAmbient(const glm::vec3& ambient) { m_props.ambient = ambient;}
 	
-    void Material::SetDiffuse(const glm::vec3& diffuse) { m_props.diffuse = diffuse; }
+    void Material::setDiffuse(const glm::vec3& diffuse) { m_props.diffuse = diffuse; }
 
-    void Material::SetSpecular(const glm::vec3& specular) { m_props.specular = specular; }
+    void Material::setSpecular(const glm::vec3& specular) { m_props.specular = specular; }
 
-    void Material::SetShininess(const float& shininess) { m_props.shininess = shininess; }
+    void Material::setShininess(const float& shininess) { m_props.shininess = shininess; }
 
-	void Material::SetAlbedo(const glm::vec3& albedo) { m_props.albedo = albedo; }
+	void Material::setAlbedo(const glm::vec3& albedo) { m_props.albedo = albedo; }
 
-	void Material::SetMetallic(const float& metallic) { m_props.metallic = metallic; }
+	void Material::setMetallic(const float& metallic) { m_props.metallic = metallic; }
 
-	void Material::SetRoughness(const float& roughness) { m_props.roughness = roughness; }
+	void Material::setRoughness(const float& roughness) { m_props.roughness = roughness; }
 
-	void Material::SetAmbientOcclusion(const float& ao) { m_props.ao = ao; }
+	void Material::setAmbientOcclusion(const float& ao) { m_props.ao = ao; }
 
-	void Material::SetTexture(Texture_Ptr tex) {
+	void Material::setTexture(Texture_Ptr tex) {
 		m_textures[tex->type()] = tex;
 	}
 
-	void Material::LoadTexture(std::string path, TextureType t) {
-		Shared<Texture> tex = CreateShared<Texture>(t);
-		tex->Bind();
-		tex->LoadFromFile(path);
-		tex->SetInterpolationMode(GL_LINEAR);
-		tex->SetRepeatMode(GL_REPEAT);
-		SetTexture(tex);
+	void Material::loadTexture(std::string path, TextureType t) {
+		Shared<Texture> tex = createShared<Texture>(t);
+		tex->bind();
+		tex->loadFromFile(path);
+		tex->setInterpolationMode(GL_LINEAR);
+		tex->setRepeatMode(GL_REPEAT);
+		setTexture(tex);
 	}
 
 	Shared<Texture> GenerateDefaultTexture(TextureType t) {
@@ -65,19 +65,19 @@ namespace Merlin {
 			break;
 		}
 
-		// Create a 1x1 texture with the default color
+		// create a 1x1 texture with the default color
 		Shared<Texture> defaultTexture = std::make_shared<Texture>(t); // Adapt this line to your Texture class
-		defaultTexture->Bind();
-		defaultTexture->Allocate(1, 1, GL_RGB);
-		defaultTexture->LoadFromData((unsigned char*)&defaultColor[0], 1, 1, GL_RGB);
-		defaultTexture->SetInterpolationMode(GL_LINEAR, GL_LINEAR);
-		defaultTexture->SetRepeatMode(GL_REPEAT, GL_REPEAT);
-		defaultTexture->GenerateMipMap();
+		defaultTexture->bind();
+		defaultTexture->reserve(1, 1, GL_RGB);
+		defaultTexture->loadFromData((unsigned char*)&defaultColor[0], 1, 1, GL_RGB);
+		defaultTexture->setInterpolationMode(GL_LINEAR, GL_LINEAR);
+		defaultTexture->setRepeatMode(GL_REPEAT, GL_REPEAT);
+		defaultTexture->generateMipMap();
 
 		return defaultTexture;
 	}
 
-	void Material::LoadDefaultTexture() {
+	void Material::loadDefaultTexture() {
 		m_textures[TextureType::COLOR] = GenerateDefaultTexture(TextureType::COLOR);
 		m_textures[TextureType::NORMAL] = GenerateDefaultTexture(TextureType::NORMAL);
 		m_textures[TextureType::ROUGHNESS] = GenerateDefaultTexture(TextureType::ROUGHNESS);
@@ -85,7 +85,7 @@ namespace Merlin {
 		m_textures[TextureType::EMISSION] = GenerateDefaultTexture(TextureType::EMISSION);
 	}
 
-	Texture& Material::GetTexture(TextureType t) const {
+	Texture& Material::getTexture(TextureType t) const {
 		if (m_textures.find(t) != m_textures.end()) return *m_textures.at(t);
 		else return *m_textures.at(TextureType::COLOR);
 	}

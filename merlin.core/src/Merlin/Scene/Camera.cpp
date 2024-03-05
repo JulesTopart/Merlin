@@ -16,11 +16,11 @@ namespace Merlin {
 		_farPlane(2000.f),
 		_zoom(1.0f)
 	{
-		Reset();
-		ResetProjection();
+		reset();
+		resetProjection();
 		_ViewMatrix = glm::mat4(1.0f);
 		_ViewProjectionMatrix = _ProjectionMatrix * _ViewMatrix;
-		RecalculateViewMatrix();
+		recalculateViewMatrix();
 	}
 
 	Camera::Camera(float width, float height, Projection projection) :
@@ -33,19 +33,19 @@ namespace Merlin {
 		_farPlane(2000.f), 
 		_zoom(1.0f)
 	{
-		Reset();
-		ResetProjection();
+		reset();
+		resetProjection();
 		_ViewMatrix = glm::mat4(1.0f);
 		_ViewProjectionMatrix = _ProjectionMatrix * _ViewMatrix;
-		RecalculateViewMatrix();
+		recalculateViewMatrix();
 	}
 
-	void Camera::OnEvent(Event& e) {
+	void Camera::onEvent(Event& e) {
 		EventDispatcher dispatcher(e);
-		dispatcher.Dispatch<WindowResizeEvent>(MERLIN_BIND_EVENT_FN(Camera::OnWindowResized));
+		dispatcher.dispatch<WindowResizeEvent>(MERLIN_BIND_EVENT_FN(Camera::onWindowResized));
 	}
 
-	void Camera::Reset(){
+	void Camera::reset(){
 		_Position = { 0.0f, 0.0f, 0.0f };
 		_Rotation = { 0.0f, 0.0f, 0.0f };
 
@@ -57,7 +57,7 @@ namespace Merlin {
 		_Up = { 0.0f, 0.0f, 1.0f };
 	}
 
-	void Camera::ResetProjection(){
+	void Camera::resetProjection(){
 		_AspectRatio = (float)_width / (float)_height;
 		if (_projection == Projection::Perspective)
 			_ProjectionMatrix = glm::perspective(glm::radians(_fov), _AspectRatio, _nearPlane, _farPlane);
@@ -65,19 +65,19 @@ namespace Merlin {
 			_ProjectionMatrix = glm::ortho(-_AspectRatio *_zoom, _AspectRatio * _zoom, -_zoom, _zoom, _nearPlane, _farPlane);
 	}
 
-	void Camera::Translate(float dx, float dy) {
-		Translate(glm::vec2(dx, dy));
+	void Camera::translate(float dx, float dy) {
+		translate(glm::vec2(dx, dy));
 	}
 
-	void Camera::Translate(glm::vec2 dU2D) {
-		Translate(glm::vec3(dU2D.y, dU2D.x, 0));
+	void Camera::translate(glm::vec2 dU2D) {
+		translate(glm::vec3(dU2D.y, dU2D.x, 0));
 	}
 
-	void Camera::Translate(float dx, float dy, float dz) {
-		Translate(glm::vec3(dx, dy, dz));
+	void Camera::translate(float dx, float dy, float dz) {
+		translate(glm::vec3(dx, dy, dz));
 	}
 
-	void Camera::Translate(glm::vec3 du) {
+	void Camera::translate(glm::vec3 du) {
 		glm::vec3 transform(0.0f, 0.0f, 0.0f);
 
 		transform += _Right * du.x;
@@ -87,29 +87,29 @@ namespace Merlin {
 		_Position += transform;
 		_Target += transform;
 
-		RecalculateViewMatrix();
+		recalculateViewMatrix();
 	}
 
-	void Camera::Rotate(float dRx, float dRy, float dRz) {
-		Rotate(glm::vec3(dRx, dRy, dRz));
+	void Camera::rotate(float dRx, float dRy, float dRz) {
+		rotate(glm::vec3(dRx, dRy, dRz));
 	}
 
-	void Camera::Rotate(glm::vec3 dR) {
+	void Camera::rotate(glm::vec3 dR) {
 		_Rotation += dR;
-		RecalculateViewMatrix();
+		recalculateViewMatrix();
 	}
 
-	bool Camera::OnWindowResized(WindowResizeEvent& e) {
-		if (e.GetHeight() == 0 || e.GetWidth() == 0) return false;
-		_height = e.GetHeight();
-		_width = e.GetWidth();
+	bool Camera::onWindowResized(WindowResizeEvent& e) {
+		if (e.getHeight() == 0 || e.getWidth() == 0) return false;
+		_height = e.getHeight();
+		_width = e.getWidth();
 		
-		ResetProjection();
+		resetProjection();
 
 		return false;
 	}
 
-	void Camera::RecalculateViewMatrix() {
+	void Camera::recalculateViewMatrix() {
 
 		glm::vec3 direction = { 1.0f, 0.0f, 0.0f };
 		glm::vec3 eulerAngles = _Rotation;

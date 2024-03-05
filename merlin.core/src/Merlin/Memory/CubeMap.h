@@ -8,11 +8,11 @@ namespace Merlin{
 		CubeMap(const std::vector<std::string>& faces);
 		~CubeMap();
 
-		void Bind(unsigned int unit) const;
-		void Unbind() const;
+		void bind(unsigned int unit) const;
+		void unbind() const;
 
 	private:
-		GLuint LoadCubeMap(const std::vector<std::string>& faces);
+		GLuint loadCubeMap(const std::vector<std::string>& faces);
 
 		GLuint _textureID;
 

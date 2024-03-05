@@ -14,11 +14,11 @@ namespace Merlin {
     public:
 
         TransformObject(const std::string& name);
-        static Shared<TransformObject> Create(std::string name);
+        static Shared<TransformObject> create(std::string name);
 
-        inline const Mesh_Ptr& GetXAxisMesh() const { return x_axis; }
-        inline const Mesh_Ptr& GetYAxisMesh() const { return y_axis; }
-        inline const Mesh_Ptr& GetZAxisMesh() const { return z_axis; }
+        inline const Mesh_Ptr& getXAxisMesh() const { return x_axis; }
+        inline const Mesh_Ptr& getYAxisMesh() const { return y_axis; }
+        inline const Mesh_Ptr& getZAxisMesh() const { return z_axis; }
 
     private :
         Mesh_Ptr x_axis;

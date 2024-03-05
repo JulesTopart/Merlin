@@ -12,27 +12,27 @@ namespace Merlin {
 		WindowsWindow(const WindowProps& props);
 		virtual ~WindowsWindow();
 
-		void OnUpdate() override;
+		void onUpdate() override;
 
-		inline uint32_t GetWidth() const override { return m_Data.Width; }
-		inline uint32_t GetHeight() const override { return m_Data.Height; }
+		inline uint32_t getWidth() const override { return m_Data.width; }
+		inline uint32_t getHeight() const override { return m_Data.height; }
 
 		// Window attributes
-		inline void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
-		void SetVSync(bool enabled) override;
-		bool IsVSync() const override;
+		inline void setEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
+		void setVSync(bool enabled) override;
+		bool isVSync() const override;
 
-		inline virtual void* GetNativeWindow() const { return m_Window; }
+		inline virtual void* getNativeWindow() const { return m_Window; }
 	private:
-		virtual void Init(const WindowProps& props);
-		virtual void Shutdown();
+		virtual void init(const WindowProps& props);
+		virtual void shutdown();
 	private:
 		GLFWwindow* m_Window;
 
 		struct WindowData
 		{
 			std::string Title;
-			uint32_t Width, Height;
+			uint32_t width, height;
 			bool VSync, MSAA;
 
 			EventCallbackFn EventCallback;

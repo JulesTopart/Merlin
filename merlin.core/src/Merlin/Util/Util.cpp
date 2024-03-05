@@ -5,8 +5,8 @@
 
 namespace Merlin {	
 
-	FileType GetFileType(const std::string& file_path) {
-		std::string extension = GetFileExtension(file_path);
+	FileType getFileType(const std::string& file_path) {
+		std::string extension = getFileExtension(file_path);
 		if (extension == "obj") {
 			return FileType::OBJ;
 		}
@@ -25,7 +25,7 @@ namespace Merlin {
 		}
 	}
 
-	std::string GetFileExtension(const std::string& filepath) {
+	std::string getFileExtension(const std::string& filepath) {
 		size_t pos = filepath.find_last_of(".");
 		if (pos == std::string::npos) {
 			// No extension found
@@ -34,7 +34,7 @@ namespace Merlin {
 		return filepath.substr(pos + 1);
 	}
 
-	std::string GetFileName(const std::string& filepath)
+	std::string getFileName(const std::string& filepath)
 	{
 		// Find the last occurrence of the directory separator character
 		std::size_t pos = filepath.find_last_of("\\/");

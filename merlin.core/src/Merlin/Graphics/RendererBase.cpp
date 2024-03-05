@@ -11,35 +11,35 @@ namespace Merlin {
 	RendererBase::~RendererBase() {
 	}
 
-	void RendererBase::DisableMultisampling() {
+	void RendererBase::disableMultisampling() {
 		glDisable(GL_MULTISAMPLE);
 	}
 
-	void RendererBase::DisableTransparency() {
+	void RendererBase::disableTransparency() {
 		glDisable(GL_BLEND);
 	}
 
-	void RendererBase::EnableTransparency() {
+	void RendererBase::enableTransparency() {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 
-	void RendererBase::DisableSampleShading() {
+	void RendererBase::disableSampleShading() {
 		glDisable(GL_SAMPLE_SHADING);
 	}
 
-	void RendererBase::EnableSampleShading() {
+	void RendererBase::enableSampleShading() {
 		glEnable(GL_SAMPLE_SHADING);
 		glMinSampleShading(8);
 	}
 
-	void RendererBase::EnableMultisampling() {
+	void RendererBase::enableMultisampling() {
 		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_LINE_SMOOTH);
 	}
 
-	void RendererBase::EnableFaceCulling() {
+	void RendererBase::enableFaceCulling() {
 		// Enables Cull Facing
 		glEnable(GL_CULL_FACE);
 		// Keeps front faces
@@ -48,33 +48,33 @@ namespace Merlin {
 		glFrontFace(GL_CCW);
 	}
 
-	void RendererBase::DisableFaceCulling() {
+	void RendererBase::disableFaceCulling() {
 		// Enables Cull Facing
 		glDisable(GL_CULL_FACE);
 	}
 
-	void RendererBase::EnableDepthTest() {
+	void RendererBase::enableDepthTest() {
 		glEnable(GL_DEPTH_TEST);
 	}	
 	
-	void RendererBase::DisableDepthTest() {
+	void RendererBase::disableDepthTest() {
 		glEnable(GL_DEPTH_TEST);
 	}	
 	
-	void RendererBase::EnableCubeMap() {
+	void RendererBase::enableCubeMap() {
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	}	
 	
-	void RendererBase::DisableCubeMap() {
+	void RendererBase::disableCubeMap() {
 		glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	}
 
-	void RendererBase::Clear() {
+	void RendererBase::clear() {
 		glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
-	void RendererBase::SetBackgroundColor(float r, float g, float b, float a) {
+	void RendererBase::setBackgroundColor(float r, float g, float b, float a) {
 		backgroundColor = glm::vec4(r, g, b, a);
 	}
 

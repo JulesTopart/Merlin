@@ -18,11 +18,11 @@ public:
 	ExampleLayer();
 	virtual ~ExampleLayer();
 
-	virtual void OnAttach() override;
-	virtual void OnDetach() override;
-	virtual void OnEvent(Merlin::Event& event) override;
-	virtual void OnUpdate(Merlin::Timestep ts) override;
-	virtual void OnImGuiRender() override;
+	virtual void onAttach() override;
+	virtual void onDetach() override;
+	virtual void onEvent(Merlin::Event& event) override;
+	virtual void onUpdate(Merlin::Timestep ts) override;
+	virtual void onImGuiRender() override;
 
 private:
 	SSBO<GLuint> inDataBuffer;

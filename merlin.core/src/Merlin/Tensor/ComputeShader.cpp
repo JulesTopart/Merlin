@@ -15,18 +15,18 @@ namespace Merlin {
 	ComputeShader::ComputeShader(const std::string& n, const std::string& cspath) {
 		m_name = n;
 		m_wkgrpLayout = glm::uvec3(1);
-		if (cspath != "") Compile(cspath);
+		if (cspath != "") compile(cspath);
 	}
 
 	ComputeShader::~ComputeShader() {
-		Delete();
+		destroy();
 	}
 
-	void ComputeShader::Delete() {
+	void ComputeShader::destroy() {
 		Console::trace("ComputeShader") << "Destructing Shader " << id() << Console::endl;
 	}
 
-	void ComputeShader::PrintLimits() {
+	void ComputeShader::printLimits() {
 		// query limitations
 	// -----------------
 		int max_compute_work_group_count[3];
@@ -56,21 +56,21 @@ namespace Merlin {
 
 	}
 
-	void ComputeShader::Dispatch(GLuint x, GLuint y, GLuint z) {
-		//Console::trace("ComputeShader") << "Dispatch: " << int(x) << "x" << int(y) << "x" << int(z) << Console::endl;
-		if (!IsCompiled()) { Console::error("ComputeShader") << m_name << " is not Compiled" << Console::endl; return; }
+	void ComputeShader::dispatch(GLuint x, GLuint y, GLuint z) {
+		//Console::trace("ComputeShader") << "dispatch: " << int(x) << "x" << int(y) << "x" << int(z) << Console::endl;
+		if (!isCompiled()) { Console::error("ComputeShader") << m_name << " is not Compiled" << Console::endl; return; }
 		glDispatchCompute(x, y, z);
 	}
 
-	void ComputeShader::Dispatch() {
-		Dispatch(m_wkgrpLayout.x, m_wkgrpLayout.y, m_wkgrpLayout.z);
+	void ComputeShader::dispatch() {
+		dispatch(m_wkgrpLayout.x, m_wkgrpLayout.y, m_wkgrpLayout.z);
 	}
 
-	void ComputeShader::Wait() {
+	void ComputeShader::wait() {
 		glFinish();
 	}
 
-	void ComputeShader::Barrier(GLbitfield barrier) {
+	void ComputeShader::barrier(GLbitfield barrier) {
 		glMemoryBarrier(barrier);
 	}
 
@@ -79,19 +79,19 @@ namespace Merlin {
 	}
 
 
-	void ComputeShader::Compile(const std::string& shader_file_path) {
+	void ComputeShader::compile(const std::string& shader_file_path) {
 		m_compiled = true;
 		m_shaderID = glCreateShader(GL_COMPUTE_SHADER);
 
 		// Read the Vertex ComputeShader code from the file
 		LOG_INFO() << "Importing compute shader source... : " << shader_file_path << Console::endl;
-		m_shaderSrc = ReadSrc(shader_file_path);
-		CompileFromSrc(m_shaderSrc);
+		m_shaderSrc = readSrc(shader_file_path);
+		compileFromSrc(m_shaderSrc);
 
 	}
 
 
-	void ComputeShader::CompileFromSrc(const std::string& src) {
+	void ComputeShader::compileFromSrc(const std::string& src) {
 		m_compiled = true;
 		m_shaderID = glCreateShader(GL_COMPUTE_SHADER);
 
@@ -120,7 +120,7 @@ namespace Merlin {
 
 		// Link the program
 		//printf("Linking program\n");
-		SetID(glCreateProgram());
+		setID(glCreateProgram());
 		glAttachShader(id(), m_shaderID);
 		glLinkProgram(id());
 
@@ -142,7 +142,7 @@ namespace Merlin {
 
 	ComputeShaderLibrary::ComputeShaderLibrary() {
 
-		Shared<ComputeShader> defaultShader = CreateShared<ComputeShader>("default");
+		Shared<ComputeShader> defaultShader = createShared<ComputeShader>("default");
 
 		std::string defaultSrc = R"( 
 			#version 330 core
@@ -150,25 +150,25 @@ namespace Merlin {
 			void main() {}
 		)";
 
-		defaultShader->CompileFromSrc(defaultSrc);
+		defaultShader->compileFromSrc(defaultSrc);
 		//defaultShader->noMaterial();
-		Add(defaultShader);
+		add(defaultShader);
 	}
 
 	
-	void ComputeShaderLibrary::Dispatch(const std::string& key) {
-		if (!Exist(key)) {
+	void ComputeShaderLibrary::dispatch(const std::string& key) {
+		if (!exist(key)) {
 			Console::error("ComputeShaderLibrary") << "Shader " << key << " not found ! Using default shader instead." << Console::endl;
 			return;
 		}
-		resources[key]->Dispatch();
+		resources[key]->dispatch();
 	}
-	void ComputeShaderLibrary::Dispatch(const std::string& key, GLuint width, GLuint height, GLuint layers) {
-		if (!Exist(key)) {
+	void ComputeShaderLibrary::dispatch(const std::string& key, GLuint width, GLuint height, GLuint layers) {
+		if (!exist(key)) {
 			Console::error("ComputeShaderLibrary") << "Shader " << key << " not found ! Using default shader instead." << Console::endl;
 			return;
 		}
-		resources[key]->Dispatch(width, height, layers);
+		resources[key]->dispatch(width, height, layers);
 	}
 
 
@@ -177,24 +177,24 @@ namespace Merlin {
 		m_stageCount = numberOfStage;
 	}
 
-	void StagedComputeShader::ExecuteAll() {
+	void StagedComputeShader::executeAll() {
 		m_stage = 0;
-		while (m_stage < m_stageCount) Step();
+		while (m_stage < m_stageCount) step();
 	}
-	void StagedComputeShader::Step() {
-		SetUInt("stage", m_stage);
-		Dispatch(m_wkgrpLayout.x, m_wkgrpLayout.y, m_wkgrpLayout.z);
+	void StagedComputeShader::step() {
+		setUInt("stage", m_stage);
+		dispatch(m_wkgrpLayout.x, m_wkgrpLayout.y, m_wkgrpLayout.z);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		m_stage++;
 	}
-	void StagedComputeShader::Execute(GLuint i) {
+	void StagedComputeShader::execute(GLuint i) {
 		m_stage = i;
-		Step();
+		step();
 	}
-	void StagedComputeShader::Execute(GLuint s, GLuint e) {
+	void StagedComputeShader::execute(GLuint s, GLuint e) {
 		m_stage = s;
 		while (m_stage < e)
-			Step();
+			step();
 	}
 
 }

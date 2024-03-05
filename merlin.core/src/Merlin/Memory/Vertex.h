@@ -21,7 +21,7 @@ namespace Merlin {
 			glm::vec2 texCoord_ = glm::vec2(0.0)) :
 			position(position_), normal(normal_), color(color_), texCoord(texCoord_) {};
 
-		static VertexBufferLayout GetLayout(); //Keep that static
+		static VertexBufferLayout getLayout(); //Keep that static
 	};
 
 	typedef std::vector<Vertex> Vertices;

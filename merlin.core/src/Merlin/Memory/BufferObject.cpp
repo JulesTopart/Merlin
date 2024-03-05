@@ -66,17 +66,17 @@ namespace Merlin {
 
 
 	void GenericBufferObject::bind() {
-		// Bind the buffer object to the shader storage buffer target.
+		// bind the buffer object to the shader storage buffer target.
 		glBindBuffer(static_cast<GLenum>(m_target), id());
 	}
 
 	void GenericBufferObject::bindAs(GLenum target) {
-		// Bind the buffer object to the shader storage buffer target.
+		// bind the buffer object to the shader storage buffer target.
 		glBindBuffer(static_cast<GLenum>(m_target), id());
 	}
 
 	void GenericBufferObject::unbind() {
-		// Bind the buffer object to the shader storage buffer target.
+		// bind the buffer object to the shader storage buffer target.
 		glBindBuffer(static_cast<GLenum>(m_target), 0);
 	}
 

@@ -25,20 +25,20 @@ namespace Merlin {
 
         Material(std::string name);
 
-        void SetProperty(const MaterialProperty& props);
-        void SetAmbient(const glm::vec3& ambient);
-        void SetDiffuse(const glm::vec3& diffuse);
-        void SetSpecular(const glm::vec3& specular);
-        void SetShininess(const float& shininess);
-        void SetAlbedo(const glm::vec3& albedo);
-        void SetMetallic(const float& metallic);
-        void SetRoughness(const float& roughness);
-        void SetAmbientOcclusion(const float& ao);
+        void setProperty(const MaterialProperty& props);
+        void setAmbient(const glm::vec3& ambient);
+        void setDiffuse(const glm::vec3& diffuse);
+        void setSpecular(const glm::vec3& specular);
+        void setShininess(const float& shininess);
+        void setAlbedo(const glm::vec3& albedo);
+        void setMetallic(const float& metallic);
+        void setRoughness(const float& roughness);
+        void setAmbientOcclusion(const float& ao);
 
-        void LoadDefaultTexture();
-        void LoadTexture(std::string path, TextureType t = TextureType::COLOR);
-        void SetTexture(Texture_Ptr tex);
-        Texture& GetTexture(TextureType t) const;
+        void loadDefaultTexture();
+        void loadTexture(std::string path, TextureType t = TextureType::COLOR);
+        void setTexture(Texture_Ptr tex);
+        Texture& getTexture(TextureType t) const;
         
 
         inline const glm::vec3& ambient() const { return m_props.ambient; }

@@ -12,10 +12,10 @@ namespace Merlin {
 		LayerStack();
 		~LayerStack();
 
-		void PushLayer(Layer* layer);
-		void PushOverlay(Layer* overlay);
-		void PopLayer(Layer* layer);
-		void PopOverlay(Layer* overlay);
+		void pushLayer(Layer* layer);
+		void pushOverlay(Layer* overlay);
+		void popLayer(Layer* layer);
+		void popOverlay(Layer* overlay);
 
 		std::vector<Layer*>::iterator begin() { return m_Layers.begin(); }
 		std::vector<Layer*>::iterator end() { return m_Layers.end(); }

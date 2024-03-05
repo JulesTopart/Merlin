@@ -6,7 +6,7 @@ namespace Merlin {
 
 
 	Scene::Scene(std::string name) : RenderableObject(name){
-		_rootNode = CreateShared<RenderableObject>(name);
+		_rootNode = createShared<RenderableObject>(name);
 		_currentNode = _rootNode;
 	}
 
@@ -14,7 +14,7 @@ namespace Merlin {
 		return _rootNode->children();
 	}
 
-	void Scene::SetCamera(Shared<Camera> camera) {
+	void Scene::setCamera(Shared<Camera> camera) {
 		_camera = camera;
 	}
 
@@ -23,24 +23,24 @@ namespace Merlin {
 	}
 
 
-	void Scene::Add(Shared<deprecated_GenericParticleSystem> ps) {
-		_currentNode->AddChild(ps);
+	void Scene::add(Shared<deprecated_GenericParticleSystem> ps) {
+		_currentNode->addChild(ps);
 	}
 
-	void Scene::Add(Shared<Model> mdl) {
-		_currentNode->AddChild(mdl);
+	void Scene::add(Shared<Model> mdl) {
+		_currentNode->addChild(mdl);
 	}
 
-	void Scene::Add(Shared<Light> light) {
-		_currentNode->AddChild(light);
+	void Scene::add(Shared<Light> light) {
+		_currentNode->addChild(light);
 	}
 
-	void Scene::Add(Shared<SkyBox> sky) {
-		_currentNode->AddChild(sky);
+	void Scene::add(Shared<SkyBox> sky) {
+		_currentNode->addChild(sky);
 	}
 
-	void Scene::Add(Shared<TransformObject> t) {
-		_currentNode->AddChild(t);
+	void Scene::add(Shared<TransformObject> t) {
+		_currentNode->addChild(t);
 	}
 
 	

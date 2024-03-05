@@ -15,11 +15,11 @@ public:
 	AppLayer();
 	virtual ~AppLayer();
 
-	void OnAttach() override;
-	void OnDetach() override;
-	void OnEvent(Merlin::Event& event) override;
-	void OnUpdate(Merlin::Timestep ts) override;
-	void OnImGuiRender() override;
+	void onAttach() override;
+	void onDetach() override;
+	void onEvent(Merlin::Event& event) override;
+	void onUpdate(Merlin::Timestep ts) override;
+	void onImGuiRender() override;
 
 	void InitGraphics();
 	void InitPhysics();

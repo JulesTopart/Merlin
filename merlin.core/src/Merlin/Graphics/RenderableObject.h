@@ -20,45 +20,45 @@ namespace Merlin {
 		RenderableObject();
 		RenderableObject(std::string name, ObjectType type = ObjectType::GENERIC );
 
-		ObjectType GetType() { return m_type; }
-		static std::string TypeToString(ObjectType);
+		ObjectType getType() { return m_type; }
+		static std::string typeToString(ObjectType);
 
-		virtual void Draw(){};
+		virtual void draw(){};
 
 		//Transformation
-		void Translate(glm::vec3);
-		void Rotate(glm::vec3);
-		void Rotate(float angle, glm::vec3 v);
-		void SetTransform(glm::mat4 t);
-		void SetPosition(glm::vec3 v);
-		void Scale(glm::vec3 v);
-		void Scale(float v);
+		void translate(glm::vec3);
+		void rotate(glm::vec3);
+		void rotate(float angle, glm::vec3 v);
+		void setTransform(glm::mat4 t);
+		void setPosition(glm::vec3 v);
+		void scale(glm::vec3 v);
+		void scale(float v);
 
 		//Getters
 		const glm::vec3& position() const;
 		const glm::quat& rotation() const;
 		inline const glm::mat4& transform() const { return m_transform; }
 		inline const std::string name() const { return m_name; }
-		inline void Rename(std::string n) { m_name = n; };
+		inline void rename(std::string n) { m_name = n; };
 
 		//Hierachy
-		void AddChild(const Shared<RenderableObject>& child);
-		void RemoveChild(Shared<RenderableObject> child);
-		void SetParent(RenderableObject* parent);
+		void addChild(const Shared<RenderableObject>& child);
+		void removeChild(Shared<RenderableObject> child);
+		void setParent(RenderableObject* parent);
 
-		inline void Show() { m_hidden = false; }
-		inline void Hide() { m_hidden = true; }
-		inline bool IsHidden() { return m_hidden; }
+		inline void show() { m_hidden = false; }
+		inline void hide() { m_hidden = true; }
+		inline bool isHidden() { return m_hidden; }
 
-		bool HasParent() const;
-		bool HasChildren() const;
+		bool hasParent() const;
+		bool hasChildren() const;
 
-		inline bool IsWireFrame() const { return m_wireframe; }
-		inline void EnableWireFrameMode() { m_wireframe = true; }
-		inline void DisableWireFrameMode() { m_wireframe = false; }
+		inline bool isWireFrame() const { return m_wireframe; }
+		inline void enableWireFrameMode() { m_wireframe = true; }
+		inline void disableWireFrameMode() { m_wireframe = false; }
 
 		std::list<Shared<RenderableObject>>& children();
-		Shared<RenderableObject> GetChild(std::string name);
+		Shared<RenderableObject> getChild(std::string name);
 		RenderableObject* parent();
 
 	protected:

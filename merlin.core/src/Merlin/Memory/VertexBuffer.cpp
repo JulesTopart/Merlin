@@ -3,12 +3,12 @@
 #include "../Core/Console.h"
 
 namespace Merlin{
-	VertexBufferLayout Vertex::GetLayout() {
+	VertexBufferLayout Vertex::getLayout() {
 		VertexBufferLayout layout;
-		layout.Push<float>(3); //Vertex pos
-		layout.Push<float>(3); //Vertex normal
-		layout.Push<float>(3); //Vertex color
-		layout.Push<float>(2); //Texture coordinates
+		layout.push<float>(3); //Vertex pos
+		layout.push<float>(3); //Vertex normal
+		layout.push<float>(3); //Vertex color
+		layout.push<float>(2); //Texture coordinates
 		return layout;
 	}
 }

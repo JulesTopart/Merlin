@@ -11,19 +11,19 @@
 namespace Merlin {
 
 	// Load a model from the specified file and return a pointer to a new Mesh object
-    Shared<Model> ModelLoader::LoadModel(const std::string& file_path) {
+    Shared<Model> ModelLoader::loadModel(const std::string& file_path) {
 
-        FileType ft = GetFileType(file_path);
+        FileType ft = getFileType(file_path);
         if (ft == FileType::OBJ || ft == FileType::STL || ft == FileType::GEOM) {
             Vertices vertices;
             Indices indices;
-            if (!ParseMesh(file_path, vertices, indices)) {
+            if (!parseMesh(file_path, vertices, indices)) {
                 throw std::runtime_error("Unknown file type: " + file_path);
             }
-            // Create a Mesh object using the parsed vertex and index data
-            auto mesh = Mesh::Create("Mesh", vertices, indices);
-            //mesh->CalculateNormals();
-            return Model::Create(GetFileName(file_path), mesh);
+            // create a Mesh object using the parsed vertex and index data
+            auto mesh = Mesh::create("Mesh", vertices, indices);
+            //mesh->calculateNormals();
+            return Model::create(getFileName(file_path), mesh);
 
         }
         
@@ -60,12 +60,12 @@ namespace Merlin {
 
             // Convert base color factor to diffuse
             glm::vec3 diffuse = glm::vec3(pbr.baseColorFactor[0], pbr.baseColorFactor[1], pbr.baseColorFactor[2]);
-            material->SetDiffuse(diffuse);
-            material->SetSpecular(diffuse);
-            material->SetAmbient(diffuse);
+            material->setDiffuse(diffuse);
+            material->setSpecular(diffuse);
+            material->setAmbient(diffuse);
 
             // Set shininess (specular is not directly available in glTF 2.0)
-            material->SetShininess(32.0f); // Default value, as glTF 2.0 does not have a shininess value
+            material->setShininess(32.0f); // Default value, as glTF 2.0 does not have a shininess value
 
             
             // Load textures
@@ -73,10 +73,10 @@ namespace Merlin {
                 const auto& texture = gltf_model.textures[pbr.baseColorTexture.index];
                 const auto& image = gltf_model.images[texture.source];
                 
-                Shared<Texture> tex = CreateShared<Texture>();
+                Shared<Texture> tex = createShared<Texture>();
 
                 // Load the texture and add it to the material
-                material->SetTexture(tex);
+                material->setTexture(tex);
             }
             
             
@@ -84,7 +84,7 @@ namespace Merlin {
         }
 
 
-        Shared<Model> model = Model::Create(GetFileName(file_path));
+        Shared<Model> model = Model::create(getFileName(file_path));
 
         for (const auto& mesh : gltf_model.meshes) {
             for (const auto& primitive : mesh.primitives) {
@@ -132,11 +132,11 @@ namespace Merlin {
                 }
                 
 
-                Shared<Mesh> mesh_instance = Mesh::Create(mesh.name, vertices, indices);
+                Shared<Mesh> mesh_instance = Mesh::create(mesh.name, vertices, indices);
                 if (primitive.material >= 0) {
-                    mesh_instance->SetMaterial(materials[primitive.material]);
+                    mesh_instance->setMaterial(materials[primitive.material]);
                 }
-                model->AddMesh(mesh_instance);
+                model->addMesh(mesh_instance);
             }
         }
 
@@ -145,7 +145,7 @@ namespace Merlin {
 
 
 
-    Vertex ModelLoader::ParseVertex(const std::string& vertexString, const ModelData& objData) {
+    Vertex ModelLoader::parseVertex(const std::string& vertexString, const ModelData& objData) {
         // Use a stringstream to parse the vertex data
         std::stringstream ss(vertexString);
         std::string item;
@@ -173,7 +173,7 @@ namespace Merlin {
     }
 
 	// Parse an OBJ file and extract the data
-	bool ModelLoader::ParseOBJ(const std::string& file_path, Vertices& vertices, Indices& indices) {
+	bool ModelLoader::parseOBJ(const std::string& file_path, Vertices& vertices, Indices& indices) {
         // Open the OBJ file
         std::ifstream infile(file_path);
         if (!infile) {
@@ -223,9 +223,9 @@ namespace Merlin {
                 ss >> vertex1 >> vertex2 >> vertex3;
 
                 // Parse the vertex data for each of the vertices
-                Vertex v1 = ParseVertex(vertex1, { tempVertices, tempTexCoords, tempNormals });
-                Vertex v2 = ParseVertex(vertex2, { tempVertices, tempTexCoords, tempNormals });
-                Vertex v3 = ParseVertex(vertex3, { tempVertices, tempTexCoords, tempNormals });
+                Vertex v1 = parseVertex(vertex1, { tempVertices, tempTexCoords, tempNormals });
+                Vertex v2 = parseVertex(vertex2, { tempVertices, tempTexCoords, tempNormals });
+                Vertex v3 = parseVertex(vertex3, { tempVertices, tempTexCoords, tempNormals });
 
                 // Add the vertices to the vector
                 vertices.push_back(v1);
@@ -242,7 +242,7 @@ namespace Merlin {
         return true;
 	}
 
-    bool ModelLoader::ParseSTL(const std::string& filepath, Vertices& vertices, Indices& indices) {
+    bool ModelLoader::parseSTL(const std::string& filepath, Vertices& vertices, Indices& indices) {
         // Open the file for reading
         std::ifstream file(filepath, std::ios::binary);
 
@@ -263,11 +263,11 @@ namespace Merlin {
         // Check if the first 5 characters of the header are "solid"
         if (std::strncmp(header, "solid", 5) == 0) {
             // The file is an ASCII STL file
-            return ParseSTL_ASCII(filepath, vertices, indices);
+            return parseSTL_ASCII(filepath, vertices, indices);
         }
         else {
             // The file is a binary STL file
-            return ParseSTL_BINARY(filepath, vertices, indices);
+            return parseSTL_BINARY(filepath, vertices, indices);
         }
     }
 
@@ -292,7 +292,7 @@ namespace Merlin {
     }
 
 	// Parse an STL file and extract the data
-	bool ModelLoader::ParseSTL_BINARY(const std::string& file_path, Vertices& vertices, Indices& indices) {
+	bool ModelLoader::parseSTL_BINARY(const std::string& file_path, Vertices& vertices, Indices& indices) {
         // Open the file in binary mode
         std::ifstream file(file_path, std::ios::binary);
         if (!file) {
@@ -357,7 +357,7 @@ namespace Merlin {
 	}
 
     // Parse an STL file and extract the data
-    bool ModelLoader::ParseSTL_ASCII(const std::string& file_path, Vertices& vertices, Indices& indices) {
+    bool ModelLoader::parseSTL_ASCII(const std::string& file_path, Vertices& vertices, Indices& indices) {
         // Open the file in binary mode
         std::ifstream file(file_path, std::ios::in | std::ios::binary);
         if (!file) return false;
@@ -409,13 +409,13 @@ namespace Merlin {
 	
 
 	// Parse a any file and extract the data
-	bool ModelLoader::ParseMesh(const std::string& file_path, Vertices& vertices, Indices& indices) {
-		FileType file_type = GetFileType(file_path);
+	bool ModelLoader::parseMesh(const std::string& file_path, Vertices& vertices, Indices& indices) {
+		FileType file_type = getFileType(file_path);
 		switch (file_type) {
 		case FileType::OBJ:
-			return ParseOBJ(file_path, vertices, indices);
+			return parseOBJ(file_path, vertices, indices);
 		case FileType::STL:
-			return ParseSTL(file_path, vertices, indices);
+			return parseSTL(file_path, vertices, indices);
 		default:
 			// Unknown file type
 			return false;

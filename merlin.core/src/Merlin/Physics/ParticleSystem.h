@@ -27,18 +27,18 @@ namespace Merlin {
 		}
 
 		template<typename T>
-		void AddField(const std::string& name) {
-			SSBO_Ptr<T> f = SSBO<T>::Create(name, m_instancesCount);
+		void addField(const std::string& name) {
+			SSBO_Ptr<T> f = SSBO<T>::create(name, m_instancesCount);
 			m_fields[name] = f;
 		}
 
 		template<typename T>
-		SSBO_Ptr<T> GetField(std::string name) {
+		SSBO_Ptr<T> getField(std::string name) {
 
 		}
 
 		template<typename T>
-		void SetField(std::string name, SSBO_Ptr<T> field) {
+		void setField(std::string name, SSBO_Ptr<T> field) {
 
 		}
 

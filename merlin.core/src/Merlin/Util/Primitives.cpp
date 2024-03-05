@@ -4,7 +4,7 @@
 
 namespace Merlin {
 
-	Shared<Mesh> Primitives::CreateRectangle(float x, float y) {
+	Shared<Mesh> Primitives::createRectangle(float x, float y) {
 		Vertices v = {
 			Vertex{glm::vec3(-x / 2.0f,-y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
 			Vertex{glm::vec3(-x / 2.0f, y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
@@ -13,11 +13,11 @@ namespace Merlin {
 		};
 
 		Indices i = { 0, 1, 2, 3 };
-		return Mesh::Create("Rectangle", v, i, GL_QUADS);
+		return Mesh::create("Rectangle", v, i, GL_QUADS);
 	}
 
 
-	Shared<Mesh> Primitives::CreateQuadRectangle(float x, float y, bool centered) {
+	Shared<Mesh> Primitives::createQuadRectangle(float x, float y, bool centered) {
 
 		float x_lo;
 		float x_up;
@@ -44,10 +44,10 @@ namespace Merlin {
 			Vertex{ glm::vec3(x_lo,y_up,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)}
 		};
 
-		return Mesh::Create("Cube", v, GL_QUADS);
+		return Mesh::create("Cube", v, GL_QUADS);
 	}
 
-	Shared<Mesh> Primitives::CreateFloor(const int groundNumTiles, const float groundTileSize) {
+	Shared<Mesh> Primitives::createFloor(const int groundNumTiles, const float groundTileSize) {
 
 		glm::vec2 squareVerts[] = { glm::vec2(0, 0), glm::vec2(0, 1), glm::vec2(1, 1), glm::vec2(1, 0) };
 
@@ -89,26 +89,26 @@ namespace Merlin {
 			v.push_back(Vertex{ glm::vec3(groundVerts[i * 3], groundVerts[i * 3 + 2], groundVerts[i * 3 + 1]),glm::vec3(0,0,1), glm::vec3(groundColors[i * 3], groundColors[i * 3 + 1], groundColors[i * 3 + 2]) }); //color : 
 		}
 
-		return Mesh::Create("Floor", v, GL_QUADS);
+		return Mesh::create("Floor", v, GL_QUADS);
 	}
 
-	Shared<Mesh> Primitives::CreatePoint() {
+	Shared<Mesh> Primitives::createPoint() {
 		Vertices v = {
 			Vertex{glm::vec3(0,0,0), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)}
 		};
-		return Mesh::Create("Point", v, GL_POINTS);
+		return Mesh::create("Point", v, GL_POINTS);
 	}
 
-	Shared<Mesh> Primitives::CreateLine(float length, glm::vec3 dir) {
+	Shared<Mesh> Primitives::createLine(float length, glm::vec3 dir) {
 		Vertices v = {
 			Vertex{glm::vec3(0,0,0)},
 			Vertex{glm::normalize(dir) * length}
 		};
 
-		return Mesh::Create("Line", v, GL_LINES);
+		return Mesh::create("Line", v, GL_LINES);
 	}
 
-	Shared<Mesh> Primitives::CreateCoordSystem() {
+	Shared<Mesh> Primitives::createCoordSystem() {
 		Vertices v = {
 			Vertex{ glm::vec3(0.2f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
 			Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)},
@@ -118,14 +118,14 @@ namespace Merlin {
 			Vertex{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}
 		};
 
-		return Mesh::Create("CoordinateSystem", v, GL_LINES);
+		return Mesh::create("CoordinateSystem", v, GL_LINES);
 	}
 
-	Shared<Mesh> Primitives::CreateQuadCube(float w, bool centered) {
-		return CreateQuadCube(w, w, w, centered);
+	Shared<Mesh> Primitives::createQuadCube(float w, bool centered) {
+		return createQuadCube(w, w, w, centered);
 	}
 
-	Shared<Mesh> Primitives::CreateQuadCube(float x, float y, float z, bool centered) {
+	Shared<Mesh> Primitives::createQuadCube(float x, float y, float z, bool centered) {
 
 		float x_lo;
 		float x_up;
@@ -184,12 +184,12 @@ namespace Merlin {
 
 		};
 
-		return Mesh::Create("Cube", v, GL_QUADS);
+		return Mesh::create("Cube", v, GL_QUADS);
 	}
 
-	Shared<Mesh> Primitives::CreateCube(float w) { return CreateCube(w, w, w); }
+	Shared<Mesh> Primitives::createCube(float w) { return createCube(w, w, w); }
 
-	Shared<Mesh> Primitives::CreateCube(float x, float y, float z) {
+	Shared<Mesh> Primitives::createCube(float x, float y, float z) {
 
 		float x_lo = -x / 2.0f;
 		float x_up = x / 2.0f;
@@ -238,10 +238,10 @@ namespace Merlin {
 			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(1.0f, 0.0f)}
 		};
 
-		return Mesh::Create("Cube", v);
+		return Mesh::create("Cube", v);
 	}
 
-	Shared<Mesh> Primitives::CreateCone(float r, float h, int res) {
+	Shared<Mesh> Primitives::createCone(float r, float h, int res) {
 		const float angleStep = glm::two_pi<float>() / res;
 
 		// Generate vertices
@@ -277,10 +277,10 @@ namespace Merlin {
 			indices.push_back(i0);
 		}
 
-		return CreateShared<Mesh>("Cone", vertices, indices, GL_TRIANGLES);
+		return createShared<Mesh>("Cone", vertices, indices, GL_TRIANGLES);
 	}
 
-	Shared<Mesh> Primitives::CreateCylinder(float r, float h, int res) {
+	Shared<Mesh> Primitives::createCylinder(float r, float h, int res) {
 		const float angleStep = glm::two_pi<float>() / res;
 
 		// Generate indices
@@ -326,12 +326,12 @@ namespace Merlin {
 		vertices.emplace_back(glm::vec3(0.0f, 0.0f, h), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)), glm::vec3(1.0f), glm::vec2(0.5f, 1.0f));
 		vertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f)), glm::vec3(1.0f), glm::vec2(0.5f, 0.0f));
 
-		return CreateShared<Mesh>("Cylinder", vertices, indices, GL_TRIANGLES);
+		return createShared<Mesh>("Cylinder", vertices, indices, GL_TRIANGLES);
 	}
 
 
 	/*
-	Shared<Mesh> Primitives::CreateSphere(float r, int hres, int vres) {
+	Shared<Mesh> Primitives::createSphere(float r, int hres, int vres) {
 
 		std::vector<glm::vec3> position;
 		std::vector<glm::vec3> normals;
@@ -459,7 +459,7 @@ namespace Merlin {
 		for (int i(0); i < position.size(); i++) {
 			v.push_back({ position[i], normals[i], glm::vec3(1) });
 		}
-		return Mesh::Create("Sphere", v);
+		return Mesh::create("Sphere", v);
 		
 
 		
@@ -473,7 +473,7 @@ namespace Merlin {
 			i.push_back(indices[j]);
 		}
 
-		return Mesh::Create("Sphere",v, i);
+		return Mesh::create("Sphere",v, i);
 		
 	}
 	*/
@@ -481,7 +481,7 @@ namespace Merlin {
 
 
 
-	Shared<Mesh> Primitives::CreateSphere(float r, int hres, int vres) {
+	Shared<Mesh> Primitives::createSphere(float r, int hres, int vres) {
 
 		std::vector<glm::vec3> position;
 		std::vector<glm::vec3> normals;
@@ -565,12 +565,12 @@ namespace Merlin {
 			i.push_back(indices[j]);
 		}
 
-		return Mesh::Create("Sphere",v, i);
+		return Mesh::create("Sphere",v, i);
 
 	}
 		
 
-	Shared<Mesh> Primitives::CreateFromQuad(std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode) {
+	Shared<Mesh> Primitives::createFromQuad(std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode) {
 		std::vector<GLuint> indices_buffer;
 		GLuint a; GLuint b;
 		GLuint c; GLuint d;
@@ -587,7 +587,7 @@ namespace Merlin {
 			indices_buffer.push_back(c - 1);
 			indices_buffer.push_back(d - 1);
 		}
-		return Mesh::Create("QuadMesh", vertices, indices_buffer);
+		return Mesh::create("QuadMesh", vertices, indices_buffer);
 	}
 
 }

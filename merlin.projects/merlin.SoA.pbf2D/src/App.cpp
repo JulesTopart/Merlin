@@ -19,12 +19,12 @@ public:
 	App()
 		: Application("OpenGL Application")
 	{
-		PushLayer(new AppLayer());
+		pushLayer(new AppLayer());
 	}
 };
 
 int main()
 {
 	std::unique_ptr<App> app = std::make_unique<App>();
-	app->Run();
+	app->run();
 }

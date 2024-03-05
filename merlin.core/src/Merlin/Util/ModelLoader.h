@@ -11,7 +11,7 @@ namespace Merlin{
 	class ModelLoader {
 	public:
 		// Load a model from the specified file and return a pointer to a new Mesh object
-		static Shared<Model> LoadModel(const std::string& filepath);
+		static Shared<Model> loadModel(const std::string& filepath);
 
 		// Load a GLTF file and extract the data
 		//static Shared<Model> LoadGLTF(const std::string& file_path);
@@ -31,15 +31,15 @@ namespace Merlin{
 		};
 
 		// Parse an Vertex Data from an OBJ
-		static Vertex ParseVertex(const std::string& vertexString, const ModelData& objData);
+		static Vertex parseVertex(const std::string& vertexString, const ModelData& objData);
 
 		// Parse an OBJ file and extract the data
-		static bool ParseOBJ(const std::string& file_path, Vertices& vertices, Indices& indices);
+		static bool parseOBJ(const std::string& file_path, Vertices& vertices, Indices& indices);
 
 		// Parse an STL file and extract the data
-		static bool ParseSTL(const std::string& file_path, Vertices& vertices, Indices& indices);
-		static bool ParseSTL_ASCII(const std::string& file_path, Vertices& vertices, Indices& indices);
-		static bool ParseSTL_BINARY(const std::string& file_path, Vertices& vertices, Indices& indices);
+		static bool parseSTL(const std::string& file_path, Vertices& vertices, Indices& indices);
+		static bool parseSTL_ASCII(const std::string& file_path, Vertices& vertices, Indices& indices);
+		static bool parseSTL_BINARY(const std::string& file_path, Vertices& vertices, Indices& indices);
 
 
 
@@ -47,7 +47,7 @@ namespace Merlin{
 		//static bool ParseGEOM(const std::string& file_path, Vertices& vertices, Indices& indices);
 
 		// Parse a any file and extract the data
-		static bool ParseMesh(const std::string& file_path, Vertices& vertices, Indices& indices);
+		static bool parseMesh(const std::string& file_path, Vertices& vertices, Indices& indices);
 
 
 	};

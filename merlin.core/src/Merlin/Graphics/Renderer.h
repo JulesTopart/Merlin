@@ -10,34 +10,34 @@ namespace Merlin {
 		Renderer();
 		~Renderer();
 
-		void Clear() override;
+		void clear() override;
 
-		void RenderSkyBox(const SkyBox& sky, const Camera& camera);
-		void RenderMesh(const Mesh& mesh, const Camera& camera);
-		void RenderModel(const Model& model, const Camera& camera);
-		void RenderParticleSystem(const deprecated_GenericParticleSystem& ps, const Camera& camera);
-		void RenderTransformObject(const TransformObject& obj, const Camera& camera);
+		void renderSkyBox(const SkyBox& sky, const Camera& camera);
+		void renderMesh(const Mesh& mesh, const Camera& camera);
+		void renderModel(const Model& model, const Camera& camera);
+		void renderParticleSystem(const deprecated_GenericParticleSystem& ps, const Camera& camera);
+		void renderTransformObject(const TransformObject& obj, const Camera& camera);
 
-		void RenderScene(const Scene& model, const Camera& camera);
-		void Render(const Shared<RenderableObject>& object, const Camera& camera);
+		void renderScene(const Scene& model, const Camera& camera);
+		void render(const Shared<RenderableObject>& object, const Camera& camera);
 		
-		void Initialize();		
+		void initialize();		
 
-		void LoadShader(const std::string& name, const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geomShaderPath = "");
-		void CreateMaterial(MaterialProperty matProps);
-		void AddMaterial(Shared<Material> material);
-		void AddShader(Shared<Shader> shader );
+		void loadShader(const std::string& name, const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geomShaderPath = "");
+		void createMaterial(MaterialProperty matProps);
+		void addMaterial(Shared<Material> material);
+		void addShader(Shared<Shader> shader );
 
-		const Material& GetMaterial(std::string n);
-		const Shader& GetShader(std::string n);
-		const Shared<Shader>& ShareShader(std::string n);
+		const Material& getMaterial(std::string n);
+		const Shader& getShader(std::string n);
+		const Shared<Shader>& shareShader(std::string n);
 
 	private:
 		
 
-		void PushMatrix();
-		void PopMatrix();
-		void ResetMatrix();
+		void pushMatrix();
+		void popMatrix();
+		void resetMatrix();
 
 		glm::mat4 currentTransform;
 		std::stack<glm::mat4> matrixStack;

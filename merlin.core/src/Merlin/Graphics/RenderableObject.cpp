@@ -8,7 +8,7 @@ namespace Merlin {
 	
 	int RenderableObject::nextID = 0;
 
-	std::string RenderableObject::TypeToString(ObjectType ob) {
+	std::string RenderableObject::typeToString(ObjectType ob) {
 
 		switch (ob){
 		case Merlin::ObjectType::SCENE:
@@ -37,40 +37,40 @@ namespace Merlin {
 
 	RenderableObject::RenderableObject() : m_type(ObjectType::GENERIC), m_parent(nullptr), m_transform(glm::mat4(1)) {
 		m_ID = nextID++;
-		m_name = TypeToString(m_type) + std::to_string(m_ID);
+		m_name = typeToString(m_type) + std::to_string(m_ID);
 	}
 
 	RenderableObject::RenderableObject(std::string name, ObjectType type) : m_type(type), m_parent(nullptr), m_name(name), m_transform(glm::mat4(1)) {
 		m_ID = nextID++;
 	}
 
-	Shared<RenderableObject> RenderableObject::GetChild(std::string name) {
+	Shared<RenderableObject> RenderableObject::getChild(std::string name) {
 		for (auto child : m_children) {
 			if (child->name() == name) return child;
 		}
 		return nullptr;
 	}
 
-	void RenderableObject::AddChild(const Shared<RenderableObject>& child) {
+	void RenderableObject::addChild(const Shared<RenderableObject>& child) {
 		if (child != nullptr) {
 			m_children.push_back(child);
-			child->SetParent(this);
+			child->setParent(this);
 		}
 		else Console::warn("SceneNode") << "Empty node child ignored" << Console::endl;
 	}
-	void RenderableObject::RemoveChild(Shared<RenderableObject> child) {
+	void RenderableObject::removeChild(Shared<RenderableObject> child) {
 		m_children.remove(child);
 	}
 
-	void RenderableObject::SetParent(RenderableObject* parent) {
+	void RenderableObject::setParent(RenderableObject* parent) {
 		m_parent = parent;
 	}
 
-	bool RenderableObject::HasParent() const {
+	bool RenderableObject::hasParent() const {
 		return m_parent != nullptr;
 	}
 
-	bool RenderableObject::HasChildren() const {
+	bool RenderableObject::hasChildren() const {
 		return m_children.size();
 	}
 
@@ -84,33 +84,33 @@ namespace Merlin {
 	}
 
 
-	void RenderableObject::Translate(glm::vec3 v) {
+	void RenderableObject::translate(glm::vec3 v) {
 		m_transform = glm::translate(m_transform, v);
 	}
 
-	void RenderableObject::Scale(glm::vec3 v) {
+	void RenderableObject::scale(glm::vec3 v) {
 		m_transform = glm::scale(m_transform, v);
 	}
 
-	void RenderableObject::Scale(float v) {
+	void RenderableObject::scale(float v) {
 		m_transform = glm::scale(m_transform, glm::vec3(v));
 	}
 
-	void RenderableObject::SetPosition(glm::vec3 v) {
+	void RenderableObject::setPosition(glm::vec3 v) {
 		m_transform = glm::translate(m_transform, v - position());
 	}
 
-	void RenderableObject::Rotate(glm::vec3 v) {
+	void RenderableObject::rotate(glm::vec3 v) {
 		m_transform = glm::rotate(m_transform, v.x, glm::vec3(1, 0, 0));
 		m_transform = glm::rotate(m_transform, v.y, glm::vec3(0, 1, 0));
 		m_transform = glm::rotate(m_transform, v.z, glm::vec3(0, 0, 1));
 	}
 
-	void RenderableObject::Rotate(float angle, glm::vec3 v) {
+	void RenderableObject::rotate(float angle, glm::vec3 v) {
 		m_transform = glm::rotate(m_transform, angle, v);
 	}
 
-	void RenderableObject::SetTransform(glm::mat4 t) {
+	void RenderableObject::setTransform(glm::mat4 t) {
 		m_transform = t;
 	}
 
