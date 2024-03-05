@@ -23,7 +23,7 @@ uniform int colorCycle = 0;
 uniform uint particleTest = 50;
 uniform int showBoundary = 0;
 uniform vec2 WindowSize;
-uniform float zoomLevel = 20;
+uniform float zoomLevel = 250;
 
 void main() {
 	uint i = gl_InstanceID;

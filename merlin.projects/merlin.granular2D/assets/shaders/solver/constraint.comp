@@ -38,8 +38,8 @@ vec2 solveParticleCollision(uint i){
 		if(pi == pj) pj = pj + 1e-4;
 		vec2 diff = pi - pj;
 		float dist = length(diff);
-		if(dist >= 3.5*particleRadius) continue; //Ignore particle that are too far
-		float l0 = 3.0*particleRadius;
+		if(dist >= 2.5*particleRadius) continue; //Ignore particle that are too far
+		float l0 = 2.05*particleRadius;
 		float l = dist; // Calculate the current length
 		// Calculate the constraint violation
 		float C = l - l0;

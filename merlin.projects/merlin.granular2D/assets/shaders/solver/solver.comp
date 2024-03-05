@@ -55,14 +55,15 @@ void SolveDEM(uint i, uint simStep) {
 	if(simStep == 2){
 		vec2 acceleration = vec2(0,-g);
 		Xi = xi + Vi * dt;
-		if(length(Xi - xi) < 0.001) Xi = xi; //particle sleeping
+		if(length(Xi - xi) < 0.0001) Xi = xi; //particle sleeping
 		Xi += acceleration * dt * dt;
 		return;
 	}else if(simStep == 3){
-		Xi += solveFloorCollision(i);
+		Xi += solveParticleCollision(i);
+		
 		return;
 	}else if(simStep == 4){
-		Xi += solveParticleCollision(i);
+		Xi += solveFloorCollision(i);
 		Ti += computeTemperatureDelta(i)*dt;
 		return;
 	}else if(simStep == 5){
