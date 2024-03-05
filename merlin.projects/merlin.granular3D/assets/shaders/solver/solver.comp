@@ -11,7 +11,6 @@
 
 
 layout (local_size_x = PTHREAD) in;
-void SolveDEM(uint i, uint simStep);
 void SolveGranularPBD(uint i, uint simStep);
 void NNS(uint i, uint simStep);
 
@@ -54,6 +53,7 @@ void SolveGranularPBD(uint i, uint simStep) {
 	if(simStep == 2){
 		vec3 acceleration = vec3(0, 0, -g);
 		Xi = xi + Vi * dt;
+		if(length(Xi - xi) < 0.0001) Xi = xi; //particle sleeping
 		Xi += acceleration * dt * dt;
 		return;
 	}else if(simStep == 3){
@@ -66,30 +66,16 @@ void SolveGranularPBD(uint i, uint simStep) {
 		Vi = 0.999*(Xi - xi)/dt;
 		Ti += computeTemperatureDelta(i)*dt;
 		xi = Xi;
+
+		vec3 friction = vec3(0);
+		vec3 position = Xi;
+		OVERNNS
+			if(i == j || Dij > 2.5 * particleRadius) continue;
+			friction += Vij * 15;
+		OVERNNS_END
+
+		Vi += friction * dt;
 		return;
 	}
 
 }
-
-void SolveDEM(uint i, uint simStep) {
-	
-	if(simStep == 2){
-		vec3 acceleration = vec3(0, 0, -g);
-		Xi = xi + Vi * dt;
-		Xi += acceleration * dt * dt;
-		return;
-	}else if(simStep == 3){
-		Xi += solveFloorCollision(i);
-		return;
-	}else if(simStep == 4){
-		Xi += solveParticleCollision(i);
-		return;
-	}else if(simStep == 5){
-		Vi = 0.999*(Xi - xi)/dt;
-		Ti += computeTemperatureDelta(i)*dt;
-		xi = Xi;
-		return;
-	}
-
-}
-
