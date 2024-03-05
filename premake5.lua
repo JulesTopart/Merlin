@@ -114,4 +114,4 @@ group "Projects"
 	include "merlin.projects/merlin.SoA.pbf3D"
 	include "merlin.projects/merlin.SoA.dem2D"
 	include "merlin.projects/merlin.SoA.dem3D"
-
+	include "merlin.projects/merlin.SoA.sph2D"

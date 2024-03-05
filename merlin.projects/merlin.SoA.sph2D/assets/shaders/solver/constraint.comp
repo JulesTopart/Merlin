@@ -1,0 +1,59 @@
+//? #version 430
+#ifndef INCLUDE_CONSTRAINTS_GLSL
+#define INCLUDE_CONSTRAINTS_GLSL
+
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+
+
+vec2 solveFloorCollision(uint i){
+	vec2 correctedPosition = Xi;
+	for (int i = 0; i < 2; i++){
+		if (correctedPosition[i] - particleRadius <= boundaryMin[i] ){
+			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
+		}
+		else if (correctedPosition[i] + particleRadius >= boundaryMax[i])
+		{
+			correctedPosition[i] =  boundaryMax[i] - particleRadius;
+		}
+	}
+
+	return (correctedPosition - Xi);
+}
+
+
+vec2 clampToDomain(vec2 position){
+
+	position.x = max(position.x, boundaryMin.x + particleRadius);
+	position.x = min(position.x, boundaryMax.x - particleRadius);
+	position.y = max(position.y, boundaryMin.y + particleRadius);
+	position.y = min(position.y, boundaryMax.y - particleRadius);
+
+	return position;
+}
+
+
+void computeDensityPressure(uint i) {
+    float rho0 = restDensity;
+    float rhoi = 0.0;
+    vec2 position = Xi;
+    OVERNNS
+		vec2 dist = Rij;
+		if(length(dist) >= H) continue;
+		if(i != j){
+			rhoi += Mj * poly6(dist);
+		}
+	OVERNNS_END
+	Rhoi = max(rhoi, rho0);
+	Pi = max(artificialPressureMultiplier * (rhoi - rho0),0.0);
+}
+
+
+
+
+
+
+#endif
