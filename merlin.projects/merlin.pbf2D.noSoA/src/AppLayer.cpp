@@ -7,6 +7,7 @@
 
 using namespace Merlin;
 
+
 #define PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 #define GPU_PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE glFinish(); VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 
@@ -22,7 +23,7 @@ AppLayer::AppLayer(){
 	camera->setFarPlane(10.0f);
 	camera->translate(glm::vec3(0, 0, 1));
 	cameraController = createShared<CameraController2D>(camera);
-	cameraController->setZoomLevel(250);
+	cameraController->setZoomLevel(20);
 	cameraController->setCameraSpeed(100);
 }
 
@@ -38,20 +39,13 @@ void AppLayer::onAttach(){
 	InitPhysics();
 
 	particleShader->use();
-	particleShader->attach(*positionBuffer);
-	particleShader->attach(*predictedPositionBuffer);
-	particleShader->attach(*velocityBuffer);
-	particleShader->attach(*densityBuffer);
-	particleShader->attach(*lambdaBuffer);
-	particleShader->attach(*metaBuffer);
+	particleShader->attach(*particleBuffer);
+	particleShader->attach(*sortedIndexBuffer);
+	particleShader->attach(*binBuffer);
 
 	binShader->use();
-	binShader->attach(*positionBuffer);
-	binShader->attach(*predictedPositionBuffer);
-	binShader->attach(*velocityBuffer);
-	binShader->attach(*densityBuffer);
-	binShader->attach(*lambdaBuffer);
-	binShader->attach(*metaBuffer);
+	binShader->attach(*particleBuffer);
+	binShader->attach(*sortedIndexBuffer);
 	binShader->attach(*binBuffer);
 
 	ResetSimulation();
@@ -178,8 +172,6 @@ void AppLayer::InitGraphics() {
 	mdl->enableWireFrameMode();
 	scene.add(mdl);
 
-	particleShader->use();
-	particleShader->setFloat("zoomLevel", camera->getZoom());
 	//scene.Add(TransformObject::create("origin"));
 
 }
@@ -208,53 +200,27 @@ void AppLayer::InitPhysics() {
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
-	// reserve Buffer and double buffering
-	positionBuffer = SSBO<glm::vec2>::create("PositionBuffer", settings.pThread);
-	cpyPositionBuffer = SSBO<glm::vec2>::create("cpyPositionBuffer",settings.pThread);
-	predictedPositionBuffer = SSBO<glm::vec2>::create("PredictedPositionBuffer",settings.pThread);
-	cpyPredictedPositionBuffer = SSBO<glm::vec2>::create("cpyPredictedPositionBuffer",settings.pThread);
-	velocityBuffer = SSBO<glm::vec2>::create("VelocityBuffer",settings.pThread);
-	cpyVelocityBuffer = SSBO<glm::vec2>::create("cpyVelocityBuffer",settings.pThread);
-	densityBuffer = SSBO<float>::create("DensityBuffer", settings.pThread);
-	cpyDensityBuffer = SSBO<float>::create("cpyDensityBuffer",settings.pThread);
-	lambdaBuffer = SSBO<float>::create("LambdaBuffer",settings.pThread);
-	cpyLambdaBuffer = SSBO<float>::create("cpyLambdaBuffer",settings.pThread);
-	metaBuffer = SSBO<glm::uvec4>::create("MetaBuffer",settings.pThread);
-	cpymetaBuffer = SSBO<glm::uvec4>::create("cpyMetaBuffer",settings.pThread);
 
+	//reserve Buffers
+	Console::info() << "Particle struct size :" << sizeof(Particle) << Console::endl;
+	particleBuffer = SSBO<Particle>::create("ParticleBuffer",settings.pThread);
+	particleCpyBuffer = SSBO<Particle>::create("ParticleCpyBuffer",settings.pThread);
 
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
-	binBuffer = SSBO<Bin>::create("BinBuffer", settings.bThread);
+	binBuffer = SSBO<Bin>::create("BinBuffer",settings.bThread);
 
-	// Set binding points for position and its copy
-	positionBuffer->setBindingPoint(0);
-	cpyPositionBuffer->setBindingPoint(1);
-	predictedPositionBuffer->setBindingPoint(2);
-	cpyPredictedPositionBuffer->setBindingPoint(3);
-	velocityBuffer->setBindingPoint(4);
-	cpyVelocityBuffer->setBindingPoint(5);
-	densityBuffer->setBindingPoint(6);
-	cpyDensityBuffer->setBindingPoint(7);
-	lambdaBuffer->setBindingPoint(8);
-	cpyLambdaBuffer->setBindingPoint(9);
-	metaBuffer->setBindingPoint(10);
-	cpymetaBuffer->setBindingPoint(11);
-	binBuffer->setBindingPoint(13);
+	sortedIndexBuffer = SSBO<GLuint>::create("SortedIndexBuffer",settings.pThread);
+
+	particleBuffer->setBindingPoint(0);
+	particleCpyBuffer->setBindingPoint(1);
+	sortedIndexBuffer->setBindingPoint(2);
+	binBuffer->setBindingPoint(3);
 
 	//attach Buffers
 	particleSystem->addComputeShader(solver);
-	particleSystem->addStorageBuffer(positionBuffer);
-	particleSystem->addStorageBuffer(cpyPositionBuffer);
-	particleSystem->addStorageBuffer(predictedPositionBuffer);
-	particleSystem->addStorageBuffer(cpyPredictedPositionBuffer);
-	particleSystem->addStorageBuffer(velocityBuffer);
-	particleSystem->addStorageBuffer(cpyVelocityBuffer);
-	particleSystem->addStorageBuffer(densityBuffer);
-	particleSystem->addStorageBuffer(cpyDensityBuffer);
-	particleSystem->addStorageBuffer(lambdaBuffer);
-	particleSystem->addStorageBuffer(cpyLambdaBuffer);
-	particleSystem->addStorageBuffer(metaBuffer);
-	particleSystem->addStorageBuffer(cpymetaBuffer);
+	particleSystem->addStorageBuffer(particleBuffer);
+	particleSystem->addStorageBuffer(particleCpyBuffer);
+	particleSystem->addStorageBuffer(sortedIndexBuffer);
 	particleSystem->addStorageBuffer(binBuffer);
 
 	binSystem->addComputeShader(prefixSum);
@@ -268,58 +234,76 @@ void AppLayer::InitPhysics() {
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
-	positionBuffer->clear();
-	predictedPositionBuffer->clear();
-	velocityBuffer->clear();
-	densityBuffer->clear();
-	lambdaBuffer->clear();
-	metaBuffer->clear();
+	particleBuffer->clear();
 	
 	Console::info() << "Generating particles..." << Console::endl;
 
 	float spacing = settings.particleRadius * 2.0;
+	auto cpu_particles = particleBuffer->getEmptyArray();
 
-	auto cpu_position = positionBuffer->read();
-	auto cpu_predictedPosition = predictedPositionBuffer->read();
-	auto cpu_velocity = velocityBuffer->read();
-	auto cpu_density = densityBuffer->read();
-	auto cpu_lambda = lambdaBuffer->read();
-	auto cpu_meta = metaBuffer->read();
-
+	Particle buf;
+	buf.velocity = glm::vec2(0);
+	
+	buf.phase = FLUID; // phase
 	glm::vec2 cubeSize = glm::vec2(100, 250);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
 
-	numParticles = 0;
 	for (int yi = 0; yi <= cubeSize.y / spacing; yi++)
-	for (int xi = 0; xi <= cubeSize.x / spacing; xi++){
-		float x = ((xi + 1) * spacing) - (settings.bb.x/2.0);
-		float y = ((yi + 1) * spacing) - (settings.bb.y/2.0);
-		cpu_position.push_back(glm::vec2(x, y));
-		cpu_predictedPosition.push_back(glm::vec2(x, y));
-		cpu_velocity.push_back(glm::vec2(0));
-		cpu_density.push_back(0.0);
-		cpu_lambda.push_back(0.0);
-		cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
-		numParticles++;
+		for (int xi = 0; xi <= cubeSize.x / spacing; xi++){
+				float x = ((xi + 1) * spacing) - (settings.bb.x/2.0);
+				float y = ((yi + 1) * spacing) - (settings.bb.y/2.0);
+				buf.id = 0;// cpu_particles.size();
+				buf.position.x = x;
+				buf.position.y = y;
+				buf.pposition = buf.position;
+				buf.binIndex = cpu_particles.size();
+				cpu_particles.push_back(buf);
+			}
+
+	/*
+	buf.phase = BOUNDARY; // phase
+	for (int xi = 0; xi <= settings.bb.x / spacing; xi++) {
+		float x = (xi * spacing) - (settings.bb.x / 2.0);
+		buf.id = cpu_particles.size();
+		buf.position.x = x;
+		buf.position.y = -(settings.bb.y / 2.0);
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
+
+		buf.position.y = settings.bb.y/2.0;
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
 	}
 
+	for (int yi = 0; yi <= settings.bb.y / spacing; yi++) {
+		float y = (yi * spacing) - (settings.bb.y / 2.0);
+		buf.id = cpu_particles.size();
+		buf.position.x = -(settings.bb.x / 2.0);
+		buf.position.y = y;
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
 
+		buf.position.x = settings.bb.x/2.0;
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
+	}*/
+	
 	Console::info() << "Uploading buffer on device..." << Console::endl;
+
+	numParticles = cpu_particles.size();
 	settings.pThread = numParticles;
 	particleSystem->setInstancesCount(settings.pThread);
 	
 	ApplyBufferSettings();
 	SyncUniforms();
-
-	positionBuffer->write(cpu_position);
-	predictedPositionBuffer->write(cpu_predictedPosition);
-	velocityBuffer->write(cpu_velocity);
-	densityBuffer->write(cpu_density);
-	lambdaBuffer->write(cpu_lambda);
-	metaBuffer->write(cpu_meta);
-
-
-
+	
+	particleBuffer->bind();
+	particleBuffer->write(cpu_particles);
+	particleBuffer->unbind();
 }
 
 
@@ -566,39 +550,6 @@ void AppLayer::onImGuiRender() {
 	}
 
 	if (ImGui::Button("Debug")) {
-
-		auto cpu_position = positionBuffer->read();
-		auto cpu_predictedPosition = predictedPositionBuffer->read();
-		auto cpu_velocity = velocityBuffer->read();
-		auto cpu_density = densityBuffer->read();
-		auto cpu_lambda = lambdaBuffer->read();
-		auto cpu_meta = metaBuffer->read();
-		auto cpu_bin = binBuffer->read();
-
-		std::vector<GLuint> sorted;
-		
-		for (int i = 0; i < numParticles; i++) {
-			//sorted.push_back(particleBuffer->GetDeviceBuffer()[i].id);
-			sorted.push_back(cpu_meta[i].w);
-		}
-
-		Console::info("Sorting") << "Sorted array has " << sorted.size() << " entry. " << numParticles - sorted.size() << " entry are missing" << Console::endl;
-
-		std::unordered_map<GLuint, GLuint> idmap;
-		for (int i = 0; i < sorted.size(); i++) {
-			idmap[sorted[i]] = sorted[i];
-		}
-
-		std::vector<GLuint> missings;
-		for (int i = 0; i < sorted.size(); i++) {
-			if (idmap.find(i) == idmap.end()) {
-				missings.push_back(i);
-			};
-		}
-
-
-		Console::info("Sorting") << "Sorted array has " << sorted.size() << " entry. ID Map has " << idmap.size() << " entry" << Console::endl;
-
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;
 	}

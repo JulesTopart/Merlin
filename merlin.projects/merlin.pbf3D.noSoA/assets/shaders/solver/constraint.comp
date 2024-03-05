@@ -14,15 +14,15 @@ vec3 solveFloorCollision(uint i){
 	vec3 correctedPosition = Xi;
 	for (int i = 0; i < 3; i++){
 		if (correctedPosition[i] - particleRadius <= boundaryMin[i] ){
-			correctedPosition[i] = (boundaryMin[i]) + particleRadius + 1e-2;;
+			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
 		}
 		else if (correctedPosition[i] + particleRadius >= boundaryMax[i])
 		{
-			correctedPosition[i] =  boundaryMax[i] - particleRadius - 1e-2;
+			correctedPosition[i] =  boundaryMax[i] - particleRadius;
 		}
 	}
 
-	return (correctedPosition - Xi)*0.8;
+	return (correctedPosition - Xi);
 }
 
 
@@ -44,10 +44,9 @@ float computeLambda(uint i) {
     float density = 0.0;
     vec3 position = Xi;
     OVERNNS
-		vec3 diff = Rij;
-		float dist = length(diff);
-		if(dist >= H || dist < 1e-6) continue;
-		vec3 gradCj = spiky_grad(diff);
+		vec3 dist = Rij;
+		if(length(dist) >= H) continue;
+		vec3 gradCj = spiky_grad(dist);
 		gradCi += gradCj;
 		if(i != j){
 			sumGradCj += dot(gradCj, gradCj);
@@ -56,23 +55,6 @@ float computeLambda(uint i) {
 	OVERNNS_END
 	sumGradCj += dot(gradCi, gradCi);
 	sumGradCj = max(sumGradCj, 1e-6);
-
-
-	float boundaryDensity = 0.0;
-
-
-	for (int i = 0; i < 3; i++){
-		float dist = distance(position[i], boundaryMin[i]);
-		if (dist < smoothingRadius){
-			boundaryDensity += 0.01*particleMass/dist;
-		}
-		dist = distance(position[i], boundaryMax[i]);
-		if (dist < smoothingRadius)
-		{
-			boundaryDensity += 0.01*particleMass/dist;
-		}
-	}
-	density += boundaryDensity;
 	Rhoi = max(density, rho0);
     float C = max((density / rho0) - 1.0, 0.0);
     return -C / (sumGradCj/pow(rho0, 2));
@@ -90,7 +72,7 @@ vec3 computePositionDelta(uint i) {
 	if(j == i) continue;
 		vec3 dist = Rji;
         sCorr = -artificialPressureMultiplier * pow(poly6(dist) / poly6(normalize(vec3(1)) * 0.2*H), 4);
-        posDelta += spikyGradient(dist) * (B_Lambda(i) + B_Lambda(j) + sCorr);
+        posDelta += spikyGradient(dist) * (Lambi + Lambj + sCorr);
 	OVERNNS_END
 	posDelta /= rho0;
 	//posDelta = clamp(posDelta, -MAX_DELTA_PI, MAX_DELTA_PI);

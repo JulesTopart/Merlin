@@ -1,6 +1,5 @@
 #pragma once
 #include "settings.h"
-
 using namespace Merlin;
 
 #define UNUSED 0
@@ -34,31 +33,41 @@ public:
 	void updateFPS(Merlin::Timestep ts);
 private:
 
+	//--- Graphics ---
 	Camera_Ptr camera;
 	CameraController_Ptr cameraController;
 
 	Scene scene;
 	Renderer renderer;
 
-	//ScreenQuadRenderer qrenderer;
-
-	//Simulation
-	StagedComputeShader_Ptr solver;
-	StagedComputeShader_Ptr prefixSum;
-
-	SSBO_Ptr<Bin> binBuffer; //Particle buffer
-	SSBO_Ptr<Particle> particleBuffer; //Particle buffer
-	SSBO_Ptr<Particle> particleCpyBuffer; //Particle buffer
-	SSBO_Ptr<GLuint> sortedIndexBuffer; //Particle buffer
-
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;
 
 	deprecated_ParticleSystem_Ptr particleSystem;
 	deprecated_ParticleSystem_Ptr binSystem;
-	Settings settings;
+
+	//--- Solver and sort programs ---
+	StagedComputeShader_Ptr solver;
+	StagedComputeShader_Ptr prefixSum;
+
+	// --- Buffers ---
+	SSBO_Ptr<Bin> binBuffer; //Particle buffer
+	SSBO_Ptr<glm::vec2> positionBuffer; // Position buffer
+	SSBO_Ptr<glm::vec2> cpyPositionBuffer; // Copy of the position buffer
+	SSBO_Ptr<glm::vec2> predictedPositionBuffer; // Predicted position buffer
+	SSBO_Ptr<glm::vec2> cpyPredictedPositionBuffer; // Copy of the predicted position buffer
+	SSBO_Ptr<glm::vec2> velocityBuffer; // Velocity buffer
+	SSBO_Ptr<glm::vec2> cpyVelocityBuffer; // Copy of the velocity buffer
+	SSBO_Ptr<float> densityBuffer; // Density buffer
+	SSBO_Ptr<float> cpyDensityBuffer; // Copy of the density buffer
+	SSBO_Ptr<float> lambdaBuffer; // Lambda buffer
+	SSBO_Ptr<float> cpyLambdaBuffer; // Copy of the lambda buffer
+	SSBO_Ptr<glm::uvec4> metaBuffer; // Meta buffer containing phase, bin index, id, sortedID
+	SSBO_Ptr<glm::uvec4> cpymetaBuffer; // Copy of the meta buffer
+
 
 	//Simulation
+	Settings settings;
 	GLuint numParticles = 0;
 	GLuint numConstraint = 0;
 	GLuint numBoundaryParticles = 0;

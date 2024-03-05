@@ -2,47 +2,76 @@
 #ifndef INCLUDE_BUFFERS_GLSL
 #define INCLUDE_BUFFERS_GLSL
 
-//TODO generate this automatically
+//Macro to access buffer
+#define B_x(buffer_index) ssbo_position[buffer_index]
+#define B_X(buffer_index) ssbo_pposition[buffer_index]
+#define B_M(buffer_index) particleMass
+#define B_V(buffer_index) ssbo_velocity[buffer_index]
+#define B_Lambda(buffer_index) ssbo_lambda[buffer_index]
+#define B_Rho(buffer_index) ssbo_density[buffer_index]
+#define B_Phase(buffer_index) ssbo_meta[buffer_index].x
+#define B_BinIndex(buffer_index) ssbo_meta[buffer_index].y
+#define B_ID(buffer_index) ssbo_meta[buffer_index].z
+#define B_SortedID(buffer_index) ssbo_meta[buffer_index].w
 
-struct Particle{
-	vec4 position;//position and pposition
-	vec4 velocity;//Velocity, density, lambda
-	uvec4 meta; //phase, binindex, id , padding
-};
-
-#define xi particles[i].position.xy
-#define xj particles[j].position.xy
-
-#define Xi particles[i].position.zw
-#define Xj particles[j].position.zw
-
+//Shortcuts
+#define xi B_x(i)
+#define xj B_x(j)
+#define Xi B_X(i)
+#define Xj B_X(j)
+#define Vi B_V(i)
+#define Vj B_V(j)
 #define Mi particleMass
 #define Mj particleMass
-
-#define Vi particles[i].velocity.xy
-#define Vj particles[j].velocity.xy
-
-#define Lambi particles[i].velocity.w
-#define Lambj particles[j].velocity.w
-
-#define Rhoi particles[i].velocity.z
-#define Rhoj particles[j].velocity.z
+#define Rhoi B_Rho(i)
+#define Rhoj B_Rho(j)
 
 #define Vij (Vj - Vi)
 #define Rij (Xj - Xi)
 #define Rji (Xi - Xj)
 #define Dij distance(Xi, Xj)
 
-layout(std430) buffer ParticleBuffer {
-	Particle particles[];
+layout(std430) buffer PositionBuffer {
+	vec2 ssbo_position[];
+};
+layout(std430) buffer cpyPositionBuffer {
+	vec2 ssbo_cpy_position[];
 };
 
-layout(std430) buffer ParticleCpyBuffer {
-	Particle cpy_particles[];
+layout(std430) buffer PredictedPositionBuffer {
+	vec2 ssbo_pposition[];
+};
+layout(std430) buffer cpyPredictedPositionBuffer {
+	vec2 ssbo_cpy_pposition[];
 };
 
-layout(std430) buffer SortedIndexBuffer {
-	uint sortedIndices[];
+layout(std430) buffer VelocityBuffer {
+	vec2 ssbo_velocity[];
+};
+layout(std430) buffer cpyVelocityBuffer {
+	vec2 ssbo_cpy_velocity[];
+};
+
+layout(std430) buffer DensityBuffer {
+	float ssbo_density[];
+};
+layout(std430) buffer cpyDensityBuffer {
+	float ssbo_cpy_density[];
+};
+
+layout(std430) buffer LambdaBuffer {
+	float ssbo_lambda[];
+};
+layout(std430) buffer cpyLambdaBuffer {
+	float ssbo_cpy_lambda[];
+};
+
+layout(std430) buffer MetaBuffer {
+	uvec4 ssbo_meta[]; //phase, binindex, id , sortedID
+};
+
+layout(std430) buffer cpyMetaBuffer {
+	uvec4 ssbo_cpy_meta[]; //phase, binindex, id , sortedID
 };
 
 #endif// INCLUDE_BUFFERS_HLSL

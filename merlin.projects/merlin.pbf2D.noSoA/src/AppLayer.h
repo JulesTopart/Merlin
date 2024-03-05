@@ -10,7 +10,7 @@ using namespace Merlin;
 #define GRANULAR 4
 #define BOUNDARY 5
 
-class AppLayer : public Merlin::Layer {
+class AppLayer : public Merlin::Layer{
 public:
 	AppLayer();
 	virtual ~AppLayer();
@@ -47,20 +47,10 @@ private:
 	StagedComputeShader_Ptr prefixSum;
 
 	SSBO_Ptr<Bin> binBuffer; //Particle buffer
-	SSBO_Ptr<glm::vec4> positionBuffer; // Position buffer
-	SSBO_Ptr<glm::vec4> cpyPositionBuffer; // Copy of the position buffer
-	SSBO_Ptr<glm::vec4> predictedPositionBuffer; // Predicted position buffer
-	SSBO_Ptr<glm::vec4> cpyPredictedPositionBuffer; // Copy of the predicted position buffer
-	SSBO_Ptr<glm::vec4> velocityBuffer; // Velocity buffer
-	SSBO_Ptr<glm::vec4> cpyVelocityBuffer; // Copy of the velocity buffer
-	SSBO_Ptr<float> densityBuffer; // Density buffer
-	SSBO_Ptr<float> cpyDensityBuffer; // Copy of the density buffer
-	SSBO_Ptr<float> lambdaBuffer; // Lambda buffer
-	SSBO_Ptr<float> cpyLambdaBuffer; // Copy of the lambda buffer
-	SSBO_Ptr<glm::uvec4> metaBuffer; // Meta buffer containing phase, bin index, id, sortedID
-	SSBO_Ptr<glm::uvec4> cpymetaBuffer; // Copy of the meta buffer
+	SSBO_Ptr<Particle> particleBuffer; //Particle buffer
+	SSBO_Ptr<Particle> particleCpyBuffer; //Particle buffer
+	SSBO_Ptr<GLuint> sortedIndexBuffer; //Particle buffer
 
-	Shader_Ptr modelShader;
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;
 

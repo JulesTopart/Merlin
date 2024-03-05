@@ -27,29 +27,28 @@ uniform float zoomLevel = 20;
 
 void main() {
 	uint i = gl_InstanceID;
-	vec2 offset = B_x(i);
-	position = model * (vec4(_position + vec3(offset,0),1));
+	vec3 offset = xi;
+	position = model * (vec4(_position + vec3(offset),1));
 
-	uint testsortedID = B_SortedID(particleTest);
+	uint testsortedID = sortedIndices[particleTest];
 	
 	bool binTest = true;
 	bool nnTest = false;
 	bool hTest = false;
-	uint binindex = B_BinIndex(gl_InstanceID);//getBinIndex(particles[sortedID].position);
+	uint binindex = particles[gl_InstanceID].binIndex;//getBinIndex(particles[sortedID].position);
 
-	bool test = B_Phase(gl_InstanceID) == UNUSED || (B_Phase(gl_InstanceID) == BOUNDARY && showBoundary == 0);
+	bool test = particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0);
 	color = vec4(1);
 	if(colorCycle == 0){ 
 		color = vec4(vec3(0.8), 1.0);
 	}else if(colorCycle == 1){ 
 		color = vec4(randomColor(binindex), 1);
-		//color = vec4(randomColor(particles[gl_InstanceID].meta.z), 1);
 	}else if(colorCycle == 2){ 
-		color = colorMap(map(B_Rho(i),0.9 * restDensity, 1.1 * restDensity), warmcool);
+		color = colorMap(map(Rhoi*1000,1000* restDensity, 1500 * restDensity), warmcool);
 	}else if(colorCycle == 3){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 4){ 
-		color = colorMap(map(length(B_V(gl_InstanceID)),0,1000.0), parula);
+		color = colorMap(map(length(particles[gl_InstanceID].velocity.xyz),0,600.0), parula);
 	}else if(colorCycle == 5){ 
 		color = vec4(randomColor(binindex), 1);
 	}else{ //NNS Test
@@ -59,21 +58,22 @@ void main() {
 		}else{
 
 			binTest = false;
-			uvec2 binIndexVec2 = getBinCoord(B_X(testsortedID));
-			for (int y = int(binIndexVec2.y) - 1; y <= int(binIndexVec2.y) + 1; y++) {
-				for (int x = int(binIndexVec2.x) - 1; x <= int(binIndexVec2.x) + 1; x++) {
-					if (x < 0 || y < 0) continue;
-					if (x >= binMax.x || y >= binMax.y) continue; 
-					if (getBinIndexFromCoord(uvec2(x,y)) == binindex) binTest = true;
+			uvec3 binIndexVec3 = getBinCoord(particles[testsortedID].position.xyz);
+			for (int z = int(binIndexVec3.z) - 1; z <= int(binIndexVec3.z) + 1; z++) {
+				for (int y = int(binIndexVec3.y) - 1; y <= int(binIndexVec3.y) + 1; y++) {
+					for (int x = int(binIndexVec3.x) - 1; x <= int(binIndexVec3.x) + 1; x++) {
+						if (x < 0 || y < 0) continue;
+						if (x >= binMax.x || y >= binMax.y) continue; 
+						if (getBinIndexFromCoord(uvec3(x,y,z)) == binindex) binTest = true;
+					}
 				}
 			}
-		
 
-			vec2 position = B_X(testsortedID);
+			vec3 position = particles[testsortedID].position.xyz;
 			OVERNNS
 				if(gl_InstanceID == j){
 					nnTest = true;
-					if(length(B_X(testsortedID) - B_X(j)) <= smoothingRadius) hTest = true;
+					if(length(particles[testsortedID].position - particles[j].position) <= smoothingRadius) hTest = true;
 				}
 			OVERNNS_END
 
@@ -93,8 +93,8 @@ void main() {
 		mv = projection * view;
 		
 		gl_Position = screen_position;
-		gl_PointSize = particleRadius * WindowSize.y * 1.0 / zoomLevel;
-		if(colorCycle == 6 && !hTest && !(gl_InstanceID == testsortedID)) gl_PointSize = particleRadius * WindowSize.y * 0.3 / zoomLevel;
+		gl_PointSize = 4.0*particleRadius*400.0/(gl_Position.w);
+		if(colorCycle == 5 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = 400.0/(gl_Position.w);
 		
 	}
 }

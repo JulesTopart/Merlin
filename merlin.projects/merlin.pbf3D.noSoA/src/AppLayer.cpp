@@ -3,7 +3,6 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <iomanip>
-#include <algorithm>
 
 using namespace Merlin;
 
@@ -17,12 +16,14 @@ AppLayer::AppLayer(){
 	Window* w = &Application::get().getWindow();
 	int height = w->getHeight();
 	int width = w->getWidth();
-	camera = createShared<Camera>(width, height, Projection::Orthographic);
-	camera->setNearPlane(0.0f);
-	camera->setFarPlane(10.0f);
-	camera->translate(glm::vec3(0, 0, 1));
-	cameraController = createShared<CameraController2D>(camera);
-	cameraController->setZoomLevel(250);
+	camera = createShared<Camera>(width, height, Projection::Perspective);
+	camera->setNearPlane(0.1f);
+	camera->setFarPlane(1800.0f);
+	camera->setFOV(60); //Use 90.0f as we are using cubemaps
+	camera->setPosition(glm::vec3(0.0f, -140.0f, 40));
+	camera->setRotation(glm::vec3(0, 20, -270));
+	cameraController = createShared<CameraController3D>(camera);
+	cameraController->setZoomLevel(1);
 	cameraController->setCameraSpeed(100);
 }
 
@@ -38,20 +39,13 @@ void AppLayer::onAttach(){
 	InitPhysics();
 
 	particleShader->use();
-	particleShader->attach(*positionBuffer);
-	particleShader->attach(*predictedPositionBuffer);
-	particleShader->attach(*velocityBuffer);
-	particleShader->attach(*densityBuffer);
-	particleShader->attach(*lambdaBuffer);
-	particleShader->attach(*metaBuffer);
+	particleShader->attach(*particleBuffer);
+	particleShader->attach(*sortedIndexBuffer);
+	particleShader->attach(*binBuffer);
 
 	binShader->use();
-	binShader->attach(*positionBuffer);
-	binShader->attach(*predictedPositionBuffer);
-	binShader->attach(*velocityBuffer);
-	binShader->attach(*densityBuffer);
-	binShader->attach(*lambdaBuffer);
-	binShader->attach(*metaBuffer);
+	binShader->attach(*particleBuffer);
+	binShader->attach(*sortedIndexBuffer);
 	binShader->attach(*binBuffer);
 
 	ResetSimulation();
@@ -62,11 +56,6 @@ void AppLayer::onDetach(){}
 void AppLayer::onEvent(Event& event){
 	camera->onEvent(event);
 	cameraController->onEvent(event);
-
-	if (event.getEventType() == EventType::MouseScrolled) {
-		particleShader->use();
-		particleShader->setFloat("zoomLevel", camera->getZoom());
-	}
 }
 
 float t = 0.0;
@@ -158,11 +147,15 @@ void AppLayer::InitGraphics() {
 	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
 	particleShader->noTexture();
 	particleShader->noMaterial();
-	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
+	particleShader->setVec3("lightPos", glm::vec3(0, 0, 500));
 
 	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
 	binShader->noTexture();
 	binShader->noMaterial();
+
+	modelShader = Shader::create("model", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
+	modelShader->setVec3("lightPos", glm::vec3(0, 0, 50));
+	//modelShader->noTexture();
 
 	particleShader->use();
 	particleShader->setInt("colorCycle", 0);
@@ -171,16 +164,45 @@ void AppLayer::InitGraphics() {
 	 
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
+	renderer.addShader(modelShader);
 
-	//qrenderer.setShader(Shader("screen", "assets/shaders/screen.space.vert", "assets/shaders/screen.space.frag"));
+	Shared<Shader> skyShader = Shader::create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
+	Shared<SkyBox> sky = SkyBox::create("Sky");
+	sky->setShader(skyShader);
+	scene.add(sky);
 
-	Model_Ptr mdl = Model::create("bbox", Primitives::createQuadRectangle(settings.bb.x, settings.bb.y, true));
-	mdl->enableWireFrameMode();
-	scene.add(mdl);
+	Shared<Model> floor = ModelLoader::loadModel("./assets/models/bed.stl");
+	floor->translate(glm::vec3(0.75, -0.25, -0.1));
+	floor->scale(glm::vec3(1.025, 1.025, 1.0));
+	floor->setMaterial("chrome");
+	floor->setShader("model");
+	scene.add(floor);
 
-	particleShader->use();
-	particleShader->setFloat("zoomLevel", camera->getZoom());
-	//scene.Add(TransformObject::create("origin"));
+	//modelShader->Use();
+	//modelShader->setVec3("lightPos", glm::vec3(0.0, 10.0, 10));
+
+	Shared<Model> floorSurface = Model::create("floorSurface", Primitives::createRectangle(316, 216));
+	floorSurface->translate(glm::vec3(0.75, -0.25, 0));
+
+	Shared<Material> floorMat2 = createShared<Material>("floorMat2");
+	floorMat2->setAmbient(glm::vec3(0.015));
+	floorMat2->setDiffuse(glm::vec3(0.9));
+	floorMat2->setSpecular(glm::vec3(0.95));
+	floorMat2->setShininess(0.98);
+	floorMat2->loadTexture("assets/textures/bed.png", TextureType::COLOR);
+
+
+	floorSurface->setMaterial(floorMat2);
+	floorSurface->setShader("model");
+	scene.add(floorSurface);
+
+	Model_Ptr bbox = Model::create("bbox", Primitives::createQuadCube(settings.bb.x, settings.bb.y, settings.bb.z));
+	bbox->enableWireFrameMode();
+	bbox->setMaterial("default");
+	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
+	scene.add(bbox);
+
+	scene.add(TransformObject::create("origin"));
 
 }
 
@@ -195,9 +217,9 @@ void AppLayer::InitPhysics() {
 	particle->rename("particle");
 	particle->setShader(particleShader);
 	particleSystem->setMesh(particle);
-	particleSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
+	particleSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 
-	Shared<Mesh> binInstance = Primitives::createQuadRectangle(settings.bWidth, settings.bWidth, true);
+	Shared<Mesh> binInstance = Primitives::createQuadCube(settings.bWidth, false);
 	binInstance->rename("bin");
 	binInstance->setShader(binShader);
 	binSystem = deprecated_ParticleSystem::create("BinSystem", settings.bThread);
@@ -208,53 +230,25 @@ void AppLayer::InitPhysics() {
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
-	// reserve Buffer and double buffering
-	positionBuffer = SSBO<glm::vec2>::create("PositionBuffer", settings.pThread);
-	cpyPositionBuffer = SSBO<glm::vec2>::create("cpyPositionBuffer",settings.pThread);
-	predictedPositionBuffer = SSBO<glm::vec2>::create("PredictedPositionBuffer",settings.pThread);
-	cpyPredictedPositionBuffer = SSBO<glm::vec2>::create("cpyPredictedPositionBuffer",settings.pThread);
-	velocityBuffer = SSBO<glm::vec2>::create("VelocityBuffer",settings.pThread);
-	cpyVelocityBuffer = SSBO<glm::vec2>::create("cpyVelocityBuffer",settings.pThread);
-	densityBuffer = SSBO<float>::create("DensityBuffer", settings.pThread);
-	cpyDensityBuffer = SSBO<float>::create("cpyDensityBuffer",settings.pThread);
-	lambdaBuffer = SSBO<float>::create("LambdaBuffer",settings.pThread);
-	cpyLambdaBuffer = SSBO<float>::create("cpyLambdaBuffer",settings.pThread);
-	metaBuffer = SSBO<glm::uvec4>::create("MetaBuffer",settings.pThread);
-	cpymetaBuffer = SSBO<glm::uvec4>::create("cpyMetaBuffer",settings.pThread);
 
-
+	//reserve Buffers
+	Console::info() << "Particle struct size :" << sizeof(Particle) << Console::endl;
+	particleBuffer = SSBO<Particle>::create("ParticleBuffer",settings.pThread);
+	particleCpyBuffer = SSBO<Particle>::create("ParticleCpyBuffer",settings.pThread);
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
-	binBuffer = SSBO<Bin>::create("BinBuffer", settings.bThread);
+	binBuffer = SSBO<Bin>::create("BinBuffer",settings.bThread);
+	sortedIndexBuffer = SSBO<GLuint>::create("SortedIndexBuffer",settings.pThread);
 
-	// Set binding points for position and its copy
-	positionBuffer->setBindingPoint(0);
-	cpyPositionBuffer->setBindingPoint(1);
-	predictedPositionBuffer->setBindingPoint(2);
-	cpyPredictedPositionBuffer->setBindingPoint(3);
-	velocityBuffer->setBindingPoint(4);
-	cpyVelocityBuffer->setBindingPoint(5);
-	densityBuffer->setBindingPoint(6);
-	cpyDensityBuffer->setBindingPoint(7);
-	lambdaBuffer->setBindingPoint(8);
-	cpyLambdaBuffer->setBindingPoint(9);
-	metaBuffer->setBindingPoint(10);
-	cpymetaBuffer->setBindingPoint(11);
-	binBuffer->setBindingPoint(13);
+	particleBuffer->setBindingPoint(0);
+	particleCpyBuffer->setBindingPoint(1);
+	sortedIndexBuffer->setBindingPoint(2);
+	binBuffer->setBindingPoint(3);
 
 	//attach Buffers
 	particleSystem->addComputeShader(solver);
-	particleSystem->addStorageBuffer(positionBuffer);
-	particleSystem->addStorageBuffer(cpyPositionBuffer);
-	particleSystem->addStorageBuffer(predictedPositionBuffer);
-	particleSystem->addStorageBuffer(cpyPredictedPositionBuffer);
-	particleSystem->addStorageBuffer(velocityBuffer);
-	particleSystem->addStorageBuffer(cpyVelocityBuffer);
-	particleSystem->addStorageBuffer(densityBuffer);
-	particleSystem->addStorageBuffer(cpyDensityBuffer);
-	particleSystem->addStorageBuffer(lambdaBuffer);
-	particleSystem->addStorageBuffer(cpyLambdaBuffer);
-	particleSystem->addStorageBuffer(metaBuffer);
-	particleSystem->addStorageBuffer(cpymetaBuffer);
+	particleSystem->addStorageBuffer(particleBuffer);
+	particleSystem->addStorageBuffer(particleCpyBuffer);
+	particleSystem->addStorageBuffer(sortedIndexBuffer);
 	particleSystem->addStorageBuffer(binBuffer);
 
 	binSystem->addComputeShader(prefixSum);
@@ -268,62 +262,90 @@ void AppLayer::InitPhysics() {
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
-	positionBuffer->clear();
-	predictedPositionBuffer->clear();
-	velocityBuffer->clear();
-	densityBuffer->clear();
-	lambdaBuffer->clear();
-	metaBuffer->clear();
+	particleBuffer->clear();
 	
 	Console::info() << "Generating particles..." << Console::endl;
 
 	float spacing = settings.particleRadius * 2.0;
+	auto cpu_particles = particleBuffer->getEmptyArray();
 
-	auto cpu_position = positionBuffer->read();
-	auto cpu_predictedPosition = predictedPositionBuffer->read();
-	auto cpu_velocity = velocityBuffer->read();
-	auto cpu_density = densityBuffer->read();
-	auto cpu_lambda = lambdaBuffer->read();
-	auto cpu_meta = metaBuffer->read();
+	Particle buf;
+	buf.velocity = glm::vec3(0);
+	
 
-	glm::vec2 cubeSize = glm::vec2(100, 250);
-	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
+	buf.phase = FLUID; // phase
+	glm::vec3 cubeSize = glm::vec3(80, 50, 30);
+	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
 
-	numParticles = 0;
-	for (int yi = 0; yi <= cubeSize.y / spacing; yi++)
-	for (int xi = 0; xi <= cubeSize.x / spacing; xi++){
-		float x = ((xi + 1) * spacing) - (settings.bb.x/2.0);
-		float y = ((yi + 1) * spacing) - (settings.bb.y/2.0);
-		cpu_position.push_back(glm::vec2(x, y));
-		cpu_predictedPosition.push_back(glm::vec2(x, y));
-		cpu_velocity.push_back(glm::vec2(0));
-		cpu_density.push_back(0.0);
-		cpu_lambda.push_back(0.0);
-		cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
-		numParticles++;
+	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
+		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
+			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
+				float x = ((xi + 1) * spacing) - (settings.bb.x / 2.0);
+				float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
+				float z = ((zi + 1) * spacing);
+				buf.id = cpu_particles.size();
+				buf.position.x = x;
+				buf.position.y = y;
+				buf.position.z = z;
+				buf.pposition = buf.position;
+				buf.binIndex = cpu_particles.size();
+				cpu_particles.push_back(buf);
+			}
+		}
+	}
+	/*
+	buf.phase = BOUNDARY; // phase
+	for (int xi = 0; xi <= settings.bb.x / spacing; xi++) {
+		float x = (xi * spacing) - (settings.bb.x / 2.0);
+		buf.id = cpu_particles.size();
+		buf.position.x = x;
+		buf.position.y = -(settings.bb.y / 2.0);
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
+
+		buf.position.y = settings.bb.y/2.0;
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
 	}
 
+	for (int yi = 0; yi <= settings.bb.y / spacing; yi++) {
+		float y = (yi * spacing) - (settings.bb.y / 2.0);
+		buf.id = cpu_particles.size();
+		buf.position.x = -(settings.bb.x / 2.0);
+		buf.position.y = y;
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
 
+		buf.position.x = settings.bb.x/2.0;
+		buf.pposition = buf.position;
+		buf.binIndex = cpu_particles.size();
+		cpu_particles.push_back(buf);
+	}*/
+	
 	Console::info() << "Uploading buffer on device..." << Console::endl;
+
+	numParticles = cpu_particles.size();
 	settings.pThread = numParticles;
 	particleSystem->setInstancesCount(settings.pThread);
 	
 	ApplyBufferSettings();
 	SyncUniforms();
-
-	positionBuffer->write(cpu_position);
-	predictedPositionBuffer->write(cpu_predictedPosition);
-	velocityBuffer->write(cpu_velocity);
-	densityBuffer->write(cpu_density);
-	lambdaBuffer->write(cpu_lambda);
-	metaBuffer->write(cpu_meta);
-
-
-
+	
+	particleBuffer->bind();
+	particleBuffer->write(cpu_particles);
+	particleBuffer->unbind();
+	
 }
 
 
 void AppLayer::NeigborSearch() {
+	prefixSum->use();
+	prefixSum->setUInt("dataSize", settings.bThread); //data size
+	prefixSum->setUInt("blockSize", settings.blockSize); //block size
+
 	prefixSum->use();
 	prefixSum->execute(4);// clear bins
 
@@ -566,39 +588,6 @@ void AppLayer::onImGuiRender() {
 	}
 
 	if (ImGui::Button("Debug")) {
-
-		auto cpu_position = positionBuffer->read();
-		auto cpu_predictedPosition = predictedPositionBuffer->read();
-		auto cpu_velocity = velocityBuffer->read();
-		auto cpu_density = densityBuffer->read();
-		auto cpu_lambda = lambdaBuffer->read();
-		auto cpu_meta = metaBuffer->read();
-		auto cpu_bin = binBuffer->read();
-
-		std::vector<GLuint> sorted;
-		
-		for (int i = 0; i < numParticles; i++) {
-			//sorted.push_back(particleBuffer->GetDeviceBuffer()[i].id);
-			sorted.push_back(cpu_meta[i].w);
-		}
-
-		Console::info("Sorting") << "Sorted array has " << sorted.size() << " entry. " << numParticles - sorted.size() << " entry are missing" << Console::endl;
-
-		std::unordered_map<GLuint, GLuint> idmap;
-		for (int i = 0; i < sorted.size(); i++) {
-			idmap[sorted[i]] = sorted[i];
-		}
-
-		std::vector<GLuint> missings;
-		for (int i = 0; i < sorted.size(); i++) {
-			if (idmap.find(i) == idmap.end()) {
-				missings.push_back(i);
-			};
-		}
-
-
-		Console::info("Sorting") << "Sorted array has " << sorted.size() << " entry. ID Map has " << idmap.size() << " entry" << Console::endl;
-
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;
 	}

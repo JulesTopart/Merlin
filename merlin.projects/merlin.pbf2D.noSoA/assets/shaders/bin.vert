@@ -24,11 +24,11 @@ uniform uint binTest = 1459;
 uniform int colorCycle;
 
 void main() {
-	vec3 offset = (vec3(getBinCoordFromIndex(gl_InstanceID)) * binSize);
-	position = vec3(model * vec4(_position*0.95 + offset + boundaryMin, 1.0f));
+	vec2 offset = (vec2(getBinCoordFromIndex(gl_InstanceID) + vec2(0.5)) * binSize) + boundaryMin;
+	position = vec3(model * vec4(_position*0.98 + vec3(offset,0) , 1.0f));
 	normal = _normal;
 
-	bool test = bins[gl_InstanceID].count > 0;
+	bool test = true;//bins[gl_InstanceID].count > 0;
 
 	color = vec4(1);
 	if(colorCycle == 1){
@@ -40,19 +40,17 @@ void main() {
 		if(gl_InstanceID == binTest) color = vec4(1,0,0,1);
 		else{
 			test = false;
-			uint testsortedID = B_SortedID(particleTest);
+			uint testsortedID = sortedIndices[particleTest];
 
-			uvec3 binIndexVec = getBinCoord(B_X(testsortedID));
-			ivec3 minBound = max(ivec3(binIndexVec) - 1, ivec3(0));
-			ivec3 maxBound = min(ivec3(binIndexVec) + 1, ivec3(binMax) - 1);
-			for (int z = minBound.z; z <= maxBound.z; z++) {
-				for (int y = minBound.y; y <= maxBound.y; y++) {
-					for (int x = minBound.x; x <= maxBound.x; x++) {
-						uint cindex = getBinIndexFromCoord(uvec3(x, y, z));
+			uvec2 binIndexVec = getBinCoord(particles[testsortedID].position.xy);
+			ivec2 minBound = max(ivec2(binIndexVec) - 1, ivec2(0));
+			ivec2 maxBound = min(ivec2(binIndexVec) + 1, ivec2(binMax) - 1);
+			for (int y = minBound.y; y <= maxBound.y; y++) {
+				for (int x = minBound.x; x <= maxBound.x; x++) {
+					uint cindex = getBinIndexFromCoord(uvec2(x, y));
 						if (cindex == gl_InstanceID) test = true;
 					}
 				}
-			}
 			if(test)color = vec4(0.2,1,0.2,1);
 		}
 	}

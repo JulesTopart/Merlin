@@ -27,17 +27,17 @@ uniform float zoomLevel = 20;
 
 void main() {
 	uint i = gl_InstanceID;
-	vec2 offset = B_x(i);
+	vec2 offset = xi;
 	position = model * (vec4(_position + vec3(offset,0),1));
 
-	uint testsortedID = B_SortedID(particleTest);
+	uint testsortedID = sortedIndices[particleTest];
 	
 	bool binTest = true;
 	bool nnTest = false;
 	bool hTest = false;
-	uint binindex = B_BinIndex(gl_InstanceID);//getBinIndex(particles[sortedID].position);
+	uint binindex = particles[gl_InstanceID].meta.y;//getBinIndex(particles[sortedID].position);
 
-	bool test = B_Phase(gl_InstanceID) == UNUSED || (B_Phase(gl_InstanceID) == BOUNDARY && showBoundary == 0);
+	bool test = particles[gl_InstanceID].meta.x == UNUSED || (particles[gl_InstanceID].meta.x == BOUNDARY && showBoundary == 0);
 	color = vec4(1);
 	if(colorCycle == 0){ 
 		color = vec4(vec3(0.8), 1.0);
@@ -45,11 +45,11 @@ void main() {
 		color = vec4(randomColor(binindex), 1);
 		//color = vec4(randomColor(particles[gl_InstanceID].meta.z), 1);
 	}else if(colorCycle == 2){ 
-		color = colorMap(map(B_Rho(i),0.9 * restDensity, 1.1 * restDensity), warmcool);
+		color = colorMap(map(Rhoi,0.9 * restDensity, 1.1 * restDensity), warmcool);
 	}else if(colorCycle == 3){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 4){ 
-		color = colorMap(map(length(B_V(gl_InstanceID)),0,1000.0), parula);
+		color = colorMap(map(length(particles[gl_InstanceID].velocity.xy),0,1000.0), parula);
 	}else if(colorCycle == 5){ 
 		color = vec4(randomColor(binindex), 1);
 	}else{ //NNS Test
@@ -59,7 +59,7 @@ void main() {
 		}else{
 
 			binTest = false;
-			uvec2 binIndexVec2 = getBinCoord(B_X(testsortedID));
+			uvec2 binIndexVec2 = getBinCoord(particles[testsortedID].position.xy);
 			for (int y = int(binIndexVec2.y) - 1; y <= int(binIndexVec2.y) + 1; y++) {
 				for (int x = int(binIndexVec2.x) - 1; x <= int(binIndexVec2.x) + 1; x++) {
 					if (x < 0 || y < 0) continue;
@@ -69,11 +69,11 @@ void main() {
 			}
 		
 
-			vec2 position = B_X(testsortedID);
+			vec2 position = particles[testsortedID].position.xy;
 			OVERNNS
 				if(gl_InstanceID == j){
 					nnTest = true;
-					if(length(B_X(testsortedID) - B_X(j)) <= smoothingRadius) hTest = true;
+					if(length(particles[testsortedID].position - particles[j].position) <= smoothingRadius) hTest = true;
 				}
 			OVERNNS_END
 

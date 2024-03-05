@@ -40,9 +40,9 @@ void main() {
 		if(gl_InstanceID == binTest) color = vec4(1,0,0,1);
 		else{
 			test = false;
-			uint testsortedID = sortedIndices[particleTest];
+			uint testsortedID = B_SortedID(particleTest);
 
-			uvec2 binIndexVec = getBinCoord(particles[testsortedID].position.xy);
+			uvec2 binIndexVec = getBinCoord(B_X(testsortedID));
 			ivec2 minBound = max(ivec2(binIndexVec) - 1, ivec2(0));
 			ivec2 maxBound = min(ivec2(binIndexVec) + 1, ivec2(binMax) - 1);
 			for (int y = minBound.y; y <= maxBound.y; y++) {

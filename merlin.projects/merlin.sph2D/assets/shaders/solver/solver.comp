@@ -14,8 +14,6 @@ layout (local_size_x = PTHREAD) in;
 void SolveFluid(uint i, uint simStep);
 void NNS(uint i, uint simStep);
 
-uniform bool whirlpool = false;
-uniform float whirlpoolIntensity = 50;
 uniform uint stage;
 uniform vec4 sourcePos;
 // XPBD_Main
@@ -31,10 +29,9 @@ void NNS(uint i, uint simStep){
 		uint bin = B_BinIndex(i) = getBinIndex(Xi);
 		atomicAdd(bins[bin].count, 1);
 		ssbo_cpy_position[i] = ssbo_position[i];
-		ssbo_cpy_pposition[i] = ssbo_pposition[i];
 		ssbo_cpy_velocity[i] = ssbo_velocity[i];
 		ssbo_cpy_density[i] = ssbo_density[i];
-		ssbo_cpy_lambda[i] = ssbo_lambda[i];
+		ssbo_cpy_pressure[i] = ssbo_pressure[i];
 		ssbo_cpy_meta[i] = ssbo_meta[i];
 
 		return;
@@ -42,10 +39,9 @@ void NNS(uint i, uint simStep){
 		uint newID = atomicAdd(bins[ssbo_cpy_meta[i].y].index, -1) -1;
 
 		ssbo_position[newID]  = ssbo_cpy_position[i];
-		ssbo_pposition[newID] = ssbo_cpy_pposition[i];
 		ssbo_velocity[newID]  = ssbo_cpy_velocity[i];
 		ssbo_density[newID]   = ssbo_cpy_density[i];
-		ssbo_lambda[newID]    = ssbo_cpy_lambda[i];
+		ssbo_pressure[newID]    = ssbo_cpy_pressure[i];
 		ssbo_meta[newID]      = ssbo_cpy_meta[i];
 
 		ssbo_meta[ssbo_meta[newID].z].z = newID;
@@ -53,53 +49,47 @@ void NNS(uint i, uint simStep){
 	}
 }
 
+//Simple Sympletic Euler integration with WSPH example
 void SolveFluid(uint i, uint simStep) {
-	
 	if(simStep == 2){
-		vec3 acceleration = vec3(0, 0, -g);
-		Vi += acceleration * dt;
-		Xi = xi + Vi * dt;
+		computeDensityPressure(i);
 		return;
-	}
+	}else if(simStep == 3){
+		float rhoi = Rhoi;
+		vec2 fpress = vec2(0);
+		vec2 fvisc = vec2(0);
+		vec2 fgrav = vec2(0,-g) * particleMass / rhoi;
+		vec2 position = Xi;
 
-		
-	if(simStep == 3){ //compute lagrange multiplier
-		B_Lambda(i) = computeLambda(i);
-		return;
-	}
-		
-	if(simStep == 4){//correct density error and update position
-		Xi += computePositionDelta(i);
-		Xi += solveFloorCollision(i);
-		//particles[i].pposition = clampToDomain(particles[i].pposition);
-		return;
-	}
-	if(simStep == 5){//apply XSPH velocity correction
-		if(isnan(Xi.x) || isnan(Xi.y) || isnan(Xi.z)) Xi = xi;
-		Vi = (Xi - xi)/dt;
-
-		if(whirlpool){
-		float radius = distance(Xi.xy, vec2(0,0));
-		if(radius < 80){
-			vec3 pos = normalize(vec3(Xi.xy,0));
-			float wi = whirlpoolIntensity;
-			vec3 Vdir = normalize(cross(pos, vec3(0,0,1)));
-			Vi += wi * radius  * Vdir * dt;
-		}}
-
-		vec3 xsphSum = vec3(0);
-
-		vec3 position = Xi;
 		OVERNNS
-			if(j == i) continue;
-			float dist = Dij;
-			if(dist < 1e-6) continue;
-			float Wij = poly6(dist);
-			xsphSum -= artificialViscosityMultiplier * Vij * Wij * Rhoj;
+			vec2 rij = Rij;
+			if(length(rij) >= H || length(rij) <= 1e-6) continue;
+			if(i != j){
+				fpress += -normalize(rij) * particleMass * (Pi + Pj) / (2.0f * Rhoj) * spiky(rij);
+				fvisc -= 1.0 * artificialViscosityMultiplier * particleMass * Vij / Rhoj * viscosityLaplacianKernel(rij);
+			}
+		OVERNNS_END
+
+		Vi += dt * (fpress + fgrav + fvisc)/rhoi;
+		vec2 xi = Xi;
+		Xi += dt * Vi;
+
+		Vi += solveFloorCollision(i)/dt;
+		Xi += solveFloorCollision(i);
+		
+
+		return;
+	}else if(simStep == 4){
+		vec2 xsphSum = vec2(0);
+
+		vec2 position = Xi;
+		OVERNNS
+			if(length(Rji) < 1e-6 || i == j) continue;
+			float Wij = poly6(Rji);
+			xsphSum -=0.07 * Vij * Wij * Rhoj;
 		OVERNNS_END
 		Vi -= xsphSum;
 
-		xi = Xi;
 		return;
 	}
 

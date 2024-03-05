@@ -72,7 +72,7 @@ vec2 computePositionDelta(uint i) {
 	if(j == i) continue;
 		vec2 dist = Rji;
         sCorr = -artificialPressureMultiplier * pow(poly6(dist) / poly6(normalize(vec2(1)) * 0.2*H), 4);
-        posDelta += spikyGradient(dist) * (Lambi + Lambj + sCorr);
+        posDelta += spikyGradient(dist) * (B_Lambda(i) + B_Lambda(j) + sCorr);
 	OVERNNS_END
 	posDelta /= rho0;
 	//posDelta = clamp(posDelta, -MAX_DELTA_PI, MAX_DELTA_PI);

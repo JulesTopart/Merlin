@@ -6,13 +6,14 @@
 
 using namespace Merlin;
 
+
 #define PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 #define GPU_PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE glFinish(); VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 
 #define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
-AppLayer::AppLayer(){
+AppLayer::AppLayer() {
 	Window* w = &Application::get().getWindow();
 	int height = w->getHeight();
 	int width = w->getWidth();
@@ -20,16 +21,16 @@ AppLayer::AppLayer(){
 	camera->setNearPlane(0.1f);
 	camera->setFarPlane(1800.0f);
 	camera->setFOV(60); //Use 90.0f as we are using cubemaps
-	camera->setPosition(glm::vec3(0.0f, -140.0f, 40));
-	camera->setRotation(glm::vec3(0, 20, -270));
+	camera->setPosition(glm::vec3(0.0f, -300.0f, 80));
+	camera->setRotation(glm::vec3(0, 10, -270));
 	cameraController = createShared<CameraController3D>(camera);
 	cameraController->setZoomLevel(1);
 	cameraController->setCameraSpeed(100);
 }
 
-AppLayer::~AppLayer(){}
+AppLayer::~AppLayer() {}
 
-void AppLayer::onAttach(){
+void AppLayer::onAttach() {
 	enableGLDebugging();
 	//ImGui::LoadIniSettingsFromDisk("imgui.ini");
 	Console::setLevel(ConsoleLevel::_TRACE);
@@ -39,28 +40,35 @@ void AppLayer::onAttach(){
 	InitPhysics();
 
 	particleShader->use();
-	particleShader->attach(*particleBuffer);
-	particleShader->attach(*sortedIndexBuffer);
-	particleShader->attach(*binBuffer);
+	particleShader->attach(*positionBuffer);
+	particleShader->attach(*predictedPositionBuffer);
+	particleShader->attach(*velocityBuffer);
+	particleShader->attach(*densityBuffer);
+	particleShader->attach(*lambdaBuffer);
+	particleShader->attach(*metaBuffer);
 
 	binShader->use();
-	binShader->attach(*particleBuffer);
-	binShader->attach(*sortedIndexBuffer);
+	binShader->attach(*positionBuffer);
+	binShader->attach(*predictedPositionBuffer);
+	binShader->attach(*velocityBuffer);
+	binShader->attach(*densityBuffer);
+	binShader->attach(*lambdaBuffer);
+	binShader->attach(*metaBuffer);
 	binShader->attach(*binBuffer);
 
 	ResetSimulation();
 }
 
-void AppLayer::onDetach(){}
+void AppLayer::onDetach() {}
 
-void AppLayer::onEvent(Event& event){
+void AppLayer::onEvent(Event& event) {
 	camera->onEvent(event);
 	cameraController->onEvent(event);
 }
 
 float t = 0.0;
 
-void AppLayer::onUpdate(Timestep ts){
+void AppLayer::onUpdate(Timestep ts) {
 	cameraController->onUpdate(ts);
 	PROFILE_END(total_start_time, total_time);
 	PROFILE_BEGIN(total_start_time);
@@ -69,7 +77,7 @@ void AppLayer::onUpdate(Timestep ts){
 
 	GPU_PROFILE(render_time,
 		renderer.clear();
-		renderer.renderScene(scene, *camera);
+	renderer.renderScene(scene, *camera);
 	)
 
 	if (!paused) {
@@ -94,7 +102,7 @@ void AppLayer::SyncUniforms() {
 	solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.01);
 
 	particleShader->use();
-	particleShader->setUInt("numParticles",numParticles);
+	particleShader->setUInt("numParticles", numParticles);
 	settings.restDensity.sync(*particleShader);
 
 	prefixSum->use();
@@ -113,28 +121,9 @@ void AppLayer::ApplyBufferSettings() {
 
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
-
-	/*
-	particleBuffer->bind();
-	particleBuffer->resize(settings.pThread);
-	particleBuffer->unbind();
-
-	particleCpyBuffer->bind();
-	particleCpyBuffer->resize(settings.pThread);
-	particleCpyBuffer->unbind();
-
-	sortedIndexBuffer->bind();
-	sortedIndexBuffer->resize(settings.pThread);
-	sortedIndexBuffer->unbind();
-
-	binBuffer->bind();
-	binBuffer->resize(settings.bThread);
-	binBuffer->unbind();
-	*/
-
 	particleSystem->setInstancesCount(settings.pThread);
 	binSystem->setInstancesCount(settings.bThread);
-	
+
 }
 
 void AppLayer::InitGraphics() {
@@ -158,10 +147,10 @@ void AppLayer::InitGraphics() {
 	//modelShader->noTexture();
 
 	particleShader->use();
-	particleShader->setInt("colorCycle", 0);
+	particleShader->setInt("colorCycle", 4);
 	binShader->use();
-	binShader->setInt("colorCycle", 0);
-	 
+	binShader->setInt("colorCycle", 4);
+
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
 	renderer.addShader(modelShader);
@@ -185,10 +174,10 @@ void AppLayer::InitGraphics() {
 	floorSurface->translate(glm::vec3(0.75, -0.25, 0));
 
 	Shared<Material> floorMat2 = createShared<Material>("floorMat2");
-	floorMat2->setAmbient(glm::vec3(0.015));
-	floorMat2->setDiffuse(glm::vec3(0.9));
-	floorMat2->setSpecular(glm::vec3(0.95));
-	floorMat2->setShininess(0.98);
+	floorMat2->setAmbient(glm::vec3(0.02));
+	floorMat2->setDiffuse(glm::vec3(0.95));
+	floorMat2->setSpecular(glm::vec3(0.99));
+	floorMat2->setShininess(0.99);
 	floorMat2->loadTexture("assets/textures/bed.png", TextureType::COLOR);
 
 
@@ -230,30 +219,57 @@ void AppLayer::InitPhysics() {
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
+	// reserve Buffer and double buffering
+	positionBuffer = SSBO<glm::vec4>::create("PositionBuffer", settings.pThread);
+	cpyPositionBuffer = SSBO<glm::vec4>::create("cpyPositionBuffer", settings.pThread);
+	predictedPositionBuffer = SSBO<glm::vec4>::create("PredictedPositionBuffer", settings.pThread);
+	cpyPredictedPositionBuffer = SSBO<glm::vec4>::create("cpyPredictedPositionBuffer", settings.pThread);
+	velocityBuffer = SSBO<glm::vec4>::create("VelocityBuffer", settings.pThread);
+	cpyVelocityBuffer = SSBO<glm::vec4>::create("cpyVelocityBuffer", settings.pThread);
+	densityBuffer = SSBO<float>::create("DensityBuffer", settings.pThread);
+	cpyDensityBuffer = SSBO<float>::create("cpyDensityBuffer", settings.pThread);
+	lambdaBuffer = SSBO<float>::create("LambdaBuffer", settings.pThread);
+	cpyLambdaBuffer = SSBO<float>::create("cpyLambdaBuffer", settings.pThread);
+	metaBuffer = SSBO<glm::uvec4>::create("MetaBuffer", settings.pThread);
+	cpymetaBuffer = SSBO<glm::uvec4>::create("cpyMetaBuffer", settings.pThread);
 
-	//reserve Buffers
-	Console::info() << "Particle struct size :" << sizeof(Particle) << Console::endl;
-	particleBuffer = SSBO<Particle>::create("ParticleBuffer",settings.pThread);
-	particleCpyBuffer = SSBO<Particle>::create("ParticleCpyBuffer",settings.pThread);
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
-	binBuffer = SSBO<Bin>::create("BinBuffer",settings.bThread);
-	sortedIndexBuffer = SSBO<GLuint>::create("SortedIndexBuffer",settings.pThread);
+	binBuffer = SSBO<Bin>::create("BinBuffer", settings.bThread);
 
-	particleBuffer->setBindingPoint(0);
-	particleCpyBuffer->setBindingPoint(1);
-	sortedIndexBuffer->setBindingPoint(2);
-	binBuffer->setBindingPoint(3);
+	// Set binding points for position and its copy
+	positionBuffer->setBindingPoint(0);
+	cpyPositionBuffer->setBindingPoint(1);
+	predictedPositionBuffer->setBindingPoint(2);
+	cpyPredictedPositionBuffer->setBindingPoint(3);
+	velocityBuffer->setBindingPoint(4);
+	cpyVelocityBuffer->setBindingPoint(5);
+	densityBuffer->setBindingPoint(6);
+	cpyDensityBuffer->setBindingPoint(7);
+	lambdaBuffer->setBindingPoint(8);
+	cpyLambdaBuffer->setBindingPoint(9);
+	metaBuffer->setBindingPoint(10);
+	cpymetaBuffer->setBindingPoint(11);
+	binBuffer->setBindingPoint(13);
 
 	//attach Buffers
 	particleSystem->addComputeShader(solver);
-	particleSystem->addStorageBuffer(particleBuffer);
-	particleSystem->addStorageBuffer(particleCpyBuffer);
-	particleSystem->addStorageBuffer(sortedIndexBuffer);
+	particleSystem->addStorageBuffer(positionBuffer);
+	particleSystem->addStorageBuffer(cpyPositionBuffer);
+	particleSystem->addStorageBuffer(predictedPositionBuffer);
+	particleSystem->addStorageBuffer(cpyPredictedPositionBuffer);
+	particleSystem->addStorageBuffer(velocityBuffer);
+	particleSystem->addStorageBuffer(cpyVelocityBuffer);
+	particleSystem->addStorageBuffer(densityBuffer);
+	particleSystem->addStorageBuffer(cpyDensityBuffer);
+	particleSystem->addStorageBuffer(lambdaBuffer);
+	particleSystem->addStorageBuffer(cpyLambdaBuffer);
+	particleSystem->addStorageBuffer(metaBuffer);
+	particleSystem->addStorageBuffer(cpymetaBuffer);
 	particleSystem->addStorageBuffer(binBuffer);
 
 	binSystem->addComputeShader(prefixSum);
 	binSystem->addStorageBuffer(binBuffer);
-	
+
 	scene.add(particleSystem);
 	scene.add(binSystem);
 	//scene.Add(constraintSystem);
@@ -262,82 +278,72 @@ void AppLayer::InitPhysics() {
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
-	particleBuffer->clear();
-	
 	Console::info() << "Generating particles..." << Console::endl;
 
 	float spacing = settings.particleRadius * 2.0;
-	auto cpu_particles = particleBuffer->getEmptyArray();
+	auto cpu_position = positionBuffer->getEmptyArray();
+	auto cpu_predictedPosition = predictedPositionBuffer->getEmptyArray();
+	auto cpu_velocity = velocityBuffer->getEmptyArray();
+	auto cpu_density = densityBuffer->getEmptyArray();
+	auto cpu_lambda = lambdaBuffer->getEmptyArray();
+	auto cpu_meta = metaBuffer->getEmptyArray();
 
-	Particle buf;
-	buf.velocity = glm::vec3(0);
-	
 
-	buf.phase = FLUID; // phase
-	glm::vec3 cubeSize = glm::vec3(80, 50, 30);
+	glm::vec3 cubeSize = glm::vec3(60, 195, 50);
 	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
 
+	numParticles = 0;
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
 			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
 				float x = ((xi + 1) * spacing) - (settings.bb.x / 2.0);
 				float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
 				float z = ((zi + 1) * spacing);
-				buf.id = cpu_particles.size();
-				buf.position.x = x;
-				buf.position.y = y;
-				buf.position.z = z;
-				buf.pposition = buf.position;
-				buf.binIndex = cpu_particles.size();
-				cpu_particles.push_back(buf);
+
+				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
+				cpu_velocity.push_back(glm::vec4(0));
+				cpu_density.push_back(0.0);
+				cpu_lambda.push_back(0.0);
+				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
+				numParticles++;
 			}
 		}
 	}
-	/*
-	buf.phase = BOUNDARY; // phase
-	for (int xi = 0; xi <= settings.bb.x / spacing; xi++) {
-		float x = (xi * spacing) - (settings.bb.x / 2.0);
-		buf.id = cpu_particles.size();
-		buf.position.x = x;
-		buf.position.y = -(settings.bb.y / 2.0);
-		buf.pposition = buf.position;
-		buf.binIndex = cpu_particles.size();
-		cpu_particles.push_back(buf);
 
-		buf.position.y = settings.bb.y/2.0;
-		buf.pposition = buf.position;
-		buf.binIndex = cpu_particles.size();
-		cpu_particles.push_back(buf);
+	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
+		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
+			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
+				float x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
+				float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
+				float z = ((zi + 1) * spacing);
+
+				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
+				cpu_velocity.push_back(glm::vec4(0));
+				cpu_density.push_back(0.0);
+				cpu_lambda.push_back(0.0);
+				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
+				numParticles++;
+			}
+		}
 	}
 
-	for (int yi = 0; yi <= settings.bb.y / spacing; yi++) {
-		float y = (yi * spacing) - (settings.bb.y / 2.0);
-		buf.id = cpu_particles.size();
-		buf.position.x = -(settings.bb.x / 2.0);
-		buf.position.y = y;
-		buf.pposition = buf.position;
-		buf.binIndex = cpu_particles.size();
-		cpu_particles.push_back(buf);
-
-		buf.position.x = settings.bb.x/2.0;
-		buf.pposition = buf.position;
-		buf.binIndex = cpu_particles.size();
-		cpu_particles.push_back(buf);
-	}*/
-	
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 
-	numParticles = cpu_particles.size();
 	settings.pThread = numParticles;
 	particleSystem->setInstancesCount(settings.pThread);
-	
+
 	ApplyBufferSettings();
 	SyncUniforms();
-	
-	particleBuffer->bind();
-	particleBuffer->write(cpu_particles);
-	particleBuffer->unbind();
-	
+
+	positionBuffer->write(cpu_position);
+	predictedPositionBuffer->write(cpu_predictedPosition);
+	velocityBuffer->write(cpu_velocity);
+	densityBuffer->write(cpu_density);
+	lambdaBuffer->write(cpu_lambda);
+	metaBuffer->write(cpu_meta);
+
 }
 
 
@@ -359,7 +365,7 @@ void AppLayer::NeigborSearch() {
 	GLuint steps = settings.blockSize;
 	UniformObject<GLuint> space("space");
 	space.value = 1;
-	
+
 	for (GLuint step = 0; step < steps; step++) {
 		// Calls the parallel operation
 
@@ -381,26 +387,26 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 
 	GPU_PROFILE(solver_substep_time,
-	for (int i = 0; i < settings.solver_substep; i++) {
-		solver->execute(2);
-		GPU_PROFILE(nns_time,
-			NeigborSearch();
-		)
-
-		if (integrate) {
-			GPU_PROFILE(jacobi_time,
-				for (int j = 0; j < settings.solver_iteration; j++) {
-					solver->execute(3);
-					solver->execute(4);
-				}
+		for (int i = 0; i < settings.solver_substep; i++) {
+			solver->execute(2);
+			GPU_PROFILE(nns_time,
+				NeigborSearch();
 			)
-			solver->execute(5);
 
+				if (integrate) {
+					GPU_PROFILE(jacobi_time,
+						for (int j = 0; j < settings.solver_iteration; j++) {
+							solver->execute(3);
+							solver->execute(4);
+						}
+					)
+						solver->execute(5);
+
+				}
 		}
-	}
 	)
-	elapsedTime += settings.timestep.value();
-	
+		elapsedTime += settings.timestep.value();
+
 }
 
 void AppLayer::updateFPS(Timestep ts) {
@@ -443,7 +449,7 @@ void AppLayer::onImGuiRender() {
 
 
 	static bool transparency = true;
-	if (ImGui::Checkbox("Particle transparency", &transparency)) {
+	if (ImGui::Checkbox("Particle shading", &transparency)) {
 		if (transparency) particleSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 		else particleSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
 	}
@@ -481,6 +487,12 @@ void AppLayer::onImGuiRender() {
 		particleShader->setInt("showBoundary", BBstate);
 	}
 
+	static bool Whirlpool = false;
+	if (ImGui::Checkbox("whirlpool", &Whirlpool)) {
+		solver->use();
+		solver->setInt("whirlpool", Whirlpool);
+	}
+
 	ImGui::DragInt("Solver substep", &settings.solver_substep, 1, 1, 200);
 	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 200);
 
@@ -495,26 +507,32 @@ void AppLayer::onImGuiRender() {
 
 
 
-	if(ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.1, 2.0)){
+	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.1, 2.0)) {
 		solver->use();
 		settings.particleMass.sync(*solver);
 	}
-	if (ImGui::SliderFloat("Rest density", &settings.restDensity.value(), 0.0, 2.0)){
+	if (ImGui::SliderFloat("Rest density", &settings.restDensity.value(), 0.0, 2.0)) {
 		solver->use();
 		settings.restDensity.sync(*solver);
 		particleShader->use();
 		settings.restDensity.sync(*particleShader);
 	}
-	if (ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier.value(), 0.0, 10.0)){
+	if (ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier.value(), 0.0, 10.0)) {
 		solver->use();
 		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
 	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 10.0)){
+	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 1000.0)) {
 		solver->use();
-		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.001);
+		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value()*0.001);
 	}
 
-	static int colorMode = 0;
+	static float whirlpool = 50;
+	if (ImGui::SliderFloat("Whirlpool", &whirlpool, 0.0, 1000.0)) {
+		solver->use();
+		solver->setFloat("whirlpoolIntensity", whirlpool);
+	}
+
+	static int colorMode = 4;
 	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Velocity", "Mass", "Neighbors" };
 	if (ImGui::ListBox("Colored field", &colorMode, options, 7)) {
 		particleShader->use();
@@ -588,6 +606,9 @@ void AppLayer::onImGuiRender() {
 	}
 
 	if (ImGui::Button("Debug")) {
+		auto buf = positionBuffer->read();
+		auto buf0 = metaBuffer->read();
+		auto buf1 = binBuffer->read();
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;
 	}

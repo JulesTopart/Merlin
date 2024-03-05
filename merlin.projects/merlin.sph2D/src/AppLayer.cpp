@@ -39,18 +39,16 @@ void AppLayer::onAttach(){
 
 	particleShader->use();
 	particleShader->attach(*positionBuffer);
-	particleShader->attach(*predictedPositionBuffer);
 	particleShader->attach(*velocityBuffer);
 	particleShader->attach(*densityBuffer);
-	particleShader->attach(*lambdaBuffer);
+	particleShader->attach(*pressureBuffer);
 	particleShader->attach(*metaBuffer);
 
 	binShader->use();
 	binShader->attach(*positionBuffer);
-	binShader->attach(*predictedPositionBuffer);
 	binShader->attach(*velocityBuffer);
 	binShader->attach(*densityBuffer);
-	binShader->attach(*lambdaBuffer);
+	binShader->attach(*pressureBuffer);
 	binShader->attach(*metaBuffer);
 	binShader->attach(*binBuffer);
 
@@ -100,9 +98,9 @@ void AppLayer::SyncUniforms() {
 	settings.particleMass.sync(*solver);
 	settings.restDensity.sync(*solver);
 	solver->setUInt("numParticles", numParticles);
-	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
-	solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.01);
-	solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.01);
+	solver->setFloat("dt", settings.timestep.value() * 1e-3);
+	solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value());
+	solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value());
 
 	particleShader->use();
 	particleShader->setUInt("numParticles",numParticles);
@@ -211,14 +209,12 @@ void AppLayer::InitPhysics() {
 	// reserve Buffer and double buffering
 	positionBuffer = SSBO<glm::vec2>::create("PositionBuffer", settings.pThread);
 	cpyPositionBuffer = SSBO<glm::vec2>::create("cpyPositionBuffer",settings.pThread);
-	predictedPositionBuffer = SSBO<glm::vec2>::create("PredictedPositionBuffer",settings.pThread);
-	cpyPredictedPositionBuffer = SSBO<glm::vec2>::create("cpyPredictedPositionBuffer",settings.pThread);
 	velocityBuffer = SSBO<glm::vec2>::create("VelocityBuffer",settings.pThread);
 	cpyVelocityBuffer = SSBO<glm::vec2>::create("cpyVelocityBuffer",settings.pThread);
 	densityBuffer = SSBO<float>::create("DensityBuffer", settings.pThread);
 	cpyDensityBuffer = SSBO<float>::create("cpyDensityBuffer",settings.pThread);
-	lambdaBuffer = SSBO<float>::create("LambdaBuffer",settings.pThread);
-	cpyLambdaBuffer = SSBO<float>::create("cpyLambdaBuffer",settings.pThread);
+	pressureBuffer = SSBO<float>::create("PressureBuffer",settings.pThread);
+	cpyPressureBuffer = SSBO<float>::create("cpyPressureBuffer",settings.pThread);
 	metaBuffer = SSBO<glm::uvec4>::create("MetaBuffer",settings.pThread);
 	cpymetaBuffer = SSBO<glm::uvec4>::create("cpyMetaBuffer",settings.pThread);
 
@@ -229,30 +225,26 @@ void AppLayer::InitPhysics() {
 	// Set binding points for position and its copy
 	positionBuffer->setBindingPoint(0);
 	cpyPositionBuffer->setBindingPoint(1);
-	predictedPositionBuffer->setBindingPoint(2);
-	cpyPredictedPositionBuffer->setBindingPoint(3);
-	velocityBuffer->setBindingPoint(4);
-	cpyVelocityBuffer->setBindingPoint(5);
-	densityBuffer->setBindingPoint(6);
-	cpyDensityBuffer->setBindingPoint(7);
-	lambdaBuffer->setBindingPoint(8);
-	cpyLambdaBuffer->setBindingPoint(9);
-	metaBuffer->setBindingPoint(10);
-	cpymetaBuffer->setBindingPoint(11);
-	binBuffer->setBindingPoint(13);
+	velocityBuffer->setBindingPoint(2);
+	cpyVelocityBuffer->setBindingPoint(3);
+	densityBuffer->setBindingPoint(4);
+	cpyDensityBuffer->setBindingPoint(5);
+	pressureBuffer->setBindingPoint(6);
+	cpyPressureBuffer->setBindingPoint(7);
+	metaBuffer->setBindingPoint(8);
+	cpymetaBuffer->setBindingPoint(9);
+	binBuffer->setBindingPoint(10);
 
 	//attach Buffers
 	particleSystem->addComputeShader(solver);
 	particleSystem->addStorageBuffer(positionBuffer);
 	particleSystem->addStorageBuffer(cpyPositionBuffer);
-	particleSystem->addStorageBuffer(predictedPositionBuffer);
-	particleSystem->addStorageBuffer(cpyPredictedPositionBuffer);
 	particleSystem->addStorageBuffer(velocityBuffer);
 	particleSystem->addStorageBuffer(cpyVelocityBuffer);
 	particleSystem->addStorageBuffer(densityBuffer);
 	particleSystem->addStorageBuffer(cpyDensityBuffer);
-	particleSystem->addStorageBuffer(lambdaBuffer);
-	particleSystem->addStorageBuffer(cpyLambdaBuffer);
+	particleSystem->addStorageBuffer(pressureBuffer);
+	particleSystem->addStorageBuffer(cpyPressureBuffer);
 	particleSystem->addStorageBuffer(metaBuffer);
 	particleSystem->addStorageBuffer(cpymetaBuffer);
 	particleSystem->addStorageBuffer(binBuffer);
@@ -268,23 +260,16 @@ void AppLayer::InitPhysics() {
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
-	positionBuffer->clear();
-	predictedPositionBuffer->clear();
-	velocityBuffer->clear();
-	densityBuffer->clear();
-	lambdaBuffer->clear();
-	metaBuffer->clear();
 	
 	Console::info() << "Generating particles..." << Console::endl;
 
 	float spacing = settings.particleRadius * 2.0;
 
-	auto cpu_position = positionBuffer->read();
-	auto cpu_predictedPosition = predictedPositionBuffer->read();
-	auto cpu_velocity = velocityBuffer->read();
-	auto cpu_density = densityBuffer->read();
-	auto cpu_lambda = lambdaBuffer->read();
-	auto cpu_meta = metaBuffer->read();
+	auto cpu_position = positionBuffer->getEmptyArray();
+	auto cpu_velocity = velocityBuffer->getEmptyArray();
+	auto cpu_density = densityBuffer->getEmptyArray();
+	auto cpu_pressure = pressureBuffer->getEmptyArray();
+	auto cpu_meta = metaBuffer->getEmptyArray();
 
 	glm::vec2 cubeSize = glm::vec2(100, 250);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
@@ -295,10 +280,9 @@ void AppLayer::ResetSimulation() {
 		float x = ((xi + 1) * spacing) - (settings.bb.x/2.0);
 		float y = ((yi + 1) * spacing) - (settings.bb.y/2.0);
 		cpu_position.push_back(glm::vec2(x, y));
-		cpu_predictedPosition.push_back(glm::vec2(x, y));
 		cpu_velocity.push_back(glm::vec2(0));
 		cpu_density.push_back(0.0);
-		cpu_lambda.push_back(0.0);
+		cpu_pressure.push_back(0.0);
 		cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
 		numParticles++;
 	}
@@ -312,10 +296,9 @@ void AppLayer::ResetSimulation() {
 	SyncUniforms();
 
 	positionBuffer->write(cpu_position);
-	predictedPositionBuffer->write(cpu_predictedPosition);
 	velocityBuffer->write(cpu_velocity);
 	densityBuffer->write(cpu_density);
-	lambdaBuffer->write(cpu_lambda);
+	pressureBuffer->write(cpu_pressure);
 	metaBuffer->write(cpu_meta);
 
 
@@ -357,27 +340,15 @@ void AppLayer::NeigborSearch() {
 void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->use();
-
 	GPU_PROFILE(solver_substep_time,
-	for (int i = 0; i < settings.solver_substep; i++) {
-		solver->execute(2);
 		GPU_PROFILE(nns_time,
 			NeigborSearch();
 		)
-
-		if (integrate) {
-			GPU_PROFILE(jacobi_time,
-				for (int j = 0; j < settings.solver_iteration; j++) {
-					solver->execute(3);
-					solver->execute(4);
-				}
-			)
-			solver->execute(5);
-
-		}
-	}
+		solver->execute(2);
+		if(integrate)solver->execute(3);
+		if(integrate)solver->execute(4);
 	)
-	elapsedTime += settings.timestep.value();
+	elapsedTime += settings.timestep.value()*1e-3;
 	
 }
 
@@ -459,14 +430,11 @@ void AppLayer::onImGuiRender() {
 		particleShader->setInt("showBoundary", BBstate);
 	}
 
-	ImGui::DragInt("Solver substep", &settings.solver_substep, 1, 1, 200);
-	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 200);
-
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->setPosition(model_matrix_translation);
 	}
 
-	if (ImGui::InputFloat("Time step", &settings.timestep.value(), 0.0, 0.02f)) {
+	if (ImGui::InputFloat("Time step (ms)", &settings.timestep.value(), 0.0, 10.0f)) {
 		solver->use();
 		solver->setFloat("dt", settings.timestep.value());
 	}
@@ -483,13 +451,13 @@ void AppLayer::onImGuiRender() {
 		particleShader->use();
 		settings.restDensity.sync(*particleShader);
 	}
-	if (ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier.value(), 0.0, 10.0)){
+	if (ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier.value(), 0.0, 500000.0)){
 		solver->use();
-		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
+		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value());
 	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 10.0)){
+	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 2.0)){
 		solver->use();
-		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.001);
+		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value());
 	}
 
 	static int colorMode = 0;
@@ -568,10 +536,8 @@ void AppLayer::onImGuiRender() {
 	if (ImGui::Button("Debug")) {
 
 		auto cpu_position = positionBuffer->read();
-		auto cpu_predictedPosition = predictedPositionBuffer->read();
 		auto cpu_velocity = velocityBuffer->read();
 		auto cpu_density = densityBuffer->read();
-		auto cpu_lambda = lambdaBuffer->read();
 		auto cpu_meta = metaBuffer->read();
 		auto cpu_bin = binBuffer->read();
 

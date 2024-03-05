@@ -19,7 +19,7 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 model;
 
-uniform int colorCycle = 0;
+uniform int colorCycle = 4;
 uniform uint particleTest = 50;
 uniform int showBoundary = 0;
 uniform vec2 WindowSize;
@@ -30,14 +30,14 @@ void main() {
 	vec3 offset = xi;
 	position = model * (vec4(_position + vec3(offset),1));
 
-	uint testsortedID = sortedIndices[particleTest];
+	uint testsortedID = B_SortedID(particleTest);
 	
 	bool binTest = true;
 	bool nnTest = false;
 	bool hTest = false;
-	uint binindex = particles[gl_InstanceID].binIndex;//getBinIndex(particles[sortedID].position);
+	uint binindex = B_BinIndex(gl_InstanceID);//getBinIndex(particles[sortedID].position);
 
-	bool test = particles[gl_InstanceID].phase == UNUSED || (particles[gl_InstanceID].phase == BOUNDARY && showBoundary == 0);
+	bool test = B_Phase(gl_InstanceID) == UNUSED || (B_Phase(gl_InstanceID) == BOUNDARY && showBoundary == 0);
 	color = vec4(1);
 	if(colorCycle == 0){ 
 		color = vec4(vec3(0.8), 1.0);
@@ -48,7 +48,7 @@ void main() {
 	}else if(colorCycle == 3){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 4){ 
-		color = colorMap(map(length(particles[gl_InstanceID].velocity.xyz),0,600.0), parula);
+		color = colorMap(map(length(B_V(gl_InstanceID)),0,1000.0), parula);
 	}else if(colorCycle == 5){ 
 		color = vec4(randomColor(binindex), 1);
 	}else{ //NNS Test
@@ -58,7 +58,7 @@ void main() {
 		}else{
 
 			binTest = false;
-			uvec3 binIndexVec3 = getBinCoord(particles[testsortedID].position.xyz);
+			uvec3 binIndexVec3 = getBinCoord(B_X(testsortedID));
 			for (int z = int(binIndexVec3.z) - 1; z <= int(binIndexVec3.z) + 1; z++) {
 				for (int y = int(binIndexVec3.y) - 1; y <= int(binIndexVec3.y) + 1; y++) {
 					for (int x = int(binIndexVec3.x) - 1; x <= int(binIndexVec3.x) + 1; x++) {
@@ -69,11 +69,11 @@ void main() {
 				}
 			}
 
-			vec3 position = particles[testsortedID].position.xyz;
+			vec3 position = B_X(testsortedID);
 			OVERNNS
 				if(gl_InstanceID == j){
 					nnTest = true;
-					if(length(particles[testsortedID].position - particles[j].position) <= smoothingRadius) hTest = true;
+					if(length(B_X(testsortedID) - B_X(j)) <= smoothingRadius) hTest = true;
 				}
 			OVERNNS_END
 
@@ -93,7 +93,7 @@ void main() {
 		mv = projection * view;
 		
 		gl_Position = screen_position;
-		gl_PointSize = 4.0*particleRadius*400.0/(gl_Position.w);
+		gl_PointSize = 3.0*particleRadius*400.0/(gl_Position.w);
 		if(colorCycle == 5 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = 400.0/(gl_Position.w);
 		
 	}

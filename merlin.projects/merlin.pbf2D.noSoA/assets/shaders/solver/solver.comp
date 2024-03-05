@@ -21,32 +21,20 @@ void main() {
 	uint i = gl_GlobalInvocationID.x;
 	if (i >= numParticles) return;
 	NNS(i, stage);
-	if(B_Phase(i) != BOUNDARY)	SolveFluid(i, stage);
+	if(particles[i].meta.x != BOUNDARY)	SolveFluid(i, stage);
 }
 
 void NNS(uint i, uint simStep){
 	if(simStep == 0){ //Bin sorting
-		uint bin = B_BinIndex(i) = getBinIndex(Xi);
-		atomicAdd(bins[bin].count, 1);
-		ssbo_cpy_position[i] = ssbo_position[i];
-		ssbo_cpy_pposition[i] = ssbo_pposition[i];
-		ssbo_cpy_velocity[i] = ssbo_velocity[i];
-		ssbo_cpy_density[i] = ssbo_density[i];
-		ssbo_cpy_lambda[i] = ssbo_lambda[i];
-		ssbo_cpy_meta[i] = ssbo_meta[i];
-
+		particles[i].meta.y = getBinIndex(Xi);
+		atomicAdd(bins[particles[i].meta.y].count, 1);
+		particles[i].meta.z = 0;
+		cpy_particles[i] = particles[i];
 		return;
 	}else if(simStep == 1){//Sort particle indices
-		uint newID = atomicAdd(bins[ssbo_cpy_meta[i].y].index, -1) -1;
-
-		ssbo_position[newID]  = ssbo_cpy_position[i];
-		ssbo_pposition[newID] = ssbo_cpy_pposition[i];
-		ssbo_velocity[newID]  = ssbo_cpy_velocity[i];
-		ssbo_density[newID]   = ssbo_cpy_density[i];
-		ssbo_lambda[newID]    = ssbo_cpy_lambda[i];
-		ssbo_meta[newID]      = ssbo_cpy_meta[i];
-
-		ssbo_meta[ssbo_meta[newID].z].z = newID;
+		uint newID = atomicAdd(bins[cpy_particles[i].meta.y].index, -1) -1;
+		particles[newID] = cpy_particles[i];
+		sortedIndices[particles[newID].meta.z] = newID;
 		return;
 	}
 }
@@ -59,7 +47,7 @@ void SolveFluid(uint i, uint simStep) {
 		Xi = xi + Vi * dt;
 		return;
 	}else if(simStep == 3){ //compute lagrange multiplier
-		B_Lambda(i) = computeLambda(i);
+		Lambi = computeLambda(i);
 		return;
 	}else if(simStep == 4){//correct density error and update position
 		Xi += computePositionDelta(i);
