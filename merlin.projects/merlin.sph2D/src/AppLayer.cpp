@@ -340,15 +340,17 @@ void AppLayer::NeigborSearch() {
 void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->use();
-	GPU_PROFILE(solver_substep_time,
-		GPU_PROFILE(nns_time,
-			NeigborSearch();
+	for (int i = 0; i < 50; i++) {
+		GPU_PROFILE(solver_substep_time,
+			GPU_PROFILE(nns_time,
+				NeigborSearch();
 		)
-		solver->execute(2);
-		if(integrate)solver->execute(3);
-		if(integrate)solver->execute(4);
-	)
-	elapsedTime += settings.timestep.value()*1e-3;
+			solver->execute(2);
+		if (integrate)solver->execute(3);
+		if (integrate)solver->execute(4);
+		)
+		elapsedTime += settings.timestep.value() * 1e-3;
+	}
 	
 }
 

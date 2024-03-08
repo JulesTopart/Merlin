@@ -22,8 +22,7 @@ namespace Merlin {
 
 	class ParticleSystem : public RenderableObject {
 	public:
-		ParticleSystem(std::string name) : RenderableObject(name) {
-
+		ParticleSystem(std::string name, GLsizeiptr count) : RenderableObject(name), m_instancesCount(count){
 		}
 
 		template<typename T>
@@ -34,12 +33,17 @@ namespace Merlin {
 
 		template<typename T>
 		SSBO_Ptr<T> getField(std::string name) {
-
+			if (hasField(name)) return dynamic_cast<SSBO_Ptr<T>>(m_fields.at(name).get());
+			else return nullptr;
+		}
+		
+		bool hasField(std::string name) {
+			return m_fields.find(name) != m_fields.end();
 		}
 
 		template<typename T>
 		void setField(std::string name, SSBO_Ptr<T> field) {
-
+			if (hasField(name)) Console::warn("ParticleSystem") << "Field " << name << "already exist and has been overwritten" << Console::endl;
 		}
 
 
@@ -50,7 +54,7 @@ namespace Merlin {
 		ParticleSystemDisplayMode m_displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
 
 		//Simulation
-		std::vector<ComputeShader_Ptr> m_shaders; //Shader to compute the particle position
+		std::vector<Shared<ShaderBase>> m_shaders; //Shader to compute the particle position
 		std::map<std::string, GenericBufferObject_Ptr> m_fields; //Buffer to store particles fields
 
 	};

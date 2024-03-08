@@ -42,7 +42,7 @@ void computeDensityPressure(uint i) {
     vec2 position = Xi;
     OVERNNS
 		vec2 dist = Rij;
-		if(length(dist) >= H) continue;
+		if(length(dist) >= H || length(dist) <= 1e-6) continue;
 		if(i != j){
 			rhoi += Mj * poly6(dist);
 		}
