@@ -46,6 +46,14 @@ namespace Merlin {
 			if (hasField(name)) Console::warn("ParticleSystem") << "Field " << name << "already exist and has been overwritten" << Console::endl;
 		}
 
+		void setShader(std::string name, Shader shader) {
+			if (hasField(name)) Console::warn("ParticleSystem") << "Field " << name << "already exist and has been overwritten" << Console::endl;
+		}
+
+		bool hasShader(std::string name) {
+			return m_fields.find(name) != m_fields.end();
+		}
+
 
 	protected:
 		//Rendering
@@ -54,7 +62,7 @@ namespace Merlin {
 		ParticleSystemDisplayMode m_displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
 
 		//Simulation
-		std::vector<Shared<ShaderBase>> m_shaders; //Shader to compute the particle position
+		std::map<std::string, Shared<ShaderBase>> m_shaders; //Shader to compute the particle position
 		std::map<std::string, GenericBufferObject_Ptr> m_fields; //Buffer to store particles fields
 
 	};
