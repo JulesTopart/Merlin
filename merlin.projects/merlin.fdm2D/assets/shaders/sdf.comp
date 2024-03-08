@@ -1,0 +1,56 @@
+#version 430
+
+#pragma once
+
+layout(local_size_x = 8, local_size_y = 8) in; // Defines the work group size
+
+// The SSBO for contour points
+struct ContourPoint {
+    vec2 position;
+    // Add other properties if needed
+};
+layout(std430, binding = 0) buffer Contour {
+    ContourPoint points[];
+} contour;
+
+// The output texture
+layout(rgba32f, binding = 1) uniform image2D destTex;
+uniform uint numPoints = 0;
+
+// Utility function to calculate distance from a point to a segment
+float pointToSegmentDistance(vec2 point, vec2 a, vec2 b) {
+    vec2 ab = b - a;
+    vec2 ap = point - a;
+    float magnitudeAB = dot(ab, ab); // Length squared of segment
+    float ab_ap_product = dot(ap, ab);
+    float distance = ab_ap_product / magnitudeAB;
+    if (distance < 0.0)
+        return length(ap);
+    else if (distance > 1.0)
+        return length(point - b);
+    vec2 nearest = a + ab * distance;
+    return length(point - nearest);
+}
+
+void main() {
+    ivec2 texSize = imageSize(destTex);
+    vec2 invTexSize = 1.0 / vec2(texSize);
+    ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+
+    // Normalize pixel coordinates to [0, 1] range
+    vec2 normCoords = (vec2(pixelCoords) + 0.5) * invTexSize;
+
+    // Calculate the distance to the nearest contour edge
+    float minDistance = 1e30; // Start with a very large distance
+    for (int i = 0; i < numPoints - 1; ++i) {
+        float dist = pointToSegmentDistance(normCoords, contour.points[i].position, contour.points[i + 1].position);
+        if (dist < minDistance) {
+            minDistance = dist;
+        }
+    }
+
+    // Optionally, adjust minDistance to represent signed distance
+
+    // Write the distance to the texture
+    imageStore(destTex, pixelCoords, vec4(minDistance));
+}

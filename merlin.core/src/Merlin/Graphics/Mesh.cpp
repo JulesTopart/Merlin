@@ -5,7 +5,13 @@
 namespace Merlin {
 	Mesh::Mesh(std::string name) : RenderableObject(name) {
 		m_drawMode = GL_POINTS;
-		//create VAO, VBO 
+
+		m_vertices.push_back({glm::vec3(0,0,0)});
+
+		m_vao.bind();
+		VBO vbo(m_vertices);
+		m_vao.addBuffer(vbo, Vertex::getLayout());
+		m_vao.unbind();
 		Console::trace("Mesh") << "Loaded " << m_vertices.size() << " vertices." << Console::endl;
 	}
 

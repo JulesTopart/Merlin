@@ -1,0 +1,46 @@
+//? #version 430
+#ifndef INCLUDE_CONSTANTS_GLSL
+#define INCLUDE_CONSTANTS_GLSL
+
+#define BTHREAD 128
+#define PTHREAD 1024
+
+#define UNUSED 0
+#define SOLID 1
+#define FLUID 2
+#define GAS 3
+#define GRANULAR 4
+#define BOUNDARY 5
+
+#define MAXNN 32
+#define EPSILON 1e-6
+#define MAX_DELTA_PI 0.1
+
+
+// --- Domain ---
+const vec2 domain = vec2(400, 400);
+const vec2 halfdomain = domain/2.0;
+const vec2 boundaryMin = vec2(-domain.x / 2.0, -domain.y / 2.0);
+const vec2 boundaryMax = vec2( domain.x / 2.0,  domain.y / 2.0);
+
+
+const float particleRadius = 0.25;//mm
+const float smoothingRadius = 5.0 * particleRadius; //mm
+const float binSize = smoothingRadius;
+const uvec2 binMax = uvec2(domain / binSize);
+const uint binCount = binMax.x * binMax.y;
+
+// --- Heat Transfer ---
+const float ambientTemperature = 298.15;
+const float floorTemperature = 333.15;
+const float nozzleTemperature = 488.15;
+
+const float kPLA = 1.83e-4;// W / mm.K
+const float CpPLA = 4.0; // J / g.K
+
+const float kAmbient = 1.0e-4;
+const float kPlateau = 3.0e-4;
+
+const float kWater = 6.06e-4; // W / mm.K
+const float CpWater = 4.18; // J /g.K
+#endif

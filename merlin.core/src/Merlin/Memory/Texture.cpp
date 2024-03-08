@@ -92,18 +92,35 @@ namespace Merlin {
 	}
 
 
-	Texture::Texture() : TextureBase(GL_TEXTURE_2D, TextureType::COLOR) {
-		//Set the target based on the number of samples
+	Texture::Texture() : TextureBase(GL_TEXTURE_2D, TextureType::COLOR) {}
+	Texture::Texture(TextureType t) : TextureBase(GL_TEXTURE_2D, t) {}
+	Texture::Texture(GLenum target, TextureType t) : TextureBase(target, t) {}
+
+	Shared<Texture> Texture::create() {
+		return createShared<Texture>();
 	}
 
-
-	Texture::Texture(TextureType t) : TextureBase(GL_TEXTURE_2D, t) {
-		//Set the target based on the number of samples
+	Shared<Texture> Texture::create(TextureType t) {
+		return createShared<Texture>(t);
 	}
 
-	Texture::~Texture() {}
+	Shared<Texture> Texture::create(GLenum target, TextureType t) {
+		return createShared<Texture>(target, t);
+	}
 
-	void Texture::generateMipMap() {
+	Shared<Texture> Texture::create(const std::string img_file_path, TextureType type) {
+		Texture_Ptr result = createShared<Texture>(type);
+		result->loadFromFile(img_file_path);
+		return result;
+	}
+
+	Shared<Texture> Texture::create(GLuint width, GLuint height, GLenum format, GLenum internalformat, TextureType type) {
+		Texture_Ptr result = createShared<Texture>(type);
+		result->reserve(width, height, format, internalformat);
+		return result;
+	}
+
+	void Texture::generateMipMap() const{
 		glGenerateMipmap(getTarget());
 	}
 
@@ -198,7 +215,7 @@ namespace Merlin {
 		_width = width;
 		_height = height;
 		_format = format;
-		_internalFormat = _format == GL_RGBA ? GL_RGBA32F : format;
+		if(_internalFormat == GL_RGBA) _internalFormat = GL_RGBA32F;
 
 		glTexImage2D(getTarget(), 0, _internalFormat, _width, _height, 0, _format, GL_UNSIGNED_BYTE, data);
 	}

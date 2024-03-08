@@ -1,0 +1,78 @@
+#version 430
+
+#pragma once
+#include "../common/uniforms.comp"
+#include "../common/constants.comp"
+#include "../common/buffers.comp"
+#include "../common/colors.comp"
+#include "../common/nns.comp"
+#include "sph.kernels.comp" 
+#include "constraint.comp" 
+
+
+layout (local_size_x = PTHREAD) in;
+void SolveDEM(uint i, uint simStep);
+void NNS(uint i, uint simStep);
+
+uniform uint stage;
+uniform vec4 sourcePos;
+// XPBD_Main
+void main() {
+	uint i = gl_GlobalInvocationID.x;
+	if (i >= numParticles) return;
+	NNS(i, stage);
+	if(B_Phase(i) != BOUNDARY)	SolveDEM(i, stage);
+}
+
+void NNS(uint i, uint simStep){
+	if(simStep == 0){ //Bin sorting
+		uint bin = B_BinIndex(i) = getBinIndex(Xi);
+		atomicAdd(bins[bin].count, 1);
+		ssbo_cpy_position[i] = ssbo_position[i];
+		ssbo_cpy_pposition[i] = ssbo_pposition[i];
+		ssbo_cpy_velocity[i] = ssbo_velocity[i];
+		ssbo_cpy_temperature[i] = ssbo_temperature[i];
+		ssbo_cpy_meta[i] = ssbo_meta[i];
+
+		return;
+	}else if(simStep == 1){//Sort particle indices
+		uint newID = atomicAdd(bins[ssbo_cpy_meta[i].y].index, -1) -1;
+
+		ssbo_position[newID]  = ssbo_cpy_position[i];
+		ssbo_pposition[newID] = ssbo_cpy_pposition[i];
+		ssbo_velocity[newID]  = ssbo_cpy_velocity[i];
+		ssbo_temperature[newID]   = ssbo_cpy_temperature[i];
+		ssbo_meta[newID]      = ssbo_cpy_meta[i];
+
+		ssbo_meta[ssbo_meta[newID].z].z = newID;
+		return;
+	}
+}
+
+
+void SolveDEM(uint i, uint simStep) {
+	
+	if(simStep == 2){
+		vec2 acceleration = vec2(0,-g);
+		Xi = xi + Vi * dt;
+		if(length(Xi - xi) < 0.0001) Xi = xi; //particle sleeping
+		Xi += acceleration * dt * dt;
+		return;
+	}else if(simStep == 3){
+		Xi += solveParticleCollision(i);
+		
+		return;
+	}else if(simStep == 4){
+		Xi += solveFloorCollision(i);
+		Ti += computeTemperatureDelta(i)*dt;
+		return;
+	}else if(simStep == 5){
+		Vi = 0.998*(Xi - xi)/dt;
+		xi = Xi;
+		return;
+	}
+
+}
+
+
+

@@ -5,7 +5,7 @@
 namespace Merlin {
 
 	enum class TextureType {
-		COLOR, NORMAL, ROUGHNESS, AMBIENT_OCCLUSION, EMISSION, DEPTH, HEIGHT, SHADOW
+		COLOR, NORMAL, ROUGHNESS, AMBIENT_OCCLUSION, EMISSION, DEPTH, HEIGHT, SHADOW, DATA
 	};
 
 	class TextureBase {
@@ -54,7 +54,7 @@ namespace Merlin {
 
 		Texture();
 		Texture(TextureType t);
-		~Texture();
+		Texture(GLenum target, TextureType t);
 
 		void setInterpolationMode(GLuint minFilter = GL_LINEAR, GLuint magFilter = GL_LINEAR);
 		void setRepeatMode(GLuint _wrapS = GL_CLAMP_TO_BORDER, GLuint _wrapT = GL_CLAMP_TO_BORDER);
@@ -62,12 +62,18 @@ namespace Merlin {
 		void setBorderColor4f(float colors[4]);
 		void setBorderColor4f(float R, float G, float B, float A);
 
-		void generateMipMap();
+		void generateMipMap() const;
 
 		void reserve(int width, int height, GLenum format = GL_RGBA, GLenum internalformat = GL_INVALID_ENUM) override;
 		void resize(GLsizei width, GLsizei height) override;
 		void loadFromFile(const std::string img_file_path);
 		void loadFromData(unsigned char* data, int width, int height, GLenum format = GL_RGBA);
+
+		static Shared<Texture> create();
+		static Shared<Texture> create(TextureType t);
+		static Shared<Texture> create(GLenum target, TextureType t);
+		static Shared<Texture> create(const std::string img_file_path, TextureType type = TextureType::COLOR);
+		static Shared<Texture> create(GLuint width, GLuint height, GLenum format = GL_RGBA, GLenum internalformat = GL_RGBA32F, TextureType type = TextureType::COLOR);
 
 	private:
 
