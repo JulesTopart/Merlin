@@ -1,3 +1,5 @@
+//This file was automatically generated 
+//DO NOT CHANGE !
 #version 420 core
 
 in vec3 position;

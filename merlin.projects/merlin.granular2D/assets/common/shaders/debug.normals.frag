@@ -1,3 +1,5 @@
+//This file was automatically generated 
+//DO NOT CHANGE !
 #version 330 core
 out vec4 FragColor;
 

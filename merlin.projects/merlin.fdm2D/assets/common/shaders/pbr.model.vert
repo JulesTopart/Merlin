@@ -1,3 +1,5 @@
+//This file was automatically generated 
+//DO NOT CHANGE !
 #version 450 core
 
 layout(location=0) in vec3 position;

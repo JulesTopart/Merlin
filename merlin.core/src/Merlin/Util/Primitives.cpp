@@ -4,6 +4,51 @@
 
 namespace Merlin {
 
+	Shared<Mesh> Primitives::createCircle(float r, int res) {
+		std::vector<Vertex> vertices;
+		std::vector<unsigned int> indices;
+
+		// Center vertex
+		vertices.push_back(Vertex(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.5f, 0.5f)));
+
+		for (int i = 0; i < res; ++i) {
+			float angle = 2.0f * glm::pi<float>() * i / res;
+			float x = r * cos(angle);
+			float y = r * sin(angle);
+
+			vertices.push_back(Vertex(glm::vec3(x, y, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2((cos(angle) + 1.0f) * 0.5f, (sin(angle) + 1.0f) * 0.5f)));
+
+			// Connect vertices to form triangles
+			if (i > 0) {
+				indices.push_back(0); // Center
+				indices.push_back(i);
+				indices.push_back(i + 1);
+			}
+		}
+
+		// Close the circle
+		indices.push_back(0); // Center
+		indices.push_back(res);
+		indices.push_back(1);
+
+		return Mesh::create("Circle", vertices, indices, GL_TRIANGLES);
+	}
+
+	Shared<Mesh> Primitives::createOutlinedCircle(float r, int res) {
+		std::vector<Vertex> vertices;
+
+		for (int i = 0; i < res; ++i) {
+			float angle = 2.0f * glm::pi<float>() * i / res;
+			float x = r * cos(angle);
+			float y = r * sin(angle);
+
+			vertices.push_back(Vertex(glm::vec3(x, y, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2((cos(angle) + 1.0f) * 0.5f, (sin(angle) + 1.0f) * 0.5f)));
+		}
+		vertices.push_back(Vertex(glm::vec3(r, 0, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2((2.0f) * 0.5f, (1.0f) * 0.5f)));
+
+		return Mesh::create("Circle", vertices, GL_LINE_STRIP);
+	}
+
 	Shared<Mesh> Primitives::createRectangle(float x, float y) {
 		Vertices v = {
 			Vertex{glm::vec3(-x / 2.0f,-y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},

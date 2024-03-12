@@ -1,0 +1,31 @@
+//? #version 430
+#ifndef INCLUDE_CONSTANTS_GLSL
+#define INCLUDE_CONSTANTS_GLSL
+
+#define BTHREAD 128
+#define PTHREAD 1024
+
+#define UNUSED 0
+#define SOLID 1
+#define FLUID 2
+#define GAS 3
+#define GRANULAR 4
+#define BOUNDARY 5
+
+#define MAXNN 32
+#define EPSILON 1e-6
+#define MAX_DELTA_PI 0.1
+
+
+// --- Domain ---
+const vec2 domain = vec2(300, 50);
+const vec2 halfdomain = domain/2.0;
+const vec2 boundaryMin = vec2(-domain.x / 2.0, -domain.y / 2.0);
+const vec2 boundaryMax = vec2( domain.x / 2.0,  domain.y / 2.0);
+
+const float particleRadius = 0.15;//mm
+const float smoothingRadius = 4.4 * particleRadius; //mm
+const float binSize = smoothingRadius;
+const uvec2 binMax = uvec2(domain / binSize);
+const uint binCount = binMax.x * binMax.y;
+#endif

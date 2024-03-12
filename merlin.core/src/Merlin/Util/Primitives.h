@@ -5,6 +5,8 @@ namespace Merlin {
 	class Primitives {
 	public:
 		// Load a model from the specified file and return a pointer to a new Mesh object
+		static Shared<Mesh> createCircle(float r, int res = 20);
+		static Shared<Mesh> createOutlinedCircle(float r, int res = 20);
 		static Shared<Mesh> createRectangle(float x, float y);
 		static Shared<Mesh> createQuadRectangle(float x, float y, bool centered = true);
 		static Shared<Mesh> createFloor(const int groundNumTiles, const float groundTileSize);

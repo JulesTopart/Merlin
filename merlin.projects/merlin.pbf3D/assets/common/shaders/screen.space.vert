@@ -1,3 +1,5 @@
+//This file was automatically generated 
+//DO NOT CHANGE !
 #version 440 core
 
 const vec4 data[6] = vec4[]
