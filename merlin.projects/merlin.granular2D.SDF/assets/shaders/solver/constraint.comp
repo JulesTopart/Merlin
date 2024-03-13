@@ -1,0 +1,118 @@
+//? #version 430
+#ifndef INCLUDE_CONSTRAINTS_GLSL
+#define INCLUDE_CONSTRAINTS_GLSL
+
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+
+float computeTemperatureDelta(uint i) {
+
+	float temperatureDelta = 0.0;
+	vec2 position = Xi;
+	OVERNNS
+		if(j == i) continue;
+		float rhoj = Mj / (3.1415926*(4/3)*pow(particleRadius,3));
+		float lambda = (2.0*kWater / (CpWater * rhoj));
+		temperatureDelta += lambda*(Tj-Ti)/(Dij*1e-3);
+	OVERNNS_END
+	//temperatureDelta /= float(n);
+	
+	if(Xi.y < (boundaryMin.y/1.01)){
+		temperatureDelta += 0.4 * (275 + 60 - Ti);
+	}
+	if(Xi.y < (boundaryMin.y/1.5))temperatureDelta += 0.2 * (296 - Ti);
+	return temperatureDelta;
+}
+
+vec2 solveParticleCollision(uint i){
+	int n = 0;
+	vec2 deltaPosition = vec2(0);
+	vec2 position = Xi;
+	vec2 pi = position;
+	OVERNNS
+		if(i == j) continue;
+		vec2 pj = Xj;
+		if(pi == pj) pj = pj + 1e-4;
+		vec2 diff = pi - pj;
+		float dist = length(diff);
+		if(dist >= 2.5*particleRadius) continue; //Ignore particle that are too far
+		float l0 = 2.05*particleRadius;
+		float l = dist; // Calculate the current length
+		// Calculate the constraint violation
+		float C = l - l0;
+
+		if( C >= 0) continue;
+		// Calculate the gradient of the constraint function
+		vec2 gradC = normalize(diff);
+		 
+		// Calculate the effective mass matrix
+		float inverseMass = (1.0/Mi) + (1.0/Mj);
+		float compliance = 0.0000001; // Compliance of the constraints
+		float deltaLambda = -C / ( inverseMass + (compliance/ (dt * dt)));
+
+
+		// Calculate and apply the position corrections
+		deltaPosition += gradC * deltaLambda * Mi;
+		n++;
+
+	OVERNNS_END
+
+	if(n > 1) return deltaPosition/float(n);
+	else return deltaPosition;
+}
+
+
+
+vec2 solveFloorCollision(uint i){
+	vec2 correctedPosition = Xi;
+	for (int i = 0; i < 2; i++){
+		if (correctedPosition[i] - particleRadius <= boundaryMin[i] ){
+			correctedPosition[i] = (boundaryMin[i]) + particleRadius;
+		}
+		else if (correctedPosition[i] + particleRadius >= boundaryMax[i])
+		{
+			correctedPosition[i] =  boundaryMax[i] - particleRadius;
+		}
+	}
+
+	return (correctedPosition - Xi)/6;
+}
+
+
+vec2 clampToDomain(vec2 position){
+
+	position.x = max(position.x, boundaryMin.x + particleRadius);
+	position.x = min(position.x, boundaryMax.x - particleRadius);
+	position.y = max(position.y, boundaryMin.y + particleRadius);
+	position.y = min(position.y, boundaryMax.y - particleRadius);
+
+	return position;
+}
+
+
+/*
+
+vec4 solveFriction(uint i){
+	int n = 0;
+	vec4 deltaPosition = vec4(0);
+	OVERNNS
+		if(particles[j].phase != GRANULAR) continue; //Ignore particle that are too far
+		float l0 = 2.0*particleRadius;
+		float l = distance(particles[i].new_position, particles[j].new_position); // Calculate the current length
+		// Calculate the constraint violation
+		float C = l - l0;
+
+		if( C >= 0 || abs(C) < 1e-06) continue;
+		float inverseMass = (1.0/particles[i].mass) + (1.0/particles[j].mass);
+		deltaPosition += (particles[i].mass/inverseMass) * ((particles[i].new_position - particles[i].position) - (particles[j].new_position - particles[j].position));
+		n++;
+	OVERNNS_END
+	if(n > 1) return deltaPosition/float(n);
+	else return deltaPosition;
+}
+
+*/
+#endif
