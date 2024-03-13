@@ -51,6 +51,7 @@ void NNS(uint i, uint simStep){
 }
 
 
+
 void SolveDEM(uint i, uint simStep) {
 	
 	if(simStep == 2){
@@ -71,23 +72,33 @@ void SolveDEM(uint i, uint simStep) {
 
 		float dist = nozzleSDF(Xi) ;
 		if(dist <= -particleRadius){
-			Xi += normalize(Xi) * min(((dist-particleRadius)), 0.0);
+		    const float eps = 0.0001; // or some other value
+			const vec2 h = vec2(eps,0);
+			vec2 p = Xi;
+			vec2 normal = normalize( vec2(nozzleSDF(Xi+h.xy) - nozzleSDF(Xi-h.xy), nozzleSDF(Xi+h.yx) - nozzleSDF(Xi-h.yx) ) );
+			Xi -= normal * min(((dist-particleRadius)), 0.0)/50;
 			Ti += 0.04*(500 - Ti)*dt;
 		}
+
+		vec2 position = Xi;
+		vec2 xT = vec2(0);
+		OVERNNS
+			if(length(Rji) < 1e-6 || length(Rji) > particleRadius*1.1 || i == j) continue;
+			vec2 tang = normalize(Xj - Xi);
+			vec2 norm = cross(vec3(tang, 0.0), vec3(0,0,1)).xy;
+			xT += 1.0 * norm * dot((Xi - xi) - (Xj - xj), norm);
+		OVERNNS_END
+		Xi -= xT;
+		
+		if(Xi.y < boundaryMin.y + particleRadius*1.2){
+			Xi.x -= (Xi.x - xi.x)*0.8;
+		}
+
 
 		return;
 	}else if(simStep == 5){
 		Vi = 0.998*(Xi - xi)/dt;
 		xi = Xi;
-		return;
-	}else if(simStep == 6){
-		vec2 position = Xi;
-		vec2 coVel = vec2(0);
-		OVERNNS
-			if(length(Rji) < 1e-6 || length(Rji) > particleRadius*1.05 || i == j) continue;
-			coVel += Vij;
-		OVERNNS_END
-		Vi += 30.0*coVel;
 		return;
 	}
 

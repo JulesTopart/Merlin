@@ -194,25 +194,25 @@ void AppLayer::InitGraphics() {
 	scene.add(floor);
 
 	std::vector<glm::vec2> geomr = {
-		glm::vec2(5,0),
-		glm::vec2(5,10),
+		glm::vec2(2.5,0),
+		glm::vec2(2.5,10),
 		glm::vec2(50,50),
 		glm::vec2(50,120),
 		glm::vec2(75,120),
 		glm::vec2(75,30),
 		glm::vec2(50.0, 0),
-		glm::vec2(5.0, 0),
+		glm::vec2(2.5, 0),
 	};
 
 	std::vector<glm::vec2> geoml = {
-		glm::vec2(-5,0),
-		glm::vec2(-5,10),
+		glm::vec2(-2.5,0),
+		glm::vec2(-2.5,10),
 		glm::vec2(-50,50),
 		glm::vec2(-50,120),
 		glm::vec2(-75,120),
 		glm::vec2(-75,30),
 		glm::vec2(-50.0, 0),
-		glm::vec2(-5.0, 0),
+		glm::vec2(-2.5, 0),
 	};
 
 
@@ -316,11 +316,11 @@ void AppLayer::ResetSimulation() {
 	auto cpu_temperature = temperatureBuffer->getEmptyArray();
 	auto cpu_meta = metaBuffer->getEmptyArray();
 
-	glm::vec2 cubeSize = glm::vec2(50, 125);
+	glm::vec2 cubeSize = glm::vec2(90, 125);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
 
 	numParticles = 0;
-	for (int yi = -(cubeSize.y / 2.0) / spacing; yi <= (cubeSize.y / 2.0) / spacing; yi++)
+	for (int yi = -90; yi <= (cubeSize.y / 2.0) / spacing; yi++)
 	for (int xi = -(cubeSize.x / 2.0) / spacing; xi <= (cubeSize.x / 2.0) / spacing; xi++){
 		float x = ((xi + 1) * spacing);
 		float y = ((yi + 1) * spacing);
@@ -399,8 +399,6 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 				}
 			)
 			solver->execute(5);
-			solver->execute(6);
-
 		}
 	}
 	)
