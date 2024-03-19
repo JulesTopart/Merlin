@@ -15,7 +15,7 @@ void SolveDEM(uint i, uint simStep);
 void NNS(uint i, uint simStep);
 
 uniform uint stage;
-uniform float drumSpeed = 10;
+uniform float drumSpeed = 3;
 // XPBD_Main
 void main() {
 	uint i = gl_GlobalInvocationID.x;
@@ -67,29 +67,30 @@ void SolveDEM(uint i, uint simStep) {
 			vec3 pos = normalize(vec3(Xi.xy,0));
 			float wi = drumSpeed;
 			vec3 Vdir = normalize(cross(pos, vec3(0,0,1)));
-			vec2 nV =  wi * polarR  * Vdir.xy;
-			Xi += 10.0*(nV -Vi) * dt * dt;
+			//vec2 nV =  wi * polarR  * Vdir.xy;
+			//Xi += 10.0*(nV -Vi) * dt * dt;
 			Ti += 0.5 * (450 - Ti)*dt;
+
+			Xi -= 0.1*((Xi - xi) - (Vdir.xy * wi * 150)*dt);
 		}
+
+		vec2 position = Xi;
+		vec2 xT = vec2(0);
+		OVERNNS
+			if(length(Rji) < 1e-6 || length(Rji) > particleRadius*1.1 || i == j) continue;
+			xT += 10 * ((Xi - xi) - (Xj - xj));
+		OVERNNS_END
+		Xi -= xT;
+
 		return;
 	}else if(simStep == 4){
 		
 		Ti += computeTemperatureDelta(i)*dt;
 		Xi += solveFloorCollision(i);
 
-
 		return;
 	}else if(simStep == 5){
 		Vi = 0.998*(Xi - xi)/dt;
-
-		vec2 position = Xi;
-		vec2 coVel = vec2(0);
-		OVERNNS
-			if(length(Rji) < 1e-6 || length(Rji) > particleRadius*1.05 || i == j) continue;
-			coVel += Vij;
-		OVERNNS_END
-		Vi += coVel;
-
 		xi = Xi;
 		return;
 	}
