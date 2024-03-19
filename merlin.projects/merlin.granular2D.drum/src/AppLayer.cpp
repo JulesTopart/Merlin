@@ -349,9 +349,10 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 				for (int j = 0; j < settings.solver_iteration; j++) {
 					solver->execute(3);
 					solver->execute(4);
+					solver->execute(5);
 				}
 			)
-			solver->execute(5);
+			solver->execute(6);
 
 		}
 	}

@@ -1,6 +1,5 @@
 #pragma once
 #include "settings.h"
-#include "PhysicsObject2D.h"
 
 using namespace Merlin;
 
@@ -48,9 +47,6 @@ private:
 	deprecated_ParticleSystem_Ptr particleSystem;
 	deprecated_ParticleSystem_Ptr binSystem;
 
-	Shared<PhysicsObject2D> nozzleLeftBody;
-	Shared<PhysicsObject2D> nozzleRightBody;
-
 	//--- Solver and sort programs ---
 	StagedComputeShader_Ptr solver;
 	StagedComputeShader_Ptr prefixSum;
@@ -63,6 +59,10 @@ private:
 	SSBO_Ptr<glm::vec2> cpyPredictedPositionBuffer; // Copy of the predicted position buffer
 	SSBO_Ptr<glm::vec2> velocityBuffer; // Velocity buffer
 	SSBO_Ptr<glm::vec2> cpyVelocityBuffer; // Copy of the velocity buffer
+	SSBO_Ptr<float> densityBuffer; // Density buffer
+	SSBO_Ptr<float> cpyDensityBuffer; // Copy of the density buffer
+	SSBO_Ptr<float> pressureBuffer; // Lambda buffer
+	SSBO_Ptr<float> cpyPressureBuffer; // Copy of the lambda buffer
 	SSBO_Ptr<float> temperatureBuffer; // Density buffer
 	SSBO_Ptr<float> cpyTemperatureBuffer; // Copy of the density buffer
 	SSBO_Ptr<glm::uvec4> metaBuffer; // Meta buffer containing phase, bin index, id, sortedID

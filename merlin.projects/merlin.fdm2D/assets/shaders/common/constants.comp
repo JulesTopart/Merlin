@@ -18,7 +18,7 @@
 
 
 // --- Domain ---
-const vec2 domain = vec2(400, 400);
+const vec2 domain = vec2(300, 300);
 const vec2 halfdomain = domain/2.0;
 const vec2 boundaryMin = vec2(-domain.x / 2.0, -domain.y / 2.0);
 const vec2 boundaryMax = vec2( domain.x / 2.0,  domain.y / 2.0);

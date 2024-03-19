@@ -73,6 +73,9 @@ vec2 viscosityGradientKernel(vec2 r){
 	return Wvisc_grad(r);
 }
 
+vec2 viscosityLaplacianKernel(vec2 r){
+	return Wvisc_grad(r);
+}
 
 
 

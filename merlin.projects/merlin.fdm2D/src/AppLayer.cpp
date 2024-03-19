@@ -1,11 +1,9 @@
 #include "AppLayer.h"
-#include "nozzle.h"
 
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-
 
 using namespace Merlin;
 
@@ -14,6 +12,22 @@ using namespace Merlin;
 
 #define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
+
+Mesh_Ptr generateMesh(std::vector<glm::vec2> m_surface) {
+	Mesh_Ptr m;
+	Vertices vertices;
+	Indices indices;
+
+	for (glm::vec2& v : m_surface) {
+		indices.push_back(vertices.size());
+		vertices.push_back({ glm::vec3(v.x, v.y, 0), glm::vec3(0), glm::vec3(0.75164, 0.60648, 0.22648) });
+	}
+	indices.push_back(0);
+
+	m = Mesh::create("nozzle", vertices, indices);
+	m->setDrawMode(GL_LINE_STRIP);
+	return m;
+}
 
 AppLayer::AppLayer(){
 	Window* w = &Application::get().getWindow();
@@ -43,6 +57,8 @@ void AppLayer::onAttach(){
 	particleShader->attach(*positionBuffer);
 	particleShader->attach(*predictedPositionBuffer);
 	particleShader->attach(*velocityBuffer);
+	particleShader->attach(*densityBuffer);
+	particleShader->attach(*pressureBuffer);
 	particleShader->attach(*temperatureBuffer);
 	particleShader->attach(*metaBuffer);
 
@@ -50,6 +66,8 @@ void AppLayer::onAttach(){
 	binShader->attach(*positionBuffer);
 	binShader->attach(*predictedPositionBuffer);
 	binShader->attach(*velocityBuffer);
+	binShader->attach(*densityBuffer);
+	binShader->attach(*pressureBuffer);
 	binShader->attach(*temperatureBuffer);
 	binShader->attach(*metaBuffer);
 	binShader->attach(*binBuffer);
@@ -80,9 +98,6 @@ void AppLayer::onUpdate(Timestep ts){
 
 	GPU_PROFILE(render_time,
 		renderer.clear();
-		
-		//nozzleRightBody->drawSDF();
-
 		renderer.renderScene(scene, *camera);
 	)
 
@@ -177,33 +192,41 @@ void AppLayer::InitGraphics() {
 
 	//qrenderer.setShader(Shader("screen", "assets/shaders/screen.space.vert", "assets/shaders/screen.space.frag"));
 
-	Model_Ptr mdl = Model::create("bbox", Primitives::createQuadRectangle(settings.bb.x, settings.bb.y, true));
-	mdl->enableWireFrameMode();
-	scene.add(mdl);
+	Model_Ptr floor = Model::create("floor", Primitives::createLine(1000));
+	floor->enableWireFrameMode();
+	floor->translate(glm::vec3(-1000 /2.0, -settings.bb.y / 2.0, 0.0));
+	scene.add(floor);
+
+	std::vector<glm::vec2> geomr = {
+		glm::vec2(2.5,0),
+		glm::vec2(2.5,10),
+		glm::vec2(50,50),
+		glm::vec2(50,120),
+		glm::vec2(75,120),
+		glm::vec2(75,30),
+		glm::vec2(50.0, 0),
+		glm::vec2(2.5, 0),
+	};
+
+	std::vector<glm::vec2> geoml = {
+		glm::vec2(-2.5,0),
+		glm::vec2(-2.5,10),
+		glm::vec2(-50,50),
+		glm::vec2(-50,120),
+		glm::vec2(-75,120),
+		glm::vec2(-75,30),
+		glm::vec2(-50.0, 0),
+		glm::vec2(-2.5, 0),
+	};
 
 
-	/*
-	Model_Ptr nozzle = Model::create("nozzle", createNozzleMeshChamber(100,100,4));
-	nozzle->enableWireFrameMode();
-	scene.add(nozzle);
-
-	nozzle = Model::create("nozzle", createNozzleMeshLeft(100, 100, 4));
-	nozzle->enableWireFrameMode();
-	scene.add(nozzle);
-
-	nozzle = Model::create("nozzle", createNozzleMeshRight(100, 100, 4));
-	nozzle->enableWireFrameMode();
-	scene.add(nozzle);*/
-
-
-	nozzleRightBody = createShared<PhysicsObject2D>("nozzleRightBody", createRightNozzleGeom(10, 10, 0.4));
-	nozzleLeftBody = createShared<PhysicsObject2D>("nozzleLeftBody", createLeftNozzleGeom(10, 10, 0.4));
-
-	Model_Ptr temp = Model::create("nozzle", nozzleRightBody->m_mesh);
+	Model_Ptr temp = Model::create("nozzle", generateMesh(geomr));
+	temp->translate(glm::vec3(0, -100,0));
 	scene.add(temp);
-	temp = Model::create("nozzle", nozzleLeftBody->m_mesh);
+	temp = Model::create("nozzle", generateMesh(geoml));
+	temp->translate(glm::vec3(0, -100, 0));
 	scene.add(temp);
-	//scene.Add(TransformObject::create("origin"));
+	scene.add(TransformObject::create("origin"));
 
 }
 
@@ -238,6 +261,10 @@ void AppLayer::InitPhysics() {
 	cpyPredictedPositionBuffer = SSBO<glm::vec2>::create("cpyPredictedPositionBuffer",settings.pThread);
 	velocityBuffer = SSBO<glm::vec2>::create("VelocityBuffer",settings.pThread);
 	cpyVelocityBuffer = SSBO<glm::vec2>::create("cpyVelocityBuffer",settings.pThread);
+	densityBuffer = SSBO<float>::create("DensityBuffer", settings.pThread);
+	cpyDensityBuffer = SSBO<float>::create("cpyDensityBuffer", settings.pThread);
+	pressureBuffer = SSBO<float>::create("PressureBuffer", settings.pThread);
+	cpyPressureBuffer = SSBO<float>::create("cpyPressureBuffer", settings.pThread);
 	temperatureBuffer = SSBO<float>::create("TemperatureBuffer", settings.pThread);
 	cpyTemperatureBuffer = SSBO<float>::create("cpyTemperatureBuffer",settings.pThread);
 	metaBuffer = SSBO<glm::uvec4>::create("MetaBuffer",settings.pThread);
@@ -255,11 +282,15 @@ void AppLayer::InitPhysics() {
 	cpyPredictedPositionBuffer->setBindingPoint(3);
 	velocityBuffer->setBindingPoint(4);
 	cpyVelocityBuffer->setBindingPoint(5);
-	temperatureBuffer->setBindingPoint(6);
-	cpyTemperatureBuffer->setBindingPoint(7);
-	metaBuffer->setBindingPoint(9);
-	cpymetaBuffer->setBindingPoint(10);
-	binBuffer->setBindingPoint(11);
+	densityBuffer->setBindingPoint(6);
+	cpyDensityBuffer->setBindingPoint(7);
+	pressureBuffer->setBindingPoint(8);
+	cpyPressureBuffer->setBindingPoint(9);
+	temperatureBuffer->setBindingPoint(10);
+	cpyTemperatureBuffer->setBindingPoint(11);
+	metaBuffer->setBindingPoint(12);
+	cpymetaBuffer->setBindingPoint(13);
+	binBuffer->setBindingPoint(14);
 
 	//attach Buffers
 	particleSystem->addComputeShader(solver);
@@ -269,6 +300,10 @@ void AppLayer::InitPhysics() {
 	particleSystem->addStorageBuffer(cpyPredictedPositionBuffer);
 	particleSystem->addStorageBuffer(velocityBuffer);
 	particleSystem->addStorageBuffer(cpyVelocityBuffer);
+	particleSystem->addStorageBuffer(densityBuffer);
+	particleSystem->addStorageBuffer(cpyDensityBuffer);
+	particleSystem->addStorageBuffer(pressureBuffer);
+	particleSystem->addStorageBuffer(cpyPressureBuffer);
 	particleSystem->addStorageBuffer(temperatureBuffer);
 	particleSystem->addStorageBuffer(cpyTemperatureBuffer);
 	particleSystem->addStorageBuffer(metaBuffer);
@@ -294,21 +329,25 @@ void AppLayer::ResetSimulation() {
 	auto cpu_position = positionBuffer->getEmptyArray();
 	auto cpu_predictedPosition = predictedPositionBuffer->getEmptyArray();
 	auto cpu_velocity = velocityBuffer->getEmptyArray();
+	auto cpu_density = densityBuffer->getEmptyArray();
+	auto cpu_pressure = pressureBuffer->getEmptyArray();
 	auto cpu_temperature = temperatureBuffer->getEmptyArray();
 	auto cpu_meta = metaBuffer->getEmptyArray();
 
-	glm::vec2 cubeSize = glm::vec2(100, 250);
+	glm::vec2 cubeSize = glm::vec2(90, 125);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
 
 	numParticles = 0;
-	for (int yi = 0; yi <= cubeSize.y / spacing; yi++)
-	for (int xi = 0; xi <= cubeSize.x / spacing; xi++){
-		float x = ((xi + 1) * spacing) - (settings.bb.x/2.0);
-		float y = ((yi + 1) * spacing) - (settings.bb.y/2.0);
+	for (int yi = -90; yi <= (cubeSize.y / 2.0) / spacing; yi++)
+	for (int xi = -(cubeSize.x / 2.0) / spacing; xi <= (cubeSize.x / 2.0) / spacing; xi++){
+		float x = ((xi + 1) * spacing);
+		float y = ((yi + 1) * spacing);
 		cpu_position.push_back(glm::vec2(x, y));
 		cpu_predictedPosition.push_back(glm::vec2(x, y));
 		cpu_velocity.push_back(glm::vec2(0));
-		cpu_temperature.push_back(0.3*yi + 298.15);
+		cpu_temperature.push_back(215 + 298.15);
+		cpu_density.push_back(0.0);
+		cpu_pressure.push_back(0.0);
 		cpu_meta.push_back(glm::uvec4(GRANULAR, numParticles, numParticles, 0.0));
 		numParticles++;
 	}
@@ -324,6 +363,8 @@ void AppLayer::ResetSimulation() {
 	positionBuffer->write(cpu_position);
 	predictedPositionBuffer->write(cpu_predictedPosition);
 	velocityBuffer->write(cpu_velocity);
+	densityBuffer->write(cpu_density);
+	pressureBuffer->write(cpu_pressure);
 	temperatureBuffer->write(cpu_temperature);
 	metaBuffer->write(cpu_meta);
 
@@ -366,24 +407,14 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 
 	GPU_PROFILE(solver_substep_time,
-	for (int i = 0; i < settings.solver_substep; i++) {
-		solver->execute(2);
 		GPU_PROFILE(nns_time,
 			NeigborSearch();
-		)
-
-		if (integrate) {
-			GPU_PROFILE(jacobi_time,
-				for (int j = 0; j < settings.solver_iteration; j++) {
-					solver->execute(3);
-					solver->execute(4);
-				}
-			)
-			solver->execute(5);
-
-		}
-	}
 	)
+		solver->execute(2);
+	if (integrate)solver->execute(3);
+	if (integrate)solver->execute(4);
+	)
+		elapsedTime += settings.timestep.value() * 1e-3;
 	elapsedTime += settings.timestep.value();
 	
 }
@@ -479,25 +510,29 @@ void AppLayer::onImGuiRender() {
 	}
 
 
-
-	if(ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.1, 2.0)){
+	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.1, 2.0)) {
 		solver->use();
 		settings.particleMass.sync(*solver);
 	}
-	if (ImGui::SliderFloat("Rest density", &settings.restDensity.value(), 0.0, 2.0)){
+	if (ImGui::SliderFloat("Rest density", &settings.restDensity.value(), 0.0, 2.0)) {
 		solver->use();
 		settings.restDensity.sync(*solver);
 		particleShader->use();
 		settings.restDensity.sync(*particleShader);
 	}
-	if (ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier.value(), 0.0, 10.0)){
+	if (ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier.value(), 0.0, 5000000.0)) {
 		solver->use();
-		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
+		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value());
 	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 10.0)){
+	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 2.0)) {
 		solver->use();
-		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.001);
+		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value());
 	}
+	if (ImGui::SliderFloat("XSPH", &settings.XSPH.value(), 0.0, 1.0)) {
+		solver->use();
+		solver->setFloat("XSPH", settings.XSPH.value() * 0.01);
+	}
+
 
 	static int colorMode = 3;
 	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Velocity", "Mass", "Neighbors" };

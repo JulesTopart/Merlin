@@ -45,7 +45,7 @@ void main() {
 		color = vec4(randomColor(binindex), 1);
 		//color = vec4(randomColor(particles[gl_InstanceID].meta.z), 1);
 	}else if(colorCycle == 2){ 
-		color = vec4(randomColor(binindex), 1);
+		color = colorMap(map(B_Rho(i),0.9 * restDensity, 1.1 * restDensity), warmcool);
 	}else if(colorCycle == 3){ 
 		color = colorMap(map(Ti,ambientTemperature, nozzleTemperature), inferno);
 	}else if(colorCycle == 4){ 

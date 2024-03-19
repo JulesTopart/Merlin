@@ -7,6 +7,7 @@
 #include "../common/colors.comp"
 #include "../common/nns.comp"
 #include "sph.kernels.comp" 
+#include "nozzleSDF.comp" 
 #include "constraint.comp" 
 
 
@@ -15,7 +16,7 @@ void SolveDEM(uint i, uint simStep);
 void NNS(uint i, uint simStep);
 
 uniform uint stage;
-uniform vec4 sourcePos;
+uniform float drumSpeed = 10;
 // XPBD_Main
 void main() {
 	uint i = gl_GlobalInvocationID.x;
@@ -31,6 +32,8 @@ void NNS(uint i, uint simStep){
 		ssbo_cpy_position[i] = ssbo_position[i];
 		ssbo_cpy_pposition[i] = ssbo_pposition[i];
 		ssbo_cpy_velocity[i] = ssbo_velocity[i];
+		ssbo_cpy_density[i] = ssbo_density[i];
+		ssbo_cpy_pressure[i] = ssbo_pressure[i];
 		ssbo_cpy_temperature[i] = ssbo_temperature[i];
 		ssbo_cpy_meta[i] = ssbo_meta[i];
 
@@ -41,33 +44,72 @@ void NNS(uint i, uint simStep){
 		ssbo_position[newID]  = ssbo_cpy_position[i];
 		ssbo_pposition[newID] = ssbo_cpy_pposition[i];
 		ssbo_velocity[newID]  = ssbo_cpy_velocity[i];
-		ssbo_temperature[newID]   = ssbo_cpy_temperature[i];
+		ssbo_density[newID]   = ssbo_cpy_density[i];
+		ssbo_pressure[newID]    = ssbo_cpy_pressure[i];
+		ssbo_temperature[newID]  = ssbo_cpy_temperature[i];
 		ssbo_meta[newID]      = ssbo_cpy_meta[i];
-
 		ssbo_meta[ssbo_meta[newID].z].z = newID;
 		return;
 	}
 }
 
 
+
 void SolveDEM(uint i, uint simStep) {
 	
 	if(simStep == 2){
-		vec2 acceleration = vec2(0,-g);
-		Xi = xi + Vi * dt;
-		if(length(Xi - xi) < 0.0001) Xi = xi; //particle sleeping
-		Xi += acceleration * dt * dt;
+		computeDensityPressure(i);
 		return;
 	}else if(simStep == 3){
-		Xi += solveParticleCollision(i);
+		float rhoi = Rhoi;
+		vec2 fpress = vec2(0);
+		vec2 fvisc = vec2(0);
+		vec2 fgrav = vec2(0,-g) * particleMass / rhoi;
+		vec2 position = Xi;
+
+		OVERNNS
+			vec2 rij = Rij;
+			if(length(rij) >= H || length(rij) <= 1e-6) continue;
+			if(i != j){
+				fpress += -normalize(rij) * particleMass * (Pi + Pj) / (2.0f * Rhoj) * spiky(rij);
+				fvisc -= 1.0 * artificialViscosityMultiplier * particleMass * Vij / Rhoj * viscosityLaplacianKernel(rij);
+			}
+		OVERNNS_END
+
+		Vi += dt * (fpress + fgrav + fvisc)/rhoi;
+		Xi += dt * Vi;
 		
-		return;
-	}else if(simStep == 4){
+		Vi += solveFloorCollision(i)/dt;
 		Xi += solveFloorCollision(i);
+
+		float dist = nozzleSDF(Xi) ;
+		if(dist <= -particleRadius){
+		    const float eps = 0.0001; // or some other value
+			const vec2 h = vec2(eps,0);
+			vec2 p = Xi;
+			vec2 normal = normalize( vec2(nozzleSDF(Xi+h.xy) - nozzleSDF(Xi-h.xy), nozzleSDF(Xi+h.yx) - nozzleSDF(Xi-h.yx) ) );
+			Xi -= 0.8 * (Xi - xi); //friction
+			Xi -= normal * min(((dist-particleRadius)), 0.0)/50;
+			Ti += 0.04*(500 - Ti)*dt;
+		}
+
+		if(Xi.y < boundaryMin.y + particleRadius*1.2){
+			Xi.x -= (Xi.x - xi.x)*0.8;
+		}
+
 		Ti += computeTemperatureDelta(i)*dt;
 		return;
-	}else if(simStep == 5){
-		Vi = 0.998*(Xi - xi)/dt;
+
+	}else if(simStep == 4){
+		vec2 xsphSum = vec2(0);
+
+		vec2 position = Xi;
+		OVERNNS
+			if(length(Rji) < 1e-6 || i == j) continue;
+			float Wij = poly6(Rji);
+			xsphSum -= XSPH * Vij * Wij * Rhoj;
+		OVERNNS_END
+		Vi -= xsphSum;
 		xi = Xi;
 		return;
 	}

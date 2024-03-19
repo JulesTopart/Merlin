@@ -1,0 +1,68 @@
+//? #version 430
+#ifndef INCLUDE_SDF_NOZZLE_GLSL
+#define INCLUDE_SDF_NOZZLE_GLSL
+
+float dot2( in vec2 v ) { return dot(v,v); }
+float cross2d( in vec2 v0, in vec2 v1) { return v0.x*v1.y - v0.y*v1.x; }
+
+const int N = 8;
+
+float sdPolygon( in vec2 p, in vec2[N] v )
+{
+    const int num = v.length();
+    float d = dot(p-v[0],p-v[0]);
+    float s = 1.0;
+    for( int i=0, j=num-1; i<num; j=i, i++ )
+    {
+        // distance
+        vec2 e = v[j] - v[i];
+        vec2 w =    p - v[i];
+        vec2 b = w - e*clamp( dot(w,e)/dot(e,e), 0.0, 1.0 );
+        d = min( d, dot(b,b) );
+
+        // winding number from http://geomalgorithms.com/a03-_inclusion.html
+        bvec3 cond = bvec3( p.y>=v[i].y, 
+                            p.y <v[j].y, 
+                            e.x*w.y>e.y*w.x );
+        if( all(cond) || all(not(cond)) ) s=-s;  
+    }
+    
+    return s*sqrt(d);
+}
+
+float smin( float a, float b, float k )
+{
+    k *= 1.0/(1.0-sqrt(0.5));
+    float h = max( k-abs(a-b), 0.0 )/k;
+    return min(a,b) - k*0.5*(1.0+h-sqrt(1.0-h*(h-2.0)));
+}
+
+float nozzleSDF(vec2 p){
+    p+=vec2(0,100);
+
+    vec2 v0 = vec2(2.5,0);
+	vec2 v1 = vec2(2.5,10);
+	vec2 v2 = vec2(50,50);
+	vec2 v3 = vec2(50,120);
+    vec2 v4 = vec2(75,120);
+    vec2 v5 = vec2(75,10);
+    vec2 v6 = vec2(50.0,0);
+    vec2 v7 = vec2(2.5,0);
+    
+    // add more points
+    vec2[] polygon = vec2[](v0,v1,v2,v3,v4,v5,v6, v7);
+    
+    v0 = vec2(-2.5,0);
+	v1 = vec2(-2.5,10);
+	v2 = vec2(-50,50);
+	v3 = vec2(-50,120);
+    v4 = vec2(-75,120);
+    v5 = vec2(-75,10);
+    v6 = vec2(-50,0);
+    v7 = vec2(-2.5,0);
+    
+    vec2[] ipolygon = vec2[](v0,v1,v2,v3,v4,v5,v6, v7);
+    return smin(sdPolygon(p, polygon), sdPolygon(p, ipolygon), 0.01);
+}
+
+#endif

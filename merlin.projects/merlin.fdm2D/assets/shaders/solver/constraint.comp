@@ -15,16 +15,31 @@ float computeTemperatureDelta(uint i) {
 	OVERNNS
 		if(j == i) continue;
 		float rhoj = Mj / (3.1415926*(4/3)*pow(particleRadius,3));
-		float lambda = (kWater / (CpWater * rhoj));
+		float lambda = (2.0*kWater / (CpWater * rhoj));
 		temperatureDelta += lambda*(Tj-Ti)/(Dij*1e-3);
 	OVERNNS_END
 	//temperatureDelta /= float(n);
-	/*
-	if(particles[i].position.z < H/2.0){
-		temperatureDelta += kPlateau * (floorTemperature - Ti);
-	}*/
-	//temperatureDelta += kAmbient * (ambientTemperature - Ti);
+	
+	if(Xi.y < (boundaryMin.y/1.01)){
+		temperatureDelta += 0.4 * (275 + 60 - Ti);
+	}
+	if(Xi.y < (boundaryMin.y/1.5))temperatureDelta += 0.2 * (296 - Ti);
 	return temperatureDelta;
+}
+
+void computeDensityPressure(uint i) {
+    float rho0 = restDensity;
+    float rhoi = 0.0;
+    vec2 position = Xi;
+    OVERNNS
+		vec2 dist = Rij;
+		if(length(dist) >= H || length(dist) <= 1e-6) continue;
+		if(i != j){
+			rhoi += Mj * poly6(dist);
+		}
+	OVERNNS_END
+	Rhoi = max(rhoi, rho0);
+	Pi = max(artificialPressureMultiplier * (rhoi - rho0),0.0);
 }
 
 vec2 solveParticleCollision(uint i){
@@ -63,7 +78,6 @@ vec2 solveParticleCollision(uint i){
 	if(n > 1) return deltaPosition/float(n);
 	else return deltaPosition;
 }
-
 
 
 
