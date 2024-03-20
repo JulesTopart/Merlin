@@ -118,9 +118,10 @@ void AppLayer::SyncUniforms() {
 	settings.particleMass.sync(*solver);
 	settings.restDensity.sync(*solver);
 	solver->setUInt("numParticles", numParticles);
-	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
-	solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.01);
-	solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.01);
+	solver->setFloat("dt", settings.timestep.value()*1e-3); //Spawn particle after prediction
+	solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value());
+	solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value());
+	solver->setFloat("XPSH", settings.XSPH.value());
 
 	particleShader->use();
 	particleShader->setUInt("numParticles",numParticles);
@@ -198,33 +199,33 @@ void AppLayer::InitGraphics() {
 	scene.add(floor);
 
 	std::vector<glm::vec2> geomr = {
-		glm::vec2(2.5,0),
-		glm::vec2(2.5,10),
+		glm::vec2(5,0),
+		glm::vec2(5,10),
 		glm::vec2(50,50),
 		glm::vec2(50,120),
 		glm::vec2(75,120),
 		glm::vec2(75,30),
 		glm::vec2(50.0, 0),
-		glm::vec2(2.5, 0),
+		glm::vec2(5, 0),
 	};
 
 	std::vector<glm::vec2> geoml = {
-		glm::vec2(-2.5,0),
-		glm::vec2(-2.5,10),
+		glm::vec2(-5,0),
+		glm::vec2(-5,10),
 		glm::vec2(-50,50),
 		glm::vec2(-50,120),
 		glm::vec2(-75,120),
 		glm::vec2(-75,30),
 		glm::vec2(-50.0, 0),
-		glm::vec2(-2.5, 0),
+		glm::vec2(-5, 0),
 	};
 
 
 	Model_Ptr temp = Model::create("nozzle", generateMesh(geomr));
-	temp->translate(glm::vec3(0, -100,0));
+	temp->translate(glm::vec3(0, -140,0));
 	scene.add(temp);
 	temp = Model::create("nozzle", generateMesh(geoml));
-	temp->translate(glm::vec3(0, -100, 0));
+	temp->translate(glm::vec3(0, -140, 0));
 	scene.add(temp);
 	scene.add(TransformObject::create("origin"));
 
@@ -345,7 +346,7 @@ void AppLayer::ResetSimulation() {
 		cpu_position.push_back(glm::vec2(x, y));
 		cpu_predictedPosition.push_back(glm::vec2(x, y));
 		cpu_velocity.push_back(glm::vec2(0));
-		cpu_temperature.push_back(215 + 298.15);
+		cpu_temperature.push_back(200 + 298.15);
 		cpu_density.push_back(0.0);
 		cpu_pressure.push_back(0.0);
 		cpu_meta.push_back(glm::uvec4(GRANULAR, numParticles, numParticles, 0.0));
@@ -506,7 +507,7 @@ void AppLayer::onImGuiRender() {
 
 	if (ImGui::InputFloat("Time step", &settings.timestep.value(), 0.0, 0.02f)) {
 		solver->use();
-		solver->setFloat("dt", settings.timestep.value());
+		solver->setFloat("dt", settings.timestep.value()*1e-3);
 	}
 
 
@@ -524,13 +525,13 @@ void AppLayer::onImGuiRender() {
 		solver->use();
 		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value());
 	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 2.0)) {
+	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 20.0)) {
 		solver->use();
 		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value());
 	}
 	if (ImGui::SliderFloat("XSPH", &settings.XSPH.value(), 0.0, 1.0)) {
 		solver->use();
-		solver->setFloat("XSPH", settings.XSPH.value() * 0.01);
+		solver->setFloat("XSPH", settings.XSPH.value());
 	}
 
 

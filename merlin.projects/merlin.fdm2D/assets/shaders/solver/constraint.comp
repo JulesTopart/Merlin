@@ -13,17 +13,14 @@ float computeTemperatureDelta(uint i) {
 	float temperatureDelta = 0.0;
 	vec2 position = Xi;
 	OVERNNS
-		if(j == i) continue;
+		if(j == i || Dij < 1e-3 || Dij > 2* particleRadius) continue;
 		float rhoj = Mj / (3.1415926*(4/3)*pow(particleRadius,3));
-		float lambda = (2.0*kWater / (CpWater * rhoj));
+		float lambda = (5.0*kWater / (CpWater * min(rhoj,0.1)));
 		temperatureDelta += lambda*(Tj-Ti)/(Dij*1e-3);
 	OVERNNS_END
 	//temperatureDelta /= float(n);
-	
-	if(Xi.y < (boundaryMin.y/1.01)){
-		temperatureDelta += 0.4 * (275 + 60 - Ti);
-	}
-	if(Xi.y < (boundaryMin.y/1.5))temperatureDelta += 0.2 * (296 - Ti);
+
+	temperatureDelta += 0.2 * (275 - Ti);//ambient
 	return temperatureDelta;
 }
 
@@ -92,7 +89,7 @@ vec2 solveFloorCollision(uint i){
 			correctedPosition[i] =  boundaryMax[i] - particleRadius;
 		}
 	}
-
+	if(Xi.x + particleRadius > boundaryMax.x) correctedPosition.x = 100000;
 	return (correctedPosition - Xi)/6;
 }
 

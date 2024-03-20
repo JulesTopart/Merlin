@@ -72,32 +72,39 @@ void SolveDEM(uint i, uint simStep) {
 			if(length(rij) >= H || length(rij) <= 1e-6) continue;
 			if(i != j){
 				fpress += -normalize(rij) * particleMass * (Pi + Pj) / (2.0f * Rhoj) * spiky(rij);
-				fvisc -= 1.0 * artificialViscosityMultiplier * particleMass * Vij / Rhoj * viscosityLaplacianKernel(rij);
+				fvisc -= 3*artificialViscosityMultiplier * particleMass * Vij / Rhoj * viscosityLaplacianKernel(rij);
 			}
 		OVERNNS_END
 
-		Vi += dt * (fpress + fgrav + fvisc)/rhoi;
-		Xi += dt * Vi;
-		
-		Vi += solveFloorCollision(i)/dt;
-		Xi += solveFloorCollision(i);
 
+		
+
+		vec2 fnozzle = vec2(0);
 		float dist = nozzleSDF(Xi) ;
 		if(dist <= -particleRadius){
 		    const float eps = 0.0001; // or some other value
-			const vec2 h = vec2(eps,0);
+			const vec2 h = vec2(eps, 0);
 			vec2 p = Xi;
 			vec2 normal = normalize( vec2(nozzleSDF(Xi+h.xy) - nozzleSDF(Xi-h.xy), nozzleSDF(Xi+h.yx) - nozzleSDF(Xi-h.yx) ) );
-			Xi -= 0.8 * (Xi - xi); //friction
-			Xi -= normal * min(((dist-particleRadius)), 0.0)/50;
-			Ti += 0.04*(500 - Ti)*dt;
+			fnozzle -= 200000.0*normal * min(((dist-particleRadius)), 0.0);
+			//Ti += 0.04*(500 - Ti)*dt;
 		}
 
-		if(Xi.y < boundaryMin.y + particleRadius*1.2){
-			Xi.x -= (Xi.x - xi.x)*0.8;
+
+		if(dist < particleRadius*1.5)Ti += dt*1.5 * (275 + 215 - Ti);
+		if(length(Xi) > 150) Ti += dt*1.5 * max(Xi.y - boundaryMin.y,0) * (275 + 25 - Ti);//fan
+
+		Ti += min(computeTemperatureDelta(i)*dt, 1.0);
+		Vi += dt * (fpress + fgrav + fvisc + fnozzle)/rhoi;
+
+		Xi += dt * Vi;
+
+		//Vi += solveFloorCollision(i)/dt;
+		Xi += solveFloorCollision(i);
+		if(Xi.y < boundaryMin.y + 1.5*particleRadius){
+			Vi.x += (1200-Vi.x);
 		}
 
-		Ti += computeTemperatureDelta(i)*dt;
 		return;
 
 	}else if(simStep == 4){
@@ -110,6 +117,7 @@ void SolveDEM(uint i, uint simStep) {
 			xsphSum -= XSPH * Vij * Wij * Rhoj;
 		OVERNNS_END
 		Vi -= xsphSum;
+		Vi = normalize(Vi) * min(length(Vi), 200000*dt);
 		xi = Xi;
 		return;
 	}

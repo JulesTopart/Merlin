@@ -33,7 +33,7 @@ struct Settings {
 
 	// Physics Parameters
 	// Physics Parameters
-	Uniform<float> timestep = Uniform<float>("dt", 0.08);//ms
+	Uniform<float> timestep = Uniform<float>("dt", 0.16);//ms
 	Uniform<float> restDensity = Uniform<float>("restDensity", 1.0);
 	Uniform<float> particleMass = Uniform<float>("particleMass", smoothingRadius * 0.28);
 	Uniform<float> artificialViscosityMultiplier = Uniform<float>("artificialViscosityMultiplier", 0.1);

@@ -38,28 +38,28 @@ float smin( float a, float b, float k )
 }
 
 float nozzleSDF(vec2 p){
-    p+=vec2(0,100);
+    p+=vec2(0,140);
 
-    vec2 v0 = vec2(2.5,0);
-	vec2 v1 = vec2(2.5,10);
+    vec2 v0 = vec2(5,0);
+	vec2 v1 = vec2(5,10);
 	vec2 v2 = vec2(50,50);
 	vec2 v3 = vec2(50,120);
     vec2 v4 = vec2(75,120);
-    vec2 v5 = vec2(75,10);
+    vec2 v5 = vec2(75,30);
     vec2 v6 = vec2(50.0,0);
-    vec2 v7 = vec2(2.5,0);
+    vec2 v7 = vec2(5,0);
     
     // add more points
     vec2[] polygon = vec2[](v0,v1,v2,v3,v4,v5,v6, v7);
     
-    v0 = vec2(-2.5,0);
-	v1 = vec2(-2.5,10);
+    v0 = vec2(-5,0);
+	v1 = vec2(-5,10);
 	v2 = vec2(-50,50);
 	v3 = vec2(-50,120);
     v4 = vec2(-75,120);
-    v5 = vec2(-75,10);
+    v5 = vec2(-75,30);
     v6 = vec2(-50,0);
-    v7 = vec2(-2.5,0);
+    v7 = vec2(-5,0);
     
     vec2[] ipolygon = vec2[](v0,v1,v2,v3,v4,v5,v6, v7);
     return smin(sdPolygon(p, polygon), sdPolygon(p, ipolygon), 0.01);
