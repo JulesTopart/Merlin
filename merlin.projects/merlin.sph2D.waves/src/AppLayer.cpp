@@ -276,12 +276,12 @@ void AppLayer::ResetSimulation() {
 	auto cpu_pressure = pressureBuffer->getEmptyArray();
 	auto cpu_meta = metaBuffer->getEmptyArray();
 
-	glm::vec2 cubeSize = glm::vec2(290, 10);
+	glm::vec2 cubeSize = glm::vec2(290, 25);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
 
 	numParticles = 0;
 	for (int yi = 0; yi <= cubeSize.y / spacing; yi++)
-	for (int xi = 140; xi <= cubeSize.x / spacing; xi++){
+	for (int xi = 110; xi <= cubeSize.x / spacing; xi++){
 		float x = ((xi + 1) * spacing) - (settings.bb.x/2.0);
 		float y = ((yi + 1) * spacing) - (settings.bb.y/2.0);
 		cpu_position.push_back(glm::vec2(x, y));
@@ -464,13 +464,13 @@ void AppLayer::onImGuiRender() {
 		solver->use();
 		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value());
 	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 2.0)){
+	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 200.0)){
 		solver->use();
 		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value());
 	}
 	if (ImGui::SliderFloat("XSPH", &settings.XSPH.value(), 0.0, 1.0)) {
 		solver->use();
-		solver->setFloat("XSPH", settings.XSPH.value()*0.01);
+		solver->setFloat("XSPH", settings.XSPH.value()*1.0);
 	}
 
 	static int colorMode = 0;
