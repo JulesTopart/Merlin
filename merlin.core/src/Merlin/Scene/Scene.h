@@ -7,6 +7,7 @@
 #include "Merlin/Scene/Light.h"
 #include "Merlin/Scene/TransformObject.h"
 #include "Merlin/Scene/deprecated_ParticleSystem.h"
+#include "Merlin/Physics/ParticleSystem.h"
 #include "Camera.h"
 
 namespace Merlin {
@@ -21,6 +22,7 @@ namespace Merlin {
 		~Scene() {};
 
 		void add(Shared<Model>);
+		void add(Shared<ParticleSystem>);
 		void add(Shared<deprecated_GenericParticleSystem>);
 		void add(Shared<Light>);
 		void add(Shared<SkyBox>);

@@ -13,14 +13,16 @@ namespace Merlin {
 
 	int ShaderBase::shader_instances = 0;
 
-	ShaderBase::ShaderBase() {
+	ShaderBase::ShaderBase(ShaderType type) {
 		shader_instances++;
+		m_type = type;
 		m_name = "default" + std::to_string(shader_instances);
 	}
 
-	ShaderBase::ShaderBase(std::string name) {
+	ShaderBase::ShaderBase(std::string name, ShaderType type) {
 		shader_instances++;
 		m_name = name;
+		m_type = type;
 	}
 
 	ShaderBase::~ShaderBase() {

@@ -48,7 +48,7 @@ namespace Merlin {
 	}
 
 
-	void Renderer::renderParticleSystem(const deprecated_GenericParticleSystem& ps, const Camera& camera) {
+	void Renderer::deprecated_renderParticleSystem(const deprecated_GenericParticleSystem& ps, const Camera& camera) {
 		if (ps.getDisplayMode() == deprecated_ParticleSystemDisplayMode::POINT_SPRITE) {
 			const Shader* shader;
 			//glPointSize(10);
@@ -91,6 +91,111 @@ namespace Merlin {
 			glDisable(GL_PROGRAM_POINT_SIZE);
 			glDisable(0x8861);//WTF
 		}else if (ps.getDisplayMode() == deprecated_ParticleSystemDisplayMode::MESH) {
+			const Shader* shader;
+			const Material* mat;
+
+			if (ps.getMesh()->hasShader())
+				shader = &ps.getMesh()->getShader();
+			else
+				shader = &m_shaderLibrary.get(ps.getMesh()->getShaderName());
+
+
+			if (ps.getMesh()->hasMaterial())
+				mat = &ps.getMesh()->getMaterial();
+			else {
+
+				mat = &m_materialLibrary.get(ps.getMesh()->getMaterialName());
+			}
+
+
+			shader->use();
+			if (shader->supportMaterial()) {
+				/*
+				if (mat->usePBR() && shader->SupportPBR()) {//todo remove this -> Replace by proper UBO management
+					shader->setVec3("albedo", mat->albedo());
+					shader->setFloat("metallic", mat->metallic());
+					shader->setFloat("roughness", mat->roughness());
+					shader->setFloat("ao", mat->ao());
+					shader->setVec3("viewPos", camera.GetPosition()); //sync model matrix with GPU
+				}
+				else {
+
+				}
+				*/
+
+				shader->setVec3("ambient", mat->ambient());
+				shader->setVec3("diffuse", mat->diffuse());
+				shader->setVec3("specular", mat->specular());
+				shader->setFloat("shininess", mat->shininess());
+				shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
+
+			}
+
+			shader->setMat4("model", currentTransform); //sync model matrix with GPU
+			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
+			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
+
+			if (shader->supportTexture()) {
+				Texture* tex = &mat->getTexture(TextureType::COLOR);
+
+				//WARNING This should be done once...
+				tex->setUnit(1); //Skybox is 0...
+				tex->syncTextureUnit(*shader, (tex->typeToString()) + "0");
+
+
+				tex->bind();
+				shader->setInt("hasColorTex", !tex->isDefault());
+			}
+			ps.draw(*shader);
+		}
+	}
+
+
+	void Renderer::renderParticleSystem(const ParticleSystem& ps, const Camera& camera) {
+		if (ps.getDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE) {
+			const Shader* shader;
+			//glPointSize(10);
+			glEnable(GL_PROGRAM_POINT_SIZE);
+			if (ps.getMesh()->hasShader())
+				shader = &ps.getMesh()->getShader();
+			else
+				shader = &m_shaderLibrary.get(ps.getMesh()->getShaderName());
+
+			shader->use();
+			shader->setMat4("model", currentTransform); //sync model matrix with GPU
+			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
+			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
+			shader->setVec2("WindowSize", glm::vec2(camera.width(), camera.height())); //sync model matrix with GPU
+			ps.draw(*shader);
+
+			glDisable(GL_PROGRAM_POINT_SIZE);
+		}
+		else if (ps.getDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE_SHADED) {
+			const Shader* shader;
+			//glPointSize(10);
+			glEnable(GL_PROGRAM_POINT_SIZE);
+			glEnable(0x8861);//WTF
+			//glDisable(GL_DEPTH_TEST);
+
+			if (ps.getMesh()->hasShader())
+				shader = &ps.getMesh()->getShader();
+			else
+				shader = &m_shaderLibrary.get(ps.getMesh()->getShaderName());
+
+
+			shader->use();
+			shader->setMat4("model", currentTransform); //sync model matrix with GPU
+			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
+			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
+			shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
+			shader->setVec2("WindowSize", glm::vec2(camera.width(), camera.height())); //sync model matrix with GPU
+			ps.draw(*shader);
+
+			//glEnable(GL_DEPTH_TEST);
+			glDisable(GL_PROGRAM_POINT_SIZE);
+			glDisable(0x8861);//WTF
+		}
+		else if (ps.getDisplayMode() == ParticleSystemDisplayMode::MESH) {
 			const Shader* shader;
 			const Material* mat;
 

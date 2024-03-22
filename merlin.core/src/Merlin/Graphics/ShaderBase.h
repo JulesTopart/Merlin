@@ -9,10 +9,18 @@
 namespace Merlin {
 	class Merlin::GenericBufferObject;
 
+
+	enum class ShaderType {
+		ABSTRACT,
+		GRAPHICS, // Vertex, fragment or geometry
+		COMPUTE_SHADER,
+		STAGED_COMPUTE_SHADER
+	};
+
 	class ShaderBase {
 	public:
-		ShaderBase();
-		ShaderBase(std::string name);
+		ShaderBase(ShaderType);
+		ShaderBase(std::string name, ShaderType);
 		virtual ~ShaderBase();
 
 		virtual void use() const;
@@ -49,7 +57,10 @@ namespace Merlin {
 
 	private:
 		GLuint m_programID = 0;
+		ShaderType m_type = ShaderType::ABSTRACT;
 	};
+
+	typedef Shared<ShaderBase> GenericShader_Ptr;
 
 	template<class T>
 	class UniformObject {

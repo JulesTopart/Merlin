@@ -22,6 +22,9 @@ namespace Merlin {
 		return *_camera;
 	}
 
+	void Scene::add(Shared<ParticleSystem> ps) {
+		_currentNode->addChild(ps);
+	}
 
 	void Scene::add(Shared<deprecated_GenericParticleSystem> ps) {
 		_currentNode->addChild(ps);

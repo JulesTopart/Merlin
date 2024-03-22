@@ -16,7 +16,7 @@ namespace Merlin {
 	};
 
 	template<class T>
-	UniformBuffer<T>::UniformBuffer(std::string name) : BufferObject<T>(GL_UNIFORM_BUFFER) {}
+	UniformBuffer<T>::UniformBuffer(std::string name) : BufferObject<T>(BufferType::UNIFORM_BUFFER ,GL_UNIFORM_BUFFER) {}
 
 	template<class T>
 	UniformBuffer<T>::~UniformBuffer() {

@@ -12,7 +12,7 @@ namespace Merlin {
 	};
 
     template<class T>
-    inline VertexBuffer<T>::VertexBuffer(std::vector<T>& vertices) : BufferObject<T>(BufferTarget::ARRAY_BUFFER, vertices, BufferUsage::STATIC_DRAW) {
+    inline VertexBuffer<T>::VertexBuffer(std::vector<T>& vertices) : BufferObject<T>(BufferType::VERTEX_BUFFER, BufferTarget::ARRAY_BUFFER, vertices, BufferUsage::STATIC_DRAW) {
         Console::trace("VertexBuffer") << "VertexBuffer " << this->id() << " allocated. " << Console::endl;
     }
 

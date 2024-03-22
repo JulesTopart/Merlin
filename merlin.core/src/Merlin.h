@@ -18,6 +18,7 @@
 #include "Merlin/Scene/CameraController.h"
 
 #include "Merlin/Tensor/ComputeShader.h"
+#include "Merlin/Physics/ParticleSystem.h"
 
 #include "Merlin/Util/OpenGLDebug.h"
 #include "Merlin/Util/ModelLoader.h"

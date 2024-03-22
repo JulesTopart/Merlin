@@ -12,7 +12,13 @@
 
 namespace Merlin {
 
-	ComputeShader::ComputeShader(const std::string& n, const std::string& cspath) {
+	ComputeShader::ComputeShader(const std::string& n, const std::string& cspath) : ShaderBase(n, ShaderType::COMPUTE_SHADER){
+		m_name = n;
+		m_wkgrpLayout = glm::uvec3(1);
+		if (cspath != "") compile(cspath);
+	}
+
+	ComputeShader::ComputeShader(const std::string& n, const std::string& cspath, ShaderType type) : ShaderBase(n, type) {
 		m_name = n;
 		m_wkgrpLayout = glm::uvec3(1);
 		if (cspath != "") compile(cspath);
@@ -172,7 +178,7 @@ namespace Merlin {
 	}
 
 
-	StagedComputeShader::StagedComputeShader(const std::string& n, const std::string& file_path, GLuint numberOfStage) : ComputeShader(n, file_path) {
+	StagedComputeShader::StagedComputeShader(const std::string& n, const std::string& file_path, GLuint numberOfStage) : ComputeShader(n, file_path, ShaderType::STAGED_COMPUTE_SHADER) {
 		m_stage = 0;
 		m_stageCount = numberOfStage;
 	}

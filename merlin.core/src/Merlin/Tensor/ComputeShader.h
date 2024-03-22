@@ -8,6 +8,7 @@ namespace Merlin{
 	class ComputeShader : public ShaderBase {
 	public:
 		ComputeShader(const std::string& n, const std::string& file_path = "");
+		ComputeShader(const std::string& n, const std::string& file_path, ShaderType type);
 		~ComputeShader();
 
 		void destroy() override;

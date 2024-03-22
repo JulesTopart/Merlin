@@ -22,13 +22,13 @@ namespace Merlin {
 		return createShared<Shader>(name, vertex_file_path, fragment_file_path, geometry_file_path);
 	}
 
-	Shader::Shader() : ShaderBase() {}
-	Shader::Shader(std::string n) : ShaderBase(n) {}
+	Shader::Shader() : ShaderBase(ShaderType::GRAPHICS) {}
+	Shader::Shader(std::string n) : ShaderBase(n, ShaderType::GRAPHICS) {}
 
 	Shader::Shader(std::string n,
 		const std::string vpath,
 		const std::string fpath,
-		const std::string gpath) : ShaderBase(n) {
+		const std::string gpath) : ShaderBase(n, ShaderType::GRAPHICS) {
 
 		if (vpath != "" && fpath != "") {
 			compile(vpath, fpath, gpath);

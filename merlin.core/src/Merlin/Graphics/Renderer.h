@@ -2,6 +2,7 @@
 #include "Merlin/Graphics/RendererBase.h"
 #include "Merlin/Scene/Scene.h"
 #include "Merlin/Scene/Camera.h"
+#include "Merlin/Physics/ParticleSystem.h"
 #include <stack>
 
 namespace Merlin {
@@ -15,7 +16,8 @@ namespace Merlin {
 		void renderSkyBox(const SkyBox& sky, const Camera& camera);
 		void renderMesh(const Mesh& mesh, const Camera& camera);
 		void renderModel(const Model& model, const Camera& camera);
-		void renderParticleSystem(const deprecated_GenericParticleSystem& ps, const Camera& camera);
+		void renderParticleSystem(const ParticleSystem& ps, const Camera& camera);
+		void deprecated_renderParticleSystem(const deprecated_GenericParticleSystem& ps, const Camera& camera);
 		void renderTransformObject(const TransformObject& obj, const Camera& camera);
 
 		void renderScene(const Scene& model, const Camera& camera);
