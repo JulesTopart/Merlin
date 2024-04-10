@@ -13,13 +13,9 @@ Merlin is a GPU computing and rendering engine designed as a sandbox instead of 
 Merlin is in a developmental stage and might require some familiarity with GPU computing and rendering concepts.
 
 1. **Clone the Repository**
-   ```
-<<<<<<< HEAD
-   git clone --recurse-submodules https://github.com/yourusername/Merlin.git
-=======
-   git clone https://github.com/JulesTopart/Merlin.git
->>>>>>> dcebc0e5e4aacf732b35d004145c9d2bd8dda6e1
-   ```
+```
+git clone --recurse-submodules https://github.com/yourusername/Merlin.git
+```
 
 2. **Build the Engine**
    - Navigate to the Merlin directory.
