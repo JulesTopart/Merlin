@@ -199,25 +199,25 @@ void AppLayer::InitGraphics() {
 	scene.add(floor);
 
 	std::vector<glm::vec2> geomr = {
-		glm::vec2(5,0),
-		glm::vec2(5,10),
+		glm::vec2(10,0),
+		glm::vec2(10,10),
 		glm::vec2(50,50),
-		glm::vec2(50,120),
-		glm::vec2(75,120),
+		glm::vec2(50,200),
+		glm::vec2(75,200),
 		glm::vec2(75,30),
 		glm::vec2(50.0, 0),
-		glm::vec2(5, 0),
+		glm::vec2(10, 0),
 	};
 
 	std::vector<glm::vec2> geoml = {
-		glm::vec2(-5,0),
-		glm::vec2(-5,10),
+		glm::vec2(-10,0),
+		glm::vec2(-10,10),
 		glm::vec2(-50,50),
-		glm::vec2(-50,120),
-		glm::vec2(-75,120),
+		glm::vec2(-50,200),
+		glm::vec2(-75,200),
 		glm::vec2(-75,30),
 		glm::vec2(-50.0, 0),
-		glm::vec2(-5, 0),
+		glm::vec2(-10, 0),
 	};
 
 
@@ -335,21 +335,27 @@ void AppLayer::ResetSimulation() {
 	auto cpu_temperature = temperatureBuffer->getEmptyArray();
 	auto cpu_meta = metaBuffer->getEmptyArray();
 
-	glm::vec2 cubeSize = glm::vec2(90, 125);
+	glm::vec2 cubeSize = glm::vec2(90, 200);
 	glm::ivec2 icubeSize = glm::vec2(cubeSize.x / spacing, cubeSize.y / spacing);
 
 	numParticles = 0;
-	for (int yi = -90; yi <= (cubeSize.y / 2.0) / spacing; yi++)
+	for (int yi = -200; yi <= (cubeSize.y / 2.0) / spacing; yi++)
 	for (int xi = -(cubeSize.x / 2.0) / spacing; xi <= (cubeSize.x / 2.0) / spacing; xi++){
 		float x = ((xi + 1) * spacing);
 		float y = ((yi + 1) * spacing);
+
+		int phase = GRANULAR;
+		if (x > -(cubeSize.x / 2.0) + 30 && x < +(cubeSize.x / 2.0) - 30) {
+			phase = FLUID;
+		}
+
 		cpu_position.push_back(glm::vec2(x, y));
 		cpu_predictedPosition.push_back(glm::vec2(x, y));
 		cpu_velocity.push_back(glm::vec2(0));
 		cpu_temperature.push_back(200 + 298.15);
 		cpu_density.push_back(0.0);
 		cpu_pressure.push_back(0.0);
-		cpu_meta.push_back(glm::uvec4(GRANULAR, numParticles, numParticles, 0.0));
+		cpu_meta.push_back(glm::uvec4(phase, numParticles, numParticles, 0.0));
 		numParticles++;
 	}
 
@@ -525,7 +531,7 @@ void AppLayer::onImGuiRender() {
 		solver->use();
 		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value());
 	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 20.0)) {
+	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 200.0)) {
 		solver->use();
 		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value());
 	}

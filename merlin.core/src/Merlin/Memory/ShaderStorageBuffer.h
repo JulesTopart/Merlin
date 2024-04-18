@@ -45,13 +45,13 @@ namespace Merlin {
 	}
 
 	template <class T>
-	ShaderStorageBuffer<T>::ShaderStorageBuffer() : BufferObject<T>(BufferTarget::SHADER_STORAGE_BUFFER) {}
+	ShaderStorageBuffer<T>::ShaderStorageBuffer() : BufferObject<T>(BufferType::SHADER_STORAGE_BUFFER, BufferTarget::SHADER_STORAGE_BUFFER) {}
 	template <class T>
-	ShaderStorageBuffer<T>::ShaderStorageBuffer(std::string name) : BufferObject<T>(BufferTarget::SHADER_STORAGE_BUFFER, name) {}
+	ShaderStorageBuffer<T>::ShaderStorageBuffer(std::string name) : BufferObject<T>(BufferType::SHADER_STORAGE_BUFFER, BufferTarget::SHADER_STORAGE_BUFFER, name) {}
 	template <class T>
-	ShaderStorageBuffer<T>::ShaderStorageBuffer(std::string name, GLsizeiptr size, T* data, BufferUsage usage) : BufferObject<T>(BufferTarget::SHADER_STORAGE_BUFFER, name, size, data, usage) {}
+	ShaderStorageBuffer<T>::ShaderStorageBuffer(std::string name, GLsizeiptr size, T* data, BufferUsage usage) : BufferObject<T>(BufferType::SHADER_STORAGE_BUFFER, BufferTarget::SHADER_STORAGE_BUFFER, name, size, data, usage) {}
 	template <class T>
-	ShaderStorageBuffer<T>::ShaderStorageBuffer(std::string name, GLsizeiptr count, BufferUsage usage) : BufferObject<T>(BufferTarget::SHADER_STORAGE_BUFFER, name, count, usage) {}
+	ShaderStorageBuffer<T>::ShaderStorageBuffer(std::string name, GLsizeiptr count, BufferUsage usage) : BufferObject<T>(BufferType::SHADER_STORAGE_BUFFER, BufferTarget::SHADER_STORAGE_BUFFER, name, count, usage) {}
 
 	template <class T>
 	SSBO_Ptr<T> ShaderStorageBuffer<T>::create(std::string name) {

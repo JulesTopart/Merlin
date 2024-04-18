@@ -49,7 +49,7 @@ void main() {
 	}else if(colorCycle == 3){ 
 		color = colorMap(map(Ti,ambientTemperature, nozzleTemperature), inferno);
 	}else if(colorCycle == 4){ 
-		color = colorMap(map(length(B_V(gl_InstanceID)),0,1000.0), parula);
+		color = B_Phase(gl_InstanceID) == GRANULAR ? vec4(0.3,0.3,0.3,1.0) : vec4(0.3,1.0,0.3,1.0);
 	}else if(colorCycle == 5){ 
 		color = vec4(randomColor(binindex), 1);
 	}else{ //NNS Test

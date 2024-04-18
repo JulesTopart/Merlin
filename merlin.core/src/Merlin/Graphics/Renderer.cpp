@@ -378,7 +378,7 @@ namespace Merlin {
 			renderTransformObject(*ps, camera); //Propagate to childrens
 		}
 		else if (const auto ps = std::dynamic_pointer_cast<deprecated_GenericParticleSystem>(object)) {
-			renderParticleSystem(*ps, camera); //Propagate to childrens
+			deprecated_renderParticleSystem(*ps, camera); //Propagate to childrens
 		}//The object is a particleSystem node
 		
 		for (auto node : object->children()) {
