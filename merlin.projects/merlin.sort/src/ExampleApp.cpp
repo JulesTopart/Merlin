@@ -1,5 +1,5 @@
-#include "Merlin.h"
-#include "ExampleLayer.h"
+#include "merlin.h"
+#include "Examplelayer.h"
 
 using namespace Merlin;
 

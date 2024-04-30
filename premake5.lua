@@ -103,9 +103,12 @@ group "Dependencies"
 group ""
 	include "merlin.core"
 	
-group "Projects"
+group "Examples"
 	include "merlin.projects/merlin.example"
+	include "merlin.projects/merlin.sandbox"
 	include "merlin.projects/merlin.example2D"
+	
+group "Projects"
 	include "merlin.projects/merlin.granular2D"
 	include "merlin.projects/merlin.granular3D"
 	include "merlin.projects/merlin.pbf2D"
@@ -119,3 +122,4 @@ group "Projects"
 	include "merlin.projects/merlin.granular2D.drum"
 	include "merlin.projects/merlin.granular2D.SDF"
 	include "merlin.projects/merlin.takashi"
+	

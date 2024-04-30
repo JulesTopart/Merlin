@@ -1,4 +1,4 @@
-#include "ExampleLayer.h"
+#include "Examplelayer.h"
 
 using namespace Merlin;
 

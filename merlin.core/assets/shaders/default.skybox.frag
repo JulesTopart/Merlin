@@ -17,7 +17,8 @@ vec4 sun(){
 }
 
 vec4 grayBox(){
-    return vec4(vec3(-texCoords.y)*0.5+0.8,1.0f);
+    float r = length(texCoords);
+    return vec4( vec3((acos(texCoords.y / r)/ 2.0)),1.0f);
 }
 
 /*
