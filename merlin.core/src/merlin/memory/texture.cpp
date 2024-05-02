@@ -2,61 +2,63 @@
 #include "texture.h"
 #include <stb_image.h>
 #include <filesystem>
+
+#include "merlin/utils/util.h"
 #include "merlin/core/log.h"
 
 namespace Merlin {
 
-	TextureBase::TextureBase(GLenum target, TextureType t) : _type(t), _Target(target), _format(GL_RGB), _internalFormat(GL_RGB8) {
+	TextureBase::TextureBase(GLenum target, TextureType t) : m_type(t), m_Target(target), m_format(GL_RGB), m_internalFormat(GL_RGB8) {
 		//Set the target based on the number of samples
-		glGenTextures(1, &_TextureID);
+		glGenTextures(1, &m_TextureID);
 	}
 
 	TextureBase::~TextureBase() {
-		glDeleteTextures(1, &_TextureID);
+		glDeleteTextures(1, &m_TextureID);
 	}
 
 	void TextureBase::bind() {
-		// Activate the appropriate texture unit (offsetting from Texture0 using the _unit)
-		glActiveTexture(GL_TEXTURE0 + _unit);
+		// Activate the appropriate texture unit (offsetting from Texture0 using the m_unit)
+		glActiveTexture(GL_TEXTURE0 + m_unit);
 		// bind the texture to the appropriate target
-		glBindTexture(_Target, _TextureID);
+		glBindTexture(m_Target, m_TextureID);
 	}
 
 	void TextureBase::bind(GLuint unit) {
 		// Activate the appropriate texture unit (offsetting from Texture0 using the unit parameter)
 		glActiveTexture(GL_TEXTURE0 + unit);
 		// bind the texture to the appropriate target
-		glBindTexture(_Target, _TextureID);
+		glBindTexture(m_Target, m_TextureID);
 
 	}
 
 	void TextureBase::bindImage() {
-		// Activate the appropriate texture unit (offsetting from Texture0 using the _unit)
-		glActiveTexture(GL_TEXTURE0 + _unit);
+		// Activate the appropriate texture unit (offsetting from Texture0 using the m_unit)
+		glActiveTexture(GL_TEXTURE0 + m_unit);
 		// bind the texture to the appropriate target
-		glBindImageTexture(_unit, _TextureID,0, GL_FALSE, 0, GL_READ_WRITE, _internalFormat);
+		glBindImageTexture(m_unit, m_TextureID,0, GL_FALSE, 0, GL_READ_WRITE, m_internalFormat);
 	}
 
 	void TextureBase::bindImage(GLuint unit) {
-		// Activate the appropriate texture unit (offsetting from Texture0 using the _unit)
+		// Activate the appropriate texture unit (offsetting from Texture0 using the m_unit)
 		glActiveTexture(GL_TEXTURE0 + unit);
 		// bind the texture to the appropriate target
-		glBindImageTexture(_unit, _TextureID, 0, GL_FALSE, 0, GL_READ_WRITE, _internalFormat);
+		glBindImageTexture(m_unit, m_TextureID, 0, GL_FALSE, 0, GL_READ_WRITE, m_internalFormat);
 	}
 
 	void TextureBase::unbind() {
 		// unbind the texture to the appropriate target
-		glBindTexture(_Target, 0);
+		glBindTexture(m_Target, 0);
 
 	}
 
 	void TextureBase::setUnit(GLuint unit) {
-		_unit = unit;
+		m_unit = unit;
 	}
 
 
 	void TextureBase::syncTextureUnit(const ShaderBase& shader, const std::string uniform) {
-		shader.setInt(uniform, _unit);
+		shader.setInt(uniform, m_unit);
 	}
 
 
@@ -70,8 +72,17 @@ namespace Merlin {
 		else if (type() == TextureType::NORMAL) {
 			return "normal";
 		}
-		else if (type() == TextureType::HEIGHT) {
-			return "height";
+		else if (type() == TextureType::REFLECTION) {
+			return "reflection";
+		}
+		else if (type() == TextureType::MASK) {
+			return "mask";
+		}
+		else if (type() == TextureType::METALNESS) {
+			return "metalness";
+		}
+		else if (type() == TextureType::DISPLACMENT) {
+			return "displacement";
 		}
 		else if (type() == TextureType::DEPTH) {
 			return "depth";
@@ -85,143 +96,163 @@ namespace Merlin {
 		else if (type() == TextureType::AMBIENT_OCCLUSION) {
 			return "ambient_occlusion";
 		}
+		else if (type() == TextureType::ENVIRONMENT) {
+			return "environment";
+		}
 		else {
 			Console::error("Texture") << "Invalid texture type" << Console::endl;
 		}
 		return "ERROR";
 	}
 
+	Texture2D::Texture2D(TextureType t) : TextureBase(GL_TEXTURE_2D, t) {}
 
-	Texture::Texture() : TextureBase(GL_TEXTURE_2D, TextureType::COLOR) {}
-	Texture::Texture(TextureType t) : TextureBase(GL_TEXTURE_2D, t) {}
-	Texture::Texture(GLenum target, TextureType t) : TextureBase(target, t) {}
-
-	Shared<Texture> Texture::create() {
-		return createShared<Texture>();
+	void Texture2D::generateMipmap() const{
+		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 
-	Shared<Texture> Texture::create(TextureType t) {
-		return createShared<Texture>(t);
+	void Texture2D::setInterpolationMode(GLuint settingMin, GLuint settingMag) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, settingMin);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, settingMag);
 	}
 
-	Shared<Texture> Texture::create(GLenum target, TextureType t) {
-		return createShared<Texture>(target, t);
+	void Texture2D::setRepeatMode(GLuint _wrapS, GLuint _wrapT) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _wrapS);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _wrapT);
 	}
 
-	Shared<Texture> Texture::create(const std::string img_file_path, TextureType type) {
-		Texture_Ptr result = createShared<Texture>(type);
-		result->loadFromFile(img_file_path);
-		return result;
+	void Texture2D::setBorderColor4f(float colors[4]) {
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, colors);
 	}
 
-	Shared<Texture> Texture::create(GLuint width, GLuint height, GLenum format, GLenum internalformat, TextureType type) {
-		Texture_Ptr result = createShared<Texture>(type);
-		result->reserve(width, height, format, internalformat);
-		return result;
-	}
-
-	void Texture::generateMipMap() const{
-		glGenerateMipmap(getTarget());
-	}
-
-	void Texture::setInterpolationMode(GLuint settingMin, GLuint settingMag) {
-		if (getTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
-			Console::error("Texture") << "You cannot set interpolation filter on a multisampled texture" << Console::endl;
-			return;
-		}
-		glTexParameteri(getTarget(), GL_TEXTURE_MIN_FILTER, settingMin);
-		glTexParameteri(getTarget(), GL_TEXTURE_MAG_FILTER, settingMag);
-	}
-
-	void Texture::setRepeatMode(GLuint _wrapS, GLuint _wrapT) {
-		if (getTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
-			Console::error("Texture") << "You cannot set warp behavior on a multisampled texture" << Console::endl;
-			return;
-		}
-		glTexParameteri(getTarget(), GL_TEXTURE_WRAP_S, _wrapS);
-		glTexParameteri(getTarget(), GL_TEXTURE_WRAP_T, _wrapT);
-	}
-
-	void Texture::setBorderColor4f(float colors[4]) {
-		
-		if (getTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
-			Console::error("Texture") << "You cannot set a border color on a multisampled texture" << Console::endl;
-			return;
-		}
-		glTexParameterfv(getTarget(), GL_TEXTURE_BORDER_COLOR, colors);
-	}
-
-	void Texture::setBorderColor4f(float R, float G, float B, float A) {
-		if (getTarget() == GL_TEXTURE_2D_MULTISAMPLE) {
-			Console::error("Texture") << "You cannot set a border color on a multisampled texture" << Console::endl;
-			return;
-		}
-		
+	void Texture2D::setBorderColor4f(float R, float G, float B, float A) {	
 		float colors[4] = { R,G,B,A };
-		glTexParameterfv(getTarget(), GL_TEXTURE_BORDER_COLOR, colors);
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, colors);
 	}
 
-	void Texture::resize(GLsizei width, GLsizei height) {
+	void Texture2D::resize(GLsizei width, GLsizei height) {
 		// Update the dimensions of the texture
-		_width = width;
-		_height = height;
+		m_width = width;
+		m_height = height;
 
 		// bind the texture
 		bind();
-		// resize the texture using glTexImage2D
-		glTexImage2D(getTarget(), 0, _format, width, height, 0, _format, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, width, height, 0, m_format, m_dataType, nullptr);
+		unbind();
 	}
 
-	void Texture::reserve(int width, int height, GLenum format, GLenum internalformat) {
-		// Update the dimensions of the texture
-		_width = width;
-		_height = height;
-		_format = format;
-		if (internalformat == GL_INVALID_ENUM)_internalFormat = GL_RGBA32F;
-		else _internalFormat = internalformat;
-
-		// resize the texture using glTexImage2D
-		loadFromData(nullptr, width, height, format);
-		setInterpolationMode(GL_LINEAR, GL_LINEAR);
-		setRepeatMode(GL_REPEAT, GL_REPEAT);
-		//glTexImage2D(getTarget(), 0, _internalFormat, _width, _height, 0, _format, GL_UNSIGNED_BYTE, data);
+	void Texture2D::reserve(GLuint width, GLuint height, GLuint channels, GLuint bits){
+		ImageData data;
+		data.bits = bits;
+		data.width = width;
+		data.height = height;
+		data.channels = channels;
+		data.bytes = nullptr;
+		loadFromData(data);
 	}
 
-	void Texture::loadFromFile(const std::string img_file_path) {
-		int widthImg, heightImg, nrChannels;
+	void Texture2D::loadFromData(const ImageData& data)	{
 
-		// Flips the image so it appears right side up
-		stbi_set_flip_vertically_on_load(true);
+		m_width = data.width;
+		m_height = data.height;
+		m_dataType = data.dataType;
+		m_format = GL_RGB;
+		m_internalFormat = GL_RGB8;
 
-		unsigned char* bytes = stbi_load(img_file_path.c_str(), &widthImg, &heightImg, &nrChannels, 0);
-
-		GLenum format = GL_RGB;
-		if (nrChannels == 4) format = GL_RGBA;
-
-		if (bytes == nullptr) {
-			Console::error("Texture") << "Cannot load image : " << std::filesystem::current_path().string() << "/" << img_file_path << Console::endl;
-		}else {
-			Console::info("Texture") << "Texture : (" << img_file_path << ") loaded sucessfully." << Console::endl;
-
-			loadFromData(bytes, widthImg, heightImg, format);
-			generateMipMap();
+		// Determine format and internal format based on channels and bits
+		switch (data.channels) {
+		case 1:
+			m_format = GL_RED;
+			m_internalFormat = (data.bits == 32) ? GL_R32F : GL_R8;
+			break;
+		case 3:
+			m_format = GL_RGB;
+			m_internalFormat = (data.bits == 32) ? GL_RGB32F : GL_RGB8;
+			break;
+		case 4:
+			m_format = GL_RGBA;
+			m_internalFormat = (data.bits == 32) ? GL_RGBA32F : GL_RGBA8;
+			break;
 		}
-		stbi_image_free(bytes);
+
+		// Bind and upload the texture data
+		bind();
+		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, m_width, m_height, 0, m_format, m_dataType, data.bytes);
+		generateMipmap();
+		unbind();
+
+		// Clean up if necessary
+		if (data.bytes) {
+			stbi_image_free(data.bytes);
+		}
 	}
 
+	Shared<Texture2D> Texture2D::create(GLuint width, GLuint height, TextureType t){
+		Shared<Texture2D> tex = createShared<Texture2D>(t);
 
+		GLuint bits = 8;
+		GLuint channels = 3;
 
-	void Texture::loadFromData(unsigned char* data, int width, int height, GLenum format) {
-		_width = width;
-		_height = height;
-		_format = format;
-		if(_internalFormat == GL_RGBA) _internalFormat = GL_RGBA32F;
+		switch (t){
+		case TextureType::COLOR: //COL sRGB
+			bits = 8;
+			channels = 3; //RGB
+			break;
+		case TextureType::NORMAL: //NRM RGB
+			bits = 8;
+			channels = 3;//XYZ
+			break;
+		case TextureType::DISPLACMENT: //DISP R 16 displacement
+			bits = 16;
+			channels = 1;//R
+			break;
+		case TextureType::REFLECTION://sRGB (Specularity)
+			bits = 8;
+			channels = 3;
+			break;
+		case TextureType::ROUGHNESS://Linear 8 _ROUGHNESS (Glossiness)
+			bits = 8;
+			channels = 1;
+			break;
+		case TextureType::METALNESS://Linear 8 _ROUGHNESS (Glossiness)
+			bits = 8;
+			channels = 1;
+			break;
+		case TextureType::AMBIENT_OCCLUSION:
+			bits = 8;
+			channels = 1;
+			break;
+		case TextureType::EMISSION:
+			bits = 8;
+			channels = 3;
+			break;
+		case TextureType::DEPTH:
+			bits = 16;
+			channels = 1;
+			break;
+		case TextureType::SHADOW:
+			bits = 16;
+			channels = 1;
+			break;
+		case TextureType::ENVIRONMENT:
+			bits = 32;
+			channels = 3;
+			break;
+		case TextureType::DATA:
+			bits = 32;
+			channels = 1;
+			break;
+		case TextureType::UNKNOWN:
+			break;
+		default:
+			break;
+		}
 
-		glTexImage2D(getTarget(), 0, _internalFormat, _width, _height, 0, _format, GL_UNSIGNED_BYTE, data);
+		tex->reserve(width, height, channels, bits);
+
 	}
 
-
-
-
-
+	Shared<Texture2D> Texture2D::create(const ImageData& data, TextureType t){
+		return createShared<Texture2D>(t);
+	}
 }

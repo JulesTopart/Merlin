@@ -10,7 +10,7 @@ namespace Merlin {
 		SCENE,
 		MODEL,
 		MESH, 
-		SKYBOX,
+		ENVIRONMENT,
 		TRANSFORM,
 		PARTICLESYSTEM,
 	};

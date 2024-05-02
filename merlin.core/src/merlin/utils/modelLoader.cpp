@@ -26,7 +26,7 @@ namespace Merlin {
             return Model::create(getFileName(file_path), mesh);
 
         }
-        
+        return nullptr;
 	}
 
 /*

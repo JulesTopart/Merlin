@@ -6,6 +6,9 @@
 namespace Merlin {
 
 	enum class FileType {
+		HDR,
+		PNG,
+		JPG,
 		OBJ,
 		STL,
 		GEOM,
