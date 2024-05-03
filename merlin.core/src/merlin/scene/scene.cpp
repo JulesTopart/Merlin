@@ -38,7 +38,7 @@ namespace Merlin {
 		_currentNode->addChild(light);
 	}
 
-	void Scene::add(Shared<SkyBox> sky) {
+	void Scene::add(Shared<Environment> sky) {
 		_currentNode->addChild(sky);
 	}
 

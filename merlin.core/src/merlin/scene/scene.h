@@ -3,7 +3,7 @@
 
 #include "merlin/graphics/renderableObject.h"
 #include "merlin/scene/model.h"
-#include "merlin/scene/skyBox.h"
+#include "merlin/scene/environment.h"
 #include "merlin/scene/light.h"
 #include "merlin/scene/transformObject.h"
 #include "merlin/scene/deprecated_particleSystem.h"
@@ -19,13 +19,12 @@ namespace Merlin {
 
 	public:
 		Scene(std::string name = "scene");
-		~Scene() {};
 
 		void add(Shared<Model>);
 		void add(Shared<ParticleSystem>);
 		void add(Shared<deprecated_GenericParticleSystem>);
 		void add(Shared<Light>);
-		void add(Shared<SkyBox>);
+		void add(Shared<Environment>);
 		void add(Shared<TransformObject> t);
 
 		void setCamera(Shared<Camera> camera);

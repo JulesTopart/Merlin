@@ -66,7 +66,7 @@ namespace Merlin {
 
 	void Environment::loadHDR(const std::string& path){
 
-		hdrTexture = Texture::create(path, TextureType::ENVIRONMENT);
+		hdrTexture = Texture2D::create(path, TextureType::ENVIRONMENT);
 
 
 	}

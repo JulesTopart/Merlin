@@ -9,12 +9,17 @@ namespace Merlin {
 	};
 
 	struct ImageData {
-		GLuint width = 0;
-		GLuint height = 0;
-		GLuint channels = 0;
-		GLuint bits = 8;  // Default to 8 bits per channel
+		int width = 0;
+		int height = 0;
+		int channels = 0;
+		int bits = 8;  // Default to 8 bits per channel
 		GLenum dataType = GL_UNSIGNED_BYTE; // Default to unsigned byte
 		void* bytes = nullptr;
+	};
+
+	struct ChannelsProperty {
+		GLuint channels = 3;
+		GLuint bits = 8;
 	};
 
 	class TextureBase {
@@ -43,6 +48,9 @@ namespace Merlin {
 		inline bool isDefault() { return m_width == 1 && m_height == 1; }
 
 		inline const GLuint id() const { return m_TextureID; }
+
+		static ChannelsProperty getChannelsProperty(TextureType);
+
 	protected:
 
 		GLuint m_width = 0, m_height = 0;
@@ -64,7 +72,7 @@ namespace Merlin {
 		
 		//Settings
 		void setInterpolationMode(GLuint minFilter = GL_LINEAR, GLuint magFilter = GL_LINEAR);
-		void setRepeatMode(GLuint _wrapS = GL_CLAMP_TO_BORDER, GLuint _wrapT = GL_CLAMP_TO_BORDER);
+		void setRepeatMode(GLuint _wrapS = GL_CLAMP_TO_EDGE, GLuint _wrapT = GL_CLAMP_TO_EDGE);
 		void setBorderColor4f(float colors[4]);
 		void setBorderColor4f(float R, float G, float B, float A);
 		void generateMipmap() const;
@@ -73,9 +81,11 @@ namespace Merlin {
 		void reserve(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8) override;
 		void resize(GLsizei width, GLsizei height) override;
 		void loadFromData(const ImageData& data);
+		void loadFromFile(const std::string& path);
 
 		static Shared<Texture2D> create(GLuint width, GLuint height, TextureType = TextureType::COLOR);
 		static Shared<Texture2D> create(const ImageData& data, TextureType = TextureType::COLOR);
+		static Shared<Texture2D> create(const std::string& path, TextureType = TextureType::COLOR);
 
 	private:
 

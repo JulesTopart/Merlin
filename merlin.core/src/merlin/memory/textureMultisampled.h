@@ -1,24 +1,20 @@
 #pragma once
 #include "merlin/core/core.h"
-
 #include "merlin/memory/texture.h"
 
 namespace Merlin {
 
-	class TextureMultisampled : public TextureBase{
+	class TextureMultisampled2D : public TextureBase{
 	public:
-			TextureMultisampled(TextureType t = TextureType::COLOR, int samples = 4);
-			~TextureMultisampled();
+		TextureMultisampled2D(GLuint samples = 4, TextureType t = TextureType::COLOR);
 
-			void resize(GLsizei width, GLsizei height) override;
-			void reserve(int width, int height,  GLenum format = GL_RGBA, GLenum internalformat = GL_INVALID_ENUM) override;
+		//Memory
+		void reserve(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8) override;
+		void resize(GLsizei width, GLsizei height) override;
 
-			void loadFromFile(const std::string img_file_path, GLenum format = GL_RGBA);
-			void loadFromData(unsigned char* data, int width, int height, GLenum format = GL_RGBA);
-
-
-		private:
-			GLuint _samples;
+		static Shared<TextureMultisampled2D> create(GLuint width, GLuint height, GLuint samples, TextureType = TextureType::COLOR);
+	private:
+		GLuint m_samples;
 	};
 
 

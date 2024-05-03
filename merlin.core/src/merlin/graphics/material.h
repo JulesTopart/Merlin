@@ -38,7 +38,7 @@ namespace Merlin {
         void loadDefaultTexture();
         void loadTexture(std::string path, TextureType t = TextureType::COLOR);
         void setTexture(Texture_Ptr tex);
-        Texture& getTexture(TextureType t) const;
+        Texture2D& getTexture(TextureType t) const;
         
 
         inline const glm::vec3& ambient() const { return m_props.ambient; }

@@ -8,12 +8,14 @@ namespace Merlin {
 	class Environment : public RenderableObject {
 	public:
 		Environment(std::string name) : RenderableObject(name) {}
-		Shared<Texture> hdrTexture;
-		Shared<Texture> irradianceMap;
-		Shared<Texture> reflectionMap;
+		Shared<Texture2D> hdrTexture = nullptr;
+		Shared<Texture2D> irradianceMap = nullptr;
+		Shared<Texture2D> reflectionMap = nullptr;
 
 		// Setup methods for different textures
 		void loadHDR(const std::string& path);
+
+		void draw() const;
 
 		inline bool hasShader() const { return m_shader != nullptr; }
 		inline const Shader& getShader() const { return *m_shader; }

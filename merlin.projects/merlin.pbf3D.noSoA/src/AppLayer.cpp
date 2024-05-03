@@ -167,7 +167,7 @@ void AppLayer::InitGraphics() {
 	renderer.addShader(modelShader);
 
 	Shared<Shader> skyShader = Shader::create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
-	Shared<SkyBox> sky = SkyBox::create("Sky");
+	Shared<Environment> sky = Environment::create("Sky");
 	sky->setShader(skyShader);
 	scene.add(sky);
 

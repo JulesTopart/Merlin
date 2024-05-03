@@ -2,12 +2,11 @@
 #include "textureLoader.h"
 #include "util.h"
 
-
-Shared<Texture2D> TextureLoader::loadTexture(const std::string& filepath) {
+ImageData TextureLoader::loadImageData(const std::string& filepath) {
     FileType ft = getFileType(filepath);
     ImageData data;
 
-    switch (ft){
+    switch (ft) {
     case Merlin::FileType::HDR:
         parseHDR(filepath, data);
         break;
@@ -25,12 +24,15 @@ Shared<Texture2D> TextureLoader::loadTexture(const std::string& filepath) {
         Console::error("TextureLoader") << " stb error : " << stbi_failure_reason() << Console::endl;
         throw std::runtime_error("cannot load image");
         stbi_image_free(data.bytes);
-        return nullptr;
+        return data;
     }
 
-    Texture::create(data);
+    return data;
+}
 
-    stbi_image_free(data.bytes);
+
+Shared<Texture2D> TextureLoader::loadTexture(const std::string& filepath, TextureType t) {
+    return Texture2D::create(filepath, t);
 }
 
 void Merlin::TextureLoader::parseHDR(const std::string& filepath, ImageData& data){

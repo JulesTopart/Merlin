@@ -4,61 +4,52 @@
 #include <filesystem>
 
 namespace Merlin {
-	TextureMultisampled::TextureMultisampled(TextureType t, int samples) : TextureBase(GL_TEXTURE_2D_MULTISAMPLE, t), _samples(samples){}
+	TextureMultisampled2D::TextureMultisampled2D(GLuint samples, TextureType t) : TextureBase(GL_TEXTURE_2D_MULTISAMPLE, t), m_samples(samples){}
 
-	TextureMultisampled::~TextureMultisampled(){}
-
-	void TextureMultisampled::resize(GLsizei width, GLsizei height) {
+	void TextureMultisampled2D::reserve(GLuint width, GLuint height, GLuint channels, GLuint bits) {
 		// Update the dimensions of the texture
-		_width = width;
-		_height = height;
+		m_width = width;
+		m_height = height;
+		m_format = GL_RGB;
+		m_internalFormat = GL_RGB8;
 
-		// bind the texture
-		bind();
-		// resize the texture using glTexImage2D
-		glTexImage2DMultisample(getTarget(), _samples, _format, _width, _height, GL_TRUE);
+		// Determine format and internal format based on channels and bits
+		switch (channels) {
+		case 1:
+			m_format = GL_RED;
+			m_internalFormat = (bits == 32) ? GL_R32F : GL_R8;
+			break;
+		case 3:
+			m_format = GL_RGB;
+			m_internalFormat = (bits == 32) ? GL_RGB32F : GL_RGB8;
+			break;
+		case 4:
+			m_format = GL_RGBA;
+			m_internalFormat = (bits == 32) ? GL_RGBA32F : GL_RGBA8;
+			break;
+		}
+
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_samples, m_internalFormat, m_width, m_height, GL_TRUE);
+
 	}
 
-
-	void TextureMultisampled::reserve(int width, int height, GLenum format, GLenum internalformat) {
+	void TextureMultisampled2D::resize(GLsizei width, GLsizei height) {
 		// Update the dimensions of the texture
-		_width = width;
-		_height = height;
-		_format = format;
-		if (internalformat == GL_INVALID_ENUM) _internalFormat = _format;
+		m_width = width;
+		m_height = height;
 
-		// resize the texture using glTexImage2D
-
-		glTexImage2DMultisample(getTarget(), _samples, _format, _width, _height, GL_TRUE);
-	
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_samples, m_internalFormat, m_width, m_height, GL_TRUE);
 	}
 
-	void TextureMultisampled::loadFromFile(const std::string img_file_path, GLenum format) {
+	Shared<TextureMultisampled2D> TextureMultisampled2D::create(GLuint width, GLuint height, GLuint samples, TextureType t){
+		Shared<TextureMultisampled2D> tex = createShared<TextureMultisampled2D>(samples, t);
 
-		int widthImg, heightImg, numColCh;
-		// Flips the image so it appears right side up
-		stbi_set_flip_vertically_on_load(true);
+		ChannelsProperty cb = TextureBase::getChannelsProperty(t);
 
-		unsigned char* bytes = stbi_load(img_file_path.c_str(), &widthImg, &heightImg, &numColCh, 0);
-
-		if (bytes == nullptr) {
-			Console::error("Texture") << "Cannot load image : " << std::filesystem::current_path().string() << "/" << img_file_path << Console::endl;
-		}
-		else {
-			Console::info("Texture") << "Texture : (" << img_file_path << ") loaded sucessfully." << Console::endl;
-
-			loadFromData(bytes, widthImg, heightImg, format);
-		}
-		stbi_image_free(bytes);
-	}
-
-	void TextureMultisampled::loadFromData(unsigned char* data, int width, int height, GLenum format) {
-		_width = width;
-		_height = height;
-		_format = format;
-		//_internalFormat = _format == GL_RGBA ? GL_RGBA32F : format;
-
-		glTexImage2DMultisample(getTarget(), _samples, _internalFormat, _width, _height, GL_TRUE);
+		tex->bind();
+		tex->reserve(width, height, cb.channels, cb.bits);
+		tex->unbind();
+		return tex;
 	}
 
 }

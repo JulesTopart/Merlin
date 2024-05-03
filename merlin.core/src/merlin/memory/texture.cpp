@@ -4,6 +4,7 @@
 #include <filesystem>
 
 #include "merlin/utils/util.h"
+#include "merlin/utils/textureLoader.h"
 #include "merlin/core/log.h"
 
 namespace Merlin {
@@ -105,95 +106,12 @@ namespace Merlin {
 		return "ERROR";
 	}
 
-	Texture2D::Texture2D(TextureType t) : TextureBase(GL_TEXTURE_2D, t) {}
-
-	void Texture2D::generateMipmap() const{
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-
-	void Texture2D::setInterpolationMode(GLuint settingMin, GLuint settingMag) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, settingMin);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, settingMag);
-	}
-
-	void Texture2D::setRepeatMode(GLuint _wrapS, GLuint _wrapT) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _wrapS);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _wrapT);
-	}
-
-	void Texture2D::setBorderColor4f(float colors[4]) {
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, colors);
-	}
-
-	void Texture2D::setBorderColor4f(float R, float G, float B, float A) {	
-		float colors[4] = { R,G,B,A };
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, colors);
-	}
-
-	void Texture2D::resize(GLsizei width, GLsizei height) {
-		// Update the dimensions of the texture
-		m_width = width;
-		m_height = height;
-
-		// bind the texture
-		bind();
-		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, width, height, 0, m_format, m_dataType, nullptr);
-		unbind();
-	}
-
-	void Texture2D::reserve(GLuint width, GLuint height, GLuint channels, GLuint bits){
-		ImageData data;
-		data.bits = bits;
-		data.width = width;
-		data.height = height;
-		data.channels = channels;
-		data.bytes = nullptr;
-		loadFromData(data);
-	}
-
-	void Texture2D::loadFromData(const ImageData& data)	{
-
-		m_width = data.width;
-		m_height = data.height;
-		m_dataType = data.dataType;
-		m_format = GL_RGB;
-		m_internalFormat = GL_RGB8;
-
-		// Determine format and internal format based on channels and bits
-		switch (data.channels) {
-		case 1:
-			m_format = GL_RED;
-			m_internalFormat = (data.bits == 32) ? GL_R32F : GL_R8;
-			break;
-		case 3:
-			m_format = GL_RGB;
-			m_internalFormat = (data.bits == 32) ? GL_RGB32F : GL_RGB8;
-			break;
-		case 4:
-			m_format = GL_RGBA;
-			m_internalFormat = (data.bits == 32) ? GL_RGBA32F : GL_RGBA8;
-			break;
-		}
-
-		// Bind and upload the texture data
-		bind();
-		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, m_width, m_height, 0, m_format, m_dataType, data.bytes);
-		generateMipmap();
-		unbind();
-
-		// Clean up if necessary
-		if (data.bytes) {
-			stbi_image_free(data.bytes);
-		}
-	}
-
-	Shared<Texture2D> Texture2D::create(GLuint width, GLuint height, TextureType t){
-		Shared<Texture2D> tex = createShared<Texture2D>(t);
-
+	ChannelsProperty TextureBase::getChannelsProperty(TextureType t)
+	{
 		GLuint bits = 8;
 		GLuint channels = 3;
 
-		switch (t){
+		switch (t) {
 		case TextureType::COLOR: //COL sRGB
 			bits = 8;
 			channels = 3; //RGB
@@ -248,11 +166,117 @@ namespace Merlin {
 			break;
 		}
 
-		tex->reserve(width, height, channels, bits);
+		return { channels, bits };
+	}
 
+	Texture2D::Texture2D(TextureType t) : TextureBase(GL_TEXTURE_2D, t) {}
+
+	void Texture2D::generateMipmap() const{
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
+	void Texture2D::setInterpolationMode(GLuint settingMin, GLuint settingMag) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, settingMin);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, settingMag);
+	}
+
+	void Texture2D::setRepeatMode(GLuint _wrapS, GLuint _wrapT) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _wrapS);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _wrapT);
+	}
+
+	void Texture2D::setBorderColor4f(float colors[4]) {
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, colors);
+	}
+
+	void Texture2D::setBorderColor4f(float R, float G, float B, float A) {	
+		float colors[4] = { R,G,B,A };
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, colors);
+	}
+
+
+	void Texture2D::reserve(GLuint width, GLuint height, GLuint channels, GLuint bits){
+		ImageData data;
+		data.bits = bits;
+		data.width = width;
+		data.height = height;
+		data.channels = channels;
+		data.bytes = nullptr;
+		data.dataType = GL_UNSIGNED_BYTE;
+		loadFromData(data);
+	}
+
+	void Texture2D::resize(GLsizei width, GLsizei height) {
+		// Update the dimensions of the texture
+		m_width = width;
+		m_height = height;
+
+		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, width, height, 0, m_format, m_dataType, nullptr);
+	}
+
+	void Texture2D::loadFromData(const ImageData& data)	{
+
+		m_width = data.width;
+		m_height = data.height;
+		m_dataType = data.dataType;
+		m_format = GL_RGB;
+		m_internalFormat = GL_RGB8;
+
+		// Determine format and internal format based on channels and bits
+		switch (data.channels) {
+		case 1:
+			m_format = GL_RED;
+			m_internalFormat = (data.bits == 32) ? GL_R32F : GL_R8;
+			break;
+		case 3:
+			m_format = GL_RGB;
+			m_internalFormat = (data.bits == 32) ? GL_RGB32F : GL_RGB8;
+			break;
+		case 4:
+			m_format = GL_RGBA;
+			m_internalFormat = (data.bits == 32) ? GL_RGBA32F : GL_RGBA8;
+			break;
+		}
+
+		// upload the texture data
+		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, m_width, m_height, 0, m_format, m_dataType, data.bytes);
+		generateMipmap();
+
+		// Clean up if necessary
+		if (data.bytes) {
+			stbi_image_free(data.bytes);
+		}
+	}
+
+	void Texture2D::loadFromFile(const std::string& path){
+		loadFromData(TextureLoader::loadImageData(path));
+	}
+
+	Shared<Texture2D> Texture2D::create(GLuint width, GLuint height, TextureType t){
+		Shared<Texture2D> tex = createShared<Texture2D>(t);
+
+		daljdbjzqdbqj
+		tex->bind();
+		tex->reserve(width, height, channels, bits);
+		tex->setInterpolationMode();
+		tex->setRepeatMode();
+		tex->generateMipmap();
+		tex->unbind();
+		return tex;
 	}
 
 	Shared<Texture2D> Texture2D::create(const ImageData& data, TextureType t){
-		return createShared<Texture2D>(t);
+		Shared<Texture2D> tex = createShared<Texture2D>(t);
+		tex->bind();
+		tex->loadFromData(data);
+		tex->setInterpolationMode();
+		tex->setRepeatMode();
+		tex->generateMipmap();
+		tex->unbind();
+		return tex;
+	}
+
+	Shared<Texture2D> Texture2D::create(const std::string& path, TextureType t){
+		return TextureLoader::loadTexture(path, t);
 	}
 }

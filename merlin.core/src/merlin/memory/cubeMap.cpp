@@ -1,64 +1,140 @@
 #include "glpch.h"
 #include "cubeMap.h"
 #include "merlin/core/log.h"
+#include "merlin/utils/textureLoader.h"
 
 #include <stb_image.h>
 
 namespace Merlin {
 
-    CubeMap::CubeMap(std::string right, std::string left, std::string top, std::string bottom, std::string front, std::string back) {
-        _textureID = loadCubeMap({ right, left, top, bottom, front, back });
+    CubeMap::CubeMap(TextureType t) : TextureBase(GL_TEXTURE_CUBE_MAP, t){
 
     }
 
-    CubeMap::CubeMap(const std::vector<std::string>& faces) {
-        _textureID = loadCubeMap(faces);
+    void CubeMap::generateMipmap() const {
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     }
 
-    CubeMap::~CubeMap() {
-        glDeleteTextures(1, &_textureID);
+    void CubeMap::setInterpolationMode(GLuint settingMin, GLuint settingMag) {
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, settingMin);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, settingMag);
     }
 
-    void CubeMap::bind(unsigned int unit) const {
-        glActiveTexture(GL_TEXTURE0 + unit);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _textureID);
+    void CubeMap::setRepeatMode(GLuint _wrapS, GLuint _wrapT, GLuint _wrapR) {
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, _wrapS);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, _wrapT);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, _wrapR);
     }
 
-    void CubeMap::unbind() const {
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    void CubeMap::setBorderColor4f(float colors[4]) {
+        glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, colors);
     }
 
-    GLuint CubeMap::loadCubeMap(const std::vector<std::string>& faces) {
-        GLuint textureID;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+    void CubeMap::setBorderColor4f(float R, float G, float B, float A) {
+        float colors[4] = { R,G,B,A };
+        glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, colors);
+    }
 
-        // Flips the image so it appears right side up
-        stbi_set_flip_vertically_on_load(true);
+    void CubeMap::reserve(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8){
+        
+        m_width = width;
+        m_height = height;
+        m_format = GL_RGB;
+        m_internalFormat = GL_RGB8;
+        m_dataType = GL_UNSIGNED_BYTE;
 
-        int width, height, nrChannels;
+        // Determine format and internal format based on channels and bits
+        switch (channels) {
+        case 1:
+            m_format = GL_RED;
+            m_internalFormat = (bits == 32) ? GL_R32F : GL_R8;
+            break;
+        case 3:
+            m_format = GL_RGB;
+            m_internalFormat = (bits == 32) ? GL_RGB32F : GL_RGB8;
+            break;
+        case 4:
+            m_format = GL_RGBA;
+            m_internalFormat = (bits == 32) ? GL_RGBA32F : GL_RGBA8;
+            break;
+        }
+        
+        for (unsigned int i = 0; i < 6; i++) {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_internalFormat, width, height, 0, m_format, m_dataType, nullptr);
+        }
+    }
+
+    void CubeMap::resize(GLsizei width, GLsizei height) {
+        // Update the dimensions of the texture
+        m_width = width;
+        m_height = height;
+
+        for (unsigned int i = 0; i < 6; i++) {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_internalFormat, width, height, 0, m_format, m_dataType, nullptr);
+        }
+    }
+
+    Shared<CubeMap> CubeMap::create(GLuint width, GLuint height, TextureType t){
+        Shared<CubeMap> cm = createShared<CubeMap>(t);
+
+        ChannelsProperty cb = TextureBase::getChannelsProperty(t);
+        cm->bind();
+        cm->reserve(width, height, cb.channels, cb.bits);
+        cm->unbind();
+        return cm;
+    }
+
+    Shared<CubeMap> CubeMap::create(const std::vector<std::string>& paths, TextureType t){
+        Shared<CubeMap> cm = createShared<CubeMap>(t);
+        cm->bind();
+        cm->loadFromFiles(paths);
+        cm->unbind();
+        return cm;
+    }
+
+    void CubeMap::loadFromFiles(const std::vector<std::string>& faces) {
+        if (faces.size() < 6) {
+            Console::error("CubeMap") << "Not enough texture provided" << Console::endl;
+                return;
+        }
+        
         for (unsigned int i = 0; i < faces.size(); i++) {
-            unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-            if (data) {
-                GLenum format = GL_RGB;
-                if (nrChannels == 4) format = GL_RGBA;
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-                stbi_image_free(data);
+            ImageData data = TextureLoader::loadImageData(faces[i]);
+
+            if (data.bytes) {
+               
+                if (i == 0) {
+                    m_width = data.width;
+                    m_height = data.height;
+                    m_format = GL_RGB;
+                    m_internalFormat = GL_RGB8;
+                    m_dataType = data.dataType;
+
+                    // Determine format and internal format based on channels and bits
+                    switch (data.channels) {
+                    case 1:
+                        m_format = GL_RED;
+                        m_internalFormat = (data.bits == 32) ? GL_R32F : GL_R8;
+                        break;
+                    case 3:
+                        m_format = GL_RGB;
+                        m_internalFormat = (data.bits == 32) ? GL_RGB32F : GL_RGB8;
+                        break;
+                    case 4:
+                        m_format = GL_RGBA;
+                        m_internalFormat = (data.bits == 32) ? GL_RGBA32F : GL_RGBA8;
+                        break;
+                    }
+                }
+
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_internalFormat, m_width, m_height, 0, m_format, m_dataType, data.bytes);
+                stbi_image_free(data.bytes);
             }
             else {
                 Console::error("CubeMap") << "Cubemap texture failed to load at path: " << faces[i] << Console::endl;
-                stbi_image_free(data);
+                stbi_image_free(data.bytes);
             }
         }
-
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-        return textureID;
     }
+
 }
