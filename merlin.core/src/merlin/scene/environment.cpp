@@ -2,6 +2,8 @@
 #include "environment.h"
 #include "merlin/memory/vertexBuffer.h"
 #include "merlin/memory/indexBuffer.h"
+#include "merlin/memory/frameBuffer.h"
+#include "merlin/memory/renderBuffer.h"
 
 namespace Merlin {
 
@@ -52,7 +54,7 @@ namespace Merlin {
 	}
 
 
-	Environment::Environment(std::string name) : RenderableObject(name, ObjectType::ENVIRONMENT), m_vao() {
+	Environment::Environment(std::string name, GLuint resolution) : RenderableObject(name, ObjectType::ENVIRONMENT), m_vao(), m_resolution(resolution) {
 		setupMesh(); // Setup mesh for rendering cubemap or procedural backdrops
 	}
 
@@ -65,8 +67,12 @@ namespace Merlin {
 	}
 
 	void Environment::loadHDR(const std::string& path){
+		raw_hdri = Texture2D::create(path, TextureType::ENVIRONMENT);
+		FrameBuffer fbo(m_resolution, m_resolution);
 
-		hdrTexture = Texture2D::create(path, TextureType::ENVIRONMENT);
+		fbo.bind();
+		fbo.addDepthStencilAttachment(fbo.createRenderBufferAttachment(GL_DEPTH_COMPONENT24));
+		skybox = CubeMap::create(m_resolution, m_resolution);
 
 
 	}
