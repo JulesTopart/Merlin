@@ -13,11 +13,9 @@ namespace Merlin {
 
 		void clear() override;
 
-		void renderSkyBox(const SkyBox& sky, const Camera& camera);
 		void renderMesh(const Mesh& mesh, const Camera& camera);
 		void renderModel(const Model& model, const Camera& camera);
 		void renderParticleSystem(const ParticleSystem& ps, const Camera& camera);
-		void deprecated_renderParticleSystem(const deprecated_GenericParticleSystem& ps, const Camera& camera);
 		void renderTransformObject(const TransformObject& obj, const Camera& camera);
 
 		void renderScene(const Scene& model, const Camera& camera);

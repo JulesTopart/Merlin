@@ -26,12 +26,12 @@ namespace Merlin {
 
 	void Material::setAmbientOcclusion(const float& ao) { m_props.ao = ao; }
 
-	void Material::setTexture(Texture_Ptr tex) {
+	void Material::setTexture(Texture2D_Ptr tex) {
 		m_textures[tex->type()] = tex;
 	}
 
 	void Material::loadTexture(std::string path, TextureType t) {
-		Shared<Texture> tex = createShared<Texture>(t);
+		Shared<Texture2D> tex = createShared<Texture2D>(t);
 		tex->bind();
 		tex->loadFromFile(path);
 		tex->setInterpolationMode(GL_LINEAR);
@@ -39,39 +39,55 @@ namespace Merlin {
 		setTexture(tex);
 	}
 
-	Shared<Texture> GenerateDefaultTexture(TextureType t) {
-		// Determine the default color for the texture type
-		glm::vec3 defaultColor;
+	Shared<Texture2D> GenerateDefaultTexture(TextureType t) {
+
+		// create a 1x1 texture with the default color
+		Shared<Texture2D> defaultTexture = std::make_shared<Texture2D>(t); // Adapt this line to your Texture class
+		defaultTexture->bind();
+
+		ImageData data;
+		data.dataType = GL_FLOAT;
+		data.height = data.width = 1;
+		data.bits = 8;
+		data.channels = 3;
+
 		switch (t) {
 		case TextureType::COLOR:
-			defaultColor = glm::vec3(0.5f, 0.5f, 0.5f); // Gray
+			glm::vec3 dColor = glm::vec3(0.5f, 0.5f, 0.5f); // Gray
+			data.bytes = &dColor[0];
+			defaultTexture->loadFromData(data);
 			break;
 		case TextureType::ROUGHNESS:
-			defaultColor = glm::vec3(0.04f, 0.04f, 0.04f); // Dark gray
+			glm::vec3 dRoughness = glm::vec3(0.04f, 0.04f, 0.04f); // Dark gray
+			data.bytes = &dRoughness[0];
+			defaultTexture->loadFromData(data);
 			break;
 		case TextureType::NORMAL:
-			defaultColor = glm::vec3(0.5f, 0.5f, 1.0f); // Normal map default (x: 0.5, y: 0.5, z: 1.0)
+			glm::vec3 dNormal = glm::vec3(0.5f, 0.5f, 1.0f); // Normal map default (x: 0.5, y: 0.5, z: 1.0)
+			data.bytes = &dNormal[0];
+			defaultTexture->loadFromData(data);
 			break;
 		case TextureType::AMBIENT_OCCLUSION:
-			defaultColor = glm::vec3(1.0f, 1.0f, 1.0f); // White
+			glm::vec3 dAO = glm::vec3(1.0f, 1.0f, 1.0f); // White
+			data.bytes = &dAO[0];
+			defaultTexture->loadFromData(data);
 			break;
 		case TextureType::EMISSION:
-			defaultColor = glm::vec3(0.0f, 0.0f, 0.0f); // Black
+			glm::vec3 dEmission = glm::vec3(0.0f, 0.0f, 0.0f); // Black
+			data.bytes = &dEmission[0];
+			defaultTexture->loadFromData(data);
 			break;
 			// Add more cases as needed
 		default:
-			defaultColor = glm::vec3(0.5f, 0.5f, 0.5f); // Gray
+			glm::vec3 defaultData = glm::vec3(0.5f, 0.5f, 0.5f); // Gray
+			data.bytes = &defaultData[0];
+			defaultTexture->loadFromData(data);
 			break;
 		}
-
-		// create a 1x1 texture with the default color
-		Shared<Texture> defaultTexture = std::make_shared<Texture>(t); // Adapt this line to your Texture class
-		defaultTexture->bind();
-		defaultTexture->reserve(1, 1, GL_RGB);
-		defaultTexture->loadFromData((unsigned char*)&defaultColor[0], 1, 1, GL_RGB);
+		
 		defaultTexture->setInterpolationMode(GL_LINEAR, GL_LINEAR);
 		defaultTexture->setRepeatMode(GL_REPEAT, GL_REPEAT);
-		defaultTexture->generateMipMap();
+		defaultTexture->generateMipmap();
 
 		return defaultTexture;
 	}
@@ -84,7 +100,7 @@ namespace Merlin {
 		m_textures[TextureType::EMISSION] = GenerateDefaultTexture(TextureType::EMISSION);
 	}
 
-	Texture& Material::getTexture(TextureType t) const {
+	Texture2D& Material::getTexture(TextureType t) const {
 		if (m_textures.find(t) != m_textures.end()) return *m_textures.at(t);
 		else return *m_textures.at(TextureType::COLOR);
 	}

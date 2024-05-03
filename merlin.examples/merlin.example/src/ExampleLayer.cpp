@@ -38,20 +38,6 @@ void ExampleLayer::onAttach(){
 	modelShader->noTexture();
 	renderer.addShader(modelShader);
 
-	
-	std::vector<std::string> skyBoxPath = {
-		"./assets/textures/skybox/right.jpg",
-		"./assets/textures/skybox/left.jpg",
-		"./assets/textures/skybox/bottom.jpg",
-		"./assets/textures/skybox/top.jpg",
-		"./assets/textures/skybox/front.jpg",
-		"./assets/textures/skybox/back.jpg"
-	};
-
-	Shared<Shader> skyShader = Shader::create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
-	sky = createShared<SkyBox>("Sky", skyBoxPath);
-	sky->setShader(skyShader);
-	scene.add(sky);
 
 	Shared<Model> model = Model::create("sphere1", GetModel());
 	model->setMaterial("jade");

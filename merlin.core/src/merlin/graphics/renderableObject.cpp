@@ -20,9 +20,6 @@ namespace Merlin {
 		case Merlin::ObjectType::MESH:
 			return "Mesh";
 			break;
-		case Merlin::ObjectType::SKYBOX:
-			return "SkyBox";
-			break;
 		case Merlin::ObjectType::TRANSFORM:
 			return "Transform";
 			break;

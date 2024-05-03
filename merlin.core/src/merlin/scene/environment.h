@@ -8,7 +8,7 @@ namespace Merlin {
 
 	class Environment : public RenderableObject {
 	public:
-		Environment(std::string name, GLuint resolution = 512) : RenderableObject(name) {}
+		Environment(std::string name, GLuint resolution = 512);
 		
 		Shared<CubeMap> skybox = nullptr;
 		Shared<CubeMap> irradiance = nullptr;

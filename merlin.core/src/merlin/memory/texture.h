@@ -68,7 +68,7 @@ namespace Merlin {
 	class Texture2D : public TextureBase{
 	public:
 
-		Texture2D(TextureType t);
+		Texture2D(TextureType t = TextureType::COLOR);
 		
 		//Settings
 		void setInterpolationMode(GLuint minFilter = GL_LINEAR, GLuint magFilter = GL_LINEAR);
@@ -92,5 +92,5 @@ namespace Merlin {
 		GLuint m_minFilter, m_magFilter, m_wrapS, m_wrapT;
 	};
 
-	typedef Shared<Texture2D> Texture_Ptr;
+	typedef Shared<Texture2D> Texture2D_Ptr;
 }

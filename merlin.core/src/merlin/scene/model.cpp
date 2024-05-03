@@ -73,7 +73,7 @@ namespace Merlin {
 
 				//manage camera,transform, textures
 
-				Texture* tex;
+				Texture2D* tex;
 				tex = &mat.getTexture(TextureType::COLOR);
 				tex->setUnit(0);
 				tex->syncTextureUnit(*shader, (tex->typeToString()));

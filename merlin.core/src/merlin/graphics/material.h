@@ -37,7 +37,7 @@ namespace Merlin {
 
         void loadDefaultTexture();
         void loadTexture(std::string path, TextureType t = TextureType::COLOR);
-        void setTexture(Texture_Ptr tex);
+        void setTexture(Texture2D_Ptr tex);
         Texture2D& getTexture(TextureType t) const;
         
 
@@ -55,7 +55,7 @@ namespace Merlin {
 
     private:
         std::string m_name;
-        std::map<TextureType, Texture_Ptr> m_textures;
+        std::map<TextureType, Texture2D_Ptr> m_textures;
         MaterialProperty m_props;
     };
 

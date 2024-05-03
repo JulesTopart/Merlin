@@ -241,11 +241,6 @@ namespace Merlin {
 		// upload the texture data
 		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, m_width, m_height, 0, m_format, m_dataType, data.bytes);
 		generateMipmap();
-
-		// Clean up if necessary
-		if (data.bytes) {
-			stbi_image_free(data.bytes);
-		}
 	}
 
 	void Texture2D::loadFromFile(const std::string& path){
@@ -254,10 +249,11 @@ namespace Merlin {
 
 	Shared<Texture2D> Texture2D::create(GLuint width, GLuint height, TextureType t){
 		Shared<Texture2D> tex = createShared<Texture2D>(t);
+			
+		ChannelsProperty cp = TextureBase::getChannelsProperty(t);
 
-		daljdbjzqdbqj
 		tex->bind();
-		tex->reserve(width, height, channels, bits);
+		tex->reserve(width, height, cp.channels, cp.bits);
 		tex->setInterpolationMode();
 		tex->setRepeatMode();
 		tex->generateMipmap();
@@ -277,6 +273,15 @@ namespace Merlin {
 	}
 
 	Shared<Texture2D> Texture2D::create(const std::string& path, TextureType t){
-		return TextureLoader::loadTexture(path, t);
+		ImageData data = TextureLoader::loadImageData(path);
+		
+		Shared<Texture2D> tex = createShared<Texture2D>(t);
+
+		tex->loadFromData(data);
+		// Clean up if necessary
+		if (data.bytes) {
+			stbi_image_free(data.bytes);
+		}
+		return tex;
 	}
 }

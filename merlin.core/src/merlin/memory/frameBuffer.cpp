@@ -144,11 +144,11 @@ namespace Merlin {
         // create Framebuffer Texture
         std::shared_ptr<TextureBase> tex;
         if (samples > 0) {
-            tex = std::make_shared<TextureMultisampled>(TextureType::COLOR, samples);
+            tex = std::make_shared<TextureMultisampled2D>(samples, TextureType::COLOR);
         }
         else {
-            tex = std::make_shared<Texture>();
-            if (const auto tx = std::dynamic_pointer_cast<Texture>(tex)) {
+            tex = std::make_shared<Texture2D>();
+            if (const auto tx = std::dynamic_pointer_cast<Texture2D>(tex)) {
                 tx->setInterpolationMode(GL_LINEAR, GL_LINEAR);
                 tx->setRepeatMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
             }
