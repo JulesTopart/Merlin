@@ -5,7 +5,7 @@
 namespace Merlin {
 
 	enum class TextureType {
-		COLOR, NORMAL, DISPLACMENT, REFLECTION, ROUGHNESS, METALNESS, AMBIENT_OCCLUSION, MASK, EMISSION, DEPTH, SHADOW, ENVIRONMENT, DATA, UNKNOWN
+		DIFFUSE, SPECULAR, ALBEDO, NORMAL, DISPLACMENT, REFLECTION, ROUGHNESS, METALNESS, AMBIENT_OCCLUSION, MASK, EMISSION, DEPTH, SHADOW, ENVIRONMENT, DATA, UNKNOWN
 	};
 
 	struct ImageData {
@@ -50,15 +50,17 @@ namespace Merlin {
 		inline const GLuint id() const { return m_TextureID; }
 
 		static ChannelsProperty getChannelsProperty(TextureType);
+		inline static GLuint getNextTextureUnit() { return currentTextureUnit++; }
+		inline static void resetTextureUnit() { currentTextureUnit = 0; }
 
 	protected:
 
 		GLuint m_width = 0, m_height = 0;
 		GLenum m_format, m_internalFormat, m_dataType;
-		TextureType m_type = TextureType::COLOR;
+		TextureType m_type = TextureType::ALBEDO;
 
 	private:
-
+		inline static GLuint currentTextureUnit = 0;
 		GLenum m_Target; // Either GL_TEXTURE_2D_MULTISAMPLE or GL_TEXTURE_2D or GL_TEXTURE_CUBEMAP
 		GLuint m_unit = 0;
 		GLuint m_TextureID = 0;
@@ -68,7 +70,7 @@ namespace Merlin {
 	class Texture2D : public TextureBase{
 	public:
 
-		Texture2D(TextureType t = TextureType::COLOR);
+		Texture2D(TextureType t = TextureType::ALBEDO);
 		
 		//Settings
 		void setInterpolationMode(GLuint minFilter = GL_LINEAR, GLuint magFilter = GL_LINEAR);
@@ -83,9 +85,9 @@ namespace Merlin {
 		void loadFromData(const ImageData& data);
 		void loadFromFile(const std::string& path);
 
-		static Shared<Texture2D> create(GLuint width, GLuint height, TextureType = TextureType::COLOR);
-		static Shared<Texture2D> create(const ImageData& data, TextureType = TextureType::COLOR);
-		static Shared<Texture2D> create(const std::string& path, TextureType = TextureType::COLOR);
+		static Shared<Texture2D> create(GLuint width, GLuint height, TextureType = TextureType::ALBEDO);
+		static Shared<Texture2D> create(const ImageData& data, TextureType = TextureType::ALBEDO);
+		static Shared<Texture2D> create(const std::string& path, TextureType = TextureType::ALBEDO);
 
 	private:
 

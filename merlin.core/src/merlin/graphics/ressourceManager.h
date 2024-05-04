@@ -66,10 +66,10 @@ namespace Merlin {
         void LoadDefaultShaders();
     };
 
-    class MaterialLibrary : public RessourceManager<Material> {
+    class MaterialLibrary : public RessourceManager<Shared<MaterialBase>> {
     public:
         MaterialLibrary();
-        inline void add(Shared<Material> mat) { RessourceManager::add(mat->name(), mat); };
+        inline void add(Shared<MaterialBase> mat) { RessourceManager::add(mat->name(), mat); };
 
     private:
         void LoadDefaultMaterials();

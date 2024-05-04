@@ -144,7 +144,7 @@ namespace Merlin {
         // create Framebuffer Texture
         std::shared_ptr<TextureBase> tex;
         if (samples > 0) {
-            tex = std::make_shared<TextureMultisampled2D>(samples, TextureType::COLOR);
+            tex = std::make_shared<TextureMultisampled2D>(samples, TextureType::ALBEDO);
         }
         else {
             tex = std::make_shared<Texture2D>();

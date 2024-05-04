@@ -81,7 +81,7 @@ namespace Merlin {
 
 		if (shader->supportTexture()) {
 			Texture2D* tex;
-			tex = &mat->getTexture(TextureType::COLOR);
+			tex = &mat->getTexture(TextureType::ALBEDO);
 
 			if (tex) {
 				shader->setInt("skybox", 0);
@@ -157,7 +157,7 @@ namespace Merlin {
 		}
 		else if (ps.getDisplayMode() == ParticleSystemDisplayMode::MESH) {
 			const Shader* shader;
-			const Material* mat;
+			Shared<MaterialBase> mat;
 
 			if (ps.getMesh()->hasShader())
 				shader = &ps.getMesh()->getShader();
@@ -166,10 +166,10 @@ namespace Merlin {
 
 
 			if (ps.getMesh()->hasMaterial())
-				mat = &ps.getMesh()->getMaterial();
+				mat = ps.getMesh()->getMaterial();
 			else {
 
-				mat = &m_materialLibrary.get(ps.getMesh()->getMaterialName());
+				mat = m_materialLibrary.get(ps.getMesh()->getMaterialName());
 			}
 
 
@@ -201,7 +201,7 @@ namespace Merlin {
 			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 
 			if (shader->supportTexture()) {
-				Texture2D* tex = &mat->getTexture(TextureType::COLOR);
+				Texture2D* tex = &mat->getTexture(TextureType::ALBEDO);
 
 				//WARNING This should be done once...
 				tex->setUnit(1); //Skybox is 0...
@@ -255,11 +255,6 @@ namespace Merlin {
 		return m_shaderLibrary.share(n);
 	}
 
-
-	const Material& Renderer::getMaterial(std::string n) {
-		return m_materialLibrary.get(n);
-	}
-
 	const Shader& Renderer::getShader(std::string n) {
 		return m_shaderLibrary.get(n);
 	}
@@ -269,15 +264,7 @@ namespace Merlin {
 		m_shaderLibrary.add(shader);
 	}
 
-	void Renderer::createMaterial(MaterialProperty matProps){
-		std::string name = "material";
-		std::stringstream ss;
-		ss << name << m_materialLibrary.size();
-		Shared<Material> mat = createShared<Material>(ss.str());
-		m_materialLibrary.add(mat);
-	}
-
-	void Renderer::addMaterial(Shared<Material> material) {
+	void Renderer::addMaterial(Shared<MaterialBase> material) {
 		m_materialLibrary.add(material);
 	}
 

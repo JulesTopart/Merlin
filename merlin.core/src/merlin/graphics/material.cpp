@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 namespace Merlin {
+	/*
 	Material::Material(std::string name) : m_name(name) { loadDefaultTexture(); }
 
     void Material::setProperty(const MaterialProperty& props) {
@@ -26,7 +27,7 @@ namespace Merlin {
 
 	void Material::setAmbientOcclusion(const float& ao) { m_props.ao = ao; }
 
-	void Material::setTexture(Texture2D_Ptr tex) {
+	void Material::addTexture(Texture2D_Ptr tex) {
 		m_textures[tex->type()] = tex;
 	}
 
@@ -36,7 +37,7 @@ namespace Merlin {
 		tex->loadFromFile(path);
 		tex->setInterpolationMode(GL_LINEAR);
 		tex->setRepeatMode(GL_REPEAT);
-		setTexture(tex);
+		addTexture(tex);
 	}
 
 	Shared<Texture2D> GenerateDefaultTexture(TextureType t) {
@@ -52,7 +53,7 @@ namespace Merlin {
 		data.channels = 3;
 
 		switch (t) {
-		case TextureType::COLOR:
+		case TextureType::ALBEDO:
 			glm::vec3 dColor = glm::vec3(0.5f, 0.5f, 0.5f); // Gray
 			data.bytes = &dColor[0];
 			defaultTexture->loadFromData(data);
@@ -93,7 +94,7 @@ namespace Merlin {
 	}
 
 	void Material::loadDefaultTexture() {
-		m_textures[TextureType::COLOR] = GenerateDefaultTexture(TextureType::COLOR);
+		m_textures[TextureType::ALBEDO] = GenerateDefaultTexture(TextureType::ALBEDO);
 		m_textures[TextureType::NORMAL] = GenerateDefaultTexture(TextureType::NORMAL);
 		m_textures[TextureType::ROUGHNESS] = GenerateDefaultTexture(TextureType::ROUGHNESS);
 		m_textures[TextureType::AMBIENT_OCCLUSION] = GenerateDefaultTexture(TextureType::AMBIENT_OCCLUSION);
@@ -102,10 +103,10 @@ namespace Merlin {
 
 	Texture2D& Material::getTexture(TextureType t) const {
 		if (m_textures.find(t) != m_textures.end()) return *m_textures.at(t);
-		else return *m_textures.at(TextureType::COLOR);
+		else return *m_textures.at(TextureType::ALBEDO);
 	}
 
 
-
+	*/
 
 }

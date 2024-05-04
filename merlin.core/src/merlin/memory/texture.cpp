@@ -64,7 +64,7 @@ namespace Merlin {
 
 
 	std::string TextureBase::typeToString() const {
-		if (type() == TextureType::COLOR) {
+		if (type() == TextureType::ALBEDO) {
 			return "color";
 		}
 		else if (type() == TextureType::ROUGHNESS) {
@@ -112,7 +112,7 @@ namespace Merlin {
 		GLuint channels = 3;
 
 		switch (t) {
-		case TextureType::COLOR: //COL sRGB
+		case TextureType::ALBEDO: //COL sRGB
 			bits = 8;
 			channels = 3; //RGB
 			break;

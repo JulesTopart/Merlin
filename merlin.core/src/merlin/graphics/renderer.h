@@ -24,11 +24,10 @@ namespace Merlin {
 		void initialize();		
 
 		void loadShader(const std::string& name, const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geomShaderPath = "");
-		void createMaterial(MaterialProperty matProps);
-		void addMaterial(Shared<Material> material);
+
+		void addMaterial(Shared<MaterialBase> material);
 		void addShader(Shared<Shader> shader );
 
-		const Material& getMaterial(std::string n);
 		const Shader& getShader(std::string n);
 		const Shared<Shader>& shareShader(std::string n);
 
