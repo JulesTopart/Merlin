@@ -15,7 +15,7 @@ namespace Merlin {
 
 		void renderMesh(const Mesh& mesh, const Camera& camera);
 		void renderModel(const Model& model, const Camera& camera);
-		void renderParticleSystem(const ParticleSystem& ps, const Camera& camera);
+		//void renderParticleSystem(const ParticleSystem& ps, const Camera& camera);
 		void renderTransformObject(const TransformObject& obj, const Camera& camera);
 
 		void renderScene(const Scene& model, const Camera& camera);
@@ -28,8 +28,7 @@ namespace Merlin {
 		void addMaterial(Shared<MaterialBase> material);
 		void addShader(Shared<Shader> shader );
 
-		const Shader& getShader(std::string n);
-		const Shared<Shader>& shareShader(std::string n);
+		Shared<Shader> getShader(std::string n);
 
 	private:
 		
@@ -40,6 +39,9 @@ namespace Merlin {
 
 		glm::mat4 currentTransform;
 		std::stack<glm::mat4> matrixStack;
+
+		Shared<Environment> m_defaultEnvironment = nullptr;
+		Shared<Environment> m_currentEnvironment = nullptr;
 
 		ShaderLibrary m_shaderLibrary;
 		MaterialLibrary m_materialLibrary;

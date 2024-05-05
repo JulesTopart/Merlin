@@ -35,8 +35,10 @@ namespace Merlin {
 
 		inline bool supportTexture() const		{ return _supportTexture; }
 		inline bool supportMaterial() const		{ return _supportMaterial; }
+		inline bool supportEnvironment() const		{ return _supportEnvironment; }
 		inline void noMaterial()	{ _supportMaterial = false; }
 		inline void noTexture()	{ _supportTexture = false; }
+		inline void noEnvironment()	{ _supportEnvironment = false; }
 
 	protected:
 
@@ -45,6 +47,7 @@ namespace Merlin {
 
 		bool _supportTexture = true;
 		bool _supportMaterial = true;
+		bool _supportEnvironment = true;
 
 		GLuint vertexShaderID = 0;
 		GLuint fragmentShaderID = 0;

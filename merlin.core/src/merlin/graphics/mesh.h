@@ -43,7 +43,7 @@ namespace Merlin {
 		inline const std::vector<Vertex>& getVertices() const { return m_vertices;  }
 		inline const std::vector<GLuint>& getIndices() const{ return m_indices; }
 		inline const glm::mat4& getTransform() const { return m_transform; }
-		inline const Shader& getShader() const { return *m_shader; }
+		inline const Shared<Shader> getShader() const { return m_shader; }
 		inline const std::string& getShaderName() const { return m_shaderName; }
 		inline const Shared<MaterialBase> getMaterial() const { return m_material; }
 		inline const std::string& getMaterialName() const { return m_materialName; }

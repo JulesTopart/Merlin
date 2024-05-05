@@ -21,7 +21,7 @@ namespace Merlin {
 
 
         void setShader(const Shared<Shader>& shader);
-        void setMaterial(const Shared<Material>& material);
+        void setMaterial(Shared<MaterialBase> material);
         void setShader(const std::string& shader);
         void setMaterial(const std::string& material);
 

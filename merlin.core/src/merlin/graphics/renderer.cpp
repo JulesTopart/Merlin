@@ -6,14 +6,15 @@ namespace Merlin {
 
 	Renderer::Renderer() : currentTransform(glm::mat4(1.0)) {}
 
-	Renderer::~Renderer() {
-	}
+	Renderer::~Renderer() {}
 
 
 	void Renderer::initialize() {
 		enableMultisampling();
 		enableDepthTest();
 		enableCubeMap();
+
+		m_defaultEnvironment = createShared<Environment>("defaultEnvironment", 16);
 	}
 
 	void Renderer::pushMatrix() {
@@ -36,6 +37,7 @@ namespace Merlin {
 
 
 	void Renderer::renderScene(const Scene& scene, const Camera& camera) {
+		if (scene.hasEnvironment())m_currentEnvironment = scene.getEnvironment();
 		for (const auto& node : scene.nodes()) {
 			if(!node->isHidden()) render(node, camera);
 		}
@@ -50,67 +52,35 @@ namespace Merlin {
 
 	void Renderer::renderMesh(const Mesh& mesh, const Camera& camera) {
 
-		const Shader* shader;
-		const Material* mat;
-
+		Material_Ptr mat = mesh.getMaterial();
+		Shader_Ptr shader = mesh.getShader();
+		
 		if (mesh.hasShader())
-			shader = &mesh.getShader();
+			shader = mesh.getShader();
 		else
-			shader = &m_shaderLibrary.get(mesh.getShaderName());
-
+			shader = m_shaderLibrary.get(mesh.getShaderName());
 
 		if (mesh.hasMaterial())
-			mat = &mesh.getMaterial();
-		else {
-
-			mat = &m_materialLibrary.get(mesh.getMaterialName());
-		}
+			mat = mesh.getMaterial();
+		else 
+			mat = m_materialLibrary.get(mesh.getMaterialName());
+		
 
 		shader->use();
-		if (shader->supportMaterial()) {
-			shader->setVec3("ambient", mat->ambient());
-			shader->setVec3("diffuse", mat->diffuse());
-			shader->setVec3("specular", mat->specular());
-			shader->setFloat("shininess", mat->shininess());
-			shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
-		}
+		TextureBase::resetTextureUnit();
+		mat->attach(*shader);
+		
+		if(m_currentEnvironment != nullptr)
+			m_currentEnvironment->attach(*shader);
+		else m_defaultEnvironment->attach(*shader);
 
 		shader->setMat4("model", currentTransform); //sync model matrix with GPU
 		shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 
-		if (shader->supportTexture()) {
-			Texture2D* tex;
-			tex = &mat->getTexture(TextureType::ALBEDO);
-
-			if (tex) {
-				shader->setInt("skybox", 0);
-				shader->setInt("hasColorTex", !tex->isDefault());
-				bool test = !tex->isDefault();
-
-				if (!tex->isDefault()) {
-					tex->setUnit(1); //Skybox is 0...
-					tex->syncTextureUnit(*shader, (tex->typeToString()) + "0");
-					tex->bind();
-				}
-			}
-
-			tex = &mat->getTexture(TextureType::NORMAL);
-
-			if (tex) {
-				shader->setInt("hasNormalTex", !tex->isDefault());
-
-				if (!tex->isDefault()) {
-					tex->setUnit(2); //Skybox is 0...
-					tex->syncTextureUnit(*shader, (tex->typeToString()) + "0");
-					tex->bind();
-				}
-			}
-		}
-
 		mesh.draw();
 	}
-
+	/*
 	void Renderer::renderParticleSystem(const ParticleSystem& ps, const Camera& camera) {
 		if (ps.getDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE) {
 			const Shader* shader;
@@ -174,27 +144,16 @@ namespace Merlin {
 
 
 			shader->use();
-			if (shader->supportMaterial()) {
-				/*
-				if (mat->usePBR() && shader->SupportPBR()) {//todo remove this -> Replace by proper UBO management
-					shader->setVec3("albedo", mat->albedo());
-					shader->setFloat("metallic", mat->metallic());
-					shader->setFloat("roughness", mat->roughness());
-					shader->setFloat("ao", mat->ao());
-					shader->setVec3("viewPos", camera.GetPosition()); //sync model matrix with GPU
-				}
-				else {
+			if (ps.getMesh()->hasShader())
+				shader = ps.getMesh()->getShader();
+			else
+				shader = m_shaderLibrary.get(mesh.getShaderName());
 
-				}
-				*/
+			if (mesh.hasMaterial())
+				mat = mesh.getMaterial();
+			else
+				mat = m_materialLibrary.get(mesh.getMaterialName());
 
-				shader->setVec3("ambient", mat->ambient());
-				shader->setVec3("diffuse", mat->diffuse());
-				shader->setVec3("specular", mat->specular());
-				shader->setFloat("shininess", mat->shininess());
-				shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
-
-			}
 
 			shader->setMat4("model", currentTransform); //sync model matrix with GPU
 			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
@@ -214,7 +173,7 @@ namespace Merlin {
 			ps.draw(*shader);
 		}
 	}
-
+	*/
 	void Renderer::renderTransformObject(const TransformObject& obj, const Camera& camera) {
 		//TODO Render axis
 		render(obj.getXAxisMesh(), camera);
@@ -242,7 +201,6 @@ namespace Merlin {
 		else if (const auto ps = std::dynamic_pointer_cast<TransformObject>(object)) {
 			renderTransformObject(*ps, camera); //Propagate to childrens
 		}
-
 		for (auto node : object->children()) {
 			render(node, camera);//Propagate to childrens
 		}
@@ -250,12 +208,7 @@ namespace Merlin {
 		popMatrix();
 	}
 
-
-	const Shared<Shader>& Renderer::shareShader(std::string n) {
-		return m_shaderLibrary.share(n);
-	}
-
-	const Shader& Renderer::getShader(std::string n) {
+	Shared<Shader> Renderer::getShader(std::string n) {
 		return m_shaderLibrary.get(n);
 	}
 

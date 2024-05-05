@@ -50,17 +50,17 @@ namespace Merlin {
         inline void setSpecularTexture(Texture2D_Ptr tex) { m_specular_tex = tex; }
 
         void attach(Shader& shader) const override {
-            
-            shader.setInt("material.use_diffuse_tex", m_diffuse_tex != nullptr);
-            if (m_diffuse_tex) {
+            if (!shader.supportMaterial())return;
+            shader.setInt("material.use_diffuse_tex", m_diffuse_tex != nullptr && shader.supportTexture());
+            if (m_diffuse_tex && shader.supportTexture()) {
                 m_diffuse_tex->setUnit(TextureBase::getNextTextureUnit());
                 m_diffuse_tex->bind();
                 m_diffuse_tex->syncTextureUnit(shader, "material.diffuse_tex");
             }
             else shader.setVec3("material.diffuse_color", m_diffuse_color);
 
-            shader.setInt("material.use_specular_tex", m_specular_tex != nullptr);
-            if (m_specular_tex) {
+            shader.setInt("material.use_specular_tex", m_specular_tex != nullptr && shader.supportTexture());
+            if (m_specular_tex && shader.supportTexture()) {
                 m_specular_tex->setUnit(TextureBase::getNextTextureUnit());
                 m_specular_tex->bind();
                 m_specular_tex->syncTextureUnit(shader, "material.specular_tex");
@@ -96,6 +96,8 @@ namespace Merlin {
         inline void setRoughnessTexture(Texture2D_Ptr tex) { m_roughness_tex = tex; }
         inline void setAOTexture(Texture2D_Ptr tex) { m_ao_tex = tex; }
 
+        void loadTexture(const std::string& path, TextureType t = TextureType::ALBEDO);
+
         // Setters for material properties
         void setAlbedoColor(const glm::vec3& color) { m_albedo_color = color; }
         void setMetallic(float value) { m_metalness = value; }
@@ -103,42 +105,42 @@ namespace Merlin {
         void setAO(float value) { m_ao = value; }
 
         void attach(Shader& shader) const override {
-
-            shader.setInt("material.use_albedo_tex", m_albedo_tex != nullptr);
-            if (m_albedo_tex) {
+            if (!shader.supportMaterial())return;
+            shader.setInt("material.use_albedo_tex", m_albedo_tex != nullptr && shader.supportTexture());
+            if (m_albedo_tex && shader.supportTexture()) {
                 m_albedo_tex->setUnit(TextureBase::getNextTextureUnit());
                 m_albedo_tex->bind();
-                m_albedo_tex->syncTextureUnit(shader, "material.albedo_tex");
+                m_albedo_tex->syncTextureUnit(shader, "albedo_tex");
 
             }else shader.setVec3("material.albedo", m_albedo_color);
             
-            shader.setInt("material.use_normal_tex", m_normal_tex != nullptr);
-            if (m_normal_tex) {
+            shader.setInt("material.use_normal_tex", m_normal_tex != nullptr && shader.supportTexture());
+            if (m_normal_tex && shader.supportTexture()) {
                 m_normal_tex->setUnit(TextureBase::getNextTextureUnit());
                 m_normal_tex->bind();
-                m_normal_tex->syncTextureUnit(shader, "material.normal_tex");
+                m_normal_tex->syncTextureUnit(shader, "normal_tex");
             }//use vertex normal otherwise
 
-            shader.setInt("material.use_metallic_tex", m_metalness_tex != nullptr);
-            if (m_metalness_tex) {
+            shader.setInt("material.use_metallic_tex", m_metalness_tex != nullptr && shader.supportTexture());
+            if (m_metalness_tex && shader.supportTexture()) {
                 m_metalness_tex->setUnit(TextureBase::getNextTextureUnit());
                 m_metalness_tex->bind();
-                m_metalness_tex->syncTextureUnit(shader, "material.metalness_tex");
+                m_metalness_tex->syncTextureUnit(shader, "metalness_tex");
             }else shader.setFloat("material.metalness", m_metalness);
             
-            shader.setInt("material.use_roughness_tex", m_roughness_tex != nullptr);
-            if (m_roughness_tex) {
+            shader.setInt("material.use_roughness_tex", m_roughness_tex != nullptr && shader.supportTexture());
+            if (m_roughness_tex && shader.supportTexture()) {
                 m_roughness_tex->setUnit(TextureBase::getNextTextureUnit());
                 m_roughness_tex->bind();
-                m_roughness_tex->syncTextureUnit(shader, "material.roughness_tex");
+                m_roughness_tex->syncTextureUnit(shader, "roughness_tex");
             }
             else shader.setFloat("material.roughness", m_roughness);
 
-            shader.setInt("material.use_ao_tex", m_ao_tex != nullptr);
-            if (m_ao_tex) {
+            shader.setInt("material.use_ao_tex", m_ao_tex != nullptr && shader.supportTexture());
+            if (m_ao_tex && shader.supportTexture()) {
                 m_ao_tex->setUnit(TextureBase::getNextTextureUnit());
                 m_ao_tex->bind();
-                m_ao_tex->syncTextureUnit(shader, "material.ao_tex");
+                m_ao_tex->syncTextureUnit(shader, "ao_tex");
             }
             else shader.setFloat("material.ao", m_metalness);
         }

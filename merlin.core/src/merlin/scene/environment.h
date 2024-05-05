@@ -9,13 +9,11 @@ namespace Merlin {
 	class Environment : public RenderableObject {
 	public:
 		Environment(std::string name, GLuint resolution = 512);
-		
-		Shared<CubeMap> skybox = nullptr;
-		Shared<CubeMap> irradiance = nullptr;
 
 		// Setup methods for different textures
 		void loadHDR(const std::string& path);
 
+		void attach(Shader& shader) const;
 		void draw() const;
 
 		inline bool hasShader() const { return m_shader != nullptr; }
@@ -33,6 +31,9 @@ namespace Merlin {
 		Shared<Texture2D> raw_hdri = nullptr;
 
 		GLuint m_resolution = 512;
+
+		Shared<CubeMap> m_skybox = nullptr;
+		Shared<CubeMap> m_irradiance = nullptr;
 
 		inline static Shared<Shader> conversionShader = nullptr;
 		inline static Shared<Shader> convolutionShader = nullptr;

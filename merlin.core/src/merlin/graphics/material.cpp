@@ -4,6 +4,43 @@
 #include <glm/glm.hpp>
 
 namespace Merlin {
+
+	void PBRMaterial::loadTexture(const std::string& path, TextureType t) {
+		Shared<Texture2D> tex = Texture2D::create(path, t);
+		switch (t){
+		case Merlin::TextureType::ALBEDO:
+			setAlbedoTexture(tex);
+			break;
+		case Merlin::TextureType::NORMAL:
+			setNormalTexture(tex);
+			break;
+		case Merlin::TextureType::DISPLACMENT:
+			//setD
+			Console::error("Material") << "DISPLACMENT texture not supported yet" << Console::endl;
+			break;
+		case Merlin::TextureType::REFLECTION:
+			Console::error("Material") << "REFLECTION texture not supported yet" << Console::endl;
+			break;
+		case Merlin::TextureType::ROUGHNESS:
+			setRoughnessTexture(tex);
+			break;
+		case Merlin::TextureType::METALNESS:
+			setMetallicTexture(tex);
+			break;
+		case Merlin::TextureType::AMBIENT_OCCLUSION:
+			setAOTexture(tex);
+			break;
+		case Merlin::TextureType::MASK:
+			Console::error("Material") << "MASK texture not supported yet" << Console::endl;
+			break;
+		case Merlin::TextureType::EMISSION:
+			Console::error("Material") << "EMISSION texture not supported yet" << Console::endl;
+			break;
+		default:
+			break;
+		}
+	}
+
 	/*
 	Material::Material(std::string name) : m_name(name) { loadDefaultTexture(); }
 
