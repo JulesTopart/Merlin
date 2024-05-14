@@ -166,10 +166,11 @@ void AppLayer::InitGraphics() {
 	renderer.addShader(binShader);
 	renderer.addShader(modelShader);
 
+	/*
 	Shared<Shader> skyShader = Shader::create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
 	Shared<Environment> sky = Environment::create("Sky");
 	sky->setShader(skyShader);
-	scene.add(sky);
+	scene.add(sky);*/
 
 	Shared<Model> floor = ModelLoader::loadModel("./assets/models/bed.stl");
 	floor->translate(glm::vec3(0.75, -0.25, -0.1));
@@ -184,12 +185,12 @@ void AppLayer::InitGraphics() {
 	Shared<Model> floorSurface = Model::create("floorSurface", Primitives::createRectangle(316, 216));
 	floorSurface->translate(glm::vec3(0.75, -0.25, 0));
 
-	Shared<Material> floorMat2 = createShared<Material>("floorMat2");
+	Shared<PhongMaterial> floorMat2 = createShared<PhongMaterial>("floorMat2");
 	floorMat2->setAmbient(glm::vec3(0.015));
 	floorMat2->setDiffuse(glm::vec3(0.9));
 	floorMat2->setSpecular(glm::vec3(0.95));
 	floorMat2->setShininess(0.98);
-	floorMat2->loadTexture("assets/textures/bed.png", TextureType::ALBEDO);
+	floorMat2->loadTexture("assets/textures/bed.png", TextureType::DIFFUSE);
 
 
 	floorSurface->setMaterial(floorMat2);

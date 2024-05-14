@@ -152,8 +152,8 @@ void main()
 	
 
 	// Ambient lighting (IBL).
-	vec3 ambientLighting;
-	{
+	vec3 ambientLighting = vec3(0);
+	/*{
 		// Sample diffuse irradiance at normal direction.
 		vec3 irradiance = environment.use_irradiance_tex ? texture(environment.irradiance_tex, N).rgb : environment.irradiance;
 
@@ -180,7 +180,7 @@ void main()
 
 		// Total ambient lighting contribution.
 		ambientLighting = diffuseIBL + specularIBL;
-	}
+	}/**/
 
 	// Final fragment color.
 	fragColor = vec4(directLighting + ambientLighting, 1.0);

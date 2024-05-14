@@ -60,7 +60,7 @@ namespace Merlin {
 
 	void Environment::attach(Shader& shader) const{
 		if (!shader.supportEnvironment())return;
-
+		/*
 		shader.setInt("environment.use_irradiance_tex", m_irradiance != nullptr && shader.supportTexture());
 		if (m_irradiance && shader.supportTexture()) {
 			m_irradiance->setUnit(TextureBase::getNextTextureUnit());
@@ -79,6 +79,7 @@ namespace Merlin {
 		else shader.setVec3("material.specular_color", m_specular_color);
 
 		shader.setFloat("material.shininess", m_shininess);
+		*/
 	}
 
 	void Environment::draw() const {
@@ -95,7 +96,7 @@ namespace Merlin {
 
 		fbo.bind();
 		fbo.addDepthStencilAttachment(fbo.createRenderBufferAttachment(GL_DEPTH_COMPONENT24));
-		skybox = CubeMap::create(m_resolution, m_resolution);
+		//skybox = CubeMap::create(m_resolution, m_resolution);
 
 
 	}

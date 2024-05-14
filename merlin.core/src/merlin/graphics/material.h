@@ -46,10 +46,12 @@ namespace Merlin {
         inline void setSpecular(const glm::vec3& specular) { m_specular_color = specular; };
         inline void setShininess(const float& shininess) { m_shininess = shininess; };
 
+        void loadTexture(const std::string& path, TextureType t = TextureType::DIFFUSE);
+
         inline void setDiffuseTexture(Texture2D_Ptr tex) { m_diffuse_tex = tex; }
         inline void setSpecularTexture(Texture2D_Ptr tex) { m_specular_tex = tex; }
 
-        void attach(Shader& shader) const override {
+        inline void attach(Shader& shader) const override {
             if (!shader.supportMaterial())return;
             shader.setInt("material.use_diffuse_tex", m_diffuse_tex != nullptr && shader.supportTexture());
             if (m_diffuse_tex && shader.supportTexture()) {
@@ -104,7 +106,7 @@ namespace Merlin {
         void setRoughness(float value) { m_roughness = value; }
         void setAO(float value) { m_ao = value; }
 
-        void attach(Shader& shader) const override {
+        inline void attach(Shader& shader) const override {
             if (!shader.supportMaterial())return;
             shader.setInt("material.use_albedo_tex", m_albedo_tex != nullptr && shader.supportTexture());
             if (m_albedo_tex && shader.supportTexture()) {

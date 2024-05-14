@@ -6,37 +6,51 @@
 namespace Merlin {
 
     enum class LightType {
-        Directional,
         Point,
+        Directional,
         Spot
     };
 
 	class Light : public RenderableObject{
     public:
-        Light(const std::string& name, const glm::vec3& ambient, const glm::vec3& diffuse, const glm::vec3& specular, LightType type)
+        Light(const std::string& name, LightType type, const glm::vec3& ambient = glm::vec3(1), const glm::vec3& diffuse = glm::vec3(1), const glm::vec3& specular = glm::vec3(1))
             : RenderableObject(name), ambient_(ambient), diffuse_(diffuse), specular_(specular), type_(type) {}
 
 
-        const glm::vec3& ambient() const { return ambient_; }
-        const glm::vec3& diffuse() const { return diffuse_; }
-        const glm::vec3& specular() const { return specular_; }
+        virtual void attach(int id, Shader& shader) = 0;
+        inline void applyRenderTransform(const glm::mat4& transform) { renderTransform = transform; }
+        inline const glm::mat4& getRenderTransform() { return renderTransform; }
+
+
+        const void setAmbient(const glm::vec3& c) { ambient_ = c; }
+        const void setDiffuse(const glm::vec3& c) { diffuse_ = c;}
+        const void setSpecular(const glm::vec3& c) { specular_ = c;}
+
+        inline const glm::vec3& ambient() const { return ambient_; }
+        inline const glm::vec3& diffuse() const { return diffuse_; }
+        inline const glm::vec3& specular() const { return specular_; }
         LightType type() const { return type_; }
 
     private:
-        glm::vec3 position_;
-        glm::vec3 direction_;
         glm::vec3 ambient_;
         glm::vec3 diffuse_;
         glm::vec3 specular_;
         LightType type_;
+
+
+        glm::mat4 renderTransform;
 	};
 
     class DirectionalLight : public Light {
     public:
+        DirectionalLight(const std::string& name, const glm::vec3& direction = glm::vec3(0, 0, -1))
+            : Light(name, LightType::Directional), direction_(direction) {}
         DirectionalLight(const std::string& name, const glm::vec3& direction, const glm::vec3& ambient, const glm::vec3& diffuse, const glm::vec3& specular)
-            : Light(name, ambient, diffuse, specular, LightType::Directional), direction_(direction) {}
+            : Light(name, LightType::Directional, ambient, diffuse, specular), direction_(direction) {}
 
         const glm::vec3& direction() const { return direction_; }
+
+        void attach(int id, Shader&) override;
 
     private:
         glm::vec3 direction_;
@@ -44,10 +58,16 @@ namespace Merlin {
 
     class PointLight : public Light {
     public:
+
+        PointLight(const std::string& name, const glm::vec3& position = glm::vec3(0))
+            : Light(name, LightType::Point), position_(position) {}
+
         PointLight(const std::string& name, const glm::vec3& position, const glm::vec3& ambient, const glm::vec3& diffuse, const glm::vec3& specular)
-            : Light(name, ambient, diffuse, specular, LightType::Point), position_(position) {}
+            : Light(name, LightType::Point, ambient, diffuse, specular), position_(position) {}
 
         const glm::vec3& position() const { return position_; }
+
+        void attach(int id, Shader&) override;
 
     private:
         glm::vec3 position_;
@@ -55,16 +75,23 @@ namespace Merlin {
 
     class SpotLight : public Light {
     public:
+
+        SpotLight(const std::string& name, const glm::vec3& position = glm::vec3(0), const glm::vec3& direction = glm::vec3(0, 0, -1), float cutOff = 50.0f)
+            : Light(name, LightType::Spot), position_(position), direction_(direction), cutOff_(cutOff) {}
+
         SpotLight(const std::string& name, const glm::vec3& position, const glm::vec3& direction, float cutOff, const glm::vec3& ambient, const glm::vec3& diffuse, const glm::vec3& specular)
-            : Light(name, ambient, diffuse, specular, LightType::Spot), position_(position), direction_(direction), cutOff_(cutOff) {}
+            : Light(name, LightType::Spot, ambient, diffuse, specular), position_(position), direction_(direction), cutOff_(cutOff) {}
 
         const glm::vec3& position() const { return position_; }
         const glm::vec3& direction() const { return direction_; }
         float cutOff() const { return cutOff_; }
 
+        void attach(int id, Shader&) override;
+
     private:
         glm::vec3 position_;
         glm::vec3 direction_;
+
         float cutOff_; // Cut-off angle for the spot light
     };
 

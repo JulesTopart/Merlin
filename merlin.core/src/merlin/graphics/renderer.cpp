@@ -2,9 +2,14 @@
 #include "merlin/core/core.h"
 #include "renderer.h"
 
+
+
 namespace Merlin {
 
-	Renderer::Renderer() : currentTransform(glm::mat4(1.0)) {}
+	Renderer::Renderer() : currentTransform(glm::mat4(1.0)) {
+		m_materialLibrary = MaterialLibrary::instance();
+		m_shaderLibrary = ShaderLibrary::instance();
+	}
 
 	Renderer::~Renderer() {}
 
@@ -49,7 +54,6 @@ namespace Merlin {
 		}
 	}
 
-
 	void Renderer::renderMesh(const Mesh& mesh, const Camera& camera) {
 
 		Material_Ptr mat = mesh.getMaterial();
@@ -58,12 +62,12 @@ namespace Merlin {
 		if (mesh.hasShader())
 			shader = mesh.getShader();
 		else
-			shader = m_shaderLibrary.get(mesh.getShaderName());
+			shader = m_shaderLibrary->get(mesh.getShaderName());
 
 		if (mesh.hasMaterial())
 			mat = mesh.getMaterial();
 		else 
-			mat = m_materialLibrary.get(mesh.getMaterialName());
+			mat = m_materialLibrary->get(mesh.getMaterialName());
 		
 
 		shader->use();
@@ -77,6 +81,11 @@ namespace Merlin {
 		shader->setMat4("model", currentTransform); //sync model matrix with GPU
 		shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
+		shader->setInt("numLights", m_activeLights.size());
+
+		for (int i = 0; i < m_activeLights.size();  i++) {
+			m_activeLights[i]->attach(i, *shader);
+		}
 
 		mesh.draw();
 	}
@@ -189,7 +198,12 @@ namespace Merlin {
 		else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		//The object is a mesh
-		if (const auto mesh = std::dynamic_pointer_cast<Mesh>(object)) {
+
+		if (const auto light = std::static_pointer_cast<Light>(object)) {
+			light->applyRenderTransform(currentTransform);
+			m_activeLights.push_back(light);
+		}
+		else if (const auto mesh = std::dynamic_pointer_cast<Mesh>(object)) {
 			renderMesh(*mesh, camera);
 		}//The object is a model
 		else if (const auto model = std::dynamic_pointer_cast<Model>(object)) {
@@ -209,26 +223,27 @@ namespace Merlin {
 	}
 
 	Shared<Shader> Renderer::getShader(std::string n) {
-		return m_shaderLibrary.get(n);
+		return m_shaderLibrary->get(n);
 	}
 
 	void Renderer::loadShader(const std::string& name, const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geomShaderPath) {
 		Shared<Shader> shader = Shader::create(name, vertexShaderPath, fragmentShaderPath, geomShaderPath);
-		m_shaderLibrary.add(shader);
+		m_shaderLibrary->add(shader);
 	}
 
 	void Renderer::addMaterial(Shared<MaterialBase> material) {
-		m_materialLibrary.add(material);
+		m_materialLibrary->add(material);
 	}
 
 	void Renderer::addShader(Shared<Shader> shader) {
 		if (!shader->isCompiled()) Console::error("Renderer") << "Shader is not compiled. Compile the shader before adding them to the ShaderLibrary" << Console::endl;
-		m_shaderLibrary.add(shader);
+		m_shaderLibrary->add(shader);
 	}
 
 	void Renderer::clear() {
 		RendererBase::clear();
 		resetMatrix();
+		m_activeLights.clear();
 	}
 
 

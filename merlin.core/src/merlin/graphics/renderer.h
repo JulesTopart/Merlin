@@ -39,11 +39,12 @@ namespace Merlin {
 
 		glm::mat4 currentTransform;
 		std::stack<glm::mat4> matrixStack;
+		std::vector<Shared<Light>> m_activeLights;
 
 		Shared<Environment> m_defaultEnvironment = nullptr;
 		Shared<Environment> m_currentEnvironment = nullptr;
 
-		ShaderLibrary m_shaderLibrary;
-		MaterialLibrary m_materialLibrary;
+		MaterialLibrary* m_materialLibrary = nullptr;
+		ShaderLibrary* m_shaderLibrary = nullptr;
 	};
 }

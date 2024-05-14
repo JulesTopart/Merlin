@@ -51,23 +51,40 @@ namespace Merlin {
 
     class ShaderLibrary : public RessourceManager<Shader> {
     public:
-        ShaderLibrary();
         inline void add(Shared<Shader> shader){ RessourceManager::add(shader->name(), shader); };
+        static void initialize();
 
     private: 
+        ShaderLibrary();
         void LoadDefaultShaders();
 
-        SINGLETON(ShaderLibrary)
+    public:
+        static inline ShaderLibrary* instance() { return m_instance; } \
+            ShaderLibrary(const ShaderLibrary&) = delete; \
+            ShaderLibrary(ShaderLibrary&&) = delete; \
+            ShaderLibrary& operator=(const ShaderLibrary&) = delete; \
+            ShaderLibrary& operator=(ShaderLibrary&&) = delete; \
+    private: \
+            inline static ShaderLibrary* m_instance = nullptr;
+
     };
 
     class MaterialLibrary : public RessourceManager<MaterialBase> {
     public:
-        MaterialLibrary();
+        static void initialize();
         inline void add(Shared<MaterialBase> mat) { RessourceManager::add(mat->name(), mat); };
 
     private:
+        MaterialLibrary();
         void LoadDefaultMaterials();
 
-        SINGLETON(MaterialLibrary)
+    public:
+        static inline MaterialLibrary* instance() { return m_instance; } \
+            MaterialLibrary(const ShaderLibrary&) = delete; \
+            MaterialLibrary(MaterialLibrary&&) = delete; \
+            MaterialLibrary& operator=(const MaterialLibrary&) = delete; \
+            MaterialLibrary& operator=(MaterialLibrary&&) = delete; \
+    private: \
+            inline static MaterialLibrary* m_instance = nullptr;
     };
 }

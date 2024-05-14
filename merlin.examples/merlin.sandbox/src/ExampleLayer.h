@@ -22,7 +22,7 @@ private:
 	Scene scene;
 	Renderer renderer;
 
-	Shared<Model>  light;
+	Shared<PointLight>  light;
 	//Shared<SkyBox> sky;
 	Shared<Shader> modelShader;
 

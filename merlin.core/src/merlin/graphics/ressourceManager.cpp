@@ -4,74 +4,23 @@
 
 namespace Merlin {
 
-	INSTANTIATE_SINGLETON(ShaderLibrary)
-	INSTANTIATE_SINGLETON(MaterialLibrary)
-
+	void ShaderLibrary::initialize(){
+		m_instance = new ShaderLibrary();
+	}
 
 	ShaderLibrary::ShaderLibrary() {
 		LoadDefaultShaders();
 	}
 
 	void ShaderLibrary::LoadDefaultShaders() {
+		add(Shader::create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag"));
+		add(Shader::create("pbr", "assets/common/shaders/pbr.model.vert", "assets/common/shaders/pbr.model.frag"));
+		add(Shader::create("panorama_to_cubemap", "assets/common/shaders/fullscreen.vert", "assets/common/shaders/panorama_to_cubemap.frag"));
+		add(Shader::create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom"));
+	}
 
-		Shared<Shader> defaultShader = createShared<Shader>("default");
-
-		std::string vertexSrc =
-			"#version 330 core\n"
-			"layout(location = 0) in vec3 _position;\n"
-			"layout(location = 1) in vec3 _normal;\n"
-			"layout(location = 2) in vec3 _color;\n"
-			"layout(location = 3) in vec2 _texCoord;\n"
-			"out vec3 position;\n"
-			"out vec3 normal;\n"
-			"out vec3 color;\n"
-			"out vec2 texCoord;\n"
-			"uniform vec3 viewPos;\n"
-			"uniform mat4 view;\n"
-			"uniform mat4 model;\n"
-			"uniform mat4 projection;\n"
-			"void main() {\n"
-			"position = vec3(model * vec4(_position, 1.0f));\n"
-			"color = _color;\n"
-			"normal = _normal;\n"
-			"texCoord = _texCoord;\n"
-			"gl_Position = projection * view * vec4(position, 1.0f);\n"
-			"}";
-
-		std::string fragmentSrc =
-			"#version 330 core\n"
-			"in vec3 position;\n"
-			"in vec3 normal;\n"
-			"in vec3 color;\n"
-			"in vec2 texCoord;\n"
-			"uniform vec3 viewPos;\n"
-			"uniform vec3 ambient;\n"
-			"uniform vec3 diffuse;\n"
-			"uniform vec3 specular;\n"
-			"uniform float shininess;\n"
-			"out vec4 FragColor;\n"
-			"void main() {\n"
-			"vec3 lightPos = vec3(100);\n"
-			"vec3 n = normalize(normal);\n"
-			"vec3 lightDir = normalize(lightPos - position);\n"
-			"vec3 viewDir = normalize(viewPos - position);\n"
-			"vec3 reflectDir = reflect(-lightDir, n);\n"
-			"vec3 _ambient = ambient *color;\n"
-			"vec3 _diffuse = diffuse * max(dot(n, lightDir), 0.0f);\n"
-			"vec3 _specular = specular * pow(max(dot(viewDir, reflectDir), 0.0f), max(shininess, 8));\n"
-			"FragColor = vec4(_ambient + _diffuse + _specular, 1.0f);\n"
-			"}";
-
-		defaultShader->compileFromSrc(vertexSrc, fragmentSrc);
-		defaultShader->noTexture();
-		//defaultShader->noMaterial();
-		add(defaultShader);
-
-		/*
-		Shared<Shader> debugShader = Shader::create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom");
-		debugShader->noTexture();
-		debugShader->noMaterial();
-		Add(debugShader);*/
+	void MaterialLibrary::initialize() {
+		m_instance = new MaterialLibrary();
 	}
 
 	MaterialLibrary::MaterialLibrary() {

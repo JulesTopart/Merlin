@@ -19,12 +19,6 @@ ExampleLayer::ExampleLayer(){
 
 ExampleLayer::~ExampleLayer(){}
 
-Shared<Mesh> GetModel() {
-	//return ModelLoader::loadModel("assets/models/cube.stl")->meshes()[0];
-	Shared<Mesh> m = Primitives::createSphere(0.5, 40, 40);
-	return m;
-}
-
 void ExampleLayer::onAttach(){
 	enableGLDebugging();
 	Console::setLevel(ConsoleLevel::_INFO);
@@ -33,33 +27,27 @@ void ExampleLayer::onAttach(){
 	renderer.enableSampleShading();
 	renderer.setBackgroundColor(0.203, 0.203, 0.203, 1.0);
 
-	modelShader = Shader::create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
-	modelShader = Shader::create("model", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
-	modelShader->noTexture();
-	renderer.addShader(modelShader);
-
-
-	Shared<Model> model = Model::create("sphere1", GetModel());
+	Shared<Model> model = Model::create("sphere", Primitives::createSphere(0.5, 40, 40));
 	model->setMaterial("jade");
-	model->setShader("model");
 	scene.add(model);
 
-	
+	light = createShared<PointLight>("light");
+	light->translate(glm::vec3(2.8, 2, 0.6));
+
+
+	/*
 	light = Model::create("light", Primitives::createSphere(0.05));
 	
-	Shared<Material> lightMat = createShared<Material>("lightMat");
+	Shared<PhongMaterial> lightMat = createShared<PhongMaterial>("lightMat");
 	lightMat->setAmbient(glm::vec3(1));
 	lightMat->setDiffuse(glm::vec3(1));
 	lightMat->setSpecular(glm::vec3(1));
 	lightMat->setShininess(0.1);
 	light->setMaterial(lightMat);
-	light->translate(glm::vec3(2.8, 2, 0.6));
+
+	light->translate(glm::vec3(2.8, 2, 0.6));*/
 	scene.add(light);
 	
-	
-	modelShader->use();
-	modelShader->setVec3("lightPos", light->position());
-	modelShader->setVec4("lightColor", glm::vec4(1));
 	
 	scene.setCamera(camera);
 }
@@ -80,8 +68,6 @@ void ExampleLayer::onUpdate(Timestep ts){
 	float x = light->position().x;
 	float y = light->position().y;
 	light->translate(glm::vec3(cos(t) - x, sin(t) - y, 0.0));
-	modelShader->use();
-	modelShader->setVec3("lightPos", light->position());
 
 	renderer.clear();
 	renderer.renderScene(scene, *camera);

@@ -18,25 +18,45 @@ const float PI = 3.14159265359;
 const float EPSILON = 1e-6;
 
 //Materials data
-layout(std140, binding=0) uniform MaterialUniforms{
+struct Material{
 	vec3  albedo;
-	float metallic;
+	float metalness;
 	float roughness;
 	float ao;
+
+	bool use_albedo_tex;
+	bool use_normal_tex;
+	bool use_metallic_tex;
+	bool use_roughness_tex;
+	bool use_ao_tex;
+
+	sampler2D albedo_tex;
+	sampler2D normal_tex;
+	sampler2D metalness_tex;
+	sampler2D roughness_tex;
+	sampler2D ao_tex;
+};
+
+struct Environment{
+	vec3 irradiance;
+	vec3 specular;
+
+	bool use_irradiance_tex;
+	bool use_specular_tex;
+	bool use_specularBRDF_tex;
+
+	samplerCube specular_tex;
+	samplerCube irradiance_tex;
+	sampler2D specularBRDF_tex;
 };
 
 //Light and camera data
+uniform Material material;
+uniform Environment environment;
+
 uniform vec3 cameraPosition;
 uniform vec3 lightPosition;
 uniform vec3 lightRadiance;
-
-layout(binding=0) uniform sampler2D albedoTexture;
-layout(binding=1) uniform sampler2D normalTexture;
-layout(binding=2) uniform sampler2D metalnessTexture;
-layout(binding=3) uniform sampler2D roughnessTexture;
-layout(binding=4) uniform samplerCube specularTexture;
-layout(binding=5) uniform samplerCube irradianceTexture;
-layout(binding=6) uniform sampler2D specularBRDF_LUT;
 
 const vec3 Fdielectric = vec3(0.04);
 
@@ -73,15 +93,17 @@ vec3 fresnelSchlick(vec3 F0, float cosTheta)
 void main()
 {
 	// Sample input textures to get shading model params.
-	vec3 albedo = texture(albedoTexture, vin.texcoord).rgb;
-	float metalness = texture(metalnessTexture, vin.texcoord).r;
-	float roughness = texture(roughnessTexture, vin.texcoord).r;
+	vec3 albedo = material.use_albedo_tex ? texture(material.albedo_tex, vin.texcoord).rgb : material.albedo;
+	vec3 normalRGB = material.use_normal_tex ? texture(material.normal_tex, vin.texcoord).rgb : vec3(0.0);
+	float metalness = material.use_metallic_tex ? texture(material.metalness_tex, vin.texcoord).r : material.metalness;
+	float roughness = material.use_roughness_tex ? texture(material.roughness_tex, vin.texcoord).r : material.roughness;
+	float ao = material.use_ao_tex ? texture(material.ao_tex, vin.texcoord).r : material.ao;
 
 	// Outgoing light direction (vector from world-space fragment position to the "eye").
 	vec3 Lo = normalize(cameraPosition - vin.position);
 
 	// Get current fragment's normal and transform to world space.
-	vec3 N = normalize(2.0 * texture(normalTexture, vin.texcoord).rgb - 1.0);
+	vec3 N = normalize(2.0 * normalRGB - 1.0);
 	N = normalize(vin.tangentBasis * N);
 	
 	// Angle between surface normal and outgoing light direction.
@@ -133,7 +155,7 @@ void main()
 	vec3 ambientLighting;
 	{
 		// Sample diffuse irradiance at normal direction.
-		vec3 irradiance = texture(irradianceTexture, N).rgb;
+		vec3 irradiance = environment.use_irradiance_tex ? texture(environment.irradiance_tex, N).rgb : environment.irradiance;
 
 		// Calculate Fresnel term for ambient lighting.
 		// Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
@@ -147,11 +169,11 @@ void main()
 		vec3 diffuseIBL = kd * albedo * irradiance;
 
 		// Sample pre-filtered specular reflection environment at correct mipmap level.
-		int specularTextureLevels = textureQueryLevels(specularTexture);
-		vec3 specularIrradiance = textureLod(specularTexture, Lr, roughness * specularTextureLevels).rgb;
+		int specularTextureLevels = environment.use_specular_tex ? textureQueryLevels(environment.specular_tex) : 0;
+		vec3 specularIrradiance = environment.use_specular_tex ? textureLod(environment.specular_tex, Lr, roughness * specularTextureLevels).rgb : environment.specular;
 
 		// Split-sum approximation factors for Cook-Torrance specular BRDF.
-		vec2 specularBRDF = texture(specularBRDF_LUT, vec2(cosLo, roughness)).rg;
+		vec2 specularBRDF = environment.use_specularBRDF_tex ? texture(environment.specularBRDF_tex, vec2(cosLo, roughness)).rg : vec2(1.0);
 
 		// Total specular IBL contribution.
 		vec3 specularIBL = (F0 * specularBRDF.x + specularBRDF.y) * specularIrradiance;

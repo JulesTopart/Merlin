@@ -5,6 +5,20 @@
 
 namespace Merlin {
 
+	void PhongMaterial::loadTexture(const std::string& path, TextureType t) {
+		Shared<Texture2D> tex = Texture2D::create(path, t);
+		switch (t) {
+		case Merlin::TextureType::DIFFUSE:
+			setDiffuseTexture(tex);
+			break;
+		case Merlin::TextureType::SPECULAR:
+			setSpecularTexture(tex);
+			break;
+		default:
+			break;
+		}
+	}
+
 	void PBRMaterial::loadTexture(const std::string& path, TextureType t) {
 		Shared<Texture2D> tex = Texture2D::create(path, t);
 		switch (t){

@@ -47,7 +47,7 @@ void ExampleLayer::onAttach(){
 	
 	light = Model::create("light", Primitives::createSphere(0.05));
 	
-	Shared<Material> lightMat = createShared<Material>("lightMat");
+	Shared<PhongMaterial> lightMat = createShared<PhongMaterial>("lightMat");
 	lightMat->setAmbient(glm::vec3(1));
 	lightMat->setDiffuse(glm::vec3(1));
 	lightMat->setSpecular(glm::vec3(1));
