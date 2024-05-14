@@ -6,44 +6,52 @@ namespace Merlin {
 
 
 	Scene::Scene(std::string name) : RenderableObject(name){
-		_rootNode = createShared<RenderableObject>(name);
-		_currentNode = _rootNode;
+		m_rootNode = createShared<RenderableObject>(name);
+		m_currentNode = m_rootNode;
 	}
 
 	const std::list<Shared<RenderableObject>>& Scene::nodes() const {
-		return _rootNode->children();
+		return m_rootNode->children();
 	}
 
 	void Scene::setCamera(Shared<Camera> camera) {
-		_camera = camera;
+		m_camera = camera;
 	}
 
 	Camera& Scene::camera() {
-		return *_camera;
+		return *m_camera;
 	}
-
+	/*
 	void Scene::add(Shared<ParticleSystem> ps) {
-		_currentNode->addChild(ps);
+		m_currentNode->addChild(ps);
 	}
 
 	void Scene::add(Shared<deprecated_GenericParticleSystem> ps) {
-		_currentNode->addChild(ps);
-	}
+		m_currentNode->addChild(ps);
+	}*/
 
 	void Scene::add(Shared<Model> mdl) {
-		_currentNode->addChild(mdl);
+		m_currentNode->addChild(mdl);
 	}
 
 	void Scene::add(Shared<Light> light) {
-		_currentNode->addChild(light);
+		m_currentNode->addChild(light);
 	}
 
-	void Scene::add(Shared<Environment> sky) {
-		_currentNode->addChild(sky);
+	bool Scene::hasEnvironment() const{
+		return m_environment != nullptr;
+	}
+
+	void Scene::setEnvironment(Shared<Environment> sky) {
+		m_environment = sky;
+	}
+
+	Shared<Environment> Scene::getEnvironment() const {
+		return m_environment;
 	}
 
 	void Scene::add(Shared<TransformObject> t) {
-		_currentNode->addChild(t);
+		m_currentNode->addChild(t);
 	}
 
 	

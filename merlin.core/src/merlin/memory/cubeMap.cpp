@@ -35,7 +35,7 @@ namespace Merlin {
         glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, colors);
     }
 
-    void CubeMap::reserve(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8){
+    void CubeMap::reserve(GLuint width, GLuint height, GLuint channels, GLuint bits){
         
         m_width = width;
         m_height = height;

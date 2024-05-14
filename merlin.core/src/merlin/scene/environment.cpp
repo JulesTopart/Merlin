@@ -58,6 +58,29 @@ namespace Merlin {
 		setupMesh(); // Setup mesh for rendering cubemap or procedural backdrops
 	}
 
+	void Environment::attach(Shader& shader) const{
+		if (!shader.supportEnvironment())return;
+
+		shader.setInt("environment.use_irradiance_tex", m_irradiance != nullptr && shader.supportTexture());
+		if (m_irradiance && shader.supportTexture()) {
+			m_irradiance->setUnit(TextureBase::getNextTextureUnit());
+			m_irradiance->bind();
+			m_irradiance->syncTextureUnit(shader, "environment.irradiance_tex");
+		}
+		else shader.setVec3("environment.irradiance", glm::vec3(1.0));
+
+		shader.setInt("environment.use_specular_tex", m_specular_tex != nullptr && shader.supportTexture());
+		if (m_specular_tex && shader.supportTexture()) {
+			m_specular_tex->setUnit(TextureBase::getNextTextureUnit());
+			m_specular_tex->bind();
+			m_specular_tex->syncTextureUnit(shader, "material.specular_tex");
+
+		}
+		else shader.setVec3("material.specular_color", m_specular_color);
+
+		shader.setFloat("material.shininess", m_shininess);
+	}
+
 	void Environment::draw() const {
 		// Render the skybox cube
 		m_vao.bind();

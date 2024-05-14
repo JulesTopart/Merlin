@@ -19,6 +19,15 @@ namespace Merlin {
 		else if (extension == "gltf") {
 			return FileType::GLTF;
 		}
+		else if (extension == "png") {
+			return FileType::PNG;
+		}
+		else if (extension == "jpg") {
+			return FileType::JPG;
+		}
+		else if (extension == "hdr") {
+			return FileType::HDR;
+		}
 		else {
 			// Unknown file type
 			return FileType::UNKNOWN;

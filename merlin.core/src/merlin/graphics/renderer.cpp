@@ -6,14 +6,15 @@ namespace Merlin {
 
 	Renderer::Renderer() : currentTransform(glm::mat4(1.0)) {}
 
-	Renderer::~Renderer() {
-	}
+	Renderer::~Renderer() {}
 
 
 	void Renderer::initialize() {
 		enableMultisampling();
 		enableDepthTest();
 		enableCubeMap();
+
+		m_defaultEnvironment = createShared<Environment>("defaultEnvironment", 16);
 	}
 
 	void Renderer::pushMatrix() {
@@ -36,6 +37,7 @@ namespace Merlin {
 
 
 	void Renderer::renderScene(const Scene& scene, const Camera& camera) {
+		if (scene.hasEnvironment())m_currentEnvironment = scene.getEnvironment();
 		for (const auto& node : scene.nodes()) {
 			if(!node->isHidden()) render(node, camera);
 		}
@@ -48,109 +50,37 @@ namespace Merlin {
 	}
 
 
-	void Renderer::deprecated_renderParticleSystem(const deprecated_GenericParticleSystem& ps, const Camera& camera) {
-		if (ps.getDisplayMode() == deprecated_ParticleSystemDisplayMode::POINT_SPRITE) {
-			const Shader* shader;
-			//glPointSize(10);
-			glEnable(GL_PROGRAM_POINT_SIZE);
-			if (ps.getMesh()->hasShader())
-				shader = &ps.getMesh()->getShader();
-			else
-				shader = &m_shaderLibrary.get(ps.getMesh()->getShaderName());
+	void Renderer::renderMesh(const Mesh& mesh, const Camera& camera) {
 
-			shader->use();
-			shader->setMat4("model", currentTransform); //sync model matrix with GPU
-			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
-			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
-			shader->setVec2("WindowSize", glm::vec2(camera.width(), camera.height())); //sync model matrix with GPU
-			ps.draw(*shader);
+		Material_Ptr mat = mesh.getMaterial();
+		Shader_Ptr shader = mesh.getShader();
+		
+		if (mesh.hasShader())
+			shader = mesh.getShader();
+		else
+			shader = m_shaderLibrary.get(mesh.getShaderName());
 
-			glDisable(GL_PROGRAM_POINT_SIZE);
-		}else if(ps.getDisplayMode() == deprecated_ParticleSystemDisplayMode::POINT_SPRITE_SHADED) {
-			const Shader* shader;
-			//glPointSize(10);
-			glEnable(GL_PROGRAM_POINT_SIZE);
-			glEnable(0x8861);//WTF
-			//glDisable(GL_DEPTH_TEST);
+		if (mesh.hasMaterial())
+			mat = mesh.getMaterial();
+		else 
+			mat = m_materialLibrary.get(mesh.getMaterialName());
+		
 
-			if (ps.getMesh()->hasShader())
-				shader = &ps.getMesh()->getShader();
-			else
-				shader = &m_shaderLibrary.get(ps.getMesh()->getShaderName());
+		shader->use();
+		TextureBase::resetTextureUnit();
+		mat->attach(*shader);
+		
+		if(m_currentEnvironment != nullptr)
+			m_currentEnvironment->attach(*shader);
+		else m_defaultEnvironment->attach(*shader);
 
+		shader->setMat4("model", currentTransform); //sync model matrix with GPU
+		shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
+		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 
-			shader->use();
-			shader->setMat4("model", currentTransform); //sync model matrix with GPU
-			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
-			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
-			shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
-			shader->setVec2("WindowSize", glm::vec2(camera.width(), camera.height())); //sync model matrix with GPU
-			ps.draw(*shader);
-
-			//glEnable(GL_DEPTH_TEST);
-			glDisable(GL_PROGRAM_POINT_SIZE);
-			glDisable(0x8861);//WTF
-		}else if (ps.getDisplayMode() == deprecated_ParticleSystemDisplayMode::MESH) {
-			const Shader* shader;
-			const Material* mat;
-
-			if (ps.getMesh()->hasShader())
-				shader = &ps.getMesh()->getShader();
-			else
-				shader = &m_shaderLibrary.get(ps.getMesh()->getShaderName());
-
-
-			if (ps.getMesh()->hasMaterial())
-				mat = &ps.getMesh()->getMaterial();
-			else {
-
-				mat = &m_materialLibrary.get(ps.getMesh()->getMaterialName());
-			}
-
-
-			shader->use();
-			if (shader->supportMaterial()) {
-				/*
-				if (mat->usePBR() && shader->SupportPBR()) {//todo remove this -> Replace by proper UBO management
-					shader->setVec3("albedo", mat->albedo());
-					shader->setFloat("metallic", mat->metallic());
-					shader->setFloat("roughness", mat->roughness());
-					shader->setFloat("ao", mat->ao());
-					shader->setVec3("viewPos", camera.GetPosition()); //sync model matrix with GPU
-				}
-				else {
-
-				}
-				*/
-
-				shader->setVec3("ambient", mat->ambient());
-				shader->setVec3("diffuse", mat->diffuse());
-				shader->setVec3("specular", mat->specular());
-				shader->setFloat("shininess", mat->shininess());
-				shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
-
-			}
-
-			shader->setMat4("model", currentTransform); //sync model matrix with GPU
-			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
-			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
-
-			if (shader->supportTexture()) {
-				Texture* tex = &mat->getTexture(TextureType::COLOR);
-
-				//WARNING This should be done once...
-				tex->setUnit(1); //Skybox is 0...
-				tex->syncTextureUnit(*shader, (tex->typeToString()) + "0");
-
-
-				tex->bind();
-				shader->setInt("hasColorTex", !tex->isDefault());
-			}
-			ps.draw(*shader);
-		}
+		mesh.draw();
 	}
-
-
+	/*
 	void Renderer::renderParticleSystem(const ParticleSystem& ps, const Camera& camera) {
 		if (ps.getDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE) {
 			const Shader* shader;
@@ -197,7 +127,7 @@ namespace Merlin {
 		}
 		else if (ps.getDisplayMode() == ParticleSystemDisplayMode::MESH) {
 			const Shader* shader;
-			const Material* mat;
+			Shared<MaterialBase> mat;
 
 			if (ps.getMesh()->hasShader())
 				shader = &ps.getMesh()->getShader();
@@ -206,42 +136,31 @@ namespace Merlin {
 
 
 			if (ps.getMesh()->hasMaterial())
-				mat = &ps.getMesh()->getMaterial();
+				mat = ps.getMesh()->getMaterial();
 			else {
 
-				mat = &m_materialLibrary.get(ps.getMesh()->getMaterialName());
+				mat = m_materialLibrary.get(ps.getMesh()->getMaterialName());
 			}
 
 
 			shader->use();
-			if (shader->supportMaterial()) {
-				/*
-				if (mat->usePBR() && shader->SupportPBR()) {//todo remove this -> Replace by proper UBO management
-					shader->setVec3("albedo", mat->albedo());
-					shader->setFloat("metallic", mat->metallic());
-					shader->setFloat("roughness", mat->roughness());
-					shader->setFloat("ao", mat->ao());
-					shader->setVec3("viewPos", camera.GetPosition()); //sync model matrix with GPU
-				}
-				else {
+			if (ps.getMesh()->hasShader())
+				shader = ps.getMesh()->getShader();
+			else
+				shader = m_shaderLibrary.get(mesh.getShaderName());
 
-				}
-				*/
+			if (mesh.hasMaterial())
+				mat = mesh.getMaterial();
+			else
+				mat = m_materialLibrary.get(mesh.getMaterialName());
 
-				shader->setVec3("ambient", mat->ambient());
-				shader->setVec3("diffuse", mat->diffuse());
-				shader->setVec3("specular", mat->specular());
-				shader->setFloat("shininess", mat->shininess());
-				shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
-
-			}
 
 			shader->setMat4("model", currentTransform); //sync model matrix with GPU
 			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
 			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 
 			if (shader->supportTexture()) {
-				Texture* tex = &mat->getTexture(TextureType::COLOR);
+				Texture2D* tex = &mat->getTexture(TextureType::ALBEDO);
 
 				//WARNING This should be done once...
 				tex->setUnit(1); //Skybox is 0...
@@ -254,104 +173,12 @@ namespace Merlin {
 			ps.draw(*shader);
 		}
 	}
-
+	*/
 	void Renderer::renderTransformObject(const TransformObject& obj, const Camera& camera) {
 		//TODO Render axis
 		render(obj.getXAxisMesh(), camera);
 		render(obj.getYAxisMesh(), camera);
 		render(obj.getZAxisMesh(), camera);
-	}
-
-	void Renderer::renderSkyBox(const SkyBox& sky, const Camera& camera) {
-		// Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
-		glDepthFunc(GL_LEQUAL);
-		
-		const Shader* shader;
-
-		if (sky.hasShader())
-			shader = &sky.getShader();
-		else
-			shader = &m_shaderLibrary.get(sky.getShaderName());
-		
-
-		shader->use();
-
-		glm::mat4 view = glm::mat4(glm::mat3(camera.getViewMatrix()));
-		glm::mat4 projection = camera.getProjectionMatrix();
-
-		//if (sky.hasCubeMap()) shader->setInt("isSkyboxBound", 1);
-		shader->setInt("isSkyboxBound", sky.hasCubeMap()); //sync model matrix with GPU
-		shader->setMat4("view", view); //sync model matrix with GPU
-		shader->setMat4("projection", projection); //sync model matrix with GPU
-
-
-		sky.draw();
-
-		// Switch back to the normal depth function
-		glDepthFunc(GL_LESS);
-	}
-
-	void Renderer::renderMesh(const Mesh& mesh, const Camera& camera) {
-
-		const Shader* shader;
-		const Material* mat;
-
-		if (mesh.hasShader())
-			shader = &mesh.getShader();
-		else
-			shader = &m_shaderLibrary.get(mesh.getShaderName());
-		
-
-		if (mesh.hasMaterial()) 
-			mat = &mesh.getMaterial();
-		else {
-
-			mat = &m_materialLibrary.get(mesh.getMaterialName());
-		}
-				
-		shader->use();
-		if (shader->supportMaterial()) {
-			shader->setVec3("ambient", mat->ambient());
-			shader->setVec3("diffuse", mat->diffuse());
-			shader->setVec3("specular", mat->specular());
-			shader->setFloat("shininess", mat->shininess());
-			shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
-		}
-
-		shader->setMat4("model", currentTransform); //sync model matrix with GPU
-		shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
-		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
-
-		if (shader->supportTexture()) {
-			Texture*  tex;
-			tex = &mat->getTexture(TextureType::COLOR);
-
-			if(tex){
-				shader->setInt("skybox", 0);
-				shader->setInt("hasColorTex", !tex->isDefault());
-				bool test = !tex->isDefault();
-
-				if (!tex->isDefault()) {
-					tex->setUnit(1); //Skybox is 0...
-					tex->syncTextureUnit(*shader, (tex->typeToString()) + "0");
-					tex->bind();
-				}
-			}
-			
-			tex = &mat->getTexture(TextureType::NORMAL);
-
-			if (tex) {
-				shader->setInt("hasNormalTex", !tex->isDefault());
-
-				if (!tex->isDefault()) {
-					tex->setUnit(2); //Skybox is 0...
-					tex->syncTextureUnit(*shader, (tex->typeToString()) + "0");
-					tex->bind();
-				}
-			}
-		}
-		
-		mesh.draw();
 	}
 
 	void Renderer::render(const Shared<RenderableObject>& object, const Camera& camera) {
@@ -371,16 +198,9 @@ namespace Merlin {
 		else if (const auto scene = std::dynamic_pointer_cast<Scene>(object)) {
 			renderScene(*scene, camera); //Propagate to childrens
 		}//The object is a scene node
-		else if (const auto sky = std::dynamic_pointer_cast<SkyBox>(object)) {
-			renderSkyBox(*sky, camera); //Propagate to childrens
-		}//The object is a skybox node
 		else if (const auto ps = std::dynamic_pointer_cast<TransformObject>(object)) {
 			renderTransformObject(*ps, camera); //Propagate to childrens
 		}
-		else if (const auto ps = std::dynamic_pointer_cast<deprecated_GenericParticleSystem>(object)) {
-			deprecated_renderParticleSystem(*ps, camera); //Propagate to childrens
-		}//The object is a particleSystem node
-		
 		for (auto node : object->children()) {
 			render(node, camera);//Propagate to childrens
 		}
@@ -388,17 +208,7 @@ namespace Merlin {
 		popMatrix();
 	}
 
-
-	const Shared<Shader>& Renderer::shareShader(std::string n) {
-		return m_shaderLibrary.share(n);
-	}
-
-
-	const Material& Renderer::getMaterial(std::string n) {
-		return m_materialLibrary.get(n);
-	}
-
-	const Shader& Renderer::getShader(std::string n) {
+	Shared<Shader> Renderer::getShader(std::string n) {
 		return m_shaderLibrary.get(n);
 	}
 
@@ -407,15 +217,7 @@ namespace Merlin {
 		m_shaderLibrary.add(shader);
 	}
 
-	void Renderer::createMaterial(MaterialProperty matProps){
-		std::string name = "material";
-		std::stringstream ss;
-		ss << name << m_materialLibrary.size();
-		Shared<Material> mat = createShared<Material>(ss.str());
-		m_materialLibrary.add(mat);
-	}
-
-	void Renderer::addMaterial(Shared<Material> material) {
+	void Renderer::addMaterial(Shared<MaterialBase> material) {
 		m_materialLibrary.add(material);
 	}
 

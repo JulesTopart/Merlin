@@ -104,9 +104,9 @@ group ""
 	include "merlin.core"
 	
 group "Examples"
-	include "merlin.projects/merlin.example"
-	include "merlin.projects/merlin.sandbox"
-	include "merlin.projects/merlin.example2D"
+	include "merlin.examples/merlin.example"
+	include "merlin.examples/merlin.sandbox"
+	include "merlin.examples/merlin.example2D"
 	
 group "Projects"
 	include "merlin.projects/merlin.granular2D"

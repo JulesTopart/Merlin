@@ -13,8 +13,7 @@ namespace Merlin {
         RessourceManager() = default;
 
         void add(const std::string& name, std::shared_ptr<T> resource);
-        const T& get(const std::string& name);
-        std::shared_ptr<T> share(const std::string& name);
+        Shared<T> get(const std::string& name);
         bool exist(const std::string& name);
 
         inline unsigned int size() { return resources.size(); };
@@ -33,18 +32,7 @@ namespace Merlin {
     }
 
     template <typename T>
-    const T& RessourceManager<T>::get(const std::string& name) {
-        auto it = resources.find(name);
-        if (it != resources.end()) {
-            return *it->second;
-        }
-        Console::error("Ressource Manager") << name << " not found in library" << Console::endl;
-        // Handle the case where the resource is not found
-        throw;
-    }
-
-    template <typename T>
-    std::shared_ptr<T> RessourceManager<T>::share(const std::string& name) {
+    std::shared_ptr<T> RessourceManager<T>::get(const std::string& name) {
         auto it = resources.find(name);
         if (it != resources.end()) {
             return it->second;
@@ -72,10 +60,10 @@ namespace Merlin {
         SINGLETON(ShaderLibrary)
     };
 
-    class MaterialLibrary : public RessourceManager<Material> {
+    class MaterialLibrary : public RessourceManager<MaterialBase> {
     public:
         MaterialLibrary();
-        inline void add(Shared<Material> mat) { RessourceManager::add(mat->name(), mat); };
+        inline void add(Shared<MaterialBase> mat) { RessourceManager::add(mat->name(), mat); };
 
     private:
         void LoadDefaultMaterials();

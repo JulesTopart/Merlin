@@ -15,9 +15,9 @@ namespace Merlin {
         z_axis->calculateNormals();
         */
 
-        Material_Ptr xMaterial = createShared<Material>("xMaterial");
-        Material_Ptr yMaterial = createShared<Material>("yMaterial");
-        Material_Ptr zMaterial = createShared<Material>("zMaterial");
+        Shared<PhongMaterial> xMaterial = createShared<PhongMaterial>("xMaterial");
+        Shared<PhongMaterial> yMaterial = createShared<PhongMaterial>("yMaterial");
+        Shared<PhongMaterial> zMaterial = createShared<PhongMaterial>("zMaterial");
 
         zMaterial->setAmbient(glm::vec3(0.0, 0.00, 0.7));
         zMaterial->setDiffuse(glm::vec3(0.3, 0.3, 0.5));

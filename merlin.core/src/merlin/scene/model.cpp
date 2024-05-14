@@ -41,7 +41,7 @@ namespace Merlin {
 		}
 	}
 
-	void Model::setMaterial(const Shared<Material>& material) {
+	void Model::setMaterial(Shared<MaterialBase> material) {
 		for (auto& mesh : m_meshes) {
 			mesh->setMaterial(material);
 		}
@@ -63,26 +63,11 @@ namespace Merlin {
     void Model::draw(const Camera& camera) const {
         for (const auto& mesh : m_meshes) {
             if (mesh->hasMaterial() && mesh->hasShader()) {
-				const Shader* shader = &mesh->getShader();
-				const Material& mat = mesh->getMaterial();
+				Shared<Shader> shader = mesh->getShader();
+				Shared<MaterialBase> mat = mesh->getMaterial();
 
-				shader->setVec3("ambient", mat.ambient());
-				shader->setVec3("diffuse", mat.diffuse());
-				shader->setVec3("specular", mat.specular());
-				shader->setFloat("shininess", mat.shininess());
-
-				//manage camera,transform, textures
-
-				Texture* tex;
-				tex = &mat.getTexture(TextureType::COLOR);
-				tex->setUnit(0);
-				tex->syncTextureUnit(*shader, (tex->typeToString()));
-				tex->bind();
-
-				tex = &mat.getTexture(TextureType::ROUGHNESS);
-				tex->setUnit(1);
-				tex->syncTextureUnit(*shader, (tex->typeToString()));
-				tex->bind();
+                shader->use();
+                mat->attach(*shader);
 
 				mesh->draw();
             }

@@ -5,24 +5,27 @@
 ImageData TextureLoader::loadImageData(const std::string& filepath) {
     FileType ft = getFileType(filepath);
     ImageData data;
+    data.bytes = nullptr;
 
     switch (ft) {
     case Merlin::FileType::HDR:
         parseHDR(filepath, data);
         break;
     case Merlin::FileType::PNG:
-        parsePNG_JPG(filepath, data);
-        break;
     case Merlin::FileType::JPG:
+        parsePNG_JPG(filepath, data);
         break;
     default:
         break;
     }
 
     if (data.bytes == nullptr) {
-        Console::error("TextureLoader") << "could not load tecture " << filepath << Console::endl;
-        Console::error("TextureLoader") << " stb error : " << stbi_failure_reason() << Console::endl;
-        throw std::runtime_error("cannot load image");
+        Console::error("TextureLoader") << "could not load texture " << filepath << Console::endl;
+        Console::error("TextureLoader") << " stb error : ";
+        if (stbi_failure_reason()) Console::write(stbi_failure_reason());
+        Console::write(Console::endl);
+
+        //throw std::runtime_error("cannot load image");
         stbi_image_free(data.bytes);
         return data;
     }

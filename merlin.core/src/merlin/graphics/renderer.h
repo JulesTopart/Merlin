@@ -13,11 +13,9 @@ namespace Merlin {
 
 		void clear() override;
 
-		void renderSkyBox(const SkyBox& sky, const Camera& camera);
 		void renderMesh(const Mesh& mesh, const Camera& camera);
 		void renderModel(const Model& model, const Camera& camera);
-		void renderParticleSystem(const ParticleSystem& ps, const Camera& camera);
-		void deprecated_renderParticleSystem(const deprecated_GenericParticleSystem& ps, const Camera& camera);
+		//void renderParticleSystem(const ParticleSystem& ps, const Camera& camera);
 		void renderTransformObject(const TransformObject& obj, const Camera& camera);
 
 		void renderScene(const Scene& model, const Camera& camera);
@@ -26,13 +24,11 @@ namespace Merlin {
 		void initialize();		
 
 		void loadShader(const std::string& name, const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geomShaderPath = "");
-		void createMaterial(MaterialProperty matProps);
-		void addMaterial(Shared<Material> material);
+
+		void addMaterial(Shared<MaterialBase> material);
 		void addShader(Shared<Shader> shader );
 
-		const Material& getMaterial(std::string n);
-		const Shader& getShader(std::string n);
-		const Shared<Shader>& shareShader(std::string n);
+		Shared<Shader> getShader(std::string n);
 
 	private:
 		
@@ -43,6 +39,9 @@ namespace Merlin {
 
 		glm::mat4 currentTransform;
 		std::stack<glm::mat4> matrixStack;
+
+		Shared<Environment> m_defaultEnvironment = nullptr;
+		Shared<Environment> m_currentEnvironment = nullptr;
 
 		ShaderLibrary m_shaderLibrary;
 		MaterialLibrary m_materialLibrary;
