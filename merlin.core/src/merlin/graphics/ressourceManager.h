@@ -21,6 +21,8 @@ namespace Merlin {
 
     protected:
         std::unordered_map<std::string, std::shared_ptr<T>> resources;
+
+        SINGLETON(RessourceManager)
     };
 
     template <typename T>
@@ -57,6 +59,8 @@ namespace Merlin {
     }
 
 
+
+
     class ShaderLibrary : public RessourceManager<Shader> {
     public:
         ShaderLibrary();
@@ -64,6 +68,8 @@ namespace Merlin {
 
     private: 
         void LoadDefaultShaders();
+
+        SINGLETON(ShaderLibrary)
     };
 
     class MaterialLibrary : public RessourceManager<Material> {
@@ -73,5 +79,7 @@ namespace Merlin {
 
     private:
         void LoadDefaultMaterials();
+
+        SINGLETON(MaterialLibrary)
     };
 }

@@ -23,6 +23,17 @@
 #define MERLIN_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 #define BIT(x) (1 << x)
 
+#define SINGLETON(className) public: \
+    static inline className& instance(){return m_instance;} \
+    className(const className&) = delete; \
+    className(className&&) = delete; \
+    className& operator=(const className&) = delete; \
+    className& operator=(className&&) = delete; \
+private: \
+    static className m_instance;
+
+#define INSTANTIATE_SINGLETON(className) className className::m_instance;
+
 
 template<typename T>
 using Scope = std::unique_ptr<T>;

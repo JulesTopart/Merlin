@@ -4,9 +4,8 @@
 
 namespace Merlin {
 
-    
-
-
+	INSTANTIATE_SINGLETON(ShaderLibrary)
+	INSTANTIATE_SINGLETON(MaterialLibrary)
 
 
 	ShaderLibrary::ShaderLibrary() {
