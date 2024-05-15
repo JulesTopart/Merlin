@@ -7,8 +7,9 @@ namespace Merlin {
 		shader.setVec3(base + ".ambient", ambient());
 		shader.setVec3(base + ".diffuse", diffuse());
 		shader.setVec3(base + ".specular", specular());
+		shader.setVec3(base + ".attenuation", attenuation());
 		shader.setInt(base + ".type", static_cast<int>(type()));
-		shader.setVec3(base + ".direction", glm::vec3(getRenderTransform() * glm::vec4(direction(), 1.0f)));
+		shader.setVec3(base + ".direction", glm::vec3(getRenderTransform() * glm::vec4(direction(), 0.0f)));
 	}
 
 	void PointLight::attach(int id, Shader& shader) {
@@ -16,6 +17,7 @@ namespace Merlin {
 		shader.setVec3(base + ".ambient", ambient());
 		shader.setVec3(base + ".diffuse", diffuse());
 		shader.setVec3(base + ".specular", specular());
+		shader.setVec3(base + ".attenuation", attenuation());
 		shader.setInt(base + ".type", static_cast<int>(type()));
 		shader.setVec3(base + ".position", glm::vec3(getRenderTransform() * glm::vec4(position(), 1.0f)));
 	}
@@ -25,9 +27,10 @@ namespace Merlin {
 		shader.setVec3(base + ".ambient", ambient());
 		shader.setVec3(base + ".diffuse", diffuse());
 		shader.setVec3(base + ".specular", specular());
+		shader.setVec3(base + ".attenuation", attenuation());
 		shader.setInt(base + ".type", static_cast<int>(type()));
-		shader.setVec3(base + ".position", glm::vec3(getRenderTransform() * glm::vec4(position(), 1.0f)));
-		shader.setVec3(base + ".direction", glm::vec3(getRenderTransform() * glm::vec4(direction(), 1.0f)));
+		shader.setVec3(base + ".position", glm::vec3(getRenderTransform() * glm::vec4(position(), 1.0f))); //point
+		shader.setVec3(base + ".direction", glm::vec3(getRenderTransform() * glm::vec4(direction(), 0.0f))); //pure vector
 		shader.setFloat(base + ".cutOff", cutOff());
 	}
-} 
+}

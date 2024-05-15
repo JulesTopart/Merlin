@@ -248,7 +248,7 @@ namespace Merlin {
 
         // Check if the file was successfully opened
         if (!file.is_open()) {
-            std::cerr << "Error: Failed to open file " << filepath << std::endl;
+            Console::error("ModelLoader") << "File not found " << filepath << " or no read access " << Console::endl;
             return false;
         }
 
@@ -414,11 +414,14 @@ namespace Merlin {
 		switch (file_type) {
 		case FileType::OBJ:
 			return parseOBJ(file_path, vertices, indices);
+            break;
 		case FileType::STL:
 			return parseSTL(file_path, vertices, indices);
+            break;
 		default:
 			// Unknown file type
 			return false;
+            break;
 		}
 	}
 

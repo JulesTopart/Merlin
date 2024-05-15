@@ -43,6 +43,17 @@ namespace Merlin {
 
 	void Renderer::renderScene(const Scene& scene, const Camera& camera) {
 		if (scene.hasEnvironment())m_currentEnvironment = scene.getEnvironment();
+
+		for (const auto& node : scene.nodes()) {
+			if (!node->isHidden()) {
+				if (const auto light = std::dynamic_pointer_cast<Light>(node)) {
+					light->applyRenderTransform(currentTransform);
+					m_activeLights.push_back(light);
+				}
+			}
+		}
+
+
 		for (const auto& node : scene.nodes()) {
 			if(!node->isHidden()) render(node, camera);
 		}
@@ -68,7 +79,6 @@ namespace Merlin {
 			mat = mesh.getMaterial();
 		else 
 			mat = m_materialLibrary->get(mesh.getMaterialName());
-		
 
 		shader->use();
 		TextureBase::resetTextureUnit();
@@ -198,12 +208,7 @@ namespace Merlin {
 		else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		//The object is a mesh
-
-		if (const auto light = std::static_pointer_cast<Light>(object)) {
-			light->applyRenderTransform(currentTransform);
-			m_activeLights.push_back(light);
-		}
-		else if (const auto mesh = std::dynamic_pointer_cast<Mesh>(object)) {
+		if (const auto mesh = std::dynamic_pointer_cast<Mesh>(object)) {
 			renderMesh(*mesh, camera);
 		}//The object is a model
 		else if (const auto model = std::dynamic_pointer_cast<Model>(object)) {
@@ -215,6 +220,7 @@ namespace Merlin {
 		else if (const auto ps = std::dynamic_pointer_cast<TransformObject>(object)) {
 			renderTransformObject(*ps, camera); //Propagate to childrens
 		}
+
 		for (auto node : object->children()) {
 			render(node, camera);//Propagate to childrens
 		}

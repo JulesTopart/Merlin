@@ -19,6 +19,7 @@ namespace Merlin {
 		add(Shader::create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom"));
 	}
 
+
 	void MaterialLibrary::initialize() {
 		m_instance = new MaterialLibrary();
 	}

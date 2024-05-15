@@ -53,13 +53,16 @@ namespace Merlin {
 
         inline void attach(Shader& shader) const override {
             if (!shader.supportMaterial())return;
+
+            shader.setVec3("material.ambient_color", m_ambient_color);
+
             shader.setInt("material.use_diffuse_tex", m_diffuse_tex != nullptr && shader.supportTexture());
             if (m_diffuse_tex && shader.supportTexture()) {
                 m_diffuse_tex->setUnit(TextureBase::getNextTextureUnit());
                 m_diffuse_tex->bind();
                 m_diffuse_tex->syncTextureUnit(shader, "material.diffuse_tex");
             }
-            else shader.setVec3("material.diffuse_color", m_diffuse_color);
+            shader.setVec3("material.diffuse_color", m_diffuse_color);
 
             shader.setInt("material.use_specular_tex", m_specular_tex != nullptr && shader.supportTexture());
             if (m_specular_tex && shader.supportTexture()) {
@@ -67,7 +70,8 @@ namespace Merlin {
                 m_specular_tex->bind();
                 m_specular_tex->syncTextureUnit(shader, "material.specular_tex");
                 
-            }else shader.setVec3("material.specular_color", m_specular_color);
+            }
+            shader.setVec3("material.specular_color", m_specular_color);
 
             shader.setFloat("material.shininess", m_shininess);
         }
