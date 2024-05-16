@@ -13,6 +13,7 @@ namespace Merlin {
 
 		void clear() override;
 
+		void renderLight(const Light& li, const Camera& camera);
 		void renderMesh(const Mesh& mesh, const Camera& camera);
 		void renderModel(const Model& model, const Camera& camera);
 		//void renderParticleSystem(const ParticleSystem& ps, const Camera& camera);

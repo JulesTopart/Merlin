@@ -5,10 +5,9 @@
 #include "merlin/memory/indexBuffer.h"
 #include "merlin/memory/vertex.h"
 
-//#include <tiny_gltf.h>
-
 
 namespace Merlin {
+
 
 	// Load a model from the specified file and return a pointer to a new Mesh object
     Shared<Model> ModelLoader::loadModel(const std::string& file_path) {
@@ -23,11 +22,24 @@ namespace Merlin {
             // create a Mesh object using the parsed vertex and index data
             auto mesh = Mesh::create("Mesh", vertices, indices);
             //mesh->calculateNormals();
-            return Model::create(getFileName(file_path), mesh);
+
+            Shared<Model> mdl = Model::create(getFileName(file_path), mesh);
+            /*TODO load MTL
+            if (ft == FileType::OBJ) { //look for MTL file
+                loadMTL(mdl);
+            }*/
+
+            return mdl;
 
         }
         return nullptr;
 	}
+
+    /*
+    void loadMTL(Shared<Model> mdl) {
+
+    }*/
+
 
 /*
     Shared<Model> ModelLoader::LoadGLTF(const std::string& file_path) {

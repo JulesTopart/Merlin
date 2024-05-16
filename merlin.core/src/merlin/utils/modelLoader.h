@@ -46,8 +46,10 @@ namespace Merlin{
 		//ParseGeometry
 		//static bool ParseGEOM(const std::string& file_path, Vertices& vertices, Indices& indices);
 
+		static void loadMTL(Shared<Model> mdl);
 		// Parse a any file and extract the data
 		static bool parseMesh(const std::string& file_path, Vertices& vertices, Indices& indices);
+
 
 
 	};

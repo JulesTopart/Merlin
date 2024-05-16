@@ -46,7 +46,6 @@ namespace Merlin {
 		glUseProgram(m_programID);
 	}
 
-
 	void ShaderBase::attach(GenericBufferObject& buf) {
 		int block_index = glGetProgramResourceIndex(m_programID, GL_SHADER_STORAGE_BLOCK, buf.name().c_str());
 		if (block_index == -1) Console::error("ShaderBase") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
@@ -65,6 +64,7 @@ namespace Merlin {
 		if (uniLoc == -1) LOG_WARN("Shader") << "(" << m_name << ") Invalid Uniform name : " << uniform << ", (or wrong binded shader)" << Console::endl;
 		return uniLoc;
 	}
+
 
 	void ShaderBase::setUInt(const std::string name, GLuint value) const {
 		if (!isCompiled()) return;

@@ -89,7 +89,7 @@ namespace Merlin {
 		m_vao.unbind();
 
 	}
-
+	/*
 	void Environment::loadHDR(const std::string& path){
 		raw_hdri = Texture2D::create(path, TextureType::ENVIRONMENT);
 		FrameBuffer fbo(m_resolution, m_resolution);
@@ -99,5 +99,5 @@ namespace Merlin {
 		//skybox = CubeMap::create(m_resolution, m_resolution);
 
 
-	}
+	}*/
 }

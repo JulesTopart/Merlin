@@ -32,6 +32,7 @@ namespace Merlin {
     private:
         Texture2D_Ptr m_diffuse_tex = nullptr;
         Texture2D_Ptr m_specular_tex = nullptr;
+        Texture2D_Ptr m_normal_tex = nullptr;
 
         glm::vec3 m_ambient_color;
         glm::vec3 m_diffuse_color;
@@ -39,7 +40,7 @@ namespace Merlin {
         float m_shininess;
 
     public:
-        PhongMaterial(std::string name) : MaterialBase(name, MaterialType::PHONG),  m_ambient_color(0.2f, 0.2f, 0.2f), m_diffuse_color(1.0f, 1.0f, 1.0f), m_specular_color(1.0f, 1.0f, 1.0f), m_shininess(0.2) {}
+        PhongMaterial(std::string name) : MaterialBase(name, MaterialType::PHONG), m_ambient_color(0.2f, 0.2f, 0.2f), m_diffuse_color(1.0f, 1.0f, 1.0f), m_specular_color(1.0f, 1.0f, 1.0f), m_shininess(0.2) {}
 
         inline void setAmbient(const glm::vec3& ambient) { m_ambient_color = ambient; };
         inline void setDiffuse(const glm::vec3& diffuse) { m_diffuse_color = diffuse; };
@@ -50,32 +51,9 @@ namespace Merlin {
 
         inline void setDiffuseTexture(Texture2D_Ptr tex) { m_diffuse_tex = tex; }
         inline void setSpecularTexture(Texture2D_Ptr tex) { m_specular_tex = tex; }
+        inline void setNormalTexture(Texture2D_Ptr tex) { m_normal_tex = tex; }
 
-        inline void attach(Shader& shader) const override {
-            if (!shader.supportMaterial())return;
-
-            shader.setVec3("material.ambient_color", m_ambient_color);
-
-            shader.setInt("material.use_diffuse_tex", m_diffuse_tex != nullptr && shader.supportTexture());
-            if (m_diffuse_tex && shader.supportTexture()) {
-                m_diffuse_tex->setUnit(TextureBase::getNextTextureUnit());
-                m_diffuse_tex->bind();
-                m_diffuse_tex->syncTextureUnit(shader, "material.diffuse_tex");
-            }
-            shader.setVec3("material.diffuse_color", m_diffuse_color);
-
-            shader.setInt("material.use_specular_tex", m_specular_tex != nullptr && shader.supportTexture());
-            if (m_specular_tex && shader.supportTexture()) {
-                m_specular_tex->setUnit(TextureBase::getNextTextureUnit());
-                m_specular_tex->bind();
-                m_specular_tex->syncTextureUnit(shader, "material.specular_tex");
-                
-            }
-            shader.setVec3("material.specular_color", m_specular_color);
-
-            shader.setFloat("material.shininess", m_shininess);
-        }
-
+        void attach(Shader& shader) const override;
     };
 
 
@@ -110,46 +88,7 @@ namespace Merlin {
         void setRoughness(float value) { m_roughness = value; }
         void setAO(float value) { m_ao = value; }
 
-        inline void attach(Shader& shader) const override {
-            if (!shader.supportMaterial())return;
-            shader.setInt("material.use_albedo_tex", m_albedo_tex != nullptr && shader.supportTexture());
-            if (m_albedo_tex && shader.supportTexture()) {
-                m_albedo_tex->setUnit(TextureBase::getNextTextureUnit());
-                m_albedo_tex->bind();
-                m_albedo_tex->syncTextureUnit(shader, "albedo_tex");
-
-            }else shader.setVec3("material.albedo", m_albedo_color);
-            
-            shader.setInt("material.use_normal_tex", m_normal_tex != nullptr && shader.supportTexture());
-            if (m_normal_tex && shader.supportTexture()) {
-                m_normal_tex->setUnit(TextureBase::getNextTextureUnit());
-                m_normal_tex->bind();
-                m_normal_tex->syncTextureUnit(shader, "normal_tex");
-            }//use vertex normal otherwise
-
-            shader.setInt("material.use_metallic_tex", m_metalness_tex != nullptr && shader.supportTexture());
-            if (m_metalness_tex && shader.supportTexture()) {
-                m_metalness_tex->setUnit(TextureBase::getNextTextureUnit());
-                m_metalness_tex->bind();
-                m_metalness_tex->syncTextureUnit(shader, "metalness_tex");
-            }else shader.setFloat("material.metalness", m_metalness);
-            
-            shader.setInt("material.use_roughness_tex", m_roughness_tex != nullptr && shader.supportTexture());
-            if (m_roughness_tex && shader.supportTexture()) {
-                m_roughness_tex->setUnit(TextureBase::getNextTextureUnit());
-                m_roughness_tex->bind();
-                m_roughness_tex->syncTextureUnit(shader, "roughness_tex");
-            }
-            else shader.setFloat("material.roughness", m_roughness);
-
-            shader.setInt("material.use_ao_tex", m_ao_tex != nullptr && shader.supportTexture());
-            if (m_ao_tex && shader.supportTexture()) {
-                m_ao_tex->setUnit(TextureBase::getNextTextureUnit());
-                m_ao_tex->bind();
-                m_ao_tex->syncTextureUnit(shader, "ao_tex");
-            }
-            else shader.setFloat("material.ao", m_metalness);
-        }
+        void attach(Shader& shader) const override;
 
     };
 

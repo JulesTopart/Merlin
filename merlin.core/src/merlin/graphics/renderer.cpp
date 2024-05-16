@@ -18,7 +18,12 @@ namespace Merlin {
 		enableMultisampling();
 		enableDepthTest();
 		enableCubeMap();
-
+		//glEnable(GL_FRAMEBUFFER_SRGB);
+		/*
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
+		/**/
 		m_defaultEnvironment = createShared<Environment>("defaultEnvironment", 16);
 	}
 
@@ -65,20 +70,53 @@ namespace Merlin {
 		}
 	}
 
+	void Renderer::renderLight(const Light& li, const Camera& camera){
+		Shared<Shader> shader = m_shaderLibrary->get("default.light");
+		if (!shader) {
+			Console::error("Renderer") << "Renderer failed to gather materials and shaders" << Console::endl;
+			return;
+		}
+
+		shader->use();
+		TextureBase::resetTextureUnit();
+
+		shader->setVec3("light_color", li.diffuse() + li.ambient() + li.specular());
+
+		shader->setMat4("model", currentTransform); //sync model matrix with GPU
+		shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
+		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
+		li.draw();
+	}
+
+
 	void Renderer::renderMesh(const Mesh& mesh, const Camera& camera) {
 
 		Material_Ptr mat = mesh.getMaterial();
 		Shader_Ptr shader = mesh.getShader();
 		
-		if (mesh.hasShader())
-			shader = mesh.getShader();
-		else
-			shader = m_shaderLibrary->get(mesh.getShaderName());
+
 
 		if (mesh.hasMaterial())
 			mat = mesh.getMaterial();
 		else 
 			mat = m_materialLibrary->get(mesh.getMaterialName());
+
+		if (mesh.hasShader())
+			shader = mesh.getShader();
+		else {
+			if (mesh.getShaderName() == "default") {
+				if(mat->type() == MaterialType::PHONG) shader = m_shaderLibrary->get("default.phong");
+				else if(mat->type() == MaterialType::PBR) shader = m_shaderLibrary->get("default.pbr");
+				else {
+					Console::error("Renderer") << "This material has no suitable shader. Please bind it manually" << Console::endl;
+				}
+			}else shader = m_shaderLibrary->get(mesh.getShaderName());
+		}
+
+		if (!shader || !mat) {
+			Console::error("Renderer") << "Renderer failed to gather materials and shaders" << Console::endl;
+			return;
+		}
 
 		shader->use();
 		TextureBase::resetTextureUnit();
@@ -88,6 +126,7 @@ namespace Merlin {
 			m_currentEnvironment->attach(*shader);
 		else m_defaultEnvironment->attach(*shader);
 
+		shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
 		shader->setMat4("model", currentTransform); //sync model matrix with GPU
 		shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
@@ -211,6 +250,9 @@ namespace Merlin {
 		if (const auto mesh = std::dynamic_pointer_cast<Mesh>(object)) {
 			renderMesh(*mesh, camera);
 		}//The object is a model
+		else if (const auto li = std::dynamic_pointer_cast<Light>(object)) {
+			renderLight(*li, camera);
+		}
 		else if (const auto model = std::dynamic_pointer_cast<Model>(object)) {
 			renderModel(*model, camera);
 		}//The object is a scene

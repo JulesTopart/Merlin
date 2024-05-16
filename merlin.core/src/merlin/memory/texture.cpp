@@ -276,12 +276,13 @@ namespace Merlin {
 		ImageData data = TextureLoader::loadImageData(path);
 		
 		Shared<Texture2D> tex = createShared<Texture2D>(t);
-
+		tex->bind();
 		tex->loadFromData(data);
 		// Clean up if necessary
 		if (data.bytes) {
 			stbi_image_free(data.bytes);
 		}
+		tex->unbind();
 		return tex;
 	}
 }

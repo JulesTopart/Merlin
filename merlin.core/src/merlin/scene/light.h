@@ -1,6 +1,8 @@
 #pragma once
 #include "merlin/core/core.h"
 #include "merlin/graphics/renderableObject.h"
+#include "merlin/utils/primitives.h"
+#include "merlin/graphics/mesh.h"
 #include <glm/glm.hpp>
 
 namespace Merlin {
@@ -8,13 +10,16 @@ namespace Merlin {
     enum class LightType {
         Point,
         Directional,
-        Spot
+        Spot, 
+        Ambient
     };
 
 	class Light : public RenderableObject{
     public:
-        Light(const std::string& name, LightType type, const glm::vec3& ambient = glm::vec3(0.2), const glm::vec3& diffuse = glm::vec3(1), const glm::vec3& specular = glm::vec3(1))
-            : RenderableObject(name), ambient_(ambient), diffuse_(diffuse), specular_(specular), type_(type) {}
+        Light(const std::string& name, LightType type, const glm::vec3& ambient = glm::vec3(0.2), const glm::vec3& diffuse = glm::vec3(0.5), const glm::vec3& specular = glm::vec3(0.5))
+            : RenderableObject(name), ambient_(ambient), diffuse_(diffuse), specular_(specular), type_(type) {
+            m_mesh = Primitives::createSphere(0.1, 30, 30);
+        }
 
 
         virtual void attach(int id, Shader& shader) = 0;
@@ -29,6 +34,8 @@ namespace Merlin {
         inline const void setAttenuation(glm::vec3 att) { attenuation_ = att; };
         inline const glm::vec3& attenuation() { return attenuation_; };
 
+        void draw() const;
+
         inline const glm::vec3& ambient() const { return ambient_; }
         inline const glm::vec3& diffuse() const { return diffuse_; }
         inline const glm::vec3& specular() const { return specular_; }
@@ -39,9 +46,10 @@ namespace Merlin {
         glm::vec3 diffuse_;
         glm::vec3 specular_;
 
-        glm::vec3 attenuation_ = glm::vec3(0.01, 0.001f, 0.0001f); //constant, linear, quadratic
+        glm::vec3 attenuation_ = glm::vec3(1.0, 0.09f, 0.0032f); //constant, linear, quadratic
         LightType type_;
 
+        inline static Shared<Mesh> m_mesh = nullptr;
 
         glm::mat4 renderTransform = glm::identity<glm::mat4>();
 	};
@@ -77,6 +85,19 @@ namespace Merlin {
 
         void attach(int id, Shader&) override;
 
+
+    };
+
+    class AmbientLight : public Light {
+    public:
+
+        AmbientLight(const std::string& name)
+            : Light(name, LightType::Ambient) {}
+
+        AmbientLight(const std::string& name, const glm::vec3& ambient)
+            : Light(name, LightType::Point, ambient) {}
+
+        void attach(int id, Shader&) override;
     };
 
     class SpotLight : public Light {

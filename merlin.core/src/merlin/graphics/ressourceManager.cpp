@@ -12,11 +12,18 @@ namespace Merlin {
 		LoadDefaultShaders();
 	}
 
+
 	void ShaderLibrary::LoadDefaultShaders() {
-		add(Shader::create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag"));
-		add(Shader::create("pbr", "assets/common/shaders/pbr.model.vert", "assets/common/shaders/pbr.model.frag"));
+		add(Shader::create("default.phong", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag"));
+		add(Shader::create("default.light", "assets/common/shaders/default.light.vert", "assets/common/shaders/default.light.frag"));
+		add(Shader::create("default.pbr", "assets/common/shaders/pbr.model.vert", "assets/common/shaders/pbr.model.frag"));
 		add(Shader::create("panorama_to_cubemap", "assets/common/shaders/fullscreen.vert", "assets/common/shaders/panorama_to_cubemap.frag"));
-		add(Shader::create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom"));
+
+		Shared<Shader> sh = Shader::create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom");
+		sh->noMaterial();
+		sh->noTexture();
+		add(sh);
+
 	}
 
 
@@ -31,10 +38,10 @@ namespace Merlin {
 	void MaterialLibrary::LoadDefaultMaterials() {
 
 		Shared<PhongMaterial> defaultMaterial = createShared<PhongMaterial>("default");
-		defaultMaterial->setAmbient(glm::vec3(0.6, 0.6, 0.6));
-		defaultMaterial->setDiffuse(glm::vec3(0.4, 0.4, 0.4));
-		defaultMaterial->setSpecular(glm::vec3(0.2, 0.2, 0.2));
-		defaultMaterial->setShininess(0.5);
+		defaultMaterial->setAmbient(glm::vec3(0.0, 0.0, 0.0));
+		defaultMaterial->setDiffuse(glm::vec3(0.55, 0.55, 0.55));
+		defaultMaterial->setSpecular(glm::vec3(0.70, 0.70, 0.70));
+		defaultMaterial->setShininess(0.25);
 
 		Shared<PBRMaterial> aluminum = createShared<PBRMaterial>("aluminum");
 		aluminum->setAlbedoColor(glm::vec3(0.912, 0.914, 0.920));

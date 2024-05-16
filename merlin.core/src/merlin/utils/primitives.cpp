@@ -525,79 +525,70 @@ namespace Merlin {
 
 
 
-
+//hres sector
+//vres stack
 	Shared<Mesh> Primitives::createSphere(float r, int hres, int vres) {
-
+		float PI = 3.14159265359;
 		std::vector<glm::vec3> position;
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> tex;
 		std::vector<GLuint> indices;
 
-		glm::vec3 v0 = glm::vec3(0, r, 0);
-		tex.push_back(glm::vec2(0, 0));
-		position.push_back(v0);
-		normals.push_back(glm::normalize(v0));
+		float x, y, z, xy;                              // vertex position
+		float nx, ny, nz, lengthInv = 1.0f / r;    // normal
+		float s, t;                                     // texCoord
 
-		for (int i = 0; i < vres - 1; i++)
+		float sectorStep = 2 * PI / hres;
+		float stackStep = PI / vres;
+		float sectorAngle, stackAngle;
+
+		for (int i = 0; i <= vres; ++i)
 		{
-			auto phi = glm::pi<float>() * double(i + 1) / double(vres);
-			for (int j = 0; j < hres; j++)
-			{
-				auto theta = 2.0 * glm::pi<float>() * double(j) / double(hres);
-				auto x = std::sin(phi) * std::cos(theta) * r;
-				auto y = std::cos(phi) * r;
-				auto z = std::sin(phi) * std::sin(theta) * r;
-				position.push_back(glm::vec3(x, y, z));
-				normals.push_back(glm::normalize((glm::vec3(x, y, z))));
+			stackAngle = PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+			xy = r * cosf(stackAngle);             // r * cos(u)
+			z = r * sinf(stackAngle);              // r * sin(u)
 
-				// vertex tex coord (s, t) range between [0, 1]
-				float s = (float)j / hres;
-				float t = (float)i / vres;
+			for (int j = 0; j <= hres; ++j)
+			{
+				sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+
+				// vertex position
+				x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
+				y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+				position.push_back(glm::vec3(x, z, y));
+
+				// normalized vertex normal
+				nx = x * lengthInv;
+				ny = y * lengthInv;
+				nz = z * lengthInv;
+				normals.push_back(glm::vec3(nx, nz, ny));
+
+				// vertex tex coord between [0, 1]
+				s = (float)j / hres;
+				t = (float)i / vres;
 				tex.push_back(glm::vec2(s, t));
 			}
 		}
 
-		glm::vec3 v1 = glm::vec3(0, -r, 0);
-		position.push_back(v1);
-		normals.push_back(glm::normalize(v1));
-		tex.push_back(glm::vec2(0, 1));
-		GLuint iv1 = position.size() - 1;
+		for (int i = 0; i < vres ; ++i){
+			auto k1 = i * (hres + 1);
+			auto k2 = k1 + hres + 1;
+			for (int j = 0; j < hres;  ++j, ++k1, ++k2){
+				if (i != 0){
+					indices.push_back(k1);
+					indices.push_back(k2);
+					indices.push_back(k1 + 1);
+				}
 
-		for (int i = 0; i < hres; ++i)
-		{
-			auto i0 = i + 1;
-			auto i1 = (i + 1) % hres + 1;
-			indices.push_back(0);
-			indices.push_back(i1);
-			indices.push_back(i0);
-			i0 = i + hres * (vres - 2) + 1;
-			i1 = (i + 1) % hres + hres * (vres - 2) + 1;
-			indices.push_back(iv1);
-			indices.push_back(i1);
-			indices.push_back(i0);
-		}
-
-
-		for (int j = 0; j < vres - 2; j++)
-		{
-			auto j0 = j * hres + 1;
-			auto j1 = (j + 1) * hres + 1;
-			for (int i = 0; i < hres; i++)
-			{
-				auto i0 = j0 + i;
-				auto i1 = j0 + (i + 1) % hres;
-				auto i2 = j1 + (i + 1) % hres;
-				auto i3 = j1 + i;
-
-				indices.push_back(i0);
-				indices.push_back(i1);
-				indices.push_back(i2);
-				
-				indices.push_back(i0);
-				indices.push_back(i3);
-				indices.push_back(i2);
+				if (i != vres-1) {
+					indices.push_back(k1+1);
+					indices.push_back(k2);
+					indices.push_back(k2+1);
+				}
 			}
+			// vertical lines for all stacks
 		}
+		
 
 
 		Vertices v;
