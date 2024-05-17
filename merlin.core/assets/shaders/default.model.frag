@@ -160,7 +160,7 @@ void main() {
 
 
 	//Load material textures
-	vec3 N = normalize(material.use_normal_tex ? normalize(texture(material.normal_tex, uv).xyz * 2.0f - 1.0) : vin.normal);
+	vec3 N = normalize(false ? normalize(texture(material.normal_tex, uv).xyz * 2.0f - 1.0) : vin.normal);
 	// Reflection (using skybox)
 	
 	vec3 I = normalize(vin.position - vin.viewPos);
@@ -192,7 +192,7 @@ void main() {
     //FragColor = vec4(finalColor, 1.0);
     float gamma = 2.2;
     FragColor.rgb = pow(finalColor.rgb, vec3(1.0/gamma));
-    //FragColor.rgb = abs(N);
+    //FragColor.rgb = N;
     FragColor.a = 1.0;
 
 }

@@ -36,7 +36,7 @@ void ExampleLayer::onAttach(){
 	//Shared<Model> model = Model::create("sphere", Primitives::createSphere(5, 40, 40));
 	Shared<Model> model = ModelLoader::loadModel("./assets/common/models/model.obj");
 	model->translate(glm::vec3(-0.5, 0, 0));
-	//model->rotate(glm::vec3(glm::pi<float>() / 4.0, 0, 0));
+	model->rotate(glm::vec3(glm::pi<float>() / 4.0, 0, 0));
 	//model->scale(glm::vec3(1));
 	//model->meshes()[0]->calculateNormals();
 	//model->setMaterial("pearl");
