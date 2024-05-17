@@ -4,12 +4,10 @@
 
 
 
+
 namespace Merlin {
 
-	Renderer::Renderer() : currentTransform(glm::mat4(1.0)) {
-		m_materialLibrary = MaterialLibrary::instance();
-		m_shaderLibrary = ShaderLibrary::instance();
-	}
+	Renderer::Renderer() : currentTransform(glm::mat4(1.0)) {}
 
 	Renderer::~Renderer() {}
 
@@ -19,12 +17,19 @@ namespace Merlin {
 		enableDepthTest();
 		enableCubeMap();
 		//glEnable(GL_FRAMEBUFFER_SRGB);
-		/*
+		
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 		glFrontFace(GL_CCW);
 		/**/
+		m_materialLibrary = MaterialLibrary::instance();
+		m_shaderLibrary = ShaderLibrary::instance();
 		m_defaultEnvironment = createShared<Environment>("defaultEnvironment", 16);
+
+		shadowFBO = createShared<FrameBuffer>(2048, 2048);
+		shadowFBO->bind();
+		shadowFBO->addDepthStencilAttachment(shadowFBO->createTextureAttachment(GL_DEPTH_COMPONENT));
+		shadowFBO->unbind();
 	}
 
 	void Renderer::pushMatrix() {
@@ -47,8 +52,28 @@ namespace Merlin {
 
 
 	void Renderer::renderScene(const Scene& scene, const Camera& camera) {
-		if (scene.hasEnvironment())m_currentEnvironment = scene.getEnvironment();
+		if (scene.hasEnvironment()) {
+			m_currentEnvironment = scene.getEnvironment();
+			renderEnvironment(*m_currentEnvironment, camera);
+		}else {
+			renderEnvironment(*m_defaultEnvironment, camera);
+		}
 
+		//Render to shadow maps
+
+
+		/*
+		for (const auto& node : scene.nodes()) {
+			if (!node->isHidden()) {
+				if (const auto light = std::dynamic_pointer_cast<Light>(node)) {
+					light->applyRenderTransform(currentTransform);
+					m_activeLights.push_back(light);
+				}
+			}
+		}/**/
+
+
+		//Render to scene
 		for (const auto& node : scene.nodes()) {
 			if (!node->isHidden()) {
 				if (const auto light = std::dynamic_pointer_cast<Light>(node)) {
@@ -70,6 +95,26 @@ namespace Merlin {
 		}
 	}
 
+	void Renderer::renderEnvironment(const Environment& env, const Camera& camera){
+		if (!use_environment) return;
+		Shared<Shader> shader = m_shaderLibrary->get("default.skybox");
+		if (!shader) {
+			Console::error("Renderer") << "Renderer failed to gather materials and shaders" << Console::endl;
+			return;
+		}
+		glDepthFunc(GL_LEQUAL);
+		glDisable(GL_CULL_FACE);
+		shader->use();
+		TextureBase::resetTextureUnit();
+		env.attach(*shader);
+		shader->setMat4("view", glm::mat4(glm::mat3(camera.getViewMatrix()))); //sync model matrix with GPU
+		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
+		env.draw();
+		glEnable(GL_CULL_FACE);
+		glDepthFunc(GL_LESS);
+
+	}
+
 	void Renderer::renderLight(const Light& li, const Camera& camera){
 		Shared<Shader> shader = m_shaderLibrary->get("default.light");
 		if (!shader) {
@@ -87,7 +132,6 @@ namespace Merlin {
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 		li.draw();
 	}
-
 
 	void Renderer::renderMesh(const Mesh& mesh, const Camera& camera) {
 
@@ -117,6 +161,7 @@ namespace Merlin {
 			Console::error("Renderer") << "Renderer failed to gather materials and shaders" << Console::endl;
 			return;
 		}
+
 
 		shader->use();
 		TextureBase::resetTextureUnit();

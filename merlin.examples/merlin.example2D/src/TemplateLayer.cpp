@@ -24,6 +24,7 @@ void TemplateLayer::onAttach(){
 
 	renderer.initialize();
 	renderer.disableDepthTest();
+	renderer.disableEnvironment();
 	renderer.enableSampleShading();
 	renderer.setBackgroundColor(0.203, 0.203, 0.203, 1.0);
 
@@ -37,16 +38,7 @@ void TemplateLayer::onAttach(){
 	model->setShader("model");
 	scene.add(model);
 
-	light = Model::create("light", Primitives::createSphere(0.05));
-	Shared<Material> lightMat = createShared<Material>("lightMat");
-	lightMat->setAmbient(glm::vec3(1));
-	lightMat->setDiffuse(glm::vec3(1));
-	lightMat->setSpecular(glm::vec3(1));
-	lightMat->setShininess(0.1);
-	light->setMaterial(lightMat);
-
-	light->translate(glm::vec3(1, 1, 0));
-
+	light = createShared<PointLight>("light", glm::vec3(1, 0, 1));
 	scene.add(light);
 
 	modelShader->use();
@@ -70,8 +62,6 @@ void TemplateLayer::onUpdate(Timestep ts){
 	float x = light->position().x;
 	float y = light->position().y;
 	light->translate(glm::vec3(cos(t) - x, sin(t) - y, 0.0));
-	modelShader->use();
-	modelShader->setVec3("lightPos", light->position());
 
 	renderer.clear();
 	renderer.renderScene(scene, *camera);

@@ -16,7 +16,7 @@ namespace Merlin {
 
 	class Light : public RenderableObject{
     public:
-        Light(const std::string& name, LightType type, const glm::vec3& ambient = glm::vec3(0.2), const glm::vec3& diffuse = glm::vec3(0.5), const glm::vec3& specular = glm::vec3(0.5))
+        Light(const std::string& name, LightType type, const glm::vec3& ambient = glm::vec3(0.2), const glm::vec3& diffuse = glm::vec3(0.7), const glm::vec3& specular = glm::vec3(0.5))
             : RenderableObject(name), ambient_(ambient), diffuse_(diffuse), specular_(specular), type_(type) {
             m_mesh = Primitives::createSphere(0.1, 30, 30);
         }
@@ -27,8 +27,11 @@ namespace Merlin {
         inline const glm::mat4& getRenderTransform() { return renderTransform; }
 
 
+        const void setAmbient(float r, float g, float b) { ambient_ = glm::vec3(r,g,b); }
         const void setAmbient(const glm::vec3& c) { ambient_ = c; }
+        const void setDiffuse(float r, float g, float b) { diffuse_ = glm::vec3(r, g, b);}
         const void setDiffuse(const glm::vec3& c) { diffuse_ = c;}
+        const void setSpecular(float r, float g, float b) { specular_ = glm::vec3(r, g, b);}
         const void setSpecular(const glm::vec3& c) { specular_ = c;}
 
         inline const void setAttenuation(glm::vec3 att) { attenuation_ = att; };

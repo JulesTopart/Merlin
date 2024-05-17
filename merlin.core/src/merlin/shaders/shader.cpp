@@ -87,14 +87,14 @@ namespace Merlin {
 		GeomShaderSrc = "";
 
 		// Read vertexFile and fragmentFile and store the strings
-		LOG_INFO() << "Importing shader source... : " << vertex_file_path << Console::endl;
+		LOG_INFO() << "Importing Vertex shader source... : " << vertex_file_path << Console::endl;
 		VertexShaderSrc = readSrc(vertex_file_path);
 
-		LOG_INFO() << "Importing shader source... : " << fragment_file_path << Console::endl;
+		LOG_INFO() << "Importing Fragment shader source... : " << fragment_file_path << Console::endl;
 		FragmentShaderSrc = readSrc(fragment_file_path);
 
 		if (geometry_file_path != "") {
-			LOG_INFO() << "Importing shader source... : " << geometry_file_path << Console::endl;
+			LOG_INFO() << "Importing Geometry shader source... : " << geometry_file_path << Console::endl;
 			GeomShaderSrc = readSrc(geometry_file_path);
 		}
 
@@ -119,7 +119,7 @@ namespace Merlin {
 		compileShader("Vertex", VertexShaderSrc, vertexShaderID);
 		compileShader("Fragment", FragmentShaderSrc, fragmentShaderID);
 		if (GeomShaderSrc != "")
-			compileShader("Vertex", GeomShaderSrc, geometryShaderID);
+			compileShader("Geometry", GeomShaderSrc, geometryShaderID);
 
 		setID(glCreateProgram());
 

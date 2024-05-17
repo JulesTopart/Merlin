@@ -43,6 +43,7 @@ namespace Merlin {
 			6, 2, 3
 		};
 
+		m_vao.bind();
 		VBO vbo(vertices);
 		EBO ebo(indices);
 
@@ -60,6 +61,15 @@ namespace Merlin {
 
 	void Environment::attach(Shader& shader) const{
 		if (!shader.supportEnvironment())return;
+
+		shader.setInt("environment.use_skybox_tex", m_skybox != nullptr);
+		if (m_skybox && shader.supportTexture()) {
+			m_skybox->setUnit(TextureBase::getNextTextureUnit());
+			m_skybox->bind();
+			m_skybox->syncTextureUnit(shader, "environment.skybox_tex");
+		}
+		//else shader.setVec3("environment.irradiance", glm::vec3(1.0));
+
 		/*
 		shader.setInt("environment.use_irradiance_tex", m_irradiance != nullptr && shader.supportTexture());
 		if (m_irradiance && shader.supportTexture()) {
@@ -84,9 +94,10 @@ namespace Merlin {
 
 	void Environment::draw() const {
 		// Render the skybox cube
+
 		m_vao.bind();
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-		m_vao.unbind();
+		//m_vao.unbind();
 
 	}
 	/*

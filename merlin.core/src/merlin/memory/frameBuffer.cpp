@@ -142,21 +142,20 @@ namespace Merlin {
     std::shared_ptr<TextureBase> FrameBuffer::createTextureAttachment(GLenum format, GLuint samples) {
         
         // create Framebuffer Texture
-        std::shared_ptr<TextureBase> tex;
+        std::shared_ptr<TextureBase> tex = nullptr;
         if (samples > 0) {
             tex = std::make_shared<TextureMultisampled2D>(samples, TextureType::ALBEDO);
+            tex->reserve(_width, _height, format);
         }
         else {
             tex = std::make_shared<Texture2D>();
+            tex->bind();
             if (const auto tx = std::dynamic_pointer_cast<Texture2D>(tex)) {
-                tx->setInterpolationMode(GL_LINEAR, GL_LINEAR);
-                tx->setRepeatMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+                tx->setInterpolationMode(GL_NEAREST, GL_NEAREST);
+                tx->setRepeatMode(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
             }
+            tex->reserve(_width, _height, 8);
         }
-
-        tex->bind();
-        tex->reserve(_width, _height, format);
-
         return tex;
     }
 

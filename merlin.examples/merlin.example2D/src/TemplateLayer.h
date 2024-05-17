@@ -21,8 +21,7 @@ private:
 	Scene scene;
 	Renderer renderer;
 
-	Shared<Model>  light;
-	Shared<SkyBox> sky;
+	Shared<Light>  light;
 	Shared<Shader> modelShader;
 
 	glm::vec3 model_matrix_translation = { 0.8f, 0.2f, 0.3f};

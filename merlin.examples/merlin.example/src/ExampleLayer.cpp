@@ -11,7 +11,7 @@ ExampleLayer::ExampleLayer(){
 	int width = w->getWidth();
 	camera = createShared<Camera>(width, height, Projection::Perspective);
 	camera->setNearPlane(0.001f);
-	camera->setFarPlane(3000.0f);
+	camera->setFarPlane(1000.0f);
 	camera->setFOV(45.0f); //Use 90.0f as we are using cubemaps
 	camera->setPosition(glm::vec3(-3.0f, 0.0f, 0.3f));
 	cameraController = createShared<CameraController3D>(camera);
@@ -33,34 +33,13 @@ void ExampleLayer::onAttach(){
 	renderer.enableSampleShading();
 	renderer.setBackgroundColor(0.203, 0.203, 0.203, 1.0);
 
-	modelShader = Shader::create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
-	modelShader = Shader::create("model", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
-	modelShader->noTexture();
-	renderer.addShader(modelShader);
-
-
 	Shared<Model> model = Model::create("sphere1", GetModel());
 	model->setMaterial("jade");
-	model->setShader("model");
 	scene.add(model);
 
-	
-	light = Model::create("light", Primitives::createSphere(0.05));
-	
-	Shared<PhongMaterial> lightMat = createShared<PhongMaterial>("lightMat");
-	lightMat->setAmbient(glm::vec3(1));
-	lightMat->setDiffuse(glm::vec3(1));
-	lightMat->setSpecular(glm::vec3(1));
-	lightMat->setShininess(0.1);
-	light->setMaterial(lightMat);
-	light->translate(glm::vec3(2.8, 2, 0.6));
+	light = createShared<PointLight>("light", glm::vec3(1, 0, 1));
 	scene.add(light);
-	
-	
-	modelShader->use();
-	modelShader->setVec3("lightPos", light->position());
-	modelShader->setVec4("lightColor", glm::vec4(1));
-	
+		
 	scene.setCamera(camera);
 }
 
@@ -80,8 +59,6 @@ void ExampleLayer::onUpdate(Timestep ts){
 	float x = light->position().x;
 	float y = light->position().y;
 	light->translate(glm::vec3(cos(t) - x, sin(t) - y, 0.0));
-	modelShader->use();
-	modelShader->setVec3("lightPos", light->position());
 
 	renderer.clear();
 	renderer.renderScene(scene, *camera);

@@ -16,8 +16,8 @@ ExampleLayer::ExampleLayer(){
 	camera->setFarPlane(1000.0f);
 	camera->setFOV(45.0f); //Use 90.0f as we are using cubemaps
 	//camera->setPosition(glm::vec3(30.0f, -180.0f, 50.0f));
-	camera->setPosition(glm::vec3(0, 9, 5.5));
-	camera->setRotation(glm::vec3(0, 25, -90));
+	camera->setPosition(glm::vec3(0.7, -7, 2.4));
+	camera->setRotation(glm::vec3(0, 0, +90));
 	//camera->setRotation(glm::vec3(0, 0, 90.0f));
 	cameraController = createShared<CameraController3D>(camera);
 }
@@ -30,19 +30,27 @@ void ExampleLayer::onAttach(){
 
 	renderer.initialize();
 	renderer.enableSampleShading();
-	renderer.setBackgroundColor(0.703, 0.703, 0.703, 1.0);
+	//renderer.setBackgroundColor(0.903, 0.903, 0.903, 1.0);
 
 	//Shared<Model> model = Model::create("plane", Primitives::createRectangle(50, 50));
 	//Shared<Model> model = Model::create("sphere", Primitives::createSphere(5, 40, 40));
 	Shared<Model> model = ModelLoader::loadModel("./assets/common/models/model.obj");
-	//model->translate(glm::vec3(0, 0, 2.5));
-	//model->rotate(glm::vec3(glm::pi<float>() / 2.0, 0, 0));
+	model->translate(glm::vec3(-0.5, 0, 0));
+	//model->rotate(glm::vec3(glm::pi<float>() / 4.0, 0, 0));
 	//model->scale(glm::vec3(1));
 	//model->meshes()[0]->calculateNormals();
 	//model->setMaterial("pearl");
 
-	//Shared<Model> floor = Model::create("floor", Primitives::createCube(5));
-	//floor->setMaterial("gold");
+	//Shared<Model> floor = Model::create("floor", Primitives::createFloor(500, 0.5));
+	Shared<Model> floor = Model::create("floor", Primitives::createRectangle(10, 10));
+	Shared<PhongMaterial> floorMat = createShared<PhongMaterial>("floormat");
+	floorMat->loadTexture("./assets/textures/planks.png", TextureType::DIFFUSE);
+	floorMat->loadTexture("./assets/textures/planks_spec.png", TextureType::SPECULAR);
+	floorMat->setAmbient(glm::vec3(0.25, 0.20725, 0.20725));
+	floorMat->setDiffuse(glm::vec3(1, 0.829, 0.829));
+	floorMat->setSpecular(glm::vec3(0.296648, 0.296648, 0.296648));
+	floorMat->setShininess(0.125);
+	floor->setMaterial(floorMat);
 
 	Shared<PhongMaterial> customMat = createShared<PhongMaterial>("custom");
 	customMat->loadTexture("./assets/common/models/model.aldebo.jpg", TextureType::DIFFUSE);
@@ -52,22 +60,27 @@ void ExampleLayer::onAttach(){
 	customMat->setSpecular(glm::vec3(0.296648, 0.296648, 0.296648));
 	customMat->setShininess(0.088);
 	model->setMaterial(customMat);
-	//model->setMaterial(customMat);
-	/**/
-
 
 	light = createShared<PointLight>("light");
-	light->translate(glm::vec3(radius, radius, 20));
-	light->setAttenuation(glm::vec3(1.0, 0.022, 0.0020));
+	light->translate(glm::vec3(radius, radius, 0.5));
+	light->setAttenuation(glm::vec3(0.5, 0.0001, 0.000001));
+	light->setAmbient(0.05, 0.05, 0.05);
+	light->setDiffuse(1, 1, 1);
+	light->setSpecular(1, 1, 1);
+	//light->setDiffuse(1, 0, 0);
+	//light->setSpecular(0, 1, 0);
+	//light->setDiffuse(glm::vec3(220.0f / 155.0f, 107.0f / 155.0f, 25.0f / 155.0f));
+	//light->setSpecular(glm::vec3(220.0f / 155.0f, 107.0f / 155.0f, 25.0f / 155.0f));
 
 	dirlight = createShared<DirectionalLight>("light", glm::vec3(-0.5f, 0.5f, -1.0f));
-	dirlight->translate(glm::vec3(radius, radius,10));
-	dirlight->setAttenuation(glm::vec3(1.0,0.022,0.0020));
+	dirlight->translate(glm::vec3(radius, radius,1));
+	//dirlight->setDiffuse(glm::vec3(220.0f / 455.0f, 107.0f / 455.0f, 25.0f / 455.0f));
+	dirlight->setDiffuse(glm::vec3(1));
 
 	scene.add(light);
-	scene.add(dirlight);
+	//scene.add(dirlight);
 	scene.add(model);
-	//scene.add(floor);
+	scene.add(floor);
 	scene.setCamera(camera);
 }
 

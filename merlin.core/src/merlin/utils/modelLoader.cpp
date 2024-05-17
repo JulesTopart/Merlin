@@ -184,75 +184,95 @@ namespace Merlin {
         return vertex;
     }
 
-	// Parse an OBJ file and extract the data
-	bool ModelLoader::parseOBJ(const std::string& file_path, Vertices& vertices, Indices& indices) {
+
+
+
+    // Parse an OBJ file and extract the data
+    bool ModelLoader::parseOBJ(const std::string& file_path, Vertices& vertices, Indices& indices) {
         // Open the OBJ file
-        std::ifstream infile(file_path);
+        std::ifstream infile(file_path, std::ios::binary);
         if (!infile) {
-            std::cerr << "Failed to open OBJ file: " << file_path << std::endl;
+            Console::error("ModelLoader") << "Failed to open OBJ file: " << file_path << Console::endl;
             return false;
         }
+
+        // Determine the file size
+        infile.seekg(0, std::ios::end);
+        std::streamsize file_size = infile.tellg();
+        infile.seekg(0, std::ios::beg);
+
+        // Read the entire file into a string
+        std::string file_content(file_size, ' ');
+        infile.read(&file_content[0], file_size);
+        infile.close();
 
         // Temporary storage for the extracted data
         std::vector<glm::vec3> tempVertices;
         std::vector<glm::vec2> tempTexCoords;
         std::vector<glm::vec3> tempNormals;
 
-        // Read the file line by line
+        // Reserve space to avoid multiple reallocations
+        tempVertices.reserve(1000);
+        tempTexCoords.reserve(1000);
+        tempNormals.reserve(1000);
+        vertices.reserve(1000);
+        indices.reserve(1000);
+
+        std::istringstream file_stream(file_content);
         std::string line;
-        while (std::getline(infile, line)) {
+        while (std::getline(file_stream, line)) {
             if (line.empty() || line[0] == '#') {
                 // Skip empty lines and comments
                 continue;
             }
 
-            // Use a stringstream to parse the line
-            std::stringstream ss(line);
-            std::string keyword;
-            ss >> keyword;
-
-            if (keyword == "v") {
+            // Check the prefix and process accordingly
+            if (line.substr(0, 2) == "v ") {
                 // Extract vertex data
                 glm::vec3 vertex;
-                ss >> vertex.x >> vertex.y >> vertex.z;
+                std::sscanf(line.c_str(), "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
                 tempVertices.push_back(vertex);
             }
-            else if (keyword == "vt") {
+            else if (line.substr(0, 3) == "vt ") {
                 // Extract texture coordinate data
                 glm::vec2 texCoord;
-                ss >> texCoord.x >> texCoord.y;
+                std::sscanf(line.c_str(), "vt %f %f", &texCoord.x, &texCoord.y);
                 tempTexCoords.push_back(texCoord);
             }
-            else if (keyword == "vn") {
+            else if (line.substr(0, 3) == "vn ") {
                 // Extract normal data
                 glm::vec3 normal;
-                ss >> normal.x >> normal.y >> normal.z;
+                std::sscanf(line.c_str(), "vn %f %f %f", &normal.x, &normal.y, &normal.z);
                 tempNormals.push_back(normal);
             }
-            else if (keyword == "f") {
+            else if (line.substr(0, 2) == "f ") {
                 // Extract face data
-                std::string vertex1, vertex2, vertex3;
-                ss >> vertex1 >> vertex2 >> vertex3;
+                unsigned int vertex_indices[3], texcoord_indices[3], normal_indices[3];
+                int matches = std::sscanf(line.c_str(),
+                    "f %u/%u/%u %u/%u/%u %u/%u/%u",
+                    &vertex_indices[0], &texcoord_indices[0], &normal_indices[0],
+                    &vertex_indices[1], &texcoord_indices[1], &normal_indices[1],
+                    &vertex_indices[2], &texcoord_indices[2], &normal_indices[2]);
 
-                // Parse the vertex data for each of the vertices
-                Vertex v1 = parseVertex(vertex1, { tempVertices, tempTexCoords, tempNormals });
-                Vertex v2 = parseVertex(vertex2, { tempVertices, tempTexCoords, tempNormals });
-                Vertex v3 = parseVertex(vertex3, { tempVertices, tempTexCoords, tempNormals });
+                if (matches != 9) {
+                    Console::error("ModelLoader") << "Failed to parse face: " << line << Console::endl;
+                    return false;
+                }
 
-                // Add the vertices to the vector
-                vertices.push_back(v1);
-                vertices.push_back(v2);
-                vertices.push_back(v3);
-
-                // Add the indices to the vector
-                indices.push_back(indices.size());
-                indices.push_back(indices.size());
-                indices.push_back(indices.size());
+                // Create vertices
+                for (int i = 0; i < 3; i++) {
+                    Vertex vertex;
+                    vertex.position = tempVertices[vertex_indices[i] - 1];
+                    vertex.texCoord = tempTexCoords[texcoord_indices[i] - 1];
+                    vertex.normal = tempNormals[normal_indices[i] - 1];
+                    vertices.push_back(vertex);
+                    indices.push_back(indices.size());
+                }
             }
         }
 
         return true;
-	}
+    }
 
     bool ModelLoader::parseSTL(const std::string& filepath, Vertices& vertices, Indices& indices) {
         // Open the file for reading
