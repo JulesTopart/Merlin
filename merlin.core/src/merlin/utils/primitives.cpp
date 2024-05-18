@@ -9,14 +9,14 @@ namespace Merlin {
 		std::vector<unsigned int> indices;
 
 		// Center vertex
-		vertices.push_back(Vertex(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.5f, 0.5f)));
+		vertices.push_back(Vertex(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
 		for (int i = 0; i < res; ++i) {
 			float angle = 2.0f * glm::pi<float>() * i / res;
 			float x = r * cos(angle);
 			float y = r * sin(angle);
 
-			vertices.push_back(Vertex(glm::vec3(x, y, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2((cos(angle) + 1.0f) * 0.5f, (sin(angle) + 1.0f) * 0.5f)));
+			vertices.push_back(Vertex(glm::vec3(x, y, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2((cos(angle) + 1.0f) * 0.5f, (sin(angle) + 1.0f) * 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
 			// Connect vertices to form triangles
 			if (i > 0) {
@@ -42,19 +42,19 @@ namespace Merlin {
 			float x = r * cos(angle);
 			float y = r * sin(angle);
 
-			vertices.push_back(Vertex(glm::vec3(x, y, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2((cos(angle) + 1.0f) * 0.5f, (sin(angle) + 1.0f) * 0.5f)));
+			vertices.push_back(Vertex(glm::vec3(x, y, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2((cos(angle) + 1.0f) * 0.5f, (sin(angle) + 1.0f) * 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 		}
-		vertices.push_back(Vertex(glm::vec3(r, 0, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2((2.0f) * 0.5f, (1.0f) * 0.5f)));
+		vertices.push_back(Vertex(glm::vec3(r, 0, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2((2.0f) * 0.5f, (1.0f) * 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
 		return Mesh::create("Circle", vertices, GL_LINE_STRIP);
 	}
 
 	Shared<Mesh> Primitives::createRectangle(float x, float y) {
 		Vertices v = {
-			Vertex{glm::vec3(-x / 2.0f,-y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
-			Vertex{glm::vec3(x / 2.0f, -y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
-			Vertex{glm::vec3(x / 2.0f, y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
-			Vertex{glm::vec3(-x / 2.0f,y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
+			Vertex{glm::vec3(-x / 2.0f,-y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{glm::vec3(x / 2.0f, -y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{glm::vec3(x / 2.0f, y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{glm::vec3(-x / 2.0f,y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
 		};
 
 		Indices i = { 0, 1, 2, 3 };
@@ -83,10 +83,10 @@ namespace Merlin {
 		}
 
 		std::vector<Vertex> v = {
-			Vertex{ glm::vec3(x_lo,y_lo,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // Z-
-			Vertex{ glm::vec3(x_up,y_lo,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)}
+			Vertex{ glm::vec3(x_lo,y_lo,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)}, // Z-
+			Vertex{ glm::vec3(x_up,y_lo,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)}
 		};
 
 		return Mesh::create("Cube", v, GL_QUADS);
@@ -131,7 +131,7 @@ namespace Merlin {
 
 		Vertices v;
 		for (int i(0); i < 4 * groundNumTiles * groundNumTiles; i++) {
-			v.push_back(Vertex{ glm::vec3(groundVerts[i * 3], groundVerts[i * 3 + 2], groundVerts[i * 3 + 1]),glm::vec3(0,0,1), glm::vec3(groundColors[i * 3], groundColors[i * 3 + 1], groundColors[i * 3 + 2]) }); //color : 
+			v.push_back(Vertex{ glm::vec3(groundVerts[i * 3], groundVerts[i * 3 + 2], groundVerts[i * 3 + 1]), glm::vec3(0,0,1), glm::vec3(groundColors[i * 3], groundColors[i * 3 + 1], groundColors[i * 3 + 2]), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) }); //color : 
 		}
 
 		return Mesh::create("Floor", v, GL_QUADS);
@@ -197,35 +197,35 @@ namespace Merlin {
 
 		std::vector<Vertex> v = {
 			//   Coordinates
-			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // X-
-			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)}, // X-
+			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
 
-			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // X+
-			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)}, // X+
+			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
 	
-			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // Y-
-			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)}, // Y-
+			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
 
-			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // Y+
-			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)}, // Y+
+			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)},
 
-			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // Z-
-			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)}, // Z-
+			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
 
-			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)}, // Z+
-			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)}
+			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)}, // Z+
+			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)}
 
 		};
 
@@ -245,42 +245,42 @@ namespace Merlin {
 
 		std::vector<Vertex> v = {
 			//   Coordinates
-			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(0.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(0.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(0.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(0.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(0.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(0.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(0.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(0.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(0.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(0.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(0.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(1.0f, 1.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(0.0f, 1.0f)},
-			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(1.0f, 0.0f)}
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(0,0,-1),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_lo),glm::vec3(0,-1,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_lo,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_lo),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_lo),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_lo),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(0,1,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)},
+			Vertex{ glm::vec3(x_up,y_up,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_lo,y_up,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
+			Vertex{ glm::vec3(x_up,y_lo,z_up),glm::vec3(0,0,1),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)}
 		};
 
 		return Mesh::create("Cube", v);
@@ -368,8 +368,8 @@ namespace Merlin {
 			vertices.emplace_back(glm::vec3(r * sin(angle), r * cos(angle), 0.0f), glm::normalize(glm::vec3(sin(angle), cos(angle), 0.0f)), glm::vec3(1.0f), texCoordBottom);
 		}
 		// Add the center vertices for the top and bottom faces
-		vertices.emplace_back(glm::vec3(0.0f, 0.0f, h), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)), glm::vec3(1.0f), glm::vec2(0.5f, 1.0f));
-		vertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f)), glm::vec3(1.0f), glm::vec2(0.5f, 0.0f));
+		vertices.emplace_back(glm::vec3(0.0f, 0.0f, h), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)), glm::vec3(1.0f), glm::vec2(0.5f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		vertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f)), glm::vec3(1.0f), glm::vec2(0.5f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		return createShared<Mesh>("Cylinder", vertices, indices, GL_TRIANGLES);
 	}

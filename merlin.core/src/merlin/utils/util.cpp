@@ -22,7 +22,7 @@ namespace Merlin {
 		else if (extension == "png") {
 			return FileType::PNG;
 		}
-		else if (extension == "jpg") {
+		else if (extension == "jpg" || extension == "jpeg") {
 			return FileType::JPG;
 		}
 		else if (extension == "hdr") {

@@ -34,12 +34,12 @@ project "merlin.core"
 	includedirs
 	{
 		"src",
-		"vendor/spdlog/include",
 		"%{IncludeDir. glfw}",
 		"%{IncludeDir.glad}",
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.stb_image}"
+		"%{IncludeDir.stb_image}",
+		"%{IncludeDir.assimp}"
 	}
 
 	links 
@@ -48,6 +48,7 @@ project "merlin.core"
 		"glad",
 		"imgui",
 		"stb_image",
+		"assimp",
 		"opengl32.lib"
 	}
 

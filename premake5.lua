@@ -92,6 +92,7 @@ IncludeDir["glad"] = "vendor/glad/include"
 IncludeDir["imgui"] = "vendor/imgui"
 IncludeDir["glm"] = "vendor/glm"
 IncludeDir["stb_image"] = "vendor/stb_image"
+IncludeDir["assimp"] = "vendor/assimp/include"
 
 -- Projects
 group "Dependencies"
@@ -99,6 +100,7 @@ group "Dependencies"
 	include "merlin.core/vendor/glad"
 	include "merlin.core/vendor/imgui"
 	include "merlin.core/vendor/stb_image"
+	include "merlin.core/vendor/assimp"
 	
 group ""
 	include "merlin.core"

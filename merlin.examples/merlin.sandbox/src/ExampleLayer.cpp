@@ -34,9 +34,9 @@ void ExampleLayer::onAttach(){
 
 	//Shared<Model> model = Model::create("plane", Primitives::createRectangle(50, 50));
 	//Shared<Model> model = Model::create("sphere", Primitives::createSphere(5, 40, 40));
-	Shared<Model> model = ModelLoader::loadModel("./assets/common/models/model.obj");
+	Shared<Model> model = ModelLoader::loadModel("./assets/models/model.obj");
 	model->translate(glm::vec3(-0.5, 0, 0));
-	model->rotate(glm::vec3(glm::pi<float>() / 4.0, 0, 0));
+	//model->rotate(glm::vec3(glm::pi<float>() / 4.0, 0, 0));
 	//model->scale(glm::vec3(1));
 	//model->meshes()[0]->calculateNormals();
 	//model->setMaterial("pearl");
@@ -45,7 +45,7 @@ void ExampleLayer::onAttach(){
 	Shared<Model> floor = Model::create("floor", Primitives::createRectangle(10, 10));
 	Shared<PhongMaterial> floorMat = createShared<PhongMaterial>("floormat");
 	floorMat->loadTexture("./assets/textures/planks.png", TextureType::DIFFUSE);
-	floorMat->loadTexture("./assets/textures/planks_spec.png", TextureType::SPECULAR);
+	floorMat->loadTexture("./assets/textures/planks_specular.png", TextureType::SPECULAR);
 	floorMat->setAmbient(glm::vec3(0.25, 0.20725, 0.20725));
 	floorMat->setDiffuse(glm::vec3(1, 0.829, 0.829));
 	floorMat->setSpecular(glm::vec3(0.296648, 0.296648, 0.296648));
@@ -53,8 +53,9 @@ void ExampleLayer::onAttach(){
 	floor->setMaterial(floorMat);
 
 	Shared<PhongMaterial> customMat = createShared<PhongMaterial>("custom");
-	customMat->loadTexture("./assets/common/models/model.aldebo.jpg", TextureType::DIFFUSE);
-	customMat->loadTexture("./assets/common/models/model.normal.jpg", TextureType::NORMAL);
+	customMat->loadTexture("./assets/models/model.albedo.jpg", TextureType::DIFFUSE);
+	customMat->loadTexture("./assets/models/model.normals.jpg", TextureType::NORMAL);
+	//customMat->loadTexture("./assets/models/model.roughness.jpg", TextureType::SPECULAR);
 	customMat->setAmbient(glm::vec3(0.25, 0.20725, 0.20725));
 	customMat->setDiffuse(glm::vec3(1, 0.829, 0.829));
 	customMat->setSpecular(glm::vec3(0.296648, 0.296648, 0.296648));
@@ -62,7 +63,7 @@ void ExampleLayer::onAttach(){
 	model->setMaterial(customMat);
 
 	light = createShared<PointLight>("light");
-	light->translate(glm::vec3(radius, radius, 0.5));
+	light->translate(glm::vec3(radius, radius, 2));
 	light->setAttenuation(glm::vec3(0.5, 0.0001, 0.000001));
 	light->setAmbient(0.05, 0.05, 0.05);
 	light->setDiffuse(1, 1, 1);
@@ -73,16 +74,17 @@ void ExampleLayer::onAttach(){
 	//light->setSpecular(glm::vec3(220.0f / 155.0f, 107.0f / 155.0f, 25.0f / 155.0f));
 
 	dirlight = createShared<DirectionalLight>("light", glm::vec3(-0.5f, 0.5f, -1.0f));
-	dirlight->translate(glm::vec3(radius, radius,1));
+	dirlight->translate(dirlight->direction() * glm::vec3(-5));
 	//dirlight->setDiffuse(glm::vec3(220.0f / 455.0f, 107.0f / 455.0f, 25.0f / 455.0f));
 	dirlight->setDiffuse(glm::vec3(1));
 
 	scene.add(light);
-	//scene.add(dirlight);
+	scene.add(dirlight);
 	scene.add(model);
 	scene.add(floor);
 	scene.setCamera(camera);
 }
+
 
 void ExampleLayer::onDetach(){}
 
@@ -96,7 +98,7 @@ float t = 0.0;
 void ExampleLayer::onUpdate(Timestep ts){
 	cameraController->onUpdate(ts);
 	const float hpi = 3.14159265358;
-	t += ts;
+	t += ts/10.0;
 	float x = light->position().x;
 	float y = light->position().y;
 	light->translate(glm::vec3(cos(t)* radius - x, sin(t)* radius - y, 0.0));
@@ -122,22 +124,15 @@ void ExampleLayer::onImGuiRender()
 	ImGui::End();
 
 	// Define a recursive lambda function to traverse the scene graph
-	std::function<void(const std::list<Shared<RenderableObject>>&)> traverseNodes = [&](const std::list<Shared<RenderableObject>>& nodes)
-	{
-		for (auto& node : nodes)
-		{
+	std::function<void(const std::list<Shared<RenderableObject>>&)> traverseNodes = [&](const std::list<Shared<RenderableObject>>& nodes){
+		for (auto& node : nodes){
 			bool node_open = ImGui::TreeNode(node->name().c_str());
-			if (node_open)
-			{
-				
-				if (node != nullptr)
-				{
+			if (node_open){
+				if (node != nullptr){
 					ImGui::Text(node->name().c_str());
 				}
-				
 				// draw the node's children
 				traverseNodes(node->children());
-
 				ImGui::TreePop();
 			}
 		}

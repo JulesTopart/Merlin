@@ -91,7 +91,7 @@ vec3 calculateAmbientLight(Light light, vec3 ambientColor) {
     return light.ambient * ambientColor;
 }
 vec3 calculateDirectionalLight(Light light, vec3 normal, vec3 viewDir, vec3 ambientColor, vec3 diffuseColor, vec3 specularColor) {
-    vec3 lightDir = normalize(-light.direction);
+    vec3 lightDir = -normalize(vin.tangentBasis * light.direction);
     
     float diff = max(dot(normal, lightDir), 0.0);
     float spec = 0;
@@ -116,10 +116,10 @@ vec3 calculatePointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, v
     vec3 lightDir = normalize(lightVec);
     float diff = max(dot(normal, lightDir), 0.0);
     float spec = 0;
-    //if(diff != 0){
+    if(diff != 0){
         vec3 halfwayDir = normalize(lightDir + viewDir);
         spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess); //blinn
-    //}
+    }
 
     vec3 ambient = light.ambient * ambientColor;
     vec3 diffuse = light.diffuse * diff * diffuseColor;
@@ -134,9 +134,8 @@ vec3 calculateSpotLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, ve
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float dist = length(light_position - fragPos);
     float attenuation = 1.0 / (light.attenuation.x + light.attenuation.y * dist + light.attenuation.z * (dist * dist));
-    //float attenuation = 1.0 / (dist);
 
-    float theta = dot(lightDir, normalize(-light.direction));
+    float theta = dot(lightDir, normalize(-vin.tangentBasis * light.direction));
     float epsilon = light.cutOff - 0.95;
     float intensity = clamp((theta - 0.95) / epsilon, 0.0, 1.0);
 
@@ -153,18 +152,21 @@ vec3 calculateSpotLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, ve
 
 void main() {
 
-	vec3 norm = normalize(vin.normal);
 	vec2 uv = vin.texcoord;
 	//vec3 lightDir = normalize(lightPos - position );
 	//float diff = max(dot(norm, lightDir), 0.0);
 
-
 	//Load material textures
-	vec3 N = normalize(false ? normalize(texture(material.normal_tex, uv).xyz * 2.0f - 1.0) : vin.normal);
-	// Reflection (using skybox)
+	vec3 N = vin.normal;
+	if(material.use_normal_tex && true){
+        N = texture(material.normal_tex, uv).rgb * 2.0f - 1.0;
+        //N = (vin.tangentBasis) * N;
+    }
+    N = normalize(N);
+    // Reflection (using skybox)
 	
 	vec3 I = normalize(vin.position - vin.viewPos);
-	vec3 R = reflect(I, norm);
+	vec3 R = reflect(I, N);
 
 	R = vec3(R.x, -R.z, -R.y);
 	vec3 skyColor;
@@ -189,10 +191,11 @@ void main() {
         finalColor += calculateLight(lights[i], N, vin.position, viewDir, ambientColor, diffuseColor, specularColor);
     }
 
-    //FragColor = vec4(finalColor, 1.0);
     float gamma = 2.2;
     FragColor.rgb = pow(finalColor.rgb, vec3(1.0/gamma));
-    //FragColor.rgb = N;
+    //FragColor.rgb = N* 0.9 + FragColor.rgb * 0.1;
+    //FragColor.rgb = normalize(vin.tangentBasis * (-lights[0].direction));
+    //FragColor.rgb = normalize(vin.position);
     FragColor.a = 1.0;
 
 }

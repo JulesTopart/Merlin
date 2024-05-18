@@ -6,6 +6,7 @@
 #include "merlin/memory/indexBuffer.h"
 #include "merlin/utils/util.h"
 
+
 namespace Merlin{
 
 	class ModelLoader {
@@ -49,9 +50,6 @@ namespace Merlin{
 		//static void loadMTL(Shared<Model> mdl);
 		// Parse a any file and extract the data
 		static bool parseMesh(const std::string& file_path, Vertices& vertices, Indices& indices);
-
-
-
 	};
 
 }

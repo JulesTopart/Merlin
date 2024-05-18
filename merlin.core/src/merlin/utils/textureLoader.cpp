@@ -6,7 +6,7 @@ ImageData TextureLoader::loadImageData(const std::string& filepath) {
     FileType ft = getFileType(filepath);
     ImageData data;
     data.bytes = nullptr;
-    stbi_set_flip_vertically_on_load(true);
+    //stbi_set_flip_vertically_on_load(true);
     switch (ft) {
     case Merlin::FileType::HDR:
         parseHDR(filepath, data);

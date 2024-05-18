@@ -23,20 +23,18 @@ function newProject(name)
 	   ["Docs"] = "**.md",
 	   ["Assets/*"] = "assets/**.*"
 	}
-	
-	includedirs { solutiondir .. "/merlin.core/vendor/glfw/include" }
-	
+
 	filter { "system:windows" }
 		ignoredefaultlibraries { "msvcrt" }
 
-	includedirs
-	{
-		solutiondir .. "/merlin.core/vendor/spdlog/include",
+	includedirs{
 		solutiondir .. "/merlin.core/src",
 		solutiondir .. "/merlin.core/vendor",
 		solutiondir .. "/merlin.core/%{IncludeDir.glm}",
 		solutiondir .. "/merlin.core/%{IncludeDir.glad}",
-		solutiondir .. "/merlin.core/%{IncludeDir.imgui}"
+		solutiondir .. "/merlin.core/%{IncludeDir.imgui}",
+		solutiondir .. "/merlin.core/%{IncludeDir.assimp}",
+		solutiondir .. "/merlin.core/%{IncludeDir.glfw}"
 	}
 
 	links
@@ -45,6 +43,7 @@ function newProject(name)
 		"glad",
 		"glfw",
 		"imgui",
+		"assimp",
 		"opengl32"
 	}
 	

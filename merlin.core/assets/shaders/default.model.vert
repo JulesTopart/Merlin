@@ -6,6 +6,8 @@ layout (location = 0) in vec3 _position;
 layout (location = 1) in vec3 _normal;
 layout (location = 2) in vec3 _color;
 layout (location = 3) in vec2 _texcoord;
+layout (location = 4) in vec3 _tangent;
+layout (location = 5) in vec3 _bitangent;
 
 out Vertex{
 	vec3 position;
@@ -28,7 +30,17 @@ void main() {
 	vout.normal = _normal;
 	vout.texcoord = _texcoord;
 	vout.viewPos = viewPos;
-	vout.tangentBasis = mat3(1); //set to identity
 
-	gl_Position = vec4(vout.position, 1.0f);
+	vec3 T = normalize(vec3(model * vec4(_tangent, 0.0)));
+	vec3 B = normalize(vec3(model * vec4(_bitangent, 0.0)));
+	vec3 N = normalize(vec3(model * vec4(_normal, 0.0)));
+	
+	// re-orthogonalize T with respect to N
+	T = normalize(T - dot(T, N) * N);
+	// then retrieve perpendicular vector B with the cross product of T and N
+	B = cross(N, T);
+
+	vout.tangentBasis = transpose(mat3(T, B, N));   //set to identity
+
+	gl_Position = projection * view * vec4(vout.position, 1.0f);
 }

@@ -6,12 +6,99 @@
 #include "merlin/memory/vertex.h"
 
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 namespace Merlin {
 
+
+
+
+
+    Shared<Mesh> processMesh(aiMesh* mesh, const aiScene* scene) {
+        std::vector<Vertex> vertices;
+        std::vector<GLuint> indices;
+
+        for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+            Vertex vertex;
+            glm::vec3 vector;
+
+            vector.x = mesh->mVertices[i].x;
+            vector.y = mesh->mVertices[i].y;
+            vector.z = mesh->mVertices[i].z;
+            vertex.position = vector;
+
+            vector.x = mesh->mNormals[i].x;
+            vector.y = mesh->mNormals[i].y;
+            vector.z = mesh->mNormals[i].z;
+            vertex.normal = vector;
+
+            // Process vertex tangents
+            vector.x = mesh->mTangents[i].x;
+            vector.y = mesh->mTangents[i].y;
+            vector.z = mesh->mTangents[i].z;
+            vertex.tangent = vector;
+
+            // Process vertex bitangents
+            vector.x = mesh->mBitangents[i].x;
+            vector.y = mesh->mBitangents[i].y;
+            vector.z = mesh->mBitangents[i].z;
+
+            vertex.bitangent = vector;
+
+            if (mesh->mTextureCoords[0]) {
+                glm::vec2 vec;
+                vec.x = mesh->mTextureCoords[0][i].x;
+                vec.y = mesh->mTextureCoords[0][i].y;
+                vertex.texCoord = vec;
+            }
+            else {
+                vertex.texCoord = glm::vec2(0.0f, 0.0f);
+            }
+
+            vertices.push_back(vertex);
+        }
+
+        for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+            aiFace face = mesh->mFaces[i];
+            for (unsigned int j = 0; j < face.mNumIndices; j++) {
+                indices.push_back(face.mIndices[j]);
+            }
+        }
+
+        Shared<Mesh> newMesh = Mesh::create(mesh->mName.C_Str(), vertices, indices);
+        return newMesh;
+    }
+
+    void processNode(aiNode* node, const aiScene* scene, std::vector<Shared<Mesh>>& meshes) {
+        for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+            aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+            meshes.push_back(processMesh(mesh, scene));
+        }
+
+        for (unsigned int i = 0; i < node->mNumChildren; i++) {
+            processNode(node->mChildren[i], scene, meshes);
+        }
+    }
 
 	// Load a model from the specified file and return a pointer to a new Mesh object
     Shared<Model> ModelLoader::loadModel(const std::string& file_path) {
 
+        Assimp::Importer importer;
+        const aiScene* scene = importer.ReadFile(file_path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+            std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
+            return nullptr;
+        }
+
+        std::vector<Shared<Mesh>> meshes;
+        processNode(scene->mRootNode, scene, meshes);
+
+        Shared<Model> mdl = Model::create(getFileName(file_path), meshes);
+       
+        /* //Old version without ASSIMP
         FileType ft = getFileType(file_path);
         if (ft == FileType::OBJ || ft == FileType::STL || ft == FileType::GEOM) {
             Vertices vertices;
@@ -23,17 +110,23 @@ namespace Merlin {
             auto mesh = Mesh::create("Mesh", vertices, indices);
             //mesh->calculateNormals();
 
-            Shared<Model> mdl = Model::create(getFileName(file_path), mesh);
-            /*TODO load MTL
-            if (ft == FileType::OBJ) { //look for MTL file
-                loadMTL(mdl);
-            }*/
+            
+            //TODO load MTL
+            //if (ft == FileType::OBJ) { //look for MTL file
+            //    loadMTL(mdl);
+            //}
 
             return mdl;
 
         }
-        return nullptr;
+        */
+
+        return mdl;
 	}
+
+
+
+
 
     /*
     void loadMTL(Shared<Model> mdl) {
