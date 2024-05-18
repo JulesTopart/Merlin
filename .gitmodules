@@ -8,3 +8,6 @@
 	path = merlin.core/vendor/imgui
 	url = https://github.com/JulesTopart/imgui.git
 	branch = docking
+[submodule "merlin.core/vendor/assimp"]
+	path = merlin.core/vendor/assimp
+	url = https://github.com/AminAliari/assimp.git
