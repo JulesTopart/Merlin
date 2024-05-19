@@ -33,11 +33,16 @@ namespace Merlin {
 
 		inline void disableEnvironment() { use_environment = false; }
 		inline void enableEnvironment(){use_environment = true;}
+		void setEnvironmentGradientColor(float r, float g, float b);
+		void setEnvironmentGradientColor(glm::vec3 color);
+
+		inline void hideLights() { display_lights = false; }
+		inline void showLights() { display_lights = true; }
 
 		Shared<Shader> getShader(std::string n);
 
 	private:
-		
+		bool display_lights = false;
 		bool use_environment = true;
 		void pushMatrix();
 		void popMatrix();

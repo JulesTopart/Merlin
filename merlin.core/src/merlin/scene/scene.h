@@ -21,6 +21,7 @@ namespace Merlin {
 	public:
 		Scene(std::string name = "scene");
 
+		void add(Shared<Mesh>);
 		void add(Shared<Model>);
 		//void add(Shared<ParticleSystem>);
 		//void add(Shared<deprecated_GenericParticleSystem>);

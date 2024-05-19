@@ -23,9 +23,11 @@ struct Environment{
 
 uniform Environment environment;
 
+uniform vec3 gradientColor = vec3(1);
+
 vec4 grayBox(){
     float r = length(texCoords);
-    return vec4( vec3((acos(texCoords.y / r)/ 2.0)),1.0f);
+    return vec4( vec3((acos(texCoords.y / r)/ 1.0)) * gradientColor,1.0f);
 }
 
 

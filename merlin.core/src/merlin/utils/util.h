@@ -19,6 +19,7 @@ namespace Merlin {
 	FileType getFileType(const std::string& file_path);
 	std::string getFileExtension(const std::string& filepath);
 	std::string getFileName(const std::string& filepath);
+	std::string getFileFolder(const std::string& filepath);
 
 	template<typename T>
 	void debugVector(std::vector<T>& vec);

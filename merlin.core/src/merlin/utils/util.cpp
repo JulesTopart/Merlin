@@ -57,5 +57,18 @@ namespace Merlin {
 		return filepath.substr(pos + 1);
 	}
 
+	std::string getFileFolder(const std::string& filepath){
+		// Find the last occurrence of the directory separator character
+		std::size_t pos = filepath.find_last_of("\\/");
+
+		// If the separator was not found, return the entire filepath
+		if (pos == std::string::npos) {
+			return filepath;
+		}
+
+		// Return the part of the filepath of last folder
+		return filepath.substr(0, pos+1);
+	}
+
 
 }

@@ -16,7 +16,7 @@ namespace Merlin {
 
 	class Light : public RenderableObject{
     public:
-        Light(const std::string& name, LightType type, const glm::vec3& ambient = glm::vec3(0.2), const glm::vec3& diffuse = glm::vec3(0.7), const glm::vec3& specular = glm::vec3(0.5))
+        Light(const std::string& name, LightType type, const glm::vec3& ambient = glm::vec3(0.05), const glm::vec3& diffuse = glm::vec3(0.7), const glm::vec3& specular = glm::vec3(0.5))
             : RenderableObject(name), ambient_(ambient), diffuse_(diffuse), specular_(specular), type_(type) {
             m_mesh = Primitives::createSphere(0.1, 30, 30);
         }
@@ -98,7 +98,7 @@ namespace Merlin {
             : Light(name, LightType::Ambient) {}
 
         AmbientLight(const std::string& name, const glm::vec3& ambient)
-            : Light(name, LightType::Point, ambient) {}
+            : Light(name, LightType::Ambient, ambient) {}
 
         void attach(int id, Shader&) override;
     };

@@ -22,6 +22,9 @@ namespace Merlin {
 		inline const std::string& getShaderName() const { return m_shaderName; }
 		inline void setShader(std::string shaderName) { m_shaderName = shaderName; }
 
+		inline void setGradientColor(const glm::vec3& c) { m_gradient_color = c; }
+		const glm::vec3& gradientColor() const { return m_gradient_color; }
+
 	private:
 		void setupMesh();
 
@@ -32,6 +35,7 @@ namespace Merlin {
 
 		GLuint m_resolution = 512;
 
+		glm::vec3 m_gradient_color = glm::vec3(1);
 		Shared<CubeMap> m_skybox = nullptr;
 		Shared<CubeMap> m_irradiance = nullptr;
 

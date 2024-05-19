@@ -82,7 +82,7 @@ vec3 calculateLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 a
     } else if (light.type == 2) {
         return calculateSpotLight(light, normal, fragPos, viewDir, ambientColor, diffuseColor, specularColor);
     }else if (light.type == 3) {
-        return calculateAmbientLight(light, ambientColor);
+        return calculateAmbientLight(light, diffuseColor);
     }
     return vec3(0.0);
 }
@@ -90,6 +90,7 @@ vec3 calculateLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 a
 vec3 calculateAmbientLight(Light light, vec3 ambientColor) {
     return light.ambient * ambientColor;
 }
+
 vec3 calculateDirectionalLight(Light light, vec3 normal, vec3 viewDir, vec3 ambientColor, vec3 diffuseColor, vec3 specularColor) {
     vec3 lightDir = -normalize(vin.tangentBasis * light.direction);
     
@@ -151,15 +152,15 @@ vec3 calculateSpotLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, ve
 }
 
 void main() {
-
 	vec2 uv = vin.texcoord;
 	//vec3 lightDir = normalize(lightPos - position );
 	//float diff = max(dot(norm, lightDir), 0.0);
 
 	//Load material textures
-	vec3 N = vin.normal;
-	if(material.use_normal_tex && true){
+	vec3 N = vin.tangentBasis * vin.normal;
+	if(material.use_normal_tex){
         N = texture(material.normal_tex, uv).rgb * 2.0f - 1.0;
+        //N = mix(texture(material.normal_tex, uv).rgb * 2.0f - 1.0, N, 0.5);
         //N = (vin.tangentBasis) * N;
     }
     N = normalize(N);
@@ -173,25 +174,24 @@ void main() {
 	if(environment.use_skybox_tex) skyColor = mix(vec3(1),textureLod(environment.skybox_tex, R, 6.0).rgb, material.shininess);
 	else skyColor = vec3(-R.y*0.5+0.8);
     
+    vec3 viewDir = normalize(vin.viewPos - vin.position);
+
+    vec3 finalColor = vec3(0.0);
 
 	vec3 ambientColor = material.ambient_color;
 	vec3 diffuseColor;
 	if (material.use_diffuse_tex) diffuseColor = material.diffuse_color * texture(material.diffuse_tex, uv).rgb;
-	else diffuseColor = material.diffuse_color * vin.color;
+	else diffuseColor = material.diffuse_color;
 	
 	vec3 specularColor;
 	if (material.use_specular_tex) specularColor = material.specular_color * texture(material.specular_tex, uv).r;
 	else specularColor = material.specular_color + skyColor*0.1;
 
-    vec3 viewDir = normalize(vin.viewPos - vin.position);
-
-    vec3 finalColor = vec3(0.0);
-
     for (int i = 0; i < numLights; ++i) {
         finalColor += calculateLight(lights[i], N, vin.position, viewDir, ambientColor, diffuseColor, specularColor);
     }
 
-    float gamma = 2.2;
+    float gamma = 1.2;
     FragColor.rgb = pow(finalColor.rgb, vec3(1.0/gamma));
     //FragColor.rgb = N* 0.9 + FragColor.rgb * 0.1;
     //FragColor.rgb = normalize(vin.tangentBasis * (-lights[0].direction));

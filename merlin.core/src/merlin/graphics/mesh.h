@@ -65,8 +65,8 @@ namespace Merlin {
 		std::string m_materialName = "default";
 		std::string m_shaderName = "default";
 
-		Shared<MaterialBase> m_material;
-		Shared<Shader> m_shader;
+		Shared<MaterialBase> m_material = nullptr;
+		Shared<Shader> m_shader = nullptr;
 
 		bool debugnormal = true;
 	};

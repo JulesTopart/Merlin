@@ -59,31 +59,15 @@ namespace Merlin {
 			renderEnvironment(*m_defaultEnvironment, camera);
 		}
 
-		//Render to shadow maps
-
-
-		/*
+		//Gather lights
 		for (const auto& node : scene.nodes()) {
-			if (!node->isHidden()) {
-				if (const auto light = std::dynamic_pointer_cast<Light>(node)) {
-					light->applyRenderTransform(currentTransform);
-					m_activeLights.push_back(light);
-				}
-			}
-		}/**/
-
-
-		//Render to scene
-		for (const auto& node : scene.nodes()) {
-			if (!node->isHidden()) {
-				if (const auto light = std::dynamic_pointer_cast<Light>(node)) {
-					light->applyRenderTransform(currentTransform);
-					m_activeLights.push_back(light);
-				}
+			if (const auto light = std::dynamic_pointer_cast<Light>(node)) {
+				light->applyRenderTransform(currentTransform);
+				m_activeLights.push_back(light);
 			}
 		}
 
-
+		//Render the scene
 		for (const auto& node : scene.nodes()) {
 			if(!node->isHidden()) render(node, camera);
 		}
@@ -107,6 +91,7 @@ namespace Merlin {
 		shader->use();
 		TextureBase::resetTextureUnit();
 		env.attach(*shader);
+		shader->setVec3("gradientColor", env.gradientColor());
 		shader->setMat4("view", glm::mat4(glm::mat3(camera.getViewMatrix()))); //sync model matrix with GPU
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 		env.draw();
@@ -138,12 +123,8 @@ namespace Merlin {
 		Material_Ptr mat = mesh.getMaterial();
 		Shader_Ptr shader = mesh.getShader();
 		
-
-
-		if (mesh.hasMaterial())
-			mat = mesh.getMaterial();
-		else 
-			mat = m_materialLibrary->get(mesh.getMaterialName());
+		if (mesh.hasMaterial()) mat = mesh.getMaterial();
+		else mat = m_materialLibrary->get(mesh.getMaterialName());
 
 		if (mesh.hasShader())
 			shader = mesh.getShader();
@@ -157,7 +138,7 @@ namespace Merlin {
 			}else shader = m_shaderLibrary->get(mesh.getShaderName());
 		}
 
-		if (!shader || !mat) {
+		if (!shader) {
 			Console::error("Renderer") << "Renderer failed to gather materials and shaders" << Console::endl;
 			return;
 		}
@@ -165,7 +146,9 @@ namespace Merlin {
 
 		shader->use();
 		TextureBase::resetTextureUnit();
+
 		mat->attach(*shader);
+		
 		
 		if(m_currentEnvironment != nullptr)
 			m_currentEnvironment->attach(*shader);
@@ -296,7 +279,7 @@ namespace Merlin {
 			renderMesh(*mesh, camera);
 		}//The object is a model
 		else if (const auto li = std::dynamic_pointer_cast<Light>(object)) {
-			renderLight(*li, camera);
+			if(display_lights) renderLight(*li, camera);
 		}
 		else if (const auto model = std::dynamic_pointer_cast<Model>(object)) {
 			renderModel(*model, camera);
@@ -339,6 +322,13 @@ namespace Merlin {
 		m_activeLights.clear();
 	}
 
+	void Renderer::setEnvironmentGradientColor(float r, float g, float b) {
+		setEnvironmentGradientColor(glm::vec3(r, g, b));
+	}
+	void Renderer::setEnvironmentGradientColor(glm::vec3 color) {
+		if (m_currentEnvironment) m_currentEnvironment->setGradientColor(color);
+		m_defaultEnvironment->setGradientColor(color);
+	}
 
 
 

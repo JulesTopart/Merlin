@@ -31,16 +31,22 @@ void main() {
 	vout.texcoord = _texcoord;
 	vout.viewPos = viewPos;
 
-	vec3 T = normalize(vec3(model * vec4(_tangent, 0.0)));
-	vec3 B = normalize(vec3(model * vec4(_bitangent, 0.0)));
-	vec3 N = normalize(vec3(model * vec4(_normal, 0.0)));
+	if(length(_tangent) == 0 || length(_bitangent) == 0 || length(_normal) == 0){
+		vout.tangentBasis = mat3(1);//set to identity
+	}else{
+		vec3 T = normalize(vec3(model * vec4(_tangent, 0.0)));
+		vec3 B = normalize(vec3(model * vec4(_bitangent, 0.0)));
+		vec3 N = normalize(vec3(model * vec4(_normal, 0.0)));
 	
-	// re-orthogonalize T with respect to N
-	T = normalize(T - dot(T, N) * N);
-	// then retrieve perpendicular vector B with the cross product of T and N
-	B = cross(N, T);
+		// re-orthogonalize T with respect to N
+		T = normalize(T - dot(T, N) * N);
+		// then retrieve perpendicular vector B with the cross product of T and N
+		B = cross(N, T);
 
-	vout.tangentBasis = transpose(mat3(T, B, N));   //set to identity
+		vout.tangentBasis = transpose(mat3(T, B, N));   
+	}
+
+
 
 	gl_Position = projection * view * vec4(vout.position, 1.0f);
 }

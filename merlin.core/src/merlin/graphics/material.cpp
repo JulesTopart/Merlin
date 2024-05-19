@@ -63,7 +63,7 @@ namespace Merlin {
 
 	void PhongMaterial::attach(Shader& shader) const {
 		if (!shader.supportMaterial())return;
-
+		//shader.setInt("hasMaterial", 1);
 		shader.setVec3("material.ambient_color", m_ambient_color);
 		shader.setInt("material.use_diffuse_tex", m_diffuse_tex != nullptr && shader.supportTexture());
 		if (m_diffuse_tex && shader.supportTexture()) {

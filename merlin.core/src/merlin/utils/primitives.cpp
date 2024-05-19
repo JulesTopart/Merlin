@@ -134,7 +134,7 @@ namespace Merlin {
 			v.push_back(Vertex{ glm::vec3(groundVerts[i * 3], groundVerts[i * 3 + 2], groundVerts[i * 3 + 1]), glm::vec3(0,0,1), glm::vec3(groundColors[i * 3], groundColors[i * 3 + 1], groundColors[i * 3 + 2]), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) }); //color : 
 		}
 
-		return Mesh::create("Floor", v, GL_QUADS);
+		return Mesh::create("Floor", v, GL_TRIANGLES);
 	}
 
 	Shared<Mesh> Primitives::createPoint() {

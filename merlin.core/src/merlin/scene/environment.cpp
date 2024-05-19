@@ -61,7 +61,6 @@ namespace Merlin {
 
 	void Environment::attach(Shader& shader) const{
 		if (!shader.supportEnvironment())return;
-
 		shader.setInt("environment.use_skybox_tex", m_skybox != nullptr);
 		if (m_skybox && shader.supportTexture()) {
 			m_skybox->setUnit(TextureBase::getNextTextureUnit());

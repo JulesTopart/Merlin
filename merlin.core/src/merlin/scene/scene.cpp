@@ -34,6 +34,10 @@ namespace Merlin {
 		m_currentNode->addChild(mdl);
 	}
 
+	void Scene::add(Shared<Mesh> mesh) {
+		m_currentNode->addChild(mesh);
+	}
+
 	void Scene::add(Shared<Light> light) {
 		m_currentNode->addChild(light);
 	}

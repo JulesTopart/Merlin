@@ -13,10 +13,47 @@
 namespace Merlin {
 
 
+    Texture2D_Ptr loadMaterialTexture(const std::string& path, aiMaterial* mat, aiTextureType type, const std::string& typeName) {
+        
+        if (mat->GetTextureCount(type) > 0) {
+            aiString str;
+            mat->GetTexture(type, 0, &str);
+            
+            std::string filepath = getFileFolder(path) + std::string(str.C_Str()); // Adjust path as needed
+            
+            TextureType t;
+            switch (type) {
+                case aiTextureType::aiTextureType_DIFFUSE : 
+                    t = TextureType::DIFFUSE;
+                    break;
+                case aiTextureType::aiTextureType_SPECULAR :
+                    t = TextureType::SPECULAR;
+                    break;
+                case aiTextureType::aiTextureType_NORMALS:
+                    t = TextureType::NORMAL;
+                    break;
+                case aiTextureType::aiTextureType_DISPLACEMENT:
+                    t = TextureType::DISPLACMENT ;
+                    break;
+                case aiTextureType::aiTextureType_EMISSIVE:
+                    t = TextureType::EMISSION;
+                    break;
+                case aiTextureType::aiTextureType_REFLECTION:
+                    t = TextureType::REFLECTION;
+                    break;
+                case aiTextureType::aiTextureType_SHININESS :
+                    //t = TextureType::ROUGHNESS ;
+                    Console::error("ModelLoader") << "Shininess map are not supported yet" << Console::endl;
+                    break;
+            }
+                          
+            return Texture2D::create(filepath, t);
+        }
+        return nullptr;
+    }
 
 
-
-    Shared<Mesh> processMesh(aiMesh* mesh, const aiScene* scene) {
+    Shared<Mesh> processMesh(const std::string& path, aiMesh* mesh, const aiScene* scene) {
         std::vector<Vertex> vertices;
         std::vector<GLuint> indices;
 
@@ -67,18 +104,51 @@ namespace Merlin {
             }
         }
 
+        // Process material
+        Shared<MaterialBase> material = nullptr;
+        if (mesh->mMaterialIndex >= 0) {
+            aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
+
+            PhongMaterial* phongMaterial = new PhongMaterial(mesh->mName.C_Str());
+            phongMaterial->setDiffuseTexture(loadMaterialTexture(path, mat, aiTextureType_DIFFUSE, "texture_diffuse"));
+            phongMaterial->setSpecularTexture(loadMaterialTexture(path, mat, aiTextureType_SPECULAR, "texture_specular"));
+
+
+            phongMaterial->setNormalTexture(loadMaterialTexture(path, mat, aiTextureType_NORMALS, "texture_normal"));
+            
+            
+
+            // Extract color information
+            aiColor3D color(0.f, 0.f, 0.f);
+            float shininess;
+            mat->Get(AI_MATKEY_COLOR_AMBIENT, color);
+            phongMaterial->setAmbient(glm::vec3(color.r, color.g, color.b));
+            mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+            phongMaterial->setDiffuse(glm::vec3(color.r, color.g, color.b));
+            mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
+            phongMaterial->setSpecular(glm::vec3(color.r, color.g, color.b));
+            mat->Get(AI_MATKEY_SHININESS, shininess);
+            phongMaterial->setShininess(shininess/128.0);
+
+            material = Shared<MaterialBase>(phongMaterial);
+        }
+
         Shared<Mesh> newMesh = Mesh::create(mesh->mName.C_Str(), vertices, indices);
+        //newMesh->calculateNormals();
+        if (material) {
+            newMesh->setMaterial(material);
+        }
         return newMesh;
     }
 
-    void processNode(aiNode* node, const aiScene* scene, std::vector<Shared<Mesh>>& meshes) {
+    void processNode(const std::string& path, aiNode* node, const aiScene* scene, std::vector<Shared<Mesh>>& meshes) {
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-            meshes.push_back(processMesh(mesh, scene));
+            meshes.push_back(processMesh(path, mesh, scene));
         }
 
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
-            processNode(node->mChildren[i], scene, meshes);
+            processNode(path, node->mChildren[i], scene, meshes);
         }
     }
 
@@ -94,7 +164,7 @@ namespace Merlin {
         }
 
         std::vector<Shared<Mesh>> meshes;
-        processNode(scene->mRootNode, scene, meshes);
+        processNode(file_path, scene->mRootNode, scene, meshes);
 
         Shared<Model> mdl = Model::create(getFileName(file_path), meshes);
        
