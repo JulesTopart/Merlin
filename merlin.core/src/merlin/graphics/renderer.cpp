@@ -16,20 +16,14 @@ namespace Merlin {
 		enableMultisampling();
 		enableDepthTest();
 		enableCubeMap();
+		enableFaceCulling();
+		//disableFaceCulling();
 		//glEnable(GL_FRAMEBUFFER_SRGB);
-		
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glFrontFace(GL_CCW);
+
 		/**/
 		m_materialLibrary = MaterialLibrary::instance();
 		m_shaderLibrary = ShaderLibrary::instance();
 		m_defaultEnvironment = createShared<Environment>("defaultEnvironment", 16);
-
-		shadowFBO = createShared<FrameBuffer>(2048, 2048);
-		shadowFBO->bind();
-		shadowFBO->addDepthStencilAttachment(shadowFBO->createTextureAttachment(GL_DEPTH_COMPONENT));
-		shadowFBO->unbind();
 	}
 
 	void Renderer::pushMatrix() {
@@ -55,7 +49,8 @@ namespace Merlin {
 		if (scene.hasEnvironment()) {
 			m_currentEnvironment = scene.getEnvironment();
 			renderEnvironment(*m_currentEnvironment, camera);
-		}else {
+		}
+		else {
 			renderEnvironment(*m_defaultEnvironment, camera);
 		}
 
@@ -67,17 +62,26 @@ namespace Merlin {
 			}
 		}
 
+		if(useFaceCulling()) glDisable(GL_CULL_FACE);
+		if (use_shadows) {
+			for (const auto& light : m_activeLights) {
+				castShadow(light, scene);
+			}
+		}
+		if (useFaceCulling()) glEnable(GL_CULL_FACE);
+		/*
+		const auto t = std::dynamic_pointer_cast<DirectionalLight>(m_activeLights[0]);
+		t->getShadowFBO()->renderDepthAttachement();
+		return;
+		/**/
+		camera.restoreViewport();
+
 		//Render the scene
 		for (const auto& node : scene.nodes()) {
 			if(!node->isHidden()) render(node, camera);
 		}
 	}
 
-	void Renderer::renderModel(const Model& mdl, const Camera& camera) {
-		for (const auto& mesh : mdl.meshes()) {
-			renderMesh(*mesh, camera);
-		}
-	}
 
 	void Renderer::renderEnvironment(const Environment& env, const Camera& camera){
 		if (!use_environment) return;
@@ -87,7 +91,7 @@ namespace Merlin {
 			return;
 		}
 		glDepthFunc(GL_LEQUAL);
-		glDisable(GL_CULL_FACE);
+		if(useFaceCulling())glDisable(GL_CULL_FACE);
 		shader->use();
 		TextureBase::resetTextureUnit();
 		env.attach(*shader);
@@ -95,9 +99,31 @@ namespace Merlin {
 		shader->setMat4("view", glm::mat4(glm::mat3(camera.getViewMatrix()))); //sync model matrix with GPU
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 		env.draw();
-		glEnable(GL_CULL_FACE);
+		if (useFaceCulling())glEnable(GL_CULL_FACE);
 		glDepthFunc(GL_LESS);
 
+	}
+
+	void Renderer::renderDepth(const Shared<RenderableObject>& object, Shared<Shader> shader){
+		pushMatrix();
+		currentTransform *= object->transform();
+
+		//The object is a mesh
+		if (const auto mesh = std::dynamic_pointer_cast<Mesh>(object)) {
+			shader->setMat4("model", currentTransform); //sync model matrix with GPU
+			mesh->draw();
+		}//The object is a model
+		else if (const auto model = std::dynamic_pointer_cast<Model>(object)) {
+			for (const auto& mesh : model->meshes()) {
+				renderDepth(mesh, shader);
+			}
+		}
+
+		for (auto node : object->children()) {
+			renderDepth(node, shader);//Propagate to childrens
+		}
+
+		popMatrix();
 	}
 
 	void Renderer::renderLight(const Light& li, const Camera& camera){
@@ -108,8 +134,6 @@ namespace Merlin {
 		}
 
 		shader->use();
-		TextureBase::resetTextureUnit();
-
 		shader->setVec3("light_color", li.diffuse() + li.ambient() + li.specular());
 
 		shader->setMat4("model", currentTransform); //sync model matrix with GPU
@@ -148,8 +172,6 @@ namespace Merlin {
 		TextureBase::resetTextureUnit();
 
 		mat->attach(*shader);
-		
-		
 		if(m_currentEnvironment != nullptr)
 			m_currentEnvironment->attach(*shader);
 		else m_defaultEnvironment->attach(*shader);
@@ -166,6 +188,44 @@ namespace Merlin {
 
 		mesh.draw();
 	}
+
+	void Renderer::castShadow(Shared<Light> light, const Scene& scene) {
+
+		Shared<TextureBase> tex;
+		Shared<FrameBuffer> fbo;
+		Shared<Shader> shader;
+
+		if (light->type() == LightType::Directional || light->type() == LightType::Spot) shader = m_shaderLibrary->get("shadow.depth");
+		else if (light->type() == LightType::Point) shader = m_shaderLibrary->get("shadow.omni");
+		else return;
+
+
+		shader->use();
+
+		tex = light->shadowMap();
+		fbo = light->shadowFBO();
+
+		if (!shader || !tex || !fbo) {
+			Console::error("Renderer") << "Renderer failed to gather ressoureces for shadows (shader, framebuffer or texture)" << Console::endl;
+			return;
+		}
+
+		light->attachShadow(*shader);
+		
+		glViewport(0, 0, 2048, 2048);
+		fbo->bind();
+		glClear(GL_DEPTH_BUFFER_BIT);
+		//tex->bind();
+		for (const auto& node : scene.nodes()) {
+			if (!node->isHidden()) {
+				renderDepth(node, shader);
+			};
+		}
+		fbo->unbind();
+		//tex->unbind();
+	}
+
+
 	/*
 	void Renderer::renderParticleSystem(const ParticleSystem& ps, const Camera& camera) {
 		if (ps.getDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE) {
@@ -282,7 +342,9 @@ namespace Merlin {
 			if(display_lights) renderLight(*li, camera);
 		}
 		else if (const auto model = std::dynamic_pointer_cast<Model>(object)) {
-			renderModel(*model, camera);
+			for (const auto& mesh : model->meshes()) {
+				render(mesh, camera);
+			}
 		}//The object is a scene
 		else if (const auto scene = std::dynamic_pointer_cast<Scene>(object)) {
 			renderScene(*scene, camera); //Propagate to childrens

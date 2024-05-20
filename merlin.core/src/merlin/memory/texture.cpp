@@ -9,7 +9,7 @@
 
 namespace Merlin {
 
-	TextureBase::TextureBase(GLenum target, TextureType t) : m_type(t), m_Target(target), m_format(GL_RGB), m_internalFormat(GL_RGB8) {
+	TextureBase::TextureBase(GLenum target, TextureType t, TextureClass c) : m_type(t), m_class(c), m_Target(target), m_format(GL_RGB), m_internalFormat(GL_RGB8) {
 		//Set the target based on the number of samples
 		glGenTextures(1, &m_TextureID);
 	}
@@ -169,7 +169,7 @@ namespace Merlin {
 		return { channels, bits };
 	}
 
-	Texture2D::Texture2D(TextureType t) : TextureBase(GL_TEXTURE_2D, t) {}
+	Texture2D::Texture2D(TextureType t) : TextureBase(GL_TEXTURE_2D, t, TextureClass::TEXTURE2D) {}
 
 	void Texture2D::generateMipmap() const{
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -204,6 +204,15 @@ namespace Merlin {
 		data.bytes = nullptr;
 		data.dataType = GL_UNSIGNED_BYTE;
 		loadFromData(data);
+	}
+
+	void Texture2D::reserve(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type) {
+		m_width = width;
+		m_height = height;
+		m_format = format;
+		m_internalFormat = internalFormat;
+
+		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, width, height, 0, m_format, type, nullptr);
 	}
 
 	void Texture2D::resize(GLsizei width, GLsizei height) {
@@ -249,14 +258,19 @@ namespace Merlin {
 
 	Shared<Texture2D> Texture2D::create(GLuint width, GLuint height, TextureType t){
 		Shared<Texture2D> tex = createShared<Texture2D>(t);
-			
-		ChannelsProperty cp = TextureBase::getChannelsProperty(t);
-
 		tex->bind();
-		tex->reserve(width, height, cp.channels, cp.bits);
-		tex->setInterpolationMode();
-		tex->setRepeatMode();
-		tex->generateMipmap();
+
+		if (t == TextureType::SHADOW || t == TextureType::DEPTH) {
+			tex->reserve(width, height, GL_DEPTH_STENCIL, GL_DEPTH24_STENCIL8, GL_UNSIGNED_INT_24_8);
+			tex->setInterpolationMode(GL_NEAREST, GL_NEAREST);
+			tex->setRepeatMode(GL_REPEAT, GL_REPEAT);
+		}else {		
+			ChannelsProperty cp = TextureBase::getChannelsProperty(t);
+			tex->reserve(width, height, cp.channels, cp.bits);
+			tex->setInterpolationMode();
+			tex->setRepeatMode();
+		}
+
 		tex->unbind();
 		return tex;
 	}

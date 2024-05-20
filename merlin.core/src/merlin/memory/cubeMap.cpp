@@ -7,7 +7,7 @@
 
 namespace Merlin {
 
-    CubeMap::CubeMap(TextureType t) : TextureBase(GL_TEXTURE_CUBE_MAP, t){
+    CubeMap::CubeMap(TextureType t) : TextureBase(GL_TEXTURE_CUBE_MAP, t, TextureClass::CUBE_MAP){ 
 
     }
 
@@ -64,6 +64,20 @@ namespace Merlin {
         }
     }
 
+    void CubeMap::reserve(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type) {
+
+        m_width = width;
+        m_height = height;
+        m_format = format;
+        m_internalFormat = internalFormat;
+        m_dataType = type;
+
+        for (unsigned int i = 0; i < 6; i++) {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_internalFormat, width, height, 0, m_format, m_dataType, nullptr);
+        }
+        Console::print() << "t";
+    }
+
     void CubeMap::resize(GLsizei width, GLsizei height) {
         // Update the dimensions of the texture
         m_width = width;
@@ -76,10 +90,17 @@ namespace Merlin {
 
     Shared<CubeMap> CubeMap::create(GLuint width, GLuint height, TextureType t){
         Shared<CubeMap> cm = createShared<CubeMap>(t);
-
-        ChannelsProperty cb = TextureBase::getChannelsProperty(t);
         cm->bind();
-        cm->reserve(width, height, cb.channels, cb.bits);
+        if (t == TextureType::SHADOW || t == TextureType::DEPTH) {
+            cm->reserve(width, height, GL_DEPTH_STENCIL, GL_DEPTH24_STENCIL8, GL_UNSIGNED_INT_24_8);
+            cm->setInterpolationMode(GL_NEAREST, GL_NEAREST);
+            cm->setRepeatMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+        }
+        else {
+            ChannelsProperty cp = TextureBase::getChannelsProperty(t);
+            cm->reserve(width, height, cp.channels, cp.bits);
+        }
+
         cm->unbind();
         return cm;
     }

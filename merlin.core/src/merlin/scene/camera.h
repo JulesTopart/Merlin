@@ -35,6 +35,7 @@ namespace Merlin {
 
 		void reset();
 		void resetProjection();
+		void restoreViewport() const;
 
 		inline void setZoom(float zoom) { _zoom = zoom; resetProjection();}
 		inline void setFOV(float fov) { _fov = fov; resetProjection(); }

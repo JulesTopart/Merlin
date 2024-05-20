@@ -65,6 +65,10 @@ namespace Merlin {
 			_ProjectionMatrix = glm::ortho(-_AspectRatio *_zoom, _AspectRatio * _zoom, -_zoom, _zoom, _nearPlane, _farPlane);
 	}
 
+	void Camera::restoreViewport() const {
+		glViewport(0, 0, _width, _height);
+	}
+
 	void Camera::translate(float dx, float dy) {
 		translate(glm::vec2(dx, dy));
 	}

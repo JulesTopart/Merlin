@@ -14,9 +14,12 @@ namespace Merlin {
 
 	void ShaderLibrary::LoadDefaultShaders() {
 		add(Shader::create("default.phong", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag"));
+		add(Shader::create("shadow.depth", "assets/common/shaders/shadow.depth.vert", "assets/common/shaders/shadow.depth.frag"));
+		add(Shader::create("shadow.omni", "assets/common/shaders/shadow.omni.vert", "assets/common/shaders/shadow.omni.frag", "assets/common/shaders/shadow.omni.geom"));
 		add(Shader::create("default.light", "assets/common/shaders/default.light.vert", "assets/common/shaders/default.light.frag"));
 		add(Shader::create("default.pbr", "assets/common/shaders/pbr.model.vert", "assets/common/shaders/pbr.model.frag"));
 		add(Shader::create("default.skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag"));
+		add(Shader::create("screen.space", "assets/common/shaders/screen.space.vert", "assets/common/shaders/screen.space.frag"));
 		add(Shader::create("panorama_to_cubemap", "assets/common/shaders/fullscreen.vert", "assets/common/shaders/panorama_to_cubemap.frag"));
 
 		Shared<Shader> sh = Shader::create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom");

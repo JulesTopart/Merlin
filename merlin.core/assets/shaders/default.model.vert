@@ -9,6 +9,8 @@ layout (location = 3) in vec2 _texcoord;
 layout (location = 4) in vec3 _tangent;
 layout (location = 5) in vec3 _bitangent;
 
+#define MAX_LIGHTS 10
+
 out Vertex{
 	vec3 position;
 	vec3 normal;
@@ -17,7 +19,6 @@ out Vertex{
 	vec3 viewPos;
 	mat3 tangentBasis;
 } vout;
-
 
 uniform mat4 view;
 uniform mat4 projection;
@@ -45,8 +46,6 @@ void main() {
 
 		vout.tangentBasis = transpose(mat3(T, B, N));   
 	}
-
-
 
 	gl_Position = projection * view * vec4(vout.position, 1.0f);
 }

@@ -14,9 +14,11 @@ namespace Merlin {
 
 		void clear() override;
 
+		void castShadow(Shared<Light> light, const Scene& scene);
+
+		void renderDepth(const Shared<RenderableObject>& object, Shared<Shader> depthShader);
 		void renderLight(const Light& li, const Camera& camera);
 		void renderMesh(const Mesh& mesh, const Camera& camera);
-		void renderModel(const Model& model, const Camera& camera);
 		void renderEnvironment(const Environment& env, const Camera& camera);
 		//void renderParticleSystem(const ParticleSystem& ps, const Camera& camera);
 		void renderTransformObject(const TransformObject& obj, const Camera& camera);
@@ -39,11 +41,16 @@ namespace Merlin {
 		inline void hideLights() { display_lights = false; }
 		inline void showLights() { display_lights = true; }
 
+		inline void enableShadows() { use_shadows = true; }
+		inline void disableShadows() { use_shadows = false; }
+
 		Shared<Shader> getShader(std::string n);
 
 	private:
-		bool display_lights = false;
+		bool use_shadows = true;
 		bool use_environment = true;
+
+		bool display_lights = false;
 		void pushMatrix();
 		void popMatrix();
 		void resetMatrix();
@@ -51,8 +58,6 @@ namespace Merlin {
 		glm::mat4 currentTransform;
 		std::stack<glm::mat4> matrixStack;
 		std::vector<Shared<Light>> m_activeLights;
-
-		Shared<FrameBuffer> shadowFBO;
 
 		Shared<Environment> m_defaultEnvironment = nullptr;
 		Shared<Environment> m_currentEnvironment = nullptr;

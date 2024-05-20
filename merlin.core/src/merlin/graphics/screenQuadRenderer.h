@@ -16,14 +16,14 @@ namespace Merlin {
 		void render(const Shared<TextureBase>& tex);
 
 		inline VAO& getVAO() { return m_vao; }
-		inline Shader& getShader() { return m_shader; }
-		inline void setShader(Shader& shader) { m_shader = shader;  m_shader.use(); m_shader.setInt("screen", 0); }
+		inline Shader& getShader() { return *m_shader; }
+		inline void setShader(Shared<Shader> shader) { m_shader = shader;  m_shader->use(); m_shader->setInt("screen", 0); }
 
 	private:
 		//Empty vertex array object for the binding quad
 		VAO m_vao;
 		// Shader program for rendering the screen quad
-		Shader m_shader;
+		Shared<Shader> m_shader;
 	};
 
 	typedef ScreenQuadRenderer SQRenderer;

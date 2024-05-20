@@ -87,7 +87,6 @@ void ExampleLayer::onAttach(){
 	dirlight->setDiffuse(glm::vec3(1));
 	scene.add(dirlight);
 
-
 	scene.add(createShared<AmbientLight>("light4"));
 
 	scene.add(model);

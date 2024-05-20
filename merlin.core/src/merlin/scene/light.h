@@ -1,6 +1,8 @@
 #pragma once
 #include "merlin/core/core.h"
 #include "merlin/graphics/renderableObject.h"
+#include "merlin/memory/frameBuffer.h"
+#include "merlin/memory/cubeMap.h"
 #include "merlin/utils/primitives.h"
 #include "merlin/graphics/mesh.h"
 #include <glm/glm.hpp>
@@ -8,10 +10,10 @@
 namespace Merlin {
 
     enum class LightType {
-        Point,
-        Directional,
-        Spot, 
-        Ambient
+        Point = 0,
+        Directional = 1,
+        Spot = 2, 
+        Ambient = 3
     };
 
 	class Light : public RenderableObject{
@@ -23,6 +25,11 @@ namespace Merlin {
 
 
         virtual void attach(int id, Shader& shader) = 0;
+        virtual void attachShadow(Shader&){}
+
+        virtual Shared<FBO> shadowFBO() { return nullptr; }
+        virtual Shared<TextureBase> shadowMap() { return nullptr; }
+
         inline void applyRenderTransform(const glm::mat4& transform) { renderTransform = transform; }
         inline const glm::mat4& getRenderTransform() { return renderTransform; }
 
@@ -60,16 +67,37 @@ namespace Merlin {
     class DirectionalLight : public Light {
     public:
         DirectionalLight(const std::string& name, const glm::vec3& direction = glm::vec3(0, 0, -1))
-            : Light(name, LightType::Directional), direction_(direction) {}
+            : Light(name, LightType::Directional), direction_(direction) {
+            generateShadowMap();
+        }
         DirectionalLight(const std::string& name, const glm::vec3& direction, const glm::vec3& ambient, const glm::vec3& diffuse, const glm::vec3& specular)
-            : Light(name, LightType::Directional, ambient, diffuse, specular), direction_(direction) {}
+            : Light(name, LightType::Directional, ambient, diffuse, specular), direction_(direction) {
+            generateShadowMap();
+        }
 
         const glm::vec3& direction() const { return direction_; }
 
         void attach(int id, Shader&) override;
+        void attachShadow(Shader&) override;
+        inline Shared<FBO> shadowFBO() override { return m_shadowFBO; }
+        inline Shared<TextureBase> shadowMap() override { return m_shadowMap; }
+
+        void generateShadowMap();
+
+        inline Shared<Texture2D> getShadowMap() { return m_shadowMap; }
+        inline void setShadowMap(Shared<Texture2D> tex) { m_shadowMap = tex; }
+
+        inline Shared<FrameBuffer> getShadowFBO() { return m_shadowFBO; }
+        inline void setShadowFBO(Shared<FrameBuffer> fbo) { m_shadowFBO = fbo; }
+
+
+        inline const glm::mat4& getLightSpaceMatrix() { return m_lightSpaceMatrix; }
 
     private:
         glm::vec3 direction_;
+        Shared<Texture2D> m_shadowMap = nullptr;
+        Shared<FrameBuffer> m_shadowFBO = nullptr;
+        glm::mat4 m_lightSpaceMatrix;
     };
 
     class PointLight : public Light {
@@ -78,17 +106,32 @@ namespace Merlin {
         PointLight(const std::string& name, const glm::vec3& position = glm::vec3(0))
             : Light(name, LightType::Point) {
             setPosition(position);
+            generateShadowMap();
         }
 
         PointLight(const std::string& name, const glm::vec3& position, const glm::vec3& ambient, const glm::vec3& diffuse, const glm::vec3& specular)
             : Light(name, LightType::Point, ambient, diffuse, specular) {
             setPosition(position);
+            generateShadowMap();
         }
 
-
+        void generateShadowMap();
         void attach(int id, Shader&) override;
+        void attachShadow(Shader&) override;
+        inline Shared<FBO> shadowFBO() override { return m_shadowFBO; }
+        inline Shared<TextureBase> shadowMap() override { return m_shadowMap; }
 
+        Shared<CubeMap> getShadowMap() { return m_shadowMap; }
+        void setShadowMap(Shared<CubeMap> tex) { m_shadowMap = tex; }
 
+        Shared<FrameBuffer> getShadowFBO() { return m_shadowFBO; }
+        void setShadowFBO(Shared<FrameBuffer> fbo) { m_shadowFBO = fbo; }
+
+    private:
+        Shared<CubeMap> m_shadowMap = nullptr;
+        Shared<FrameBuffer> m_shadowFBO = nullptr;
+        glm::mat4 m_lightSpaceMatrix = glm::mat4(1);
+        std::vector<glm::mat4> m_shadowTransforms;
     };
 
     class AmbientLight : public Light {

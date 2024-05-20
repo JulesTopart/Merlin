@@ -8,6 +8,11 @@ namespace Merlin {
 		DIFFUSE, SPECULAR, ALBEDO, NORMAL, DISPLACMENT, REFLECTION, ROUGHNESS, METALNESS, AMBIENT_OCCLUSION, MASK, EMISSION, DEPTH, SHADOW, ENVIRONMENT, DATA, UNKNOWN
 	};
 
+
+	enum class TextureClass {
+		BLANK, TEXTURE2D, TEXTURE2D_MULTISAMPLED, CUBE_MAP, TEXTURE3D
+	};
+
 	struct ImageData {
 		int width = 0;
 		int height = 0;
@@ -25,7 +30,7 @@ namespace Merlin {
 	class TextureBase {
 	public:
 
-		TextureBase(GLenum target, TextureType t);
+		TextureBase(GLenum target, TextureType t, TextureClass c);
 		~TextureBase();
 
 		void bind();
@@ -37,12 +42,14 @@ namespace Merlin {
 		void setUnit(GLuint unit);
 		void syncTextureUnit(const ShaderBase& shader, const std::string uniform);
 
+		//virtual void reserve(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type) = 0;
 		virtual void reserve(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8) = 0;
 		virtual void resize(GLsizei width, GLsizei height) = 0;
 
 		inline const GLenum getFormat() const { return m_format; }
 		inline const GLenum getTarget() const { return m_Target; }
 		inline const TextureType type() const { return m_type; }
+		inline const TextureClass textureClass() const { return m_class; }
 		std::string typeToString() const;
 
 		inline bool isDefault() { return m_width == 1 && m_height == 1; }
@@ -58,6 +65,7 @@ namespace Merlin {
 		GLuint m_width = 0, m_height = 0;
 		GLenum m_format, m_internalFormat, m_dataType;
 		TextureType m_type = TextureType::ALBEDO;
+		TextureClass m_class = TextureClass::BLANK;
 
 	private:
 		inline static GLuint currentTextureUnit = 0;
@@ -80,6 +88,7 @@ namespace Merlin {
 		void generateMipmap() const;
 
 		//Memory
+		void reserve(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type);
 		void reserve(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8) override;
 		void resize(GLsizei width, GLsizei height) override;
 		void loadFromData(const ImageData& data);

@@ -112,8 +112,6 @@ namespace Merlin {
             PhongMaterial* phongMaterial = new PhongMaterial(mesh->mName.C_Str());
             phongMaterial->setDiffuseTexture(loadMaterialTexture(path, mat, aiTextureType_DIFFUSE, "texture_diffuse"));
             phongMaterial->setSpecularTexture(loadMaterialTexture(path, mat, aiTextureType_SPECULAR, "texture_specular"));
-
-
             phongMaterial->setNormalTexture(loadMaterialTexture(path, mat, aiTextureType_NORMALS, "texture_normal"));
             
             

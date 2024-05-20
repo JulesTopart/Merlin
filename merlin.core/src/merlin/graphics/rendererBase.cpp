@@ -43,14 +43,17 @@ namespace Merlin {
 		// Enables Cull Facing
 		glEnable(GL_CULL_FACE);
 		// Keeps front faces
-		glCullFace(GL_FRONT);
+		glCullFace(GL_BACK);
 		// Uses counter clock-wise standard
 		glFrontFace(GL_CCW);
+
+		use_culling = true;
 	}
 
 	void RendererBase::disableFaceCulling() {
 		// Enables Cull Facing
 		glDisable(GL_CULL_FACE);
+		use_culling = false;
 	}
 
 	void RendererBase::enableDepthTest() {

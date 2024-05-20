@@ -21,6 +21,7 @@ namespace Merlin {
 
 		void enableFaceCulling();
 		void disableFaceCulling();
+		inline bool useFaceCulling() const { return use_culling; }
 
 		void enableDepthTest();
 		void disableDepthTest();
@@ -30,7 +31,7 @@ namespace Merlin {
 
 
 	private:
-
+		bool use_culling = true;
 		glm::vec4 backgroundColor;
 	};
 }

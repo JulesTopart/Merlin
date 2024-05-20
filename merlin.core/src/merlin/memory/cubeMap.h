@@ -17,6 +17,7 @@ namespace Merlin{
 		void generateMipmap() const;
 
 		//Memory
+		void reserve(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type);
 		void reserve(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8) override;
 		void resize(GLsizei width, GLsizei height) override;
 
