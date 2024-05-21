@@ -10,10 +10,11 @@
 namespace Merlin {
 
     enum class LightType {
-        Point = 0,
-        Directional = 1,
-        Spot = 2, 
-        Ambient = 3
+        Ambient = 0,
+        Point = 1,
+        Directional = 2,
+        Spot = 3,
+        
     };
 
 	class Light : public RenderableObject{
@@ -25,6 +26,7 @@ namespace Merlin {
 
 
         virtual void attach(int id, Shader& shader) = 0;
+        virtual void detach() {};
         virtual void attachShadow(Shader&){}
 
         virtual Shared<FBO> shadowFBO() { return nullptr; }
@@ -78,6 +80,7 @@ namespace Merlin {
         const glm::vec3& direction() const { return direction_; }
 
         void attach(int id, Shader&) override;
+        void detach() override;
         void attachShadow(Shader&) override;
         inline Shared<FBO> shadowFBO() override { return m_shadowFBO; }
         inline Shared<TextureBase> shadowMap() override { return m_shadowMap; }
@@ -116,6 +119,7 @@ namespace Merlin {
         }
 
         void generateShadowMap();
+        void detach() override;
         void attach(int id, Shader&) override;
         void attachShadow(Shader&) override;
         inline Shared<FBO> shadowFBO() override { return m_shadowFBO; }

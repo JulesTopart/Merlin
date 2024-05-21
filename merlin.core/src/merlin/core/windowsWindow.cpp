@@ -5,6 +5,7 @@
 #include "merlin/events/mouseevent.h"
 #include "merlin/events/keyevent.h"
 #include "merlin/core/log.h"
+#include "merlin/utils/openGLDebug.h"
 
 #include <GLFW/glfw3.h>
 
@@ -58,6 +59,8 @@ namespace Merlin {
 		GLCORE_ASSERT(version, "WindowsWindow", "Failed to initialize Glad!");
 
 		//OpenGl is ready
+
+		enableGLDebugging();
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		if (props.VSync)setVSync(true);

@@ -26,7 +26,6 @@ ExampleLayer::ExampleLayer(){
 ExampleLayer::~ExampleLayer(){}
 
 void ExampleLayer::onAttach(){
-	enableGLDebugging();
 	Console::setLevel(ConsoleLevel::_TRACE);
 
 	renderer.initialize();
@@ -34,9 +33,9 @@ void ExampleLayer::onAttach(){
 	renderer.setEnvironmentGradientColor(0.903, 0.803, 0.703);
 	renderer.showLights();
 
+	
 	Shared<Model> model = ModelLoader::loadModel("./assets/models/model.obj");
 	//model->translate(glm::vec3(-0.5, 0, 0));
-
 
 	//Shared<Model> floor = Model::create("floor", Primitives::createFloor(500, 0.5));
 	Shared<Model> floor = Model::create("floor", Primitives::createRectangle(10, 10));
@@ -48,10 +47,11 @@ void ExampleLayer::onAttach(){
 	floorMat->setSpecular(glm::vec3(0.296648, 0.296648, 0.296648));
 	floorMat->setShininess(0.125);
 	floor->setMaterial(floorMat);
+	
 
-	/*
+	/**/
 	light = createShared<PointLight>("light0");
-	light->translate(glm::vec3(radius, radius, 1));
+	light->translate(glm::vec3(radius, radius, 3));
 	light->setAttenuation(glm::vec3(0.6, 0.08, 0.008));
 	light->setAmbient(0.05, 0.05, 0.05);
 	light->setDiffuse(1, 1, 1);
@@ -62,29 +62,33 @@ void ExampleLayer::onAttach(){
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light1", glm::vec3(-0.5f, 0.5f, -0.8f));
-	dirlight->translate(dirlight->direction() * glm::vec3(-50));
+	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1.0, 1.0, 1.0));
 	scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light2", glm::vec3(0.5f, 0.5f, -0.8f));
-	dirlight->translate(dirlight->direction() * glm::vec3(-50));
+	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1));
 	scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light3", glm::vec3(0.0f, -0.5f, -0.8f));
-	dirlight->translate(dirlight->direction() * glm::vec3(-50));
+	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1));
 	scene.add(dirlight);
 	/**/
 
 	/**/
-	scene.add(createShared<AmbientLight>("light4"));
+	Shared<AmbientLight> amLight = createShared<AmbientLight>("light4");
+	amLight->setAmbient(glm::vec3(0.1));
+	scene.add(amLight);
 	/**/
 
+	Model_Ptr cube = Model::create("cube", Primitives::createRectangle(10, 10));
+	//scene.add(cube);
 	scene.add(model);
 	scene.add(floor);
 	scene.setCamera(camera);
@@ -105,7 +109,7 @@ void ExampleLayer::onUpdate(Timestep ts){
 	const float hpi = 3.14159265358;
 	t += ts;
 
-	/*
+	/**/
 	float x = light->position().x;
 	float y = light->position().y;
 	light->translate(glm::vec3(cos(t)* radius - x, sin(t)* radius - y, 0.0));
@@ -123,8 +127,7 @@ void ExampleLayer::onImGuiRender()
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera->setPosition(model_matrix_translation);
 
-	}
-	ImGui::End();
+	}ImGui::End();
 
 	// Define a recursive lambda function to traverse the scene graph
 	std::function<void(const std::list<Shared<RenderableObject>>&)> traverseNodes = [&](const std::list<Shared<RenderableObject>>& nodes){

@@ -49,5 +49,6 @@ namespace Merlin {
 	    }
 
         bindBuffer<T>(vb, layout);
+
     }
 }

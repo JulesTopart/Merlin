@@ -53,15 +53,13 @@ namespace Merlin {
 		std::string typeToString() const;
 
 		inline bool isDefault() { return m_width == 1 && m_height == 1; }
-
+		static ChannelsProperty getChannelsProperty(TextureType);
 		inline const GLuint id() const { return m_TextureID; }
 
-		static ChannelsProperty getChannelsProperty(TextureType);
 		inline static GLuint getNextTextureUnit() { return currentTextureUnit++; }
 		inline static void resetTextureUnit() { currentTextureUnit = 0; }
 
 	protected:
-
 		GLuint m_width = 0, m_height = 0;
 		GLenum m_format, m_internalFormat, m_dataType;
 		TextureType m_type = TextureType::ALBEDO;
@@ -98,8 +96,9 @@ namespace Merlin {
 		static Shared<Texture2D> create(const ImageData& data, TextureType = TextureType::ALBEDO);
 		static Shared<Texture2D> create(const std::string& path, TextureType = TextureType::ALBEDO);
 
-	private:
-
+	
+	private:	
+		
 		GLuint m_minFilter, m_magFilter, m_wrapS, m_wrapT;
 	};
 

@@ -59,11 +59,17 @@ namespace Merlin {
 		setupMesh(); // Setup mesh for rendering cubemap or procedural backdrops
 	}
 
+	void Environment::detach() const {
+		if (m_skybox) {
+			m_skybox->unbind();
+		}
+	}
+
 	void Environment::attach(Shader& shader) const{
 		if (!shader.supportEnvironment())return;
 		shader.setInt("environment.use_skybox_tex", m_skybox != nullptr);
 		if (m_skybox && shader.supportTexture()) {
-			m_skybox->setUnit(TextureBase::getNextTextureUnit());
+			m_skybox->setUnit(Texture2D::getNextTextureUnit());
 			m_skybox->bind();
 			m_skybox->syncTextureUnit(shader, "environment.skybox_tex");
 		}

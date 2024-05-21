@@ -17,10 +17,7 @@ namespace Merlin {
 		enableDepthTest();
 		enableCubeMap();
 		enableFaceCulling();
-		//disableFaceCulling();
-		//glEnable(GL_FRAMEBUFFER_SRGB);
 
-		/**/
 		m_materialLibrary = MaterialLibrary::instance();
 		m_shaderLibrary = ShaderLibrary::instance();
 		m_defaultEnvironment = createShared<Environment>("defaultEnvironment", 16);
@@ -43,7 +40,6 @@ namespace Merlin {
 		}
 		currentTransform = glm::mat4(1);
 	}
-
 
 	void Renderer::renderScene(const Scene& scene, const Camera& camera) {
 		if (scene.hasEnvironment()) {
@@ -69,13 +65,9 @@ namespace Merlin {
 			}
 		}
 		if (useFaceCulling()) glEnable(GL_CULL_FACE);
-		/*
-		const auto t = std::dynamic_pointer_cast<DirectionalLight>(m_activeLights[0]);
-		t->getShadowFBO()->renderDepthAttachement();
-		return;
-		/**/
-		camera.restoreViewport();
 
+		camera.restoreViewport();
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//Render the scene
 		for (const auto& node : scene.nodes()) {
 			if(!node->isHidden()) render(node, camera);
@@ -93,7 +85,7 @@ namespace Merlin {
 		glDepthFunc(GL_LEQUAL);
 		if(useFaceCulling())glDisable(GL_CULL_FACE);
 		shader->use();
-		TextureBase::resetTextureUnit();
+		Texture2D::resetTextureUnit();
 		env.attach(*shader);
 		shader->setVec3("gradientColor", env.gradientColor());
 		shader->setMat4("view", glm::mat4(glm::mat3(camera.getViewMatrix()))); //sync model matrix with GPU
@@ -101,8 +93,9 @@ namespace Merlin {
 		env.draw();
 		if (useFaceCulling())glEnable(GL_CULL_FACE);
 		glDepthFunc(GL_LESS);
-
+		env.detach();
 	}
+
 
 	void Renderer::renderDepth(const Shared<RenderableObject>& object, Shared<Shader> shader){
 		pushMatrix();
@@ -118,7 +111,6 @@ namespace Merlin {
 				renderDepth(mesh, shader);
 			}
 		}
-
 		for (auto node : object->children()) {
 			renderDepth(node, shader);//Propagate to childrens
 		}
@@ -167,9 +159,12 @@ namespace Merlin {
 			return;
 		}
 
-
 		shader->use();
-		TextureBase::resetTextureUnit();
+		Texture2D::resetTextureUnit();
+
+		for (int i = 0; i < m_activeLights.size(); i++) {
+			m_activeLights[i]->attach(i, *shader);
+		}
 
 		mat->attach(*shader);
 		if(m_currentEnvironment != nullptr)
@@ -182,12 +177,11 @@ namespace Merlin {
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 		shader->setInt("numLights", m_activeLights.size());
 
-		for (int i = 0; i < m_activeLights.size();  i++) {
-			m_activeLights[i]->attach(i, *shader);
-		}
+
 
 		mesh.draw();
 	}
+
 
 	void Renderer::castShadow(Shared<Light> light, const Scene& scene) {
 
@@ -200,8 +194,6 @@ namespace Merlin {
 		else return;
 
 
-		shader->use();
-
 		tex = light->shadowMap();
 		fbo = light->shadowFBO();
 
@@ -210,19 +202,24 @@ namespace Merlin {
 			return;
 		}
 
-		light->attachShadow(*shader);
-		
+		Texture2D::resetTextureUnit();
+
 		glViewport(0, 0, 2048, 2048);
 		fbo->bind();
+		
 		glClear(GL_DEPTH_BUFFER_BIT);
-		//tex->bind();
+
+		shader->use();
+		light->attachShadow(*shader);
+		
+		tex->bind();
 		for (const auto& node : scene.nodes()) {
 			if (!node->isHidden()) {
 				renderDepth(node, shader);
 			};
 		}
 		fbo->unbind();
-		//tex->unbind();
+		tex->unbind();
 	}
 
 
