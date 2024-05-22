@@ -17,9 +17,6 @@ namespace Merlin {
 		enableDepthTest();
 		enableCubeMap();
 		enableFaceCulling();
-
-		m_materialLibrary = MaterialLibrary::instance();
-		m_shaderLibrary = ShaderLibrary::instance();
 		m_defaultEnvironment = createShared<Environment>("defaultEnvironment", 16);
 	}
 
@@ -42,13 +39,7 @@ namespace Merlin {
 	}
 
 	void Renderer::renderScene(const Scene& scene, const Camera& camera) {
-		if (scene.hasEnvironment()) {
-			m_currentEnvironment = scene.getEnvironment();
-			renderEnvironment(*m_currentEnvironment, camera);
-		}
-		else {
-			renderEnvironment(*m_defaultEnvironment, camera);
-		}
+		//Console::info() << "Rendering scene" << Console::endl;
 
 		//Gather lights
 		for (const auto& node : scene.nodes()) {
@@ -57,6 +48,7 @@ namespace Merlin {
 				m_activeLights.push_back(light);
 			}
 		}
+		//Console::info() << "Rendering scene shadows" << Console::endl;
 
 		if(useFaceCulling()) glDisable(GL_CULL_FACE);
 		if (use_shadows) {
@@ -69,15 +61,25 @@ namespace Merlin {
 		camera.restoreViewport();
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//Render the scene
+		//Console::info() << "Rendering scene objects" << Console::endl;
 		for (const auto& node : scene.nodes()) {
 			if(!node->isHidden()) render(node, camera);
+		}
+
+		if (scene.hasEnvironment()) {
+			m_currentEnvironment = scene.getEnvironment();
+			renderEnvironment(*m_currentEnvironment, camera);
+		}
+		else {
+			renderEnvironment(*m_defaultEnvironment, camera);
 		}
 	}
 
 
 	void Renderer::renderEnvironment(const Environment& env, const Camera& camera){
+		//Console::info() << "Rendering Environment" << Console::endl;
 		if (!use_environment) return;
-		Shared<Shader> shader = m_shaderLibrary->get("default.skybox");
+		Shared<Shader> shader = getShader("default.skybox");
 		if (!shader) {
 			Console::error("Renderer") << "Renderer failed to gather materials and shaders" << Console::endl;
 			return;
@@ -85,7 +87,7 @@ namespace Merlin {
 		glDepthFunc(GL_LEQUAL);
 		if(useFaceCulling())glDisable(GL_CULL_FACE);
 		shader->use();
-		Texture2D::resetTextureUnit();
+		Texture2D::resetTextureUnits();
 		env.attach(*shader);
 		shader->setVec3("gradientColor", env.gradientColor());
 		shader->setMat4("view", glm::mat4(glm::mat3(camera.getViewMatrix()))); //sync model matrix with GPU
@@ -98,6 +100,7 @@ namespace Merlin {
 
 
 	void Renderer::renderDepth(const Shared<RenderableObject>& object, Shared<Shader> shader){
+		//Console::info() << "Rendering Depth" << Console::endl;
 		pushMatrix();
 		currentTransform *= object->transform();
 
@@ -119,12 +122,13 @@ namespace Merlin {
 	}
 
 	void Renderer::renderLight(const Light& li, const Camera& camera){
-		Shared<Shader> shader = m_shaderLibrary->get("default.light");
+		//Console::info() << "Rendering Light" << Console::endl;
+		Shared<Shader> shader = getShader("default.light");
 		if (!shader) {
 			Console::error("Renderer") << "Renderer failed to gather materials and shaders" << Console::endl;
 			return;
 		}
-
+		//Texture2D::resetTextureUnits();
 		shader->use();
 		shader->setVec3("light_color", li.diffuse() + li.ambient() + li.specular());
 
@@ -135,23 +139,23 @@ namespace Merlin {
 	}
 
 	void Renderer::renderMesh(const Mesh& mesh, const Camera& camera) {
-
+		//Console::info() << "Rendering Mesh" << Console::endl;
 		Material_Ptr mat = mesh.getMaterial();
 		Shader_Ptr shader = mesh.getShader();
 		
 		if (mesh.hasMaterial()) mat = mesh.getMaterial();
-		else mat = m_materialLibrary->get(mesh.getMaterialName());
+		else mat = getMaterial(mesh.getMaterialName());
 
 		if (mesh.hasShader())
 			shader = mesh.getShader();
 		else {
 			if (mesh.getShaderName() == "default") {
-				if(mat->type() == MaterialType::PHONG) shader = m_shaderLibrary->get("default.phong");
-				else if(mat->type() == MaterialType::PBR) shader = m_shaderLibrary->get("default.pbr");
+				if(mat->type() == MaterialType::PHONG) shader = getShader("default.phong");
+				else if(mat->type() == MaterialType::PBR) shader = getShader("default.pbr");
 				else {
 					Console::error("Renderer") << "This material has no suitable shader. Please bind it manually" << Console::endl;
 				}
-			}else shader = m_shaderLibrary->get(mesh.getShaderName());
+			}else shader = getShader(mesh.getShaderName());
 		}
 
 		if (!shader) {
@@ -159,9 +163,9 @@ namespace Merlin {
 			return;
 		}
 
+		Texture2D::resetTextureUnits();
 		shader->use();
-		Texture2D::resetTextureUnit();
-
+		
 		for (int i = 0; i < m_activeLights.size(); i++) {
 			m_activeLights[i]->attach(i, *shader);
 		}
@@ -180,17 +184,19 @@ namespace Merlin {
 
 
 		mesh.draw();
+
+		mat->detach();
 	}
 
 
 	void Renderer::castShadow(Shared<Light> light, const Scene& scene) {
-
+		//Console::info() << "Cast Shadow" << Console::endl;
 		Shared<TextureBase> tex;
 		Shared<FrameBuffer> fbo;
 		Shared<Shader> shader;
 
-		if (light->type() == LightType::Directional || light->type() == LightType::Spot) shader = m_shaderLibrary->get("shadow.depth");
-		else if (light->type() == LightType::Point) shader = m_shaderLibrary->get("shadow.omni");
+		if (light->type() == LightType::Directional || light->type() == LightType::Spot) shader = getShader("shadow.depth");
+		else if (light->type() == LightType::Point) shader = getShader("shadow.omni");
 		else return;
 
 
@@ -202,13 +208,12 @@ namespace Merlin {
 			return;
 		}
 
-		Texture2D::resetTextureUnit();
-
 		glViewport(0, 0, 2048, 2048);
 		fbo->bind();
 		
 		glClear(GL_DEPTH_BUFFER_BIT);
 
+		Texture2D::resetTextureUnits();
 		shader->use();
 		light->attachShadow(*shader);
 		
@@ -318,6 +323,7 @@ namespace Merlin {
 	}
 	*/
 	void Renderer::renderTransformObject(const TransformObject& obj, const Camera& camera) {
+		//Console::info() << "Rendering TransformObject" << Console::endl;
 		//TODO Render axis
 		render(obj.getXAxisMesh(), camera);
 		render(obj.getYAxisMesh(), camera);
@@ -358,27 +364,33 @@ namespace Merlin {
 	}
 
 	Shared<Shader> Renderer::getShader(std::string n) {
-		return m_shaderLibrary->get(n);
+		return ShaderLibrary::instance().get(n);
+	}
+
+	Shared<MaterialBase> Renderer::getMaterial(std::string n) {
+		return MaterialLibrary::instance().get(n);
 	}
 
 	void Renderer::loadShader(const std::string& name, const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geomShaderPath) {
 		Shared<Shader> shader = Shader::create(name, vertexShaderPath, fragmentShaderPath, geomShaderPath);
-		m_shaderLibrary->add(shader);
+		ShaderLibrary::instance().add(shader);
 	}
 
 	void Renderer::addMaterial(Shared<MaterialBase> material) {
-		m_materialLibrary->add(material);
+		MaterialLibrary::instance().add(material);
 	}
 
 	void Renderer::addShader(Shared<Shader> shader) {
 		if (!shader->isCompiled()) Console::error("Renderer") << "Shader is not compiled. Compile the shader before adding them to the ShaderLibrary" << Console::endl;
-		m_shaderLibrary->add(shader);
+		ShaderLibrary::instance().add(shader);
 	}
 
 	void Renderer::clear() {
 		RendererBase::clear();
 		resetMatrix();
 		m_activeLights.clear();
+		Texture2D::resetTextureUnits();
+		//Console::success() << "Cleared screen" << Console::endl;
 	}
 
 	void Renderer::setEnvironmentGradientColor(float r, float g, float b) {

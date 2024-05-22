@@ -27,6 +27,8 @@ namespace Merlin {
 		inline void setGradientColor(const glm::vec3& c) { m_gradient_color = c; }
 		const glm::vec3& gradientColor() const { return m_gradient_color; }
 
+		inline void setCubeMap(Shared<CubeMap> cm) { m_skybox = cm; }
+
 	private:
 		void setupMesh();
 

@@ -45,6 +45,7 @@ namespace Merlin {
 		inline void disableShadows() { use_shadows = false; }
 
 		Shared<Shader> getShader(std::string n);
+		Shared<MaterialBase> getMaterial(std::string n);
 
 	private:
 		bool use_shadows = true;
@@ -61,8 +62,5 @@ namespace Merlin {
 
 		Shared<Environment> m_defaultEnvironment = nullptr;
 		Shared<Environment> m_currentEnvironment = nullptr;
-
-		MaterialLibrary* m_materialLibrary = nullptr;
-		ShaderLibrary* m_shaderLibrary = nullptr;
 	};
 }

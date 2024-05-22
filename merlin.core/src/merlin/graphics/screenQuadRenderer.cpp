@@ -4,7 +4,7 @@
 
 namespace Merlin {
 	ScreenQuadRenderer::ScreenQuadRenderer() : m_shader(nullptr) {
-		m_shader = ShaderLibrary::instance()->get("screen.space");
+		m_shader = ShaderLibrary::instance().get("screen.space");
 		if (!m_shader) {
 			Console::error("ScreenQuadRenderer") << "ShaderLibrary failed to retrieve screen space shader" << Console::endl;
 		}

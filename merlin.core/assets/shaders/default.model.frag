@@ -122,24 +122,21 @@ float computeShadow(Light li, vec4 fragPosLightSpace)
             shadow = 0.0;
         }
     }else if(li.type == POINT_LIGHT){
-        vec3 fragToLight = vin.position - li.position;
+vec3 fragToLight = vin.position - li.position;
         float currentDepth = length(fragToLight);
-        
+
         float bias = 0.35;
         int samples = 20;
         float viewDistance = length(viewPos - vin.position);
         float diskRadius = (1.0 + (viewDistance / li.far_plane)) / 25.0;
 
-        FragColor = vec4(vec3(texture(li.omniShadowMap, fragToLight).r / li.far_plane), 1.0);
-        for(int i = 0; i < samples; ++i){
+        // Correctly sample the shadow map using 3D texture coordinates
+        for (int i = 0; i < samples; ++i) {
             float closestDepth = texture(li.omniShadowMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
-            closestDepth *= li.far_plane;   // undo mapping [0;1]
-            //FragColor = vec4(vec3(currentDepth/ li.far_plane), 1.0);
-            if(currentDepth - bias > closestDepth){
+            closestDepth *= li.far_plane;  // undo mapping [0;1]
+            if (currentDepth - bias > closestDepth) {
                 shadow += 1.0;
-                //FragColor = vec4(vec3(1), 1.0);
             }
-            
         }
         shadow /= float(samples);
         

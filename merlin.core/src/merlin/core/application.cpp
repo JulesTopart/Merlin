@@ -27,14 +27,6 @@ namespace Merlin {
 		initWindow(name, width, height, vsync, multisampling, fullscreen);
 		printHeader();
 
-		Console::print() << "Loading default shaders" << Console::endl;
-
-		Merlin::ShaderLibrary::initialize();
-
-		Console::print() << "Loading default materials" << Console::endl;
-
-		Merlin::MaterialLibrary::initialize();
-
 		m_ImGuiLayer = new ImGuiLayer();
 		pushOverlay(m_ImGuiLayer);
 	}

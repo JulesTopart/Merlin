@@ -39,6 +39,7 @@ namespace Merlin {
 		void bindImage(GLuint unit);
 		void unbind();
 
+		void autoSetUnit();
 		void setUnit(GLuint unit);
 		void syncTextureUnit(const ShaderBase& shader, const std::string uniform);
 
@@ -56,8 +57,8 @@ namespace Merlin {
 		static ChannelsProperty getChannelsProperty(TextureType);
 		inline const GLuint id() const { return m_TextureID; }
 
-		inline static GLuint getNextTextureUnit() { return currentTextureUnit++; }
-		inline static void resetTextureUnit() { currentTextureUnit = 0; }
+		static void resetTextureUnits();
+		
 
 	protected:
 		GLuint m_width = 0, m_height = 0;
@@ -67,6 +68,9 @@ namespace Merlin {
 
 	private:
 		inline static GLuint currentTextureUnit = 0;
+		inline static std::unordered_map<GLuint, GLuint> textureUnitMap; // Map to track binding points
+
+
 		GLenum m_Target; // Either GL_TEXTURE_2D_MULTISAMPLE or GL_TEXTURE_2D or GL_TEXTURE_CUBEMAP
 		GLuint m_unit = 0;
 		GLuint m_TextureID = 0;

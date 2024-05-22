@@ -14,7 +14,7 @@ ExampleLayer::ExampleLayer(){
 	int width = w->getWidth();
 	camera = createShared<Camera>(width, height, Projection::Perspective);
 	camera->setNearPlane(0.1f);
-	camera->setFarPlane(1000.0f);
+	camera->setFarPlane(100.0f);
 	camera->setFOV(50); //Use 90.0f as we are using cubemaps
 	//camera->setPosition(glm::vec3(30.0f, -180.0f, 50.0f));
 	camera->setPosition(glm::vec3(0.7, -7, 2.4));
@@ -64,21 +64,21 @@ void ExampleLayer::onAttach(){
 	dirlight = createShared<DirectionalLight>("light1", glm::vec3(-0.5f, 0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1.0, 1.0, 1.0));
-	scene.add(dirlight);
+	//scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light2", glm::vec3(0.5f, 0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1));
-	scene.add(dirlight);
+	//scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light3", glm::vec3(0.0f, -0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1));
-	scene.add(dirlight);
+	//scene.add(dirlight);
 	/**/
 
 	/**/
@@ -87,11 +87,20 @@ void ExampleLayer::onAttach(){
 	scene.add(amLight);
 	/**/
 
-	Model_Ptr cube = Model::create("cube", Primitives::createRectangle(10, 10));
+	Model_Ptr cube = Model::create("cube", Primitives::createCube(10, 10, 10));
+	cube->setMaterial("jade");
+	cube->translate(glm::vec3(0,0,5));
+	renderer.disableFaceCulling();
 	//scene.add(cube);
 	scene.add(model);
 	scene.add(floor);
 	scene.setCamera(camera);
+
+	Shared<Environment> env;
+	env = createShared<Environment>("env", 2048);
+	env->setCubeMap(light->getShadowMap());
+	scene.setEnvironment(env);
+	scene.add(TransformObject::create("origin"));
 }
 
 

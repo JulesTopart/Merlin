@@ -18,7 +18,7 @@ namespace Merlin {
 		shader.setVec3(base + ".direction", glm::vec3(getRenderTransform() * glm::vec4(direction(), 0.0f)));
 		if (m_shadowMap) {
 			shader.setMat4(base + ".lightSpaceMatrix", m_lightSpaceMatrix);
-			m_shadowMap->setUnit(TextureBase::getNextTextureUnit());
+			m_shadowMap->autoSetUnit();
 			m_shadowMap->bind();
 			m_shadowMap->syncTextureUnit(shader, base + ".shadowMap");
 		}
@@ -71,7 +71,8 @@ namespace Merlin {
 
 		if (m_shadowMap) {
 			//shader.setMat4(base + ".lightSpaceMatrix", m_lightSpaceMatrix);
-			m_shadowMap->setUnit(TextureBase::getNextTextureUnit());
+
+			m_shadowMap->autoSetUnit();
 			m_shadowMap->bind();
 			m_shadowMap->syncTextureUnit(shader, base + ".omniShadowMap");
 			shader.setFloat(base + ".far_plane", 25.0f);
@@ -92,28 +93,30 @@ namespace Merlin {
 	}
 
 	void PointLight::attachShadow(Shader& shader) {
-		//shader.setMat4("lightSpaceMatrix", m_lightSpaceMatrix);
-
 		m_shadowTransforms.clear();
+		// Correct orientations for each face of the cubemap
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			glm::lookAt(position(), position() + glm::vec3(1.0, 0.0, 0.0), getUp(glm::vec3(1.0, 0.0, 0.0))));
+			glm::lookAt(position(), position() + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, 0.0, 1.0))); // Positive X
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			glm::lookAt(position(), position() + glm::vec3(-1.0, 0.0, 0.0), getUp(glm::vec3(-1.0, 0.0, 0.0))));
+			glm::lookAt(position(), position() + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, 0.0, 1.0))); // Negative X
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			glm::lookAt(position(), position() + glm::vec3(0.0, 1.0, 0.0), getUp(glm::vec3(0.0, 1.0, 0.0))));
+			glm::lookAt(position(), position() + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, -1.0))); // Positive Y
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			glm::lookAt(position(), position() + glm::vec3(0.0, -1.0, 0.0), getUp(glm::vec3(0.0, -1.0, 0.0))));
+			glm::lookAt(position(), position() + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, 1.0))); // Negative Y
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			glm::lookAt(position(), position() + glm::vec3(0.0, 0.0, 1.0), getUp(glm::vec3(0.0, 0.0, 1.0))));
+			glm::lookAt(position(), position() + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, 1.0, 0.0))); // Positive Z
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			glm::lookAt(position(), position() + glm::vec3(0.0, 0.0, -1.0), getUp(glm::vec3(0.0, 0.0, -1.0))));
+			glm::lookAt(position(), position() + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 1.0, 0.0))); // Negative Z
 
-		for (int i = 0; i < m_shadowTransforms.size(); i++)
+
+		for (int i = 0; i < m_shadowTransforms.size(); i++) {
 			shader.setMat4("shadowMatrices[" + std::to_string(i) + "]", m_shadowTransforms[i]);
+		}
 
 		shader.setVec3("lightPos", position());
 		shader.setFloat("far_plane", 25.0f);
 	}
+
 
 
 
@@ -137,10 +140,10 @@ namespace Merlin {
 			m_shadowMap->unbind();
 		}
 
-		float aspect = 1.0;
 		float near_plane = 1.0f;
 		float far_plane = 25.0f;
-		m_lightSpaceMatrix = glm::perspective(glm::radians(90.0f), aspect, near_plane, far_plane);
+		m_lightSpaceMatrix = glm::perspective(glm::radians(90.0f), 1.0f, near_plane, far_plane);
+
 	}
 	
 	void AmbientLight::attach(int id, Shader& shader) {

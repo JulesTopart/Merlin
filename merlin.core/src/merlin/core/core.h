@@ -1,7 +1,8 @@
 
 #pragma once
-#include <memory>
+
 #include "merlin/core/glObject.h"
+#include <memory>
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -24,15 +25,15 @@
 #define BIT(x) (1 << x)
 
 #define SINGLETON(className) public: \
-    static inline className& instance(){return m_instance;} \
-    className(const className&) = delete; \
-    className(className&&) = delete; \
-    className& operator=(const className&) = delete; \
-    className& operator=(className&&) = delete; \
-private: \
-    static className m_instance;
+	static className& instance() { \
+		static std::unique_ptr<className> instance(new className()); \
+		return *instance.get(); \
+	} \
+	className(const className&) = delete; \
+	className(className&&) = delete; \
+	className& operator=(const className&) = delete; \
+	className& operator=(className&&) = delete; \
 
-#define INSTANTIATE_SINGLETON(className) className className::m_instance;
 
 
 template<typename T>

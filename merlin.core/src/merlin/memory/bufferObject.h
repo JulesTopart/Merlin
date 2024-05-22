@@ -50,12 +50,15 @@ namespace Merlin{
 	class GenericBufferObject : public GLObject<> {
 	public :
 		GenericBufferObject(BufferType type, BufferTarget target = BufferTarget::ARRAY_BUFFER, const std::string& name = "buffer"); //default constructor
+		~GenericBufferObject() { releaseBindingPoint(); } //destructor
 
 		void bind();
 		void bindAs(GLenum target);
 		void unbind();
 
+		void setBindingPoint();
 		void setBindingPoint(GLuint bp);
+		void releaseBindingPoint();
 
 		void* map();
 		void unmap();
@@ -68,6 +71,7 @@ namespace Merlin{
 
 	private:
 		inline static unsigned int m_bufferInstances = 0;
+		inline static unsigned int m_boundBuffers = 0;
 
 		BufferType m_type;
 		BufferTarget m_target;			//Buffer target binding
@@ -219,6 +223,7 @@ namespace Merlin{
 			m_size = size / sizeof(T);
 			float gb, mb, kb = size / 1000.0; mb = kb / 1000.0; gb = mb / 1000.0;
 			Console::info("Buffer") << "allocating " << name().c_str() << " with " << int(m_size) << " elements" << Console::endl;
+			Console::info("Buffer") << "bound to binding point "  << m_bindingPoint << Console::endl;
 			if (gb > 0.5)		Console::info("Buffer") << "allocating " << gb << "GB of GPU Memory" << Console::endl;
 			else if (mb > 0.5)	Console::info("Buffer") << "allocating " << mb << "MB of GPU Memory" << Console::endl;
 			else if (kb > 0.5)	Console::info("Buffer") << "allocating " << kb << "kB of GPU Memory" << Console::endl;

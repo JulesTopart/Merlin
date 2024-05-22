@@ -21,6 +21,7 @@ namespace Merlin {
         MaterialBase(std::string name, MaterialType type = MaterialType::UNLIT) : m_type(type), m_name(name) {}
 
         virtual void attach(Shader& shader) const = 0;
+        virtual void detach() const = 0;
         MaterialType type() const { return m_type; }
         std::string name() const { return m_name; }
 
@@ -55,6 +56,7 @@ namespace Merlin {
         inline void setNormalTexture(Texture2D_Ptr tex) { m_normal_tex = tex; }
 
         void attach(Shader& shader) const override;
+        void detach() const override;
     };
 
 
@@ -90,6 +92,7 @@ namespace Merlin {
         void setAO(float value) { m_ao = value; }
 
         void attach(Shader& shader) const override;
+        void detach() const override;
 
     };
 

@@ -5,8 +5,8 @@
 namespace Merlin {
 
     TransformObject::TransformObject(const std::string& name) : TransformObject::RenderableObject(name) {
-        x_axis = Primitives::createCylinder(0.1, 5, 1000);
-        y_axis = Primitives::createCylinder(0.1, 5, 1000);
+        x_axis = Primitives::createCylinder(0.1, 5, 10);
+        y_axis = Primitives::createCylinder(0.1, 5, 10);
         z_axis = Primitives::createCylinder(0.1, 5, 10);
 
         /*

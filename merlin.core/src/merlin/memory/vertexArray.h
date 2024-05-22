@@ -28,12 +28,11 @@ namespace Merlin {
 
     using VAO = VertexArray;
 
-
     template<class T>
     void VertexArray::bindBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout) {
+
         glVertexArrayVertexBuffer(id(), vb.bindingPoint(), vb.id(), 0, layout.getStride());
     }
-
 
     template<class T>
     void VertexArray::addBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout) {

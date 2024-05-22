@@ -1,5 +1,6 @@
 #include "glpch.h"
 #include "bufferObject.h"
+#include "bindingPointManager.h"
 
 namespace Merlin {
 
@@ -34,7 +35,9 @@ namespace Merlin {
 		m_type = type;
 		m_target = target;
 		m_bufferSize = 0;
-		m_bindingPoint = m_bufferInstances;
+		m_bindingPoint = 0;
+		setBindingPoint();
+
 		rename(name == "buffer" ? name + std::to_string(m_bufferInstances) : name);
 		m_bufferInstances++;
 	}
@@ -60,25 +63,50 @@ namespace Merlin {
 
 	void GenericBufferObject::setBindingPoint(GLuint bp) {
 		m_bindingPoint = bp;
-		bind();
 		Console::info("ShaderBase") << name() << "( block id " << id() << ") is now bound to binding point " << m_bindingPoint << Console::endl;
 		glBindBufferBase(static_cast<GLenum>(m_target), m_bindingPoint, id());
 	}
 
+	void GenericBufferObject::setBindingPoint() {
+		try {
+			if (m_target == BufferTarget::ARRAY_BUFFER || m_target == BufferTarget::ELEMENT_ARRAY_BUFFER) {
+				// For VBO and EBO, we might want to just track their usage but not bind them to indexed targets
+				m_bindingPoint = BindingPointManager::instance().allocateBindingPoint(m_type);
+			}
+			else {
+				m_bindingPoint = BindingPointManager::instance().allocateBindingPoint(m_type);
+				Console::info("BufferBase") << name() << "( block id " << id() << ") is now bound to binding point " << m_bindingPoint << Console::endl;
+				glBindBufferBase(static_cast<GLenum>(m_target), m_bindingPoint, id());
+			}
+		}
+		catch (const std::runtime_error& e) {
+			Console::error("BindingPointManager") << e.what() << Console::endl;
+		}
+	}
+
+	void GenericBufferObject::releaseBindingPoint() {
+		if (m_bindingPoint != -1) {
+			BindingPointManager::instance().releaseBindingPoint(m_type, m_bindingPoint);
+			m_bindingPoint = -1;
+		}
+	}
 
 	void GenericBufferObject::bind() {
 		// bind the buffer object to the shader storage buffer target.
 		glBindBuffer(static_cast<GLenum>(m_target), id());
+		m_boundBuffers++;
 	}
 
 	void GenericBufferObject::bindAs(GLenum target) {
 		// bind the buffer object to the shader storage buffer target.
 		glBindBuffer(static_cast<GLenum>(m_target), id());
+		m_boundBuffers++;
 	}
 
 	void GenericBufferObject::unbind() {
 		// bind the buffer object to the shader storage buffer target.
 		glBindBuffer(static_cast<GLenum>(m_target), 0);
+		m_boundBuffers--;
 	}
 
 	void GenericBufferObject::clear() {

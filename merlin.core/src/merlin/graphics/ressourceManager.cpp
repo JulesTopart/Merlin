@@ -4,9 +4,6 @@
 
 namespace Merlin {
 
-	void ShaderLibrary::initialize(){
-		m_instance = new ShaderLibrary();
-	}
 
 	ShaderLibrary::ShaderLibrary() {
 		LoadDefaultShaders();
@@ -27,11 +24,6 @@ namespace Merlin {
 		sh->noTexture();
 		add(sh);
 
-	}
-
-
-	void MaterialLibrary::initialize() {
-		m_instance = new MaterialLibrary();
 	}
 
 	MaterialLibrary::MaterialLibrary() {
