@@ -92,21 +92,22 @@ namespace Merlin {
 		return _Up;
 	}
 
+
 	void PointLight::attachShadow(Shader& shader) {
 		m_shadowTransforms.clear();
 		// Correct orientations for each face of the cubemap
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			glm::lookAt(position(), position() + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, 0.0, 1.0))); // Positive X
+			glm::lookAt(position(), position() + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0,  0.0,  1.0))); // Positive X
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
 			glm::lookAt(position(), position() + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, 0.0, 1.0))); // Negative X
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			glm::lookAt(position(), position() + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, -1.0))); // Positive Y
+			glm::lookAt(position(), position() + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0))); // Positive Y
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
 			glm::lookAt(position(), position() + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, 1.0))); // Negative Y
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			glm::lookAt(position(), position() + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, 1.0, 0.0))); // Positive Z
+			glm::lookAt(position(), position() + glm::vec3(0.0, 0.0, 1.0), glm::vec3(1.0, 0.0, 0.0))); // Positive Z
 		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			glm::lookAt(position(), position() + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 1.0, 0.0))); // Negative Z
+			glm::lookAt(position(), position() + glm::vec3(0.0, 0.0, -1.0), glm::vec3(-1.0, 0.0, 0.0))); // Negative Z
 
 
 		for (int i = 0; i < m_shadowTransforms.size(); i++) {

@@ -51,6 +51,7 @@ namespace Merlin {
 
 	void TextureBase::unbind() {
 		// unbind the texture to the appropriate target
+		glActiveTexture(GL_TEXTURE0 + m_unit);
 		glBindTexture(m_Target, 0);
 		
 
@@ -58,19 +59,21 @@ namespace Merlin {
 
 	void TextureBase::setUnit(GLuint unit) {
 		
-		Console::warn("TextureBase") << "Texture[" << id() << "] bound to " << m_unit << "->" << unit << Console::endl;
+		//Console::warn("TextureBase") << "Texture[" << id() << "] bound to " << m_unit << "->" << unit << Console::endl;
 		m_unit = unit;
 	}
 
 	void TextureBase::autoSetUnit() {
+		
 		auto it = textureUnitMap.find(id());
 		if (it != textureUnitMap.end()) {
-			m_unit = it->second; // Reuse the existing binding point
+			setUnit(it->second);
 		}
 		else {
-			m_unit = currentTextureUnit++; // Assign a new binding point
+			setUnit(currentTextureUnit++);
 			textureUnitMap[id()] = m_unit; // Store the binding point in the map
 		}
+
 	}
 
 	void TextureBase::resetTextureUnits() {

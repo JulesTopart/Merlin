@@ -107,8 +107,11 @@ namespace Merlin {
 
     Shared<CubeMap> CubeMap::create(const std::vector<std::string>& paths, TextureType t){
         Shared<CubeMap> cm = createShared<CubeMap>(t);
+        cm->autoSetUnit();
         cm->bind();
         cm->loadFromFiles(paths);
+        cm->setInterpolationMode(GL_NEAREST, GL_NEAREST);
+        cm->setRepeatMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         cm->unbind();
         return cm;
     }
@@ -147,7 +150,7 @@ namespace Merlin {
                         break;
                     }
                 }
-
+                Console::success("CubeMap") << "Cubemap texture loaded at path: " << faces[i] << Console::endl;
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_internalFormat, m_width, m_height, 0, m_format, m_dataType, data.bytes);
                 stbi_image_free(data.bytes);
             }

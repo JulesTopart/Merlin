@@ -8,8 +8,7 @@
 namespace Merlin {
 
 	void Environment::setupMesh() {
-		std::vector<float> vertices =
-		{
+		std::vector<float> vertices = {
 			//   Coordinates
 			-1.0f, -1.0f,  1.0f,//        7--------6
 			 1.0f, -1.0f,  1.0f,//       /|       /|
@@ -21,8 +20,7 @@ namespace Merlin {
 			-1.0f,  1.0f, -1.0f
 		};
 
-		std::vector<GLuint> indices =
-		{
+		std::vector<GLuint> indices = {
 			// Right
 			1, 2, 6,
 			6, 5, 1,
@@ -66,12 +64,13 @@ namespace Merlin {
 	}
 
 	void Environment::attach(Shader& shader) const{
-		if (!shader.supportEnvironment())return;
+		if (!shader.supportEnvironment()) return;
 		shader.setInt("environment.use_skybox_tex", m_skybox != nullptr);
 		if (m_skybox && shader.supportTexture()) {
 			m_skybox->autoSetUnit();
 			m_skybox->bind();
 			m_skybox->syncTextureUnit(shader, "environment.skybox_tex");
+
 		}
 		//else shader.setVec3("environment.irradiance", glm::vec3(1.0));
 

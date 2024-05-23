@@ -96,9 +96,25 @@ void ExampleLayer::onAttach(){
 	scene.add(floor);
 	scene.setCamera(camera);
 
+
+
 	Shared<Environment> env;
 	env = createShared<Environment>("env", 2048);
 	env->setCubeMap(light->getShadowMap());
+	/*
+	std::vector<std::string> skyBoxPath = {
+		"./assets/textures/skybox/right.jpg",
+		"./assets/textures/skybox/left.jpg",
+		"./assets/textures/skybox/top.jpg",
+		"./assets/textures/skybox/bottom.jpg",
+		"./assets/textures/skybox/front.jpg",
+		"./assets/textures/skybox/back.jpg"
+	};
+
+	Shared<CubeMap> sky = CubeMap::create(skyBoxPath);
+	env->setCubeMap(sky);
+	/**/
+
 	scene.setEnvironment(env);
 	scene.add(TransformObject::create("origin"));
 }

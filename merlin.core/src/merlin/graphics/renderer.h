@@ -55,6 +55,8 @@ namespace Merlin {
 		void pushMatrix();
 		void popMatrix();
 		void resetMatrix();
+		
+		bool debug = false;
 
 		glm::mat4 currentTransform;
 		std::stack<glm::mat4> matrixStack;

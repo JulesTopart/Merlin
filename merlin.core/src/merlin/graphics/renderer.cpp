@@ -39,7 +39,7 @@ namespace Merlin {
 	}
 
 	void Renderer::renderScene(const Scene& scene, const Camera& camera) {
-		//Console::info() << "Rendering scene" << Console::endl;
+		if (debug)Console::info() << "Rendering scene" << Console::endl;
 
 		//Gather lights
 		for (const auto& node : scene.nodes()) {
@@ -48,7 +48,7 @@ namespace Merlin {
 				m_activeLights.push_back(light);
 			}
 		}
-		//Console::info() << "Rendering scene shadows" << Console::endl;
+		if(debug)Console::info() << "Rendering scene shadows" << Console::endl;
 
 		if(useFaceCulling()) glDisable(GL_CULL_FACE);
 		if (use_shadows) {
@@ -61,7 +61,7 @@ namespace Merlin {
 		camera.restoreViewport();
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//Render the scene
-		//Console::info() << "Rendering scene objects" << Console::endl;
+		if (debug)Console::info() << "Rendering scene objects" << Console::endl;
 		for (const auto& node : scene.nodes()) {
 			if(!node->isHidden()) render(node, camera);
 		}
@@ -77,7 +77,7 @@ namespace Merlin {
 
 
 	void Renderer::renderEnvironment(const Environment& env, const Camera& camera){
-		//Console::info() << "Rendering Environment" << Console::endl;
+		if(debug)Console::info() << "Rendering Environment" << Console::endl;
 		if (!use_environment) return;
 		Shared<Shader> shader = getShader("default.skybox");
 		if (!shader) {
@@ -100,7 +100,7 @@ namespace Merlin {
 
 
 	void Renderer::renderDepth(const Shared<RenderableObject>& object, Shared<Shader> shader){
-		//Console::info() << "Rendering Depth" << Console::endl;
+		if (debug)Console::info() << "Rendering Depth" << Console::endl;
 		pushMatrix();
 		currentTransform *= object->transform();
 
@@ -122,7 +122,7 @@ namespace Merlin {
 	}
 
 	void Renderer::renderLight(const Light& li, const Camera& camera){
-		//Console::info() << "Rendering Light" << Console::endl;
+		if (debug)Console::info() << "Rendering Light" << Console::endl;
 		Shared<Shader> shader = getShader("default.light");
 		if (!shader) {
 			Console::error("Renderer") << "Renderer failed to gather materials and shaders" << Console::endl;
@@ -139,7 +139,7 @@ namespace Merlin {
 	}
 
 	void Renderer::renderMesh(const Mesh& mesh, const Camera& camera) {
-		//Console::info() << "Rendering Mesh" << Console::endl;
+		if (debug)Console::info() << "Rendering Mesh" << Console::endl;
 		Material_Ptr mat = mesh.getMaterial();
 		Shader_Ptr shader = mesh.getShader();
 		
@@ -171,6 +171,7 @@ namespace Merlin {
 		}
 
 		mat->attach(*shader);
+
 		if(m_currentEnvironment != nullptr)
 			m_currentEnvironment->attach(*shader);
 		else m_defaultEnvironment->attach(*shader);
@@ -184,13 +185,21 @@ namespace Merlin {
 
 
 		mesh.draw();
-
 		mat->detach();
+
+		if (m_currentEnvironment != nullptr)
+			m_currentEnvironment->detach();
+		else m_defaultEnvironment->detach();
+
+		for (int i = 0; i < m_activeLights.size(); i++) {
+			m_activeLights[i]->detach();
+		}
+
 	}
 
 
 	void Renderer::castShadow(Shared<Light> light, const Scene& scene) {
-		//Console::info() << "Cast Shadow" << Console::endl;
+		if (debug)Console::info() << "Cast Shadow" << Console::endl;
 		Shared<TextureBase> tex;
 		Shared<FrameBuffer> fbo;
 		Shared<Shader> shader;
@@ -323,8 +332,7 @@ namespace Merlin {
 	}
 	*/
 	void Renderer::renderTransformObject(const TransformObject& obj, const Camera& camera) {
-		//Console::info() << "Rendering TransformObject" << Console::endl;
-		//TODO Render axis
+		if (debug)Console::info() << "Rendering TransformObject" << Console::endl;
 		render(obj.getXAxisMesh(), camera);
 		render(obj.getYAxisMesh(), camera);
 		render(obj.getZAxisMesh(), camera);

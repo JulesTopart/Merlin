@@ -7,7 +7,7 @@
 namespace Merlin{
 	class CubeMap : public TextureBase {
 	public:
-		CubeMap(TextureType = TextureType::ALBEDO);
+		CubeMap(TextureType = TextureType::ENVIRONMENT);
 
 		//Settings
 		void setInterpolationMode(GLuint minFilter = GL_LINEAR, GLuint magFilter = GL_LINEAR);
@@ -21,8 +21,8 @@ namespace Merlin{
 		void reserve(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8) override;
 		void resize(GLsizei width, GLsizei height) override;
 
-		static Shared<CubeMap> create(GLuint width, GLuint height, TextureType = TextureType::ALBEDO);
-		static Shared<CubeMap> create(const std::vector<std::string>& paths, TextureType = TextureType::ALBEDO);
+		static Shared<CubeMap> create(GLuint width, GLuint height, TextureType = TextureType::ENVIRONMENT);
+		static Shared<CubeMap> create(const std::vector<std::string>& paths, TextureType = TextureType::ENVIRONMENT);
 
 	private:
 		void loadFromFiles(const std::vector<std::string>& faces);
