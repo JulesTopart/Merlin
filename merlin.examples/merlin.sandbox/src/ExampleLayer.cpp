@@ -32,12 +32,10 @@ void ExampleLayer::onAttach(){
 	renderer.enableSampleShading();
 	renderer.setEnvironmentGradientColor(0.903, 0.803, 0.703);
 	renderer.showLights();
-
 	
 	Shared<Model> model = ModelLoader::loadModel("./assets/models/model.obj");
 	//model->translate(glm::vec3(-0.5, 0, 0));
 
-	//Shared<Model> floor = Model::create("floor", Primitives::createFloor(500, 0.5));
 	Shared<Model> floor = Model::create("floor", Primitives::createRectangle(10, 10));
 	Shared<PhongMaterial> floorMat = createShared<PhongMaterial>("floormat");
 	floorMat->loadTexture("./assets/textures/planks.png", TextureType::DIFFUSE);
@@ -64,21 +62,21 @@ void ExampleLayer::onAttach(){
 	dirlight = createShared<DirectionalLight>("light1", glm::vec3(-0.5f, 0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1.0, 1.0, 1.0));
-	//scene.add(dirlight);
+	scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light2", glm::vec3(0.5f, 0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1));
-	//scene.add(dirlight);
+	scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light3", glm::vec3(0.0f, -0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1));
-	//scene.add(dirlight);
+	scene.add(dirlight);
 	/**/
 
 	/**/
@@ -87,21 +85,20 @@ void ExampleLayer::onAttach(){
 	scene.add(amLight);
 	/**/
 
-	Model_Ptr cube = Model::create("cube", Primitives::createCube(10, 10, 10));
+	Model_Ptr cube = Model::create("cube", Primitives::createCube(0.5));
 	cube->setMaterial("jade");
-	cube->translate(glm::vec3(0,0,5));
+	cube->translate(glm::vec3(-1,-1,0.25));
 	renderer.disableFaceCulling();
-	//scene.add(cube);
+	scene.add(cube);
 	scene.add(model);
 	scene.add(floor);
 	scene.setCamera(camera);
 
-
-
+	/*
 	Shared<Environment> env;
 	env = createShared<Environment>("env", 2048);
-	env->setCubeMap(light->getShadowMap());
-	/*
+	//env->setCubeMap(light->getShadowMap());
+
 	std::vector<std::string> skyBoxPath = {
 		"./assets/textures/skybox/right.jpg",
 		"./assets/textures/skybox/left.jpg",
@@ -113,10 +110,11 @@ void ExampleLayer::onAttach(){
 
 	Shared<CubeMap> sky = CubeMap::create(skyBoxPath);
 	env->setCubeMap(sky);
-	/**/
 
 	scene.setEnvironment(env);
-	scene.add(TransformObject::create("origin"));
+	*/
+
+	scene.add(TransformObject::create("origin", 2));
 }
 
 

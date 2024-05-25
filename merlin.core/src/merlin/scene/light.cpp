@@ -85,52 +85,6 @@ namespace Merlin {
 		}
 	}
 
-	glm::vec3 getUp(glm::vec3 dir) {
-		glm::vec3 _Front = glm::normalize(dir);
-		glm::vec3 _Right = glm::normalize(glm::cross(_Front, glm::vec3(0,0,1)));
-		glm::vec3 _Up = glm::normalize(glm::cross(_Right, _Front));
-		return _Up;
-	}
-
-	glm::mat4 computeViewMAtrix(glm::vec3 position,  glm::vec3 direction) {
-		glm::vec3 _Front = normalize(direction);
-		glm::vec3 _Right = glm::normalize(glm::cross(_Front, glm::vec3(0,0,1)));
-		glm::vec3 _Up = glm::normalize(glm::cross(_Right, _Front));
-
-		return glm::lookAt(position, position + _Front, _Up);
-	
-	}
-
-
-
-	void PointLight::attachShadow(Shader& shader) {
-		m_shadowTransforms.clear();
-		// Correct orientations for each face of the cubemap
-		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			computeViewMAtrix(position(), glm::vec3(1.0, 0.0, 0.0))); // Positive X
-		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			computeViewMAtrix(position(), glm::vec3(-1.0, 0.0, 0.0))); // Negative X
-		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			computeViewMAtrix(position(), glm::vec3(0.0, 1.0, 0.0))); // Positive Y
-		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			computeViewMAtrix(position(), glm::vec3(0.0, -1.0, 0.0))); // Negative Y
-		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			computeViewMAtrix(position(), glm::vec3(0.0, 0.0, 1.0))); // Positive Z
-		m_shadowTransforms.push_back(m_lightSpaceMatrix *
-			computeViewMAtrix(position(), glm::vec3(0.0, 0.0, -1.0))); // Negative Z
-
-
-		for (int i = 0; i < m_shadowTransforms.size(); i++) {
-			shader.setMat4("shadowMatrices[" + std::to_string(i) + "]", m_shadowTransforms[i]);
-			//Console::info() << position() << Console::endl;
-		}
-
-		shader.setVec3("lightPos", position());
-		shader.setFloat("far_plane", 25.0f);
-	}
-
-
-
 
 	void PointLight::generateShadowMap() {
 		if (!m_shadowMap) {
@@ -156,6 +110,45 @@ namespace Merlin {
 		float far_plane = 25.0f;
 		m_lightSpaceMatrix = glm::perspective(glm::radians(90.0f), 1.0f, near_plane, far_plane);
 
+	}
+
+
+	glm::mat4 computeViewMAtrix(glm::vec3 position, glm::vec3 direction) {
+		glm::vec3 _Front = normalize(direction);
+		glm::vec3 _Right = glm::normalize(glm::cross(_Front, glm::vec3(0, 0, 1)));
+		glm::vec3 _Up = glm::normalize(glm::cross(_Right, _Front));
+
+		return glm::lookAt(position, position + _Front, _Up);
+
+	}
+
+
+	void PointLight::attachShadow(Shader& shader) {
+		m_shadowTransforms.clear();
+		// Correct orientations for each face of the cubemap
+		glm::vec3 pos = position();
+
+		m_shadowTransforms.push_back(m_lightSpaceMatrix *
+			glm::lookAt(pos, pos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0))); // Positive X
+		m_shadowTransforms.push_back(m_lightSpaceMatrix *
+			glm::lookAt(pos, pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0))); // Negative X
+		m_shadowTransforms.push_back(m_lightSpaceMatrix *
+			glm::lookAt(pos, pos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0))); // Positive Y
+		m_shadowTransforms.push_back(m_lightSpaceMatrix *
+			glm::lookAt(pos, pos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0))); // Negative Y
+		m_shadowTransforms.push_back(m_lightSpaceMatrix *
+			glm::lookAt(pos, pos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0))); // Positive Z
+		m_shadowTransforms.push_back(m_lightSpaceMatrix *
+			glm::lookAt(pos, pos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))); // Negative Z
+
+
+		for (int i = 0; i < m_shadowTransforms.size(); i++) {
+			shader.setMat4("shadowMatrices[" + std::to_string(i) + "]", m_shadowTransforms[i]);
+			//Console::info() << position() << Console::endl;
+		}
+
+		shader.setVec3("lightPos", position());
+		shader.setFloat("far_plane", 25.0f);
 	}
 	
 	void AmbientLight::attach(int id, Shader& shader) {

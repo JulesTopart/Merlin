@@ -4,10 +4,10 @@
 
 namespace Merlin {
 
-    TransformObject::TransformObject(const std::string& name) : TransformObject::RenderableObject(name) {
-        x_axis = Primitives::createCylinder(0.1, 5, 10);
-        y_axis = Primitives::createCylinder(0.1, 5, 10);
-        z_axis = Primitives::createCylinder(0.1, 5, 10);
+    TransformObject::TransformObject(const std::string& name, float size) : TransformObject::RenderableObject(name) {
+        x_axis = Primitives::createCylinder(size/40, size, 10);
+        y_axis = Primitives::createCylinder(size/40, size, 10);
+        z_axis = Primitives::createCylinder(size/40, size, 10);
 
         /*
         x_axis->calculateNormals();
@@ -48,8 +48,8 @@ namespace Merlin {
 
     }
 
-    Shared<TransformObject> TransformObject::create(std::string name) {
-        return std::make_shared<TransformObject>(name);
+    Shared<TransformObject> TransformObject::create(std::string name, float size) {
+        return std::make_shared<TransformObject>(name, size);
     }
 
 

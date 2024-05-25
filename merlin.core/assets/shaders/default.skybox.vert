@@ -21,7 +21,6 @@ mat4 get_z_correction_matrix()
     );
 }
 
-
 void main(){
     vec4 pos = projection * view * get_z_correction_matrix() * vec4(aPos, 1.0f);
     // We want to flip the z axis due to the different coordinate systems (left hand vs right hand)

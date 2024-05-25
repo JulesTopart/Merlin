@@ -13,8 +13,8 @@ namespace Merlin {
     class TransformObject : public RenderableObject {
     public:
 
-        TransformObject(const std::string& name);
-        static Shared<TransformObject> create(std::string name);
+        TransformObject(const std::string& name, float size = 1);
+        static Shared<TransformObject> create(std::string name, float size = 1);
 
         inline const Mesh_Ptr& getXAxisMesh() const { return x_axis; }
         inline const Mesh_Ptr& getYAxisMesh() const { return y_axis; }
