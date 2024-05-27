@@ -25,25 +25,27 @@ void TemplateLayer::onAttach(){
 	renderer.initialize();
 	renderer.disableDepthTest();
 	renderer.disableEnvironment();
+	//renderer.disableShadows();
 	renderer.enableSampleShading();
 	renderer.setBackgroundColor(0.203, 0.203, 0.203, 1.0);
+	renderer.showLights();
 
-	//modelShader = Shader::create("default", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
-	modelShader = Shader::create("model", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
-	modelShader->noTexture();
-	renderer.addShader(modelShader);
 
 	Shared<Model> model = Model::create("sphere1", Primitives::createSphere(0.5, 40, 40));
 	model->setMaterial("gold");
-	model->setShader("model");
 	scene.add(model);
 
-	light = createShared<PointLight>("light", glm::vec3(1, 0, 1));
+	light = createShared<PointLight>("light", glm::vec3(0.5, 0, 0));
+	light->setAmbient(glm::vec3(0.2));
+	light->setDiffuse(glm::vec3(0.8));
+	light->setSpecular(glm::vec3(0.4));
+	light->setAttenuation(glm::vec3(0.05,0.001,0.3));
 	scene.add(light);
 
-	modelShader->use();
-	modelShader->setVec3("lightPos", light->position());
-	modelShader->setVec4("lightColor", glm::vec4(1));
+
+	Shared<AmbientLight> amlight = createShared<AmbientLight>("amLight");
+	amlight->setAmbient(glm::vec3(0.5));
+	scene.add(amlight);
 
 	scene.setCamera(camera);
 }
