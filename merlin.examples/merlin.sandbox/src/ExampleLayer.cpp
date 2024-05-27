@@ -15,11 +15,9 @@ ExampleLayer::ExampleLayer(){
 	camera = createShared<Camera>(width, height, Projection::Perspective);
 	camera->setNearPlane(0.1f);
 	camera->setFarPlane(100.0f);
-	camera->setFOV(50); //Use 90.0f as we are using cubemaps
-	//camera->setPosition(glm::vec3(30.0f, -180.0f, 50.0f));
+	camera->setFOV(60); //Use 90.0f as we are using cubemaps
 	camera->setPosition(glm::vec3(0.7, -7, 2.4));
 	camera->setRotation(glm::vec3(0, 0, +90));
-	//camera->setRotation(glm::vec3(0, 0, 90.0f));
 	cameraController = createShared<CameraController3D>(camera);
 }
 
@@ -132,11 +130,9 @@ void ExampleLayer::onUpdate(Timestep ts){
 	const float hpi = 3.14159265358;
 	t += ts;
 
-	/**/
 	float x = light->position().x;
 	float y = light->position().y;
 	light->translate(glm::vec3(cos(t)* radius - x, sin(t)* radius - y, 0.0));
-	/**/
 
 	renderer.clear();
 	renderer.renderScene(scene, *camera);
