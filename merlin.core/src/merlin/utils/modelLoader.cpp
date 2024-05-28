@@ -158,6 +158,21 @@ namespace Merlin {
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
+
+            //fallback to custom made importer
+            FileType ft = getFileType(file_path);
+            if (ft == FileType::OBJ || ft == FileType::STL || ft == FileType::GEOM) {
+                Vertices vertices;
+                Indices indices;
+                if (!parseMesh(file_path, vertices, indices)) {
+                    throw std::runtime_error("Unknown file type: " + file_path);
+                }
+                // create a Mesh object using the parsed vertex and index data
+                auto mesh = Mesh::create("Mesh", vertices, indices);
+                //mesh->calculateNormals();
+
+                return Model::create(getFileName(file_path), mesh);
+            }
             return nullptr;
         }
 
@@ -166,28 +181,6 @@ namespace Merlin {
 
         Shared<Model> mdl = Model::create(getFileName(file_path), meshes);
        
-        /* //Old version without ASSIMP
-        FileType ft = getFileType(file_path);
-        if (ft == FileType::OBJ || ft == FileType::STL || ft == FileType::GEOM) {
-            Vertices vertices;
-            Indices indices;
-            if (!parseMesh(file_path, vertices, indices)) {
-                throw std::runtime_error("Unknown file type: " + file_path);
-            }
-            // create a Mesh object using the parsed vertex and index data
-            auto mesh = Mesh::create("Mesh", vertices, indices);
-            //mesh->calculateNormals();
-
-            
-            //TODO load MTL
-            //if (ft == FileType::OBJ) { //look for MTL file
-            //    loadMTL(mdl);
-            //}
-
-            return mdl;
-
-        }
-        */
 
         return mdl;
 	}

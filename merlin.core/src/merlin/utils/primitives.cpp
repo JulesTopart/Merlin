@@ -94,7 +94,7 @@ namespace Merlin {
 
 	Shared<Mesh> Primitives::createFloor(const int groundNumTiles, const float groundTileSize) {
 
-		glm::vec2 squareVerts[] = { glm::vec2(0, 0), glm::vec2(0, 1), glm::vec2(1, 1), glm::vec2(1, 0) };
+		glm::vec2 squareVerts[] = { glm::vec2(0, 0), glm::vec2(1, 0), glm::vec2(1, 1), glm::vec2(0, 1) };
 
 		float r = groundNumTiles / 2.0 * groundTileSize;
 
@@ -104,21 +104,21 @@ namespace Merlin {
 		groundColors.resize(3 * 4 * groundNumTiles * groundNumTiles, 0);
 
 		for (int xi(0); xi < groundNumTiles; xi++) {
-			for (int zi(0); zi < groundNumTiles; zi++) {
+			for (int yi(0); yi < groundNumTiles; yi++) {
 				float x = (-groundNumTiles / 2.0 + xi) * groundTileSize;
-				float z = (-groundNumTiles / 2.0 + zi) * groundTileSize;
-				float p = xi * groundNumTiles + zi;
+				float y = (-groundNumTiles / 2.0 + yi) * groundTileSize;
+				float p = xi * groundNumTiles + yi;
 				for(int i(0); i < 4; i++) {
 					float q = 4 * p + i;
 					float px = x + squareVerts[i][0] * groundTileSize;
-					float pz = z + squareVerts[i][1] * groundTileSize;
+					float py = y + squareVerts[i][1] * groundTileSize;
 					groundVerts[3 * q] = px;
-					groundVerts[3 * q + 2] = pz;
+					groundVerts[3 * q + 1] = py;
 					float col = 0.4;
 
-					if((xi + zi) % 2 == 1){
+					if((xi + yi) % 2 == 1){
 						col = 0.9;
-						float pr = sqrt(px * px + pz * pz);
+						float pr = sqrt(px * px + py * py);
 						float d = std::max(0.0, 1.2 - pr / r);
 						col = col * d;
 						for(int j(0); j < 3; j++)
@@ -131,10 +131,21 @@ namespace Merlin {
 
 		Vertices v;
 		for (int i(0); i < 4 * groundNumTiles * groundNumTiles; i++) {
-			v.push_back(Vertex{ glm::vec3(groundVerts[i * 3], groundVerts[i * 3 + 2], groundVerts[i * 3 + 1]), glm::vec3(0,0,1), glm::vec3(groundColors[i * 3], groundColors[i * 3 + 1], groundColors[i * 3 + 2]), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) }); //color : 
+			Vertex vert;
+			vert.position = glm::vec3(groundVerts[i * 3], groundVerts[i * 3 + 1], groundVerts[i * 3 + 2]);
+			vert.normal = glm::vec3(0, 0, 1);
+			vert.color = glm::vec3(groundColors[i * 3], groundColors[i * 3 + 1], groundColors[i * 3 + 2]);
+
+			float tx = (i / 4) / 3;
+			float ty = (i / 4) % 3;
+
+			vert.texCoord = glm::vec2(tx / groundNumTiles * groundTileSize, ty / groundNumTiles * groundTileSize);
+			vert.tangent = glm::vec3(1, 0, 0);
+			vert.bitangent = glm::vec3(0, 1, 0);
+			v.push_back(vert);
 		}
 
-		return Mesh::create("Floor", v, GL_TRIANGLES);
+		return Mesh::create("Floor", v, GL_QUADS);
 	}
 
 	Shared<Mesh> Primitives::createPoint() {

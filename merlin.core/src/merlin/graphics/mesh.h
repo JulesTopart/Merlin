@@ -25,6 +25,7 @@ namespace Merlin {
 
 		void calculateBoundingBox();
 		void calculateNormals();
+		void smoothNormals();
 		void calculateIndices();
 		void removeUnusedVertices();
 		void updateVAO();

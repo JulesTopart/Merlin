@@ -76,6 +76,7 @@ uniform Environment environment;
 uniform Light lights[MAX_LIGHTS];
 uniform int numLights;
 
+uniform bool useShadows = false;
 uniform mat4 model;
 uniform vec3 viewPos;
 
@@ -91,6 +92,7 @@ vec3 gridSamplingDisk[20] = vec3[]
 
 float computeShadow(Light li, vec4 fragPosLightSpace)
 {   
+    if(!useShadows) return 0.0;
     float shadow = 0.0;
 
     if(li.type == DIRECTIONAL_LIGHT){

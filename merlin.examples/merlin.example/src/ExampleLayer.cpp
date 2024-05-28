@@ -31,27 +31,21 @@ Shared<Mesh> GetModel() {
 void ExampleLayer::onAttach(){
 	renderer.initialize();
 	renderer.enableSampleShading();
+	renderer.disableFaceCulling();
 	renderer.setEnvironmentGradientColor(0.903, 0.803, 0.703);
 	renderer.showLights();
 
-	Shared<Model> model = ModelLoader::loadModel("./assets/models/model.obj");
-
-	Shared<Model> floor = Model::create("floor", Primitives::createRectangle(10, 10));
-	Shared<PhongMaterial> floorMat = createShared<PhongMaterial>("floormat");
-	floorMat->loadTexture("./assets/textures/planks.png", TextureType::DIFFUSE);
-	floorMat->loadTexture("./assets/textures/planks_specular.png", TextureType::SPECULAR);
-	floorMat->setAmbient(glm::vec3(0.25, 0.20725, 0.20725));
-	floorMat->setDiffuse(glm::vec3(1, 0.829, 0.829));
-	floorMat->setSpecular(glm::vec3(0.296648, 0.296648, 0.296648));
-	floorMat->setShininess(0.125);
-	floor->setMaterial(floorMat);
-
+	Shared<Model> bunny = ModelLoader::loadModel("./assets/common/models/bunny.stl");
+	bunny->meshes()[0]->smoothNormals();
+	bunny->setMaterial("jade");
+	bunny->scale(0.2);
+	scene.add(bunny);
 
 	/**/
 	light = createShared<PointLight>("light0");
 	light->translate(glm::vec3(radius, radius, 3));
 	light->setAttenuation(glm::vec3(0.6, 0.08, 0.008));
-	light->setAmbient(0.05, 0.05, 0.05);
+	light->setAmbient(0.09, 0.05, 0.05);
 	light->setDiffuse(1, 1, 1);
 	scene.add(light);
 	/**/
@@ -61,21 +55,21 @@ void ExampleLayer::onAttach(){
 	/**/
 	dirlight = createShared<DirectionalLight>("light1", glm::vec3(-0.5f, 0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
-	dirlight->setDiffuse(glm::vec3(1.0, 1.0, 1.0));
+	dirlight->setDiffuse(glm::vec3(0.2, 0, 0));
 	scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light2", glm::vec3(0.5f, 0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
-	dirlight->setDiffuse(glm::vec3(1));
+	dirlight->setDiffuse(glm::vec3(0.0, 0.2, 0));
 	scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light3", glm::vec3(0.0f, -0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
-	dirlight->setDiffuse(glm::vec3(1));
+	dirlight->setDiffuse(glm::vec3(0.0,0,0.2));
 	scene.add(dirlight);
 	/**/
 
@@ -85,8 +79,8 @@ void ExampleLayer::onAttach(){
 	scene.add(amLight);
 	/**/
 
-	scene.add(model);
-	scene.add(floor);
+	scene.add(Primitives::createFloor(50, 0.5));
+	//scene.add(Primitives::createRectangle(10, 10));
 	scene.setCamera(camera);
 }
 

@@ -2,11 +2,31 @@
 #include "mesh.h"
 #include "merlin/memory/indexBuffer.h"
 
+#include <unordered_map>
+#include <vector>
+
+
+// Helper function to compare glm::vec3 for hashing
+bool operator==(const glm::vec3& a, const glm::vec3& b) {
+	return a.x == b.x && a.y == b.y && a.z == b.z;
+}
+
+// Hash function for glm::vec3
+namespace std {
+	template<> struct hash<glm::vec3> {
+		size_t operator()(const glm::vec3& v) const {
+			return ((hash<float>()(v.x)
+				^ (hash<float>()(v.y) << 1)) >> 1)
+				^ (hash<float>()(v.z) << 1);
+		}
+	};
+}
+
 namespace Merlin {
 	Mesh::Mesh(std::string name) : RenderableObject(name) {
 		m_drawMode = GL_POINTS;
 
-		m_vertices.push_back({glm::vec3(0,0,0)});
+		m_vertices.push_back({ glm::vec3(0,0,0) });
 
 		m_vao.bind();
 		VBO vbo(m_vertices);
@@ -33,7 +53,6 @@ namespace Merlin {
 		//Move vertices data
 		m_vertices = vertices;
 		m_indices = indices;
-
 
 		//create VAO, VBO
 		m_vao.bind();
@@ -79,6 +98,46 @@ namespace Merlin {
 		else glDrawArraysInstanced(m_drawMode, 0, m_vertices.size(), instances); //draw
 		m_vao.unbind();
 	}
+
+
+
+	void Mesh::smoothNormals() {
+		// Clear any existing normals in the vertex data
+		for (auto& vertex : m_vertices) {
+			vertex.normal = glm::vec3(0.0f);
+		}
+
+		// Use a map to accumulate normals based on vertex positions
+		std::unordered_map<glm::vec3, glm::vec3, std::hash<glm::vec3>, std::equal_to<glm::vec3>> normalMap;
+
+		// Accumulate face normals for each vertex
+		for (size_t i = 0; i < m_indices.size(); i += 3) {
+			GLuint i0 = m_indices[i];
+			GLuint i1 = m_indices[i + 1];
+			GLuint i2 = m_indices[i + 2];
+
+			glm::vec3 v0 = m_vertices[i0].position;
+			glm::vec3 v1 = m_vertices[i1].position;
+			glm::vec3 v2 = m_vertices[i2].position;
+
+			// Calculate the face normal
+			glm::vec3 faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+
+			// Accumulate the face normal into each vertex normal based on position
+			normalMap[v0] += faceNormal;
+			normalMap[v1] += faceNormal;
+			normalMap[v2] += faceNormal;
+		}
+
+		// Normalize the accumulated normals and assign them to the vertices
+		for (auto& vertex : m_vertices) {
+			vertex.normal = glm::normalize(normalMap[vertex.position]);
+		}
+
+		// Update the Vertex Array Object (VAO) with the new normals
+		updateVAO();
+	}
+
 
 	void Mesh::calculateBoundingBox() {
 		for (Vertex& v : m_vertices) {
@@ -156,6 +215,7 @@ namespace Merlin {
 
 	void Mesh::updateVAO() {
 		//Update VAO, VBO
+		m_vao.bind();
 		VBO vbo(m_vertices);
 		EBO ebo(m_indices);
 		m_vao.bindBuffer(ebo);

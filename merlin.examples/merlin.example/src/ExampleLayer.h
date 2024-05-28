@@ -22,7 +22,7 @@ private:
 	Scene scene;
 	Renderer renderer;
 
-	Shared<Light>  light;
+	Shared<PointLight>  light;
 
 	glm::vec3 model_matrix_translation = { 0.8f, 0.2f, 0.3f};
 };

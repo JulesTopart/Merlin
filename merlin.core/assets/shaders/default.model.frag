@@ -267,9 +267,8 @@ void main() {
     for (int i = 0; i < numLights; ++i) {
         finalColor += calculateLight(lights[i], N, vin.position, viewDir, ambientColor, diffuseColor, specularColor);
     }
-
     float gamma = 0.7;
-    FragColor.rgb = pow(finalColor.rgb, vec3(1.0/gamma));
+    FragColor.rgb = pow(finalColor.rgb * vin.color.rgb, vec3(1.0/gamma));
     //FragColor.rgb = N* 0.9 + FragColor.rgb * 0.1;
     //FragColor.rgb = normalize(vin.tangentBasis * (-lights[0].direction));
     //FragColor.rgb = normalize(vin.position);
