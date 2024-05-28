@@ -37,8 +37,9 @@ void ExampleLayer::onAttach(){
 
 	Shared<Model> bunny = ModelLoader::loadModel("./assets/common/models/bunny.stl");
 	bunny->meshes()[0]->smoothNormals();
-	bunny->setMaterial("jade");
+	bunny->setMaterial("pearl");
 	bunny->scale(0.2);
+	bunny->translate(glm::vec3(0,0,-0.5));
 	scene.add(bunny);
 
 	/**/
