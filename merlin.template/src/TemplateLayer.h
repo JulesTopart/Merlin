@@ -1,18 +1,19 @@
 #pragma once
 
 #include <Merlin.h>
+using namespace Merlin;
 
-class TemplateLayer : public Merlin::Layer
+class ExampleLayer : public Layer
 {
 public:
-	TemplateLayer();
-	virtual ~TemplateLayer();
+	ExampleLayer();
+	virtual ~ExampleLayer();
 
-	virtual void OnAttach() override;
-	virtual void OnDetach() override;
-	virtual void OnEvent(Merlin::Event& event) override;
-	virtual void OnUpdate(Merlin::Timestep ts) override;
-	virtual void OnImGuiRender() override;
+	virtual void onAttach() override;
+	virtual void onDetach() override;
+	virtual void onEvent(Event& event) override;
+	virtual void onUpdate(Timestep ts) override;
+	virtual void onImGuiRender() override;
 private:
 
 	Shared<Camera> camera;
@@ -21,9 +22,7 @@ private:
 	Scene scene;
 	Renderer renderer;
 
-	Shared<Model>  light;
-	Shared<SkyBox> sky;
-	Shared<Shader> modelShader;
+	Shared<PointLight>  light;
 
 	glm::vec3 model_matrix_translation = { 0.8f, 0.2f, 0.3f};
 };

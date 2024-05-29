@@ -1,19 +1,20 @@
-#include "TemplateLayer.h"
+#include "merlin.h"
+#include "Examplelayer.h"
 
 using namespace Merlin;
 
-class Template : public Application
+class Example : public Application
 {
 public:
-	Template()
-		: Application("OpenGL Application")
+	Example()
+		: Application("OpenGL Examples")
 	{
-		PushLayer(new TemplateLayer());
+		pushLayer(new ExampleLayer());
 	}
 };
 
 int main()
 {
-	std::unique_ptr<Template> app = std::make_unique<Template>();
-	app->Run();
+	std::unique_ptr<Example> app = std::make_unique<Example>();
+	app->run();
 }

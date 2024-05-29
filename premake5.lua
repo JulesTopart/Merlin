@@ -109,6 +109,7 @@ group "Examples"
 	include "merlin.examples/merlin.example"
 	include "merlin.examples/merlin.sandbox"
 	include "merlin.examples/merlin.example2D"
+	include "merlin.examples/merlin.fluid"
 	
 group "Projects"
 	include "merlin.projects/merlin.granular2D"
@@ -124,4 +125,3 @@ group "Projects"
 	include "merlin.projects/merlin.granular2D.drum"
 	include "merlin.projects/merlin.granular2D.SDF"
 	include "merlin.projects/merlin.takashi"
-	
