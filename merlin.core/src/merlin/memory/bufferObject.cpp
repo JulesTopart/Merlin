@@ -109,8 +109,54 @@ namespace Merlin {
 		m_boundBuffers--;
 	}
 
+
+
+	void GenericBufferObject::writeRaw(size_t bytesize, const void* data, BufferUsage usage) {
+		if (usage != BufferUsage::DEFAULT_USAGE) m_usage = usage;
+		if (bytesize != m_bufferSize) {
+			m_bufferSize = bytesize;
+			float gb, mb, kb = bytesize / 1000.0; mb = kb / 1000.0; gb = mb / 1000.0;
+			Console::info("Buffer") << "allocating " << name().c_str() << " with " << int(m_bufferSize) << " elements" << Console::endl;
+			Console::info("Buffer") << "bound to binding point " << m_bindingPoint << Console::endl;
+			if (gb > 0.5)		Console::info("Buffer") << "allocating " << gb << "GB of GPU Memory" << Console::endl;
+			else if (mb > 0.5)	Console::info("Buffer") << "allocating " << mb << "MB of GPU Memory" << Console::endl;
+			else if (kb > 0.5)	Console::info("Buffer") << "allocating " << kb << "kB of GPU Memory" << Console::endl;
+			else Console::info("Buffer") << "allocating " << GLuint(m_bufferSize) << "bytes of GPU Memory" << Console::endl;
+			glNamedBufferData(id(), m_bufferSize, data, static_cast<GLenum>(m_usage));
+		}
+		else {
+			glNamedBufferSubData(id(), 0, m_bufferSize, data);
+		}
+	}
+
+	void GenericBufferObject::writeSubRaw(size_t offset, size_t bytesize, const void* data) {
+		if (offset + bytesize < m_bufferSize) {
+			glNamedBufferSubData(id(), offset, bytesize, data);
+		}
+		else {
+			Console::error("BufferObject") << "Invalid offset or size : out of range" << Console::endl;
+		}
+	}
+
+	void GenericBufferObject::reserveRaw(size_t bytesize) {
+		m_bufferSize = bytesize;
+		glNamedBufferData(id(), m_bufferSize, nullptr, static_cast<GLenum>(m_usage));
+	}
+
+	void GenericBufferObject::clear() {
+		m_bufferSize = 0;
+		glNamedBufferData(id(), 0, nullptr, static_cast<GLenum>(m_usage));
+	}
+
+	void GenericBufferObject::read(void* data) const {
+		glGetNamedBufferSubData(id(), 0, m_bufferSize, data);
+	}
+	/*
 	void GenericBufferObject::clear() {
 		GLubyte val = 0;
 		glClearBufferData(static_cast<GLenum>(m_target), GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &val);
-	}
+	}*/
+
+
+
 }
