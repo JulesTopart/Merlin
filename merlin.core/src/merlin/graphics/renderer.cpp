@@ -110,6 +110,13 @@ namespace Merlin {
 			shader->setMat4("model", currentTransform); //sync model matrix with GPU
 			mesh->draw();
 		}//The object is a model
+		/*else if (const auto ps = std::dynamic_pointer_cast<ParticleSystem>(object)) {
+			shader->setMat4("model", currentTransform); //sync model matrix with GPU
+			if (ps->getDisplayMode() != ParticleSystemDisplayMode::MESH)
+				shader->setVec2("WindowSize", glm::vec2(1024, 1024)); //sync model matrix with GPU
+
+			ps->draw();
+		}*///The object is a model
 		else if (const auto model = std::dynamic_pointer_cast<Model>(object)) {
 			for (const auto& mesh : model->meshes()) {
 				renderDepth(mesh, shader);
@@ -240,8 +247,7 @@ namespace Merlin {
 			Shader_Ptr shader;
 			if (ps.hasShader())
 				shader = ps.getShader();
-			else
-				shader = ShaderLibrary::instance().get(ps.getMesh()->getShaderName());
+			else return;
 
 			shader->use();
 			shader->setMat4("model", currentTransform); //sync model matrix with GPU
@@ -250,28 +256,17 @@ namespace Merlin {
 			if(ps.getDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE_SHADED)
 				shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
 			shader->setVec2("WindowSize", glm::vec2(camera.width(), camera.height())); //sync model matrix with GPU
-			ps.draw(*shader);
+			ps.draw();
 		}
 		else if (ps.getDisplayMode() == ParticleSystemDisplayMode::MESH) {
 			Mesh& mesh = *ps.getMesh();
 			Material_Ptr mat = mesh.getMaterial();
-			Shader_Ptr shader = mesh.getShader();
+			Shader_Ptr shader;;
 
+			if (ps.hasShader()) shader = ps.getShader();
+			else shader = getShader("instanced.phong");
 			if (mesh.hasMaterial()) mat = mesh.getMaterial();
 			else mat = getMaterial(mesh.getMaterialName());
-
-			if (mesh.hasShader())
-				shader = mesh.getShader();
-			else {
-				if (mesh.getShaderName() == "default") {
-					if (mat->type() == MaterialType::PHONG) shader = getShader("default.phong");
-					else if (mat->type() == MaterialType::PBR) shader = getShader("default.pbr");
-					else {
-						Console::error("Renderer") << "This material has no suitable shader. Please bind it manually" << Console::endl;
-					}
-				}
-				else shader = getShader(mesh.getShaderName());
-			}
 
 			if (!shader) {
 				Console::error("Renderer") << "Renderer failed to gather materials and shaders" << Console::endl;
@@ -299,7 +294,7 @@ namespace Merlin {
 			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 			shader->setInt("numLights", m_activeLights.size());
 
-			mesh.draw();
+			ps.draw();
 			mat->detach();
 
 			if (m_currentEnvironment != nullptr)
@@ -330,6 +325,9 @@ namespace Merlin {
 		if (const auto mesh = std::dynamic_pointer_cast<Mesh>(object)) {
 			renderMesh(*mesh, camera);
 		}//The object is a model
+		else if (const auto ps = std::dynamic_pointer_cast<ParticleSystem>(object)) {
+			renderParticleSystem(*ps, camera);
+		}
 		else if (const auto li = std::dynamic_pointer_cast<Light>(object)) {
 			if(display_lights) renderLight(*li, camera);
 		}

@@ -10,7 +10,7 @@ in mat4 mv;
 out vec4 FragColor;
 
 uniform vec3 viewPos;
-uniform vec3 lightPos = vec3(1000);
+uniform vec3 lightPos = vec3(10);
 uniform vec4 lightColor = vec4(1);
 
 void sprite() {

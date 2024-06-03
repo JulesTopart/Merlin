@@ -1,6 +1,7 @@
 #include "glpch.h"
 #include "particleSystem.h"
 #include "merlin/utils/primitives.h"
+#include "merlin/graphics/ressourceManager.h"
 
 namespace Merlin{
 
@@ -12,7 +13,7 @@ namespace Merlin{
 		m_geometry = Merlin::Primitives::createPoint();
 	}
 
-	void ParticleSystem::draw(const Shader& shader) const { 
+	void ParticleSystem::draw() const { 
 		
 		switch (m_displayMode) {
 		case ParticleSystemDisplayMode::MESH:
@@ -80,6 +81,9 @@ namespace Merlin{
 
 	void ParticleSystem::setShader(Shader_Ptr shader) {
 		m_shader = shader;
+	}
+	void ParticleSystem::setShader(const std::string& shader) {
+		m_shader = ShaderLibrary::instance().get(shader);
 	}
 	bool ParticleSystem::hasShader() const{
 		return m_shader != nullptr;

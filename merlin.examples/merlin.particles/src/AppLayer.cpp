@@ -28,36 +28,36 @@ void AppLayer::setupScene() {
 	bunny->setMaterial("pearl");
 	bunny->scale(0.2);
 	bunny->translate(glm::vec3(0, 0, -0.5));
-	scene.add(bunny);
+	//scene.add(bunny);
 
 	Shared<DirectionalLight>  dirlight;
 	/**/
 	dirlight = createShared<DirectionalLight>("light1", glm::vec3(-0.5f, 0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
-	dirlight->setDiffuse(glm::vec3(0.5));
-	dirlight->castShadow(false);
+	dirlight->setDiffuse(glm::vec3(0.7));
+	//dirlight->castShadow(false);
 	scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light2", glm::vec3(0.5f, 0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
-	dirlight->setDiffuse(glm::vec3(0.5));
-	dirlight->castShadow(false);
+	dirlight->setDiffuse(glm::vec3(0.7));
+	//dirlight->castShadow(false);
 	scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light3", glm::vec3(0.0f, -0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
-	dirlight->setDiffuse(glm::vec3(0.5));
-	dirlight->castShadow(false);
+	dirlight->setDiffuse(glm::vec3(0.7));
+	//dirlight->castShadow(false);
 	scene.add(dirlight);
 	/**/
 
 	/**/
 	Shared<AmbientLight> amLight = createShared<AmbientLight>("light4");
-	amLight->setAmbient(glm::vec3(0.3));
+	amLight->setAmbient(glm::vec3(0.1));
 	scene.add(amLight);
 	/**/
 
@@ -68,23 +68,34 @@ void AppLayer::setupScene() {
 void AppLayer::setupPhysics() {
 
 
-	ps = ParticleSystem::create("Particles", 0);
+	ps = ParticleSystem::create("Particles", 4);
 	//bs = ParticleSystem::create("Bins", 0);
 
-	ps->addField<glm::vec4>("position");
-	ps->addField<glm::vec4>("position_cpy");
-	ps->addField<glm::vec4>("predicted_position");
-	ps->addField<glm::vec4>("predicted_position_cpy");
-	ps->addField<glm::vec4>("velocity");
-	ps->addField<glm::vec4>("velocity_cpy");
+	std::vector<glm::vec4> position;
+	position.push_back(glm::vec4(-1, -1, 1,0));
+	position.push_back(glm::vec4(1, -1, 1, 0));
+	position.push_back(glm::vec4(1, 1, 1, 0));
+	position.push_back(glm::vec4(-1, 1, 1, 0));
 
-	StagedComputeShader_Ptr solver = StagedComputeShader::create("solver", "assets/shaders/solver.comp", 6);
-	ps->addProgram(solver);
+	SSBO_Ptr<glm::vec4> pos = SSBO<glm::vec4>::create("position_buffer",4,position.data(), BufferUsage::STATIC_DRAW);
 
-	ps->setDisplayMode(ParticleSystemDisplayMode::MESH);
-	Mesh_Ptr sphere = Primitives::createSphere(0.5, 20, 20);
-	
-	ps->setMesh(sphere);
+	ps->addField("position_buffer", pos);
+	ps->addField<glm::vec4>("position_cpy_buffer");
+	ps->addField<glm::vec4>("predicted_position_buffer");
+	ps->addField<glm::vec4>("predicted_position_cpy_buffer");
+	ps->addField<glm::vec4>("velocity_buffer");
+	ps->addField<glm::vec4>("velocity_cpy_buffer");
+
+	Shader_Ptr particleShader = Shader::create("particles", "./assets/shaders/particle.vert", "./assets/shaders/particle.frag");
+	//StagedComputeShader_Ptr solver = StagedComputeShader::create("solver", "assets/shaders/solver.comp", 6);
+	//ps->addProgram(solver);
+	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
+	ps->setShader(particleShader);
+	//ps->setShader("default");
+	//ps->setMesh(Primitives::createCube(0.5));
+	pos->bind();
+	particleShader->use();
+	particleShader->attach(*pos);
 
 	scene.add(ps);
 }
@@ -94,7 +105,7 @@ void AppLayer::onAttach(){
 	renderer.enableSampleShading();
 	renderer.disableFaceCulling();
 	renderer.setEnvironmentGradientColor(0.903, 0.803, 0.703);
-	renderer.showLights();
+	//renderer.showLights();
 
 	setupScene();
 	setupPhysics();
@@ -107,7 +118,6 @@ void AppLayer::onEvent(Event& event){
 	cameraController->onEvent(event);
 }
 
-float t = 0.0;
 
 void AppLayer::onUpdate(Timestep ts){
 	cameraController->onUpdate(ts);

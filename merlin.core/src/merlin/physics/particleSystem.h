@@ -23,7 +23,7 @@ namespace Merlin {
 	class ParticleSystem : public RenderableObject {
 	public:
 		ParticleSystem(const std::string& name, size_t count);
-		void draw(const Shader& shader) const; //draw the mesh
+		void draw() const; //draw the mesh
 		void setInstancesCount(size_t count);
 
 		GenericBufferObject_Ptr getField(const std::string& name);
@@ -36,6 +36,7 @@ namespace Merlin {
 		bool hasProgram(const std::string& name);
 		
 		void setShader(Shader_Ptr shader);
+		void setShader(const std::string& shader);
 		Shader_Ptr getShader() const;
 		bool hasShader() const;
 

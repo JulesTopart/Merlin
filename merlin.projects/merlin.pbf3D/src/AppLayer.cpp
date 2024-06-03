@@ -77,7 +77,7 @@ void AppLayer::onUpdate(Timestep ts) {
 
 	GPU_PROFILE(render_time,
 		renderer.clear();
-	renderer.renderScene(scene, *camera);
+		renderer.renderScene(scene, *camera);
 	)
 
 	if (!paused) {
