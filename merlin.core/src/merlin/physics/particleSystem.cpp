@@ -1,100 +1,99 @@
 #include "glpch.h"
 #include "particleSystem.h"
+#include "merlin/utils/primitives.h"
 
 namespace Merlin{
-	Shared<ParticleSystem> ParticleSystem::Create(std::string name, GLsizeiptr count){
+
+	Shared<ParticleSystem> ParticleSystem::create(const std::string& name, size_t count) {
 		return std::make_shared<ParticleSystem>(name, count);
 	}
 
-
-	ParticleSystem::ParticleSystem(std::string name, GLsizeiptr count) : RenderableObject(name), m_instancesCount(count) {
+	ParticleSystem::ParticleSystem(const std::string& name, size_t count) : RenderableObject(name), m_instancesCount(count) {
+		m_geometry = Merlin::Primitives::createPoint();
 	}
 
-	void ParticleSystem::draw(const Shader& shader) const { m_geometry->drawInstanced(m_instancesCount); } //draw the mesh
-
-	void ParticleSystem::setInstancesCount(GLsizeiptr count) {
-		m_instancesCount = count;
-	}
-
-	template<typename T>
-	void ParticleSystem::addField(SSBO_Ptr<T> buf) {
-		if (hasField(buf->name())) {
-			Console::error("ParticleSystem") << "This field already exist." << Console::endl;
-			return;
+	void ParticleSystem::draw(const Shader& shader) const { 
+		
+		switch (m_displayMode) {
+		case ParticleSystemDisplayMode::MESH:
+			if(m_geometry) m_geometry->drawInstanced(m_instancesCount);
+			break;
+		case ParticleSystemDisplayMode::POINT_SPRITE :
+			glEnable(GL_PROGRAM_POINT_SIZE);
+			if (m_geometry) m_geometry->drawInstanced(m_instancesCount);
+			glDisable(GL_PROGRAM_POINT_SIZE);
+			break;
+		case ParticleSystemDisplayMode::POINT_SPRITE_SHADED:
+			glEnable(GL_PROGRAM_POINT_SIZE);
+			glEnable(0x8861);//Point shading
+			if (m_geometry) m_geometry->drawInstanced(m_instancesCount);
+			glDisable(GL_PROGRAM_POINT_SIZE);
+			glDisable(0x8861);
+			break;
 		}
-		m_fields[buf->name()] = buf;
-		buf->setBindingPoint(m_fields.size() - 1);
-		if (m_shaders.size() == 0) Console::info("ParticleSystem") << "Shader list is empty. Load particle system shader before adding buffer to enable automatic shader attach or attach them manually" << Console::endl;
-		for (GenericShader_Ptr shader : m_shaders) {
-			shader->attach(*buf);
+	} //draw the mesh
+
+	void ParticleSystem::setInstancesCount(size_t count) {
+		Console::warn() << "(Performance) Buffers of the particle system are being resized dynamically" << Console::endl;
+		m_instancesCount = count; 
+		for (auto field : m_fields) {
+			field.second->resize(count);
 		}
 	}
 
-	template<typename T>
-	void ParticleSystem::addField(const std::string& name) {
+	GenericBufferObject_Ptr ParticleSystem::getField(const std::string& name) {
 		if (hasField(name)) {
-			Console::error("ParticleSystem") << "This field already exist." << Console::endl;
-			return;
+			return m_fields[name];
 		}
-		SSBO_Ptr<T> f = SSBO<T>::create(name, m_instancesCount);
-		m_fields[name] = f;
-		f.setBindingPoint(m_fields.size() - 1);
-
-		if (m_shaders.size() == 0) Console::info("ParticleSystem") << "Shader list is empty. Load particle system shader before adding buffer to enable automatic shader attach or attach them manually" << Console::endl;
-		for (GenericShader_Ptr shader : m_shaders) {
-			shader->attach(*f);
-		}
-	}
-
-	template<typename T>
-	SSBO_Ptr<T> ParticleSystem::getField(const std::string& name) {
-		if (!hasField(name)) {
-			Console::error("ParticleSystem") << "Field " << name << " does not exist." << Console::endl;
+		else {
+			Console::error("ParticleSystem") << "Unknown field " << name << Console::endl;
 			return nullptr;
 		}
-		return dynamic_cast<SSBO_Ptr<T>>(m_fields.at(name).get());
 	}
 
-	GenericBufferObject_Ptr ParticleSystem::getFieldBuffer(const std::string& name) {
-		if (!hasField(name)) {
-			Console::error("ParticleSystem") << "Field " << name << " does not exist." << Console::endl;
-			return nullptr;
+
+	void ParticleSystem::addField(const std::string& name, GenericBufferObject_Ptr field) {
+		if (hasField(name)) {
+			Console::warn("ParticleSystem") << name << "has been overwritten" << Console::endl;
 		}
-		return m_fields.at(name);
+		m_fields[name] = field;
 	}
-
-	template<typename T>
-	void ParticleSystem::writeField(const std::string& name, std::vector<T> data) {
-		if (!hasField(name)) {
-			Console::error("ParticleSystem") << "Field " << name << " does not exist." << Console::endl;
-			return;
-		}
-		SSBO_Ptr f = dynamic_cast<SSBO_Ptr<T>>(m_fields.at(name).get());
-		f.write(data);
-	}
-
-	bool ParticleSystem::hasField(std::string name) {
+	bool ParticleSystem::hasField(const std::string& name) {
 		return m_fields.find(name) != m_fields.end();
 	}
 
-	void ParticleSystem::addShader(GenericShader_Ptr shader) {
-		if (hasField(shader->name())) {
-			Console::warn("ParticleSystem") << "Shader " << shader->name() << "already exist and has been overwritten" << Console::endl;
+	void ParticleSystem::addProgram(ComputeShader_Ptr program) {
+		if (hasProgram(program->name())) {
+			Console::warn("ParticleSystem") << program->name() << "has been overwritten" << Console::endl;
 		}
-		m_shaders[shader->name()] = shader;
+		m_programs[program->name()] = program;
 	}
-
-	void ParticleSystem::addShader(std::string name, GenericShader_Ptr shader) {
-		if (hasField(name)) {
-			Console::warn("ParticleSystem") << "Shader " << name << "already exist and has been overwritten" << Console::endl;
+	void ParticleSystem::addProgram(const std::string& name, ComputeShader_Ptr program) {
+		if (hasProgram(name)) {
+			Console::warn("ParticleSystem") << name << "has been overwritten" << Console::endl;
 		}
-		m_shaders[name] = shader;
+		m_programs[name] = program;
+	}
+	bool ParticleSystem::hasProgram(const std::string& name) {
+		return m_programs.find(name) != m_programs.end();
 	}
 
-	bool ParticleSystem::hasShader(std::string name) {
-		return m_fields.find(name) != m_fields.end();
+	void ParticleSystem::setShader(Shader_Ptr shader) {
+		m_shader = shader;
+	}
+	bool ParticleSystem::hasShader() const{
+		return m_shader != nullptr;
+	}
+	Shader_Ptr ParticleSystem::getShader() const{
+		return m_shader;
 	}
 
+	void ParticleSystem::link(const std::string& shader, const std::string& field) {
+		if (m_links.find(shader) != m_links.end()) {
+			m_links[shader] = std::vector<std::string>();
+		}
+		m_links[shader].push_back(field);
+	}
 
 
 }

@@ -9,6 +9,10 @@ public:
 	AppLayer();
 	virtual ~AppLayer();
 
+	void setupScene();
+	void setupPhysics();
+	void onPhysicsUpdate();
+
 	virtual void onAttach() override;
 	virtual void onDetach() override;
 	virtual void onEvent(Event& event) override;
@@ -22,7 +26,8 @@ private:
 	Scene scene;
 	Renderer renderer;
 
-	Shared<PointLight>  light;
+	ParticleSystem_Ptr ps;
+	//ParticleSystem_Ptr bs;
 
 	glm::vec3 model_matrix_translation = { 0.8f, 0.2f, 0.3f};
 };

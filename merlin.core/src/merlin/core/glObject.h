@@ -22,6 +22,8 @@ namespace Merlin {
 		std::string name() const noexcept;
 		inline void rename(const std::string& name) noexcept { m_name = name; }
 
+	protected:
+		inline void recreate(GLuint newID) { m_id = newID; }
 
 	private:
 		GLuint m_id = 0;

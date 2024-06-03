@@ -36,12 +36,17 @@ namespace Merlin {
         inline const glm::mat4& getRenderTransform() { return renderTransform; }
 
 
-        const void setAmbient(float r, float g, float b) { ambient_ = glm::vec3(r,g,b); }
-        const void setAmbient(const glm::vec3& c) { ambient_ = c; }
-        const void setDiffuse(float r, float g, float b) { diffuse_ = glm::vec3(r, g, b);}
-        const void setDiffuse(const glm::vec3& c) { diffuse_ = c;}
-        const void setSpecular(float r, float g, float b) { specular_ = glm::vec3(r, g, b);}
-        const void setSpecular(const glm::vec3& c) { specular_ = c;}
+        inline void setAmbient(float r, float g, float b) { ambient_ = glm::vec3(r,g,b); }
+        inline void setAmbient(const glm::vec3& c) { ambient_ = c; }
+        inline void setDiffuse(float r, float g, float b) { diffuse_ = glm::vec3(r, g, b);}
+        inline void setDiffuse(const glm::vec3& c) { diffuse_ = c;}
+        inline void setSpecular(float r, float g, float b) { specular_ = glm::vec3(r, g, b);}
+        inline void setSpecular(const glm::vec3& c) { specular_ = c;}
+
+        virtual void setShadowResolution(GLuint res);
+        inline GLuint shadowResolution() const { return m_shadowResolution; }
+        inline bool castShadow() const { return m_castShadow; }
+        inline void castShadow(bool state) { m_castShadow = state; }
 
         inline const void setAttenuation(glm::vec3 att) { attenuation_ = att; };
         inline const glm::vec3& attenuation() { return attenuation_; };
@@ -52,6 +57,11 @@ namespace Merlin {
         inline const glm::vec3& diffuse() const { return diffuse_; }
         inline const glm::vec3& specular() const { return specular_; }
         LightType type() const { return type_; }
+
+
+    protected : 
+        bool m_castShadow = false;
+        GLuint m_shadowResolution = 256;
 
     private:
         glm::vec3 ambient_;
@@ -71,10 +81,12 @@ namespace Merlin {
         DirectionalLight(const std::string& name, const glm::vec3& direction = glm::vec3(0, 0, -1))
             : Light(name, LightType::Directional), direction_(direction) {
             generateShadowMap();
+            m_castShadow = true;
         }
         DirectionalLight(const std::string& name, const glm::vec3& direction, const glm::vec3& ambient, const glm::vec3& diffuse, const glm::vec3& specular)
             : Light(name, LightType::Directional, ambient, diffuse, specular), direction_(direction) {
             generateShadowMap();
+            m_castShadow = true;
         }
 
         const glm::vec3& direction() const { return direction_; }
@@ -84,6 +96,7 @@ namespace Merlin {
         void attachShadow(Shader&) override;
         inline Shared<FBO> shadowFBO() override { return m_shadowFBO; }
         inline Shared<TextureBase> shadowMap() override { return m_shadowMap; }
+        void setShadowResolution(GLuint res) override;
 
         void generateShadowMap();
 
@@ -110,18 +123,21 @@ namespace Merlin {
             : Light(name, LightType::Point) {
             setPosition(position);
             generateShadowMap();
+            m_castShadow = true;
         }
 
         PointLight(const std::string& name, const glm::vec3& position, const glm::vec3& ambient, const glm::vec3& diffuse, const glm::vec3& specular)
             : Light(name, LightType::Point, ambient, diffuse, specular) {
             setPosition(position);
             generateShadowMap();
+            m_castShadow = true;
         }
 
         void generateShadowMap();
         void detach() override;
         void attach(int id, Shader&) override;
         void attachShadow(Shader&) override;
+        void setShadowResolution(GLuint res) override;
         inline Shared<FBO> shadowFBO() override { return m_shadowFBO; }
         inline Shared<TextureBase> shadowMap() override { return m_shadowMap; }
 
@@ -156,11 +172,13 @@ namespace Merlin {
         SpotLight(const std::string& name, const glm::vec3& position = glm::vec3(0), const glm::vec3& direction = glm::vec3(0, 0, -1), float cutOff = 50.0f)
             : Light(name, LightType::Spot), direction_(direction), cutOff_(cutOff) {
             setPosition(position);
+            m_castShadow = false;
         }
 
         SpotLight(const std::string& name, const glm::vec3& position, const glm::vec3& direction, float cutOff, const glm::vec3& ambient, const glm::vec3& diffuse, const glm::vec3& specular)
             : Light(name, LightType::Spot, ambient, diffuse, specular), direction_(direction), cutOff_(cutOff) {
             setPosition(position);
+            m_castShadow = false;
         }
 
         const glm::vec3& direction() const { return direction_; }

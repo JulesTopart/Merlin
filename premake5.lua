@@ -109,7 +109,7 @@ group "Examples"
 	include "merlin.examples/merlin.example"
 	include "merlin.examples/merlin.sandbox"
 	include "merlin.examples/merlin.example2D"
-	include "merlin.examples/merlin.fluid"
+	include "merlin.examples/merlin.particles"
 	
 group "Projects"
 	include "merlin.projects/merlin.granular2D"

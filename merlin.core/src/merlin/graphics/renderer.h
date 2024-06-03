@@ -20,7 +20,7 @@ namespace Merlin {
 		void renderLight(const Light& li, const Camera& camera);
 		void renderMesh(const Mesh& mesh, const Camera& camera);
 		void renderEnvironment(const Environment& env, const Camera& camera);
-		//void renderParticleSystem(const ParticleSystem& ps, const Camera& camera);
+		void renderParticleSystem(const ParticleSystem& ps, const Camera& camera);
 		void renderTransformObject(const TransformObject& obj, const Camera& camera);
 
 		void renderScene(const Scene& model, const Camera& camera);

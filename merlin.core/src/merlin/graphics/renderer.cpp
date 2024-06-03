@@ -53,6 +53,7 @@ namespace Merlin {
 		if(useFaceCulling()) glDisable(GL_CULL_FACE);
 		if (use_shadows) {
 			for (const auto& light : m_activeLights) {
+				if (!light->castShadow()) continue;
 				castShadow(light, scene);
 			}
 		}
@@ -184,8 +185,6 @@ namespace Merlin {
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 		shader->setInt("numLights", m_activeLights.size());
 
-
-
 		mesh.draw();
 		mat->detach();
 
@@ -202,7 +201,6 @@ namespace Merlin {
 
 	void Renderer::castShadow(Shared<Light> light, const Scene& scene) {
 		if (debug)Console::info() << "Cast Shadow" << Console::endl;
-		Shared<TextureBase> tex;
 		Shared<FrameBuffer> fbo;
 		Shared<Shader> shader;
 
@@ -210,16 +208,14 @@ namespace Merlin {
 		else if (light->type() == LightType::Point) shader = getShader("shadow.omni");
 		else return;
 
-
-		tex = light->shadowMap();
 		fbo = light->shadowFBO();
 
-		if (!shader || !tex || !fbo) {
+		if (!shader || !fbo) {
 			Console::error("Renderer") << "Renderer failed to gather ressoureces for shadows (shader, framebuffer or texture)" << Console::endl;
 			return;
 		}
 
-		glViewport(0, 0, 2048, 2048);
+		glViewport(0, 0, light->shadowResolution(), light->shadowResolution());
 		fbo->bind();
 		
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -228,111 +224,94 @@ namespace Merlin {
 		shader->use();
 		light->attachShadow(*shader);
 		
-		tex->bind();
 		for (const auto& node : scene.nodes()) {
 			if (!node->isHidden()) {
 				renderDepth(node, shader);
 			};
 		}
 		fbo->unbind();
-		tex->unbind();
 	}
 
 
-	/*
+	
 	void Renderer::renderParticleSystem(const ParticleSystem& ps, const Camera& camera) {
-		if (ps.getDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE) {
-			const Shader* shader;
-			//glPointSize(10);
-			glEnable(GL_PROGRAM_POINT_SIZE);
-			if (ps.getMesh()->hasShader())
-				shader = &ps.getMesh()->getShader();
+		if (debug)Console::info() << "Rendering Particle System" << Console::endl;
+		if (ps.getDisplayMode() != ParticleSystemDisplayMode::MESH) {
+			Shader_Ptr shader;
+			if (ps.hasShader())
+				shader = ps.getShader();
 			else
-				shader = &m_shaderLibrary.get(ps.getMesh()->getShaderName());
+				shader = ShaderLibrary::instance().get(ps.getMesh()->getShaderName());
 
 			shader->use();
 			shader->setMat4("model", currentTransform); //sync model matrix with GPU
 			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
 			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
+			if(ps.getDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE_SHADED)
+				shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
 			shader->setVec2("WindowSize", glm::vec2(camera.width(), camera.height())); //sync model matrix with GPU
 			ps.draw(*shader);
-
-			glDisable(GL_PROGRAM_POINT_SIZE);
-		}
-		else if (ps.getDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE_SHADED) {
-			const Shader* shader;
-			//glPointSize(10);
-			glEnable(GL_PROGRAM_POINT_SIZE);
-			glEnable(0x8861);//WTF
-			//glDisable(GL_DEPTH_TEST);
-
-			if (ps.getMesh()->hasShader())
-				shader = &ps.getMesh()->getShader();
-			else
-				shader = &m_shaderLibrary.get(ps.getMesh()->getShaderName());
-
-
-			shader->use();
-			shader->setMat4("model", currentTransform); //sync model matrix with GPU
-			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
-			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
-			shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
-			shader->setVec2("WindowSize", glm::vec2(camera.width(), camera.height())); //sync model matrix with GPU
-			ps.draw(*shader);
-
-			//glEnable(GL_DEPTH_TEST);
-			glDisable(GL_PROGRAM_POINT_SIZE);
-			glDisable(0x8861);//WTF
 		}
 		else if (ps.getDisplayMode() == ParticleSystemDisplayMode::MESH) {
-			const Shader* shader;
-			Shared<MaterialBase> mat;
+			Mesh& mesh = *ps.getMesh();
+			Material_Ptr mat = mesh.getMaterial();
+			Shader_Ptr shader = mesh.getShader();
 
-			if (ps.getMesh()->hasShader())
-				shader = &ps.getMesh()->getShader();
-			else
-				shader = &m_shaderLibrary.get(ps.getMesh()->getShaderName());
+			if (mesh.hasMaterial()) mat = mesh.getMaterial();
+			else mat = getMaterial(mesh.getMaterialName());
 
-
-			if (ps.getMesh()->hasMaterial())
-				mat = ps.getMesh()->getMaterial();
+			if (mesh.hasShader())
+				shader = mesh.getShader();
 			else {
-
-				mat = m_materialLibrary.get(ps.getMesh()->getMaterialName());
+				if (mesh.getShaderName() == "default") {
+					if (mat->type() == MaterialType::PHONG) shader = getShader("default.phong");
+					else if (mat->type() == MaterialType::PBR) shader = getShader("default.pbr");
+					else {
+						Console::error("Renderer") << "This material has no suitable shader. Please bind it manually" << Console::endl;
+					}
+				}
+				else shader = getShader(mesh.getShaderName());
 			}
 
+			if (!shader) {
+				Console::error("Renderer") << "Renderer failed to gather materials and shaders" << Console::endl;
+				return;
+			}
 
+			Texture2D::resetTextureUnits();
 			shader->use();
-			if (ps.getMesh()->hasShader())
-				shader = ps.getMesh()->getShader();
-			else
-				shader = m_shaderLibrary.get(mesh.getShaderName());
 
-			if (mesh.hasMaterial())
-				mat = mesh.getMaterial();
-			else
-				mat = m_materialLibrary.get(mesh.getMaterialName());
+			for (int i = 0; i < m_activeLights.size(); i++) {
+				m_activeLights[i]->attach(i, *shader);
+			}
 
+			mat->attach(*shader);
 
+			if (m_currentEnvironment != nullptr)
+				m_currentEnvironment->attach(*shader);
+			else m_defaultEnvironment->attach(*shader);
+
+			shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
 			shader->setMat4("model", currentTransform); //sync model matrix with GPU
 			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
+			shader->setInt("useShadows", use_shadows);
+
 			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
+			shader->setInt("numLights", m_activeLights.size());
 
-			if (shader->supportTexture()) {
-				Texture2D* tex = &mat->getTexture(TextureType::ALBEDO);
+			mesh.draw();
+			mat->detach();
 
-				//WARNING This should be done once...
-				tex->setUnit(1); //Skybox is 0...
-				tex->syncTextureUnit(*shader, (tex->typeToString()) + "0");
+			if (m_currentEnvironment != nullptr)
+				m_currentEnvironment->detach();
+			else m_defaultEnvironment->detach();
 
-
-				tex->bind();
-				shader->setInt("hasColorTex", !tex->isDefault());
+			for (int i = 0; i < m_activeLights.size(); i++) {
+				m_activeLights[i]->detach();
 			}
-			ps.draw(*shader);
 		}
 	}
-	*/
+	
 	void Renderer::renderTransformObject(const TransformObject& obj, const Camera& camera) {
 		if (debug)Console::info() << "Rendering TransformObject" << Console::endl;
 		render(obj.getXAxisMesh(), camera);
@@ -410,7 +389,4 @@ namespace Merlin {
 		if (m_currentEnvironment) m_currentEnvironment->setGradientColor(color);
 		m_defaultEnvironment->setGradientColor(color);
 	}
-
-
-
 }

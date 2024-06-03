@@ -50,15 +50,15 @@ namespace Merlin {
 	}
 
 	Shared<Mesh> Primitives::createRectangle(float x, float y) {
-		Vertices v = {
-			Vertex{glm::vec3(-x / 2.0f,-y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
-			Vertex{glm::vec3(x / 2.0f, -y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
-			Vertex{glm::vec3(x / 2.0f, y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
-			Vertex{glm::vec3(-x / 2.0f,y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
-		};
+		Vertex v0 = Vertex{ glm::vec3(-x / 2.0f,-y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+		Vertex v1 = Vertex{ glm::vec3(x / 2.0f, -y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+		Vertex v2 = Vertex{ glm::vec3(x / 2.0f, y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+		Vertex v3 = Vertex{ glm::vec3(-x / 2.0f,y / 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
 
-		Indices i = { 0, 1, 2, 3 };
-		return Mesh::create("Rectangle", v, i, GL_QUADS);
+		Vertices v = { v0, v1, v2, v3 };
+
+		Indices i = { 0, 1, 2, 0, 2, 3 };
+		return Mesh::create("Rectangle", v, i, GL_TRIANGLES);
 	}
 
 
@@ -82,14 +82,16 @@ namespace Merlin {
 			y_up = y;
 		}
 
-		std::vector<Vertex> v = {
-			Vertex{ glm::vec3(x_lo,y_lo,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)}, // Z-
-			Vertex{ glm::vec3(x_up,y_lo,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_up,y_up,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)},
-			Vertex{ glm::vec3(x_lo,y_up,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)}
-		};
+		Vertex v0 = { glm::vec3(x_lo,y_lo,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+		Vertex v1 = { glm::vec3(x_up,y_lo,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+		Vertex v2 = { glm::vec3(x_up,y_up,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+		Vertex v3 = { glm::vec3(x_lo,y_up,0),glm::vec3(-1,0,0),glm::vec3(1), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
 
-		return Mesh::create("Cube", v, GL_QUADS);
+
+		Vertices v = { v0, v1, v2, v3 };
+		Indices i = { 0, 1, 2,0, 2, 3 };
+
+		return Mesh::create("Cube", v, i, GL_TRIANGLES);
 	}
 
 	Shared<Mesh> Primitives::createFloor(const int groundNumTiles, const float groundTileSize) {
@@ -130,6 +132,11 @@ namespace Merlin {
 		}
 
 		Vertices v;
+		Vertex v0;
+		Vertex v2;
+
+		int localIndex = 0;
+
 		for (int i(0); i < 4 * groundNumTiles * groundNumTiles; i++) {
 			Vertex vert;
 			vert.position = glm::vec3(groundVerts[i * 3], groundVerts[i * 3 + 1], groundVerts[i * 3 + 2]);
@@ -142,10 +149,32 @@ namespace Merlin {
 			vert.texCoord = glm::vec2(tx / groundNumTiles * groundTileSize, ty / groundNumTiles * groundTileSize);
 			vert.tangent = glm::vec3(1, 0, 0);
 			vert.bitangent = glm::vec3(0, 1, 0);
-			v.push_back(vert);
+
+			switch (localIndex) {
+			case 0:
+				v0 = vert;
+				v.push_back(vert);
+				localIndex++;
+				break;
+			case 1:
+				v.push_back(vert);
+				localIndex++;
+				break;
+			case 2:
+				v2 = vert;
+				v.push_back(vert);
+				localIndex++;
+				break;
+			case 3 :
+				v.push_back(v0);
+				v.push_back(v2);
+				v.push_back(vert);
+				localIndex = 0;
+				break;
+			}
 		}
 
-		return Mesh::create("Floor", v, GL_QUADS);
+		return Mesh::create("Floor", v, GL_TRIANGLES);
 	}
 
 	Shared<Mesh> Primitives::createPoint() {

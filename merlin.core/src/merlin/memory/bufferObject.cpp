@@ -31,14 +31,13 @@ namespace Merlin {
 	}
 
 
-	GenericBufferObject::GenericBufferObject(BufferType type, BufferTarget target, const std::string& name) : GLObject(create(), destroy) {
-		m_type = type;
+	GenericBufferObject::GenericBufferObject(BufferType type, size_t typeSize, BufferTarget target, const std::string& name) : GLObject(create(), destroy), m_type(type), m_typeSize(typeSize){
 		m_target = target;
 		m_bufferSize = 0;
 		m_bindingPoint = 0;
-		setBindingPoint();
-
 		rename(name == "buffer" ? name + std::to_string(m_bufferInstances) : name);
+
+		setBindingPoint();
 		m_bufferInstances++;
 	}
 
@@ -75,7 +74,7 @@ namespace Merlin {
 			}
 			else {
 				m_bindingPoint = BindingPointManager::instance().allocateBindingPoint(m_type);
-				Console::info("BufferBase") << name() << "( block id " << id() << ") is now bound to binding point " << m_bindingPoint << Console::endl;
+				Console::info("BufferBase") << name() << "( block id " << id() << ") has now binding point " << m_bindingPoint << Console::endl;
 				glBindBufferBase(static_cast<GLenum>(m_target), m_bindingPoint, id());
 			}
 		}
@@ -109,7 +108,13 @@ namespace Merlin {
 		m_boundBuffers--;
 	}
 
+	void GenericBufferObject::resize(size_t size) {
+		resizeRaw(size * m_typeSize);
+	}
 
+	void GenericBufferObject::reserve(size_t size) {
+		reserveRaw(size * m_typeSize);
+	}
 
 	void GenericBufferObject::writeRaw(size_t bytesize, const void* data, BufferUsage usage) {
 		if (usage != BufferUsage::DEFAULT_USAGE) m_usage = usage;
@@ -146,6 +151,15 @@ namespace Merlin {
 	void GenericBufferObject::clear() {
 		m_bufferSize = 0;
 		glNamedBufferData(id(), 0, nullptr, static_cast<GLenum>(m_usage));
+	}
+
+	void GenericBufferObject::resizeRaw(GLuint byteSize){
+		bindAs(GL_COPY_READ_BUFFER);
+		recreate(create());
+		bindAs(GL_COPY_WRITE_BUFFER);
+		GLsizeiptr oldSize = size();
+		reserveRaw(byteSize);
+		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, oldSize);
 	}
 
 	void GenericBufferObject::read(void* data) const {

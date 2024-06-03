@@ -8,6 +8,10 @@ namespace Merlin {
 		m_mesh->draw();
 	}
 
+	void Light::setShadowResolution(GLuint res) {
+		m_shadowResolution = res;
+	}
+
 	void DirectionalLight::attach(int id, Shader& shader) {
 		std::string base = "lights[" + std::to_string(id) + "]";
 		shader.setVec3(base + ".ambient", ambient());
@@ -15,12 +19,27 @@ namespace Merlin {
 		shader.setVec3(base + ".specular", specular());
 		shader.setVec3(base + ".attenuation", attenuation());
 		shader.setInt(base + ".type", static_cast<int>(type()));
+		shader.setInt(base + ".castShadow", m_castShadow);
 		shader.setVec3(base + ".direction", glm::vec3(getRenderTransform() * glm::vec4(direction(), 0.0f)));
-		if (m_shadowMap) {
+		if (m_shadowMap && m_castShadow) {
 			shader.setMat4(base + ".lightSpaceMatrix", m_lightSpaceMatrix);
 			m_shadowMap->autoSetUnit();
 			m_shadowMap->bind();
 			m_shadowMap->syncTextureUnit(shader, base + ".shadowMap");
+		}
+	}
+
+	void DirectionalLight::setShadowResolution(GLuint res) {
+		m_shadowResolution = res;
+		if (m_shadowMap) {
+			m_shadowMap->bind();
+			m_shadowMap->resize(m_shadowResolution, m_shadowResolution);
+			m_shadowMap->unbind();
+		}
+		if (m_shadowFBO) {
+			m_shadowFBO->bind();
+			m_shadowFBO->resize(m_shadowResolution, m_shadowResolution);
+			m_shadowFBO->unbind();
 		}
 	}
 
@@ -36,7 +55,7 @@ namespace Merlin {
 
 	void DirectionalLight::generateShadowMap() {
 		if (!m_shadowMap) {
-			m_shadowMap = Texture2D::create(2048, 2048, TextureType::SHADOW);
+			m_shadowMap = Texture2D::create(m_shadowResolution, m_shadowResolution, TextureType::SHADOW);
 			m_shadowMap->bind();
 			m_shadowMap->setInterpolationMode(GL_LINEAR, GL_LINEAR);
 			m_shadowMap->setRepeatMode(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
@@ -44,7 +63,7 @@ namespace Merlin {
 			m_shadowMap->unbind();
 		}
 		if (!m_shadowFBO) {
-			m_shadowFBO = createShared<FBO>(2048, 2048);
+			m_shadowFBO = createShared<FBO>(m_shadowResolution, m_shadowResolution);
 			m_shadowFBO->bind();
 			m_shadowMap->bind();
 			m_shadowFBO->attachDepthStencilTexture(m_shadowMap);
@@ -67,15 +86,30 @@ namespace Merlin {
 		shader.setVec3(base + ".specular", specular());
 		shader.setVec3(base + ".attenuation", attenuation());
 		shader.setInt(base + ".type", static_cast<int>(type()));
+		shader.setInt(base + ".castShadow", m_castShadow);
 		shader.setVec3(base + ".position", glm::vec3(getRenderTransform() * glm::vec4(position(), 1.0f)));
 
-		if (m_shadowMap) {
+		if (m_shadowMap && m_castShadow) {
 			shader.setMat4(base + ".lightSpaceMatrix", m_lightSpaceMatrix);
 
 			m_shadowMap->autoSetUnit();
 			m_shadowMap->bind();
 			m_shadowMap->syncTextureUnit(shader, base + ".omniShadowMap");
 			shader.setFloat(base + ".far_plane", 25.0f);
+		}
+	}
+
+	void PointLight::setShadowResolution(GLuint res) {
+		m_shadowResolution = res;
+		if (m_shadowMap) {
+			m_shadowMap->bind();
+			m_shadowMap->resize(m_shadowResolution, m_shadowResolution);
+			m_shadowMap->unbind();
+		}
+		if (m_shadowFBO) {
+			m_shadowFBO->bind();
+			m_shadowFBO->resize(m_shadowResolution, m_shadowResolution);
+			m_shadowFBO->unbind();
 		}
 	}
 
@@ -88,7 +122,7 @@ namespace Merlin {
 
 	void PointLight::generateShadowMap() {
 		if (!m_shadowMap) {
-			m_shadowMap = CubeMap::create(2048, 2048, TextureType::SHADOW);
+			m_shadowMap = CubeMap::create(m_shadowResolution, m_shadowResolution, TextureType::SHADOW);
 			m_shadowMap->bind();
 			m_shadowMap->setInterpolationMode(GL_LINEAR, GL_LINEAR);
 			m_shadowMap->setRepeatMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
@@ -96,7 +130,7 @@ namespace Merlin {
 			m_shadowMap->unbind();
 		}
 		if (!m_shadowFBO) {
-			m_shadowFBO = createShared<FBO>(2048, 2048);
+			m_shadowFBO = createShared<FBO>(m_shadowResolution, m_shadowResolution);
 			m_shadowFBO->bind();
 			m_shadowMap->bind();
 			m_shadowFBO->attachDepthStencilTexture(m_shadowMap);
