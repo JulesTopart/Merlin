@@ -107,17 +107,11 @@ namespace Merlin {
 
 		//The object is a mesh
 		if (const auto mesh = std::dynamic_pointer_cast<Mesh>(object)) {
-			shader->setMat4("model", currentTransform); //sync model matrix with GPU
-			mesh->draw();
-		}//The object is a model
-		/*else if (const auto ps = std::dynamic_pointer_cast<ParticleSystem>(object)) {
-			shader->setMat4("model", currentTransform); //sync model matrix with GPU
-			if (ps->getDisplayMode() != ParticleSystemDisplayMode::MESH)
-				shader->setVec2("WindowSize", glm::vec2(1024, 1024)); //sync model matrix with GPU
-
-			ps->draw();
-		}*///The object is a model
-		else if (const auto model = std::dynamic_pointer_cast<Model>(object)) {
+			if (mesh->castShadow()) {
+				shader->setMat4("model", currentTransform); //sync model matrix with GPU
+				mesh->draw();
+			}
+		}else if (const auto model = std::dynamic_pointer_cast<Model>(object)) {
 			for (const auto& mesh : model->meshes()) {
 				renderDepth(mesh, shader);
 			}
@@ -148,8 +142,8 @@ namespace Merlin {
 
 	void Renderer::renderMesh(const Mesh& mesh, const Camera& camera) {
 		if (debug)Console::info() << "Rendering Mesh" << Console::endl;
-		Material_Ptr mat = mesh.getMaterial();
-		Shader_Ptr shader = mesh.getShader();
+		Material_Ptr mat = nullptr;
+		Shader_Ptr shader = nullptr;
 		
 		if (mesh.hasMaterial()) mat = mesh.getMaterial();
 		else mat = getMaterial(mesh.getMaterialName());
@@ -187,7 +181,9 @@ namespace Merlin {
 		shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
 		shader->setMat4("model", currentTransform); //sync model matrix with GPU
 		shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
+		
 		shader->setInt("useShadows", use_shadows);
+
 
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 		shader->setInt("numLights", m_activeLights.size());
@@ -244,19 +240,36 @@ namespace Merlin {
 	void Renderer::renderParticleSystem(const ParticleSystem& ps, const Camera& camera) {
 		if (debug)Console::info() << "Rendering Particle System" << Console::endl;
 		if (ps.getDisplayMode() != ParticleSystemDisplayMode::MESH) {
-			Shader_Ptr shader;
+			Shader_Ptr shader = nullptr;
+
 			if (ps.hasShader())
 				shader = ps.getShader();
-			else return;
+			else {
+				if (ps.getShaderName() == "default") {
+					shader = getShader("instanced.sprite");
+				}
+				else shader = getShader(ps.getShaderName());
+			}
+
+			if (!shader) {
+				Console::error("Renderer") << "Renderer failed to gather materials and shaders" << Console::endl;
+				return;
+			}
 
 			shader->use();
+			shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
 			shader->setMat4("model", currentTransform); //sync model matrix with GPU
 			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
 			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
-			if(ps.getDisplayMode() == ParticleSystemDisplayMode::POINT_SPRITE_SHADED)
-				shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
-			shader->setVec2("WindowSize", glm::vec2(camera.width(), camera.height())); //sync model matrix with GPU
+
+			if (ps.hasField("position")) {
+				GenericBufferObject_Ptr pos = ps.getField("position");
+				pos->bind();
+				shader->attach(*pos);
+			}
+			
 			ps.draw();
+
 		}
 		else if (ps.getDisplayMode() == ParticleSystemDisplayMode::MESH) {
 			Mesh& mesh = *ps.getMesh();

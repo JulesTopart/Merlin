@@ -19,6 +19,9 @@ namespace Merlin {
         void addMesh(const Shared<Mesh>& mesh);
         void draw(const Camera& camera) const;
 
+        void enableWireFrameMode() override;
+        void disableWireFrameMode() override;
+
 
         void setShader(const Shared<Shader>& shader);
         void setMaterial(Shared<MaterialBase> material);

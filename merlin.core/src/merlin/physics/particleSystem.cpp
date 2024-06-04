@@ -35,16 +35,17 @@ namespace Merlin{
 	} //draw the mesh
 
 	void ParticleSystem::setInstancesCount(size_t count) {
-		Console::warn() << "(Performance) Buffers of the particle system are being resized dynamically" << Console::endl;
+		if (count == m_instancesCount)return;
+		if(m_fields.size() != 0) Console::warn() << "(Performance) Buffers of the particle system are being resized dynamically" << Console::endl;
 		m_instancesCount = count; 
 		for (auto field : m_fields) {
-			field.second->resize(count);
+			field.second->reserve(count);
 		}
 	}
 
-	GenericBufferObject_Ptr ParticleSystem::getField(const std::string& name) {
+	GenericBufferObject_Ptr ParticleSystem::getField(const std::string& name) const {
 		if (hasField(name)) {
-			return m_fields[name];
+			return m_fields.at(name);
 		}
 		else {
 			Console::error("ParticleSystem") << "Unknown field " << name << Console::endl;
@@ -53,14 +54,24 @@ namespace Merlin{
 	}
 
 
-	void ParticleSystem::addField(const std::string& name, GenericBufferObject_Ptr field) {
-		if (hasField(name)) {
-			Console::warn("ParticleSystem") << name << "has been overwritten" << Console::endl;
+	void ParticleSystem::addField(GenericBufferObject_Ptr field) {
+		if (hasField(field->name())) {
+			Console::warn("ParticleSystem") << field->name() << "has been overwritten" << Console::endl;
 		}
-		m_fields[name] = field;
+		m_fields[field->name()] = field;
+		if (hasLink(m_currentProgram)) {
+			link(m_currentProgram, field->name());
+		}
 	}
-	bool ParticleSystem::hasField(const std::string& name) {
+	bool ParticleSystem::hasField(const std::string& name) const{
 		return m_fields.find(name) != m_fields.end();
+	}
+
+	void ParticleSystem::writeField(const std::string& name, void* data){
+		if (hasField(name)) {
+			m_fields[name]->bind();
+			m_fields[name]->writeRaw(m_fields[name]->size(), data);
+		}
 	}
 
 	void ParticleSystem::addProgram(ComputeShader_Ptr program) {
@@ -68,23 +79,28 @@ namespace Merlin{
 			Console::warn("ParticleSystem") << program->name() << "has been overwritten" << Console::endl;
 		}
 		m_programs[program->name()] = program;
+		m_currentProgram = program->name();
+
+		GLuint pWkgSize = 64; //Number of thread per workgroup
+
+		GLuint pWkgCount = (m_instancesCount + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
+		program->SetWorkgroupLayout(pWkgCount);
 	}
-	void ParticleSystem::addProgram(const std::string& name, ComputeShader_Ptr program) {
-		if (hasProgram(name)) {
-			Console::warn("ParticleSystem") << name << "has been overwritten" << Console::endl;
-		}
-		m_programs[name] = program;
-	}
-	bool ParticleSystem::hasProgram(const std::string& name) {
+
+	bool ParticleSystem::hasProgram(const std::string& name) const {
 		return m_programs.find(name) != m_programs.end();
 	}
 
 	void ParticleSystem::setShader(Shader_Ptr shader) {
+		if (m_shader)
+			m_links.erase(m_shader->name());
 		m_shader = shader;
+		m_currentProgram = m_shader->name();
+		if (hasField("position_buffer")) { //automatically link position_buffer
+			link(m_shader->name(), "position_buffer");
+		}
 	}
-	void ParticleSystem::setShader(const std::string& shader) {
-		m_shader = ShaderLibrary::instance().get(shader);
-	}
+
 	bool ParticleSystem::hasShader() const{
 		return m_shader != nullptr;
 	}
@@ -93,10 +109,24 @@ namespace Merlin{
 	}
 
 	void ParticleSystem::link(const std::string& shader, const std::string& field) {
-		if (m_links.find(shader) != m_links.end()) {
+		if (hasLink(shader)) {
 			m_links[shader] = std::vector<std::string>();
 		}
 		m_links[shader].push_back(field);
+	}
+
+	bool ParticleSystem::hasLink(const std::string& shader) const{
+		return m_links.find(shader) != m_links.end();
+	}
+
+	void ParticleSystem::solveLink(Shared<ShaderBase> shader) {
+		if (hasLink(shader->name())) {
+			for (auto& entry : m_links[shader->name()]) {
+				if(hasField(entry))
+					shader->attach(*getField(entry));
+			}
+		}
+		
 	}
 
 

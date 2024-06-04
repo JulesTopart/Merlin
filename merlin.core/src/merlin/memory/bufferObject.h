@@ -150,7 +150,7 @@ namespace Merlin{
 	template<typename T>
 	void GenericBufferObject::print() {
 		//bind();
-		std::vector<T> cpuBuffer = read();
+		std::vector<T> cpuBuffer = read<T>();
 
 		Console::info("Buffer") << name() << " = (" << cpuBuffer.size() << ")[";
 		for (GLuint i = 0; i < std::min(int(cpuBuffer.size()), 100); ++i) {
@@ -218,7 +218,7 @@ namespace Merlin{
 	BufferObject(BufferTarget, const T*, size_t, BufferUsage) -> BufferObject<T>; //Template type deduction
 
 	template<class T>
-	BufferObject<T>::BufferObject(BufferType type, BufferTarget target) : GenericBufferObject(type, target, sizeof(T)) {}
+	BufferObject<T>::BufferObject(BufferType type, BufferTarget target) : GenericBufferObject(type, sizeof(T), target) {}
 
 	template<class T>
 	BufferObject<T>::BufferObject(BufferType type, BufferTarget target, const std::vector<T>& data, BufferUsage usage) : GenericBufferObject(type, sizeof(T), target) {

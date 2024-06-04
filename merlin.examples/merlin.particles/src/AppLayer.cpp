@@ -4,6 +4,7 @@ using namespace Merlin;
 
 #include <iostream>
 #include <iomanip>
+#include <glfw/glfw3.h>
 
 const float radius = 3;
 
@@ -15,8 +16,8 @@ AppLayer::AppLayer(){
 	camera->setNearPlane(0.1f);
 	camera->setFarPlane(100.0f);
 	camera->setFOV(60); //Use 90.0f as we are using cubemaps
-	camera->setPosition(glm::vec3(0.7, -7, 2.4));
-	camera->setRotation(glm::vec3(0, 0, +90));
+	camera->setPosition(glm::vec3(0.7, -25, 2.4));
+	camera->setRotation(glm::vec3(45, 0, +90));
 	cameraController = createShared<CameraController3D>(camera);
 }
 
@@ -67,35 +68,31 @@ void AppLayer::setupScene() {
 
 void AppLayer::setupPhysics() {
 
-
-	ps = ParticleSystem::create("Particles", 4);
-	//bs = ParticleSystem::create("Bins", 0);
-
 	std::vector<glm::vec4> position;
-	position.push_back(glm::vec4(-1, -1, 1,0));
-	position.push_back(glm::vec4(1, -1, 1, 0));
-	position.push_back(glm::vec4(1, 1, 1, 0));
-	position.push_back(glm::vec4(-1, 1, 1, 0));
+	for(float y = -24.5 * 0.5; y < 25 * 0.5; y += 0.25*0.25)
+		for (float x = -24.5 * 0.5; x < 25 * 0.5; x += 0.25 * 0.25) {
+			position.push_back(glm::vec4(x, y, (x + 25.0)/20.0, 0));
+	}
 
-	SSBO_Ptr<glm::vec4> pos = SSBO<glm::vec4>::create("position_buffer",4,position.data(), BufferUsage::STATIC_DRAW);
+	ps = ParticleSystem::create("Particles", position.size());
 
-	ps->addField("position_buffer", pos);
-	ps->addField<glm::vec4>("position_cpy_buffer");
-	ps->addField<glm::vec4>("predicted_position_buffer");
-	ps->addField<glm::vec4>("predicted_position_cpy_buffer");
-	ps->addField<glm::vec4>("velocity_buffer");
-	ps->addField<glm::vec4>("velocity_cpy_buffer");
+	SSBO_Ptr<glm::vec4> pos = SSBO<glm::vec4>::create("position_buffer", position.size(),position.data(), BufferUsage::STATIC_DRAW);
+	SSBO_Ptr<glm::vec4> old_pos = SSBO<glm::vec4>::create("old_position_buffer", position.size(),position.data(), BufferUsage::STATIC_DRAW);
 
-	Shader_Ptr particleShader = Shader::create("particles", "./assets/shaders/particle.vert", "./assets/shaders/particle.frag");
-	//StagedComputeShader_Ptr solver = StagedComputeShader::create("solver", "assets/shaders/solver.comp", 6);
-	//ps->addProgram(solver);
+	ps->addField(pos);
+	ps->addField(old_pos);
+
+	solver = StagedComputeShader::create("solver", "assets/shaders/solver.comp", 2);
+	ps->addProgram(solver);
 	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
-	ps->setShader(particleShader);
-	//ps->setShader("default");
-	//ps->setMesh(Primitives::createCube(0.5));
-	pos->bind();
-	particleShader->use();
-	particleShader->attach(*pos);
+	ps->setShader(Shader::create("particle", "./assets/shaders/particle.vert", "./assets/shaders/particle.frag"));
+
+	ps->link("solver", "position_buffer");
+	ps->link("solver", "old_position_buffer");
+	ps->solveLink(solver);
+
+	solver->use();
+	solver->setUInt("numParticles", position.size());
 
 	scene.add(ps);
 }
@@ -106,6 +103,7 @@ void AppLayer::onAttach(){
 	renderer.disableFaceCulling();
 	renderer.setEnvironmentGradientColor(0.903, 0.803, 0.703);
 	//renderer.showLights();
+	glfwSwapInterval(0);
 
 	setupScene();
 	setupPhysics();
@@ -118,11 +116,17 @@ void AppLayer::onEvent(Event& event){
 	cameraController->onEvent(event);
 }
 
+void AppLayer::onPhysicsUpdate(Timestep ts) {
+	solver->use();
+	solver->executeAll();
+}
 
 void AppLayer::onUpdate(Timestep ts){
 	cameraController->onUpdate(ts);
 	renderer.clear();
 	renderer.renderScene(scene, *camera);
+
+	onPhysicsUpdate(0.016);
 }
 
 void AppLayer::onImGuiRender()

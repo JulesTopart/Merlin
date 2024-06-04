@@ -48,6 +48,20 @@ namespace Merlin {
 		return nullptr;
 	}
 
+	void RenderableObject::enableWireFrameMode(){
+		m_wireframe = true;
+		for (auto child : m_children) {
+			child->enableWireFrameMode();
+		}
+	}
+
+	void RenderableObject::disableWireFrameMode(){
+		m_wireframe = false;
+		for (auto child : m_children) {
+			child->disableWireFrameMode();
+		}
+	}
+
 	void RenderableObject::addChild(const Shared<RenderableObject>& child) {
 		if (child != nullptr) {
 			m_children.push_back(child);

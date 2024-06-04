@@ -1,0 +1,77 @@
+#version 430
+#pragma once
+#include "buffers.comp"
+#include "../common/shaders/colors.comp"
+
+layout (local_size_x = 64) in;
+
+void solve(uint i, uint simStep);
+
+// --- Domain ---
+uniform uint numParticles = 0;
+uniform float dt = 0.0016;
+uniform uint stage = 0;
+
+// --- Constant ---
+const float particleRadius = 0.038;
+
+// XPBD_Main
+void main() {
+	uint i = gl_GlobalInvocationID.x;
+	if (i >= numParticles) return;
+
+	solve(i,stage);
+}
+
+ 
+float sdPlane( vec3 p, vec3 n, float h ){
+  // n must be normalized
+  return dot(p,n) + h;
+}
+
+void solvePlaneCollision(uint i, vec3 normal, vec3 center = vec3(0), float h = 0){
+    normal = normalize(normal);  // Ensure normal is normalized
+    vec3 pos = xi - center;
+    vec3 delta = xi - Xi;
+    float distToPlane = dot(pos, normal) - h;
+
+    // Check if there is an overlap
+    if (distToPlane - particleRadius < 1e-6) {
+        // Determine the exact point of intersection (bounce point)
+        float travelDistance = dot(delta, normal);
+        float penetrationDepth = particleRadius - distToPlane;
+        float timeToCollision = penetrationDepth / travelDistance;
+
+        // Compute the exact bounce point
+        vec3 bouncePoint = Xi + delta * timeToCollision;
+
+        // Reflect the trajectory
+        float dotProduct = dot(delta, normal);
+        vec3 reflection = delta - 2.0 * dotProduct * normal;
+
+        // Compute the new position from the bounce point
+        xi = bouncePoint + reflection * (1.0 - timeToCollision);
+
+        // Update xi for energy conservation
+        Xi = bouncePoint - (Xi - bouncePoint);
+    }
+}
+
+
+void solve(uint i, uint simStep) {
+	
+	if(simStep == 0){
+		vec3 acceleration = vec3(0, 0, -9.81);
+		
+		// Verlet Integration for position update
+		vec3 deltaX = xi - Xi;
+		Xi = xi;
+        xi = xi + deltaX + acceleration * dt * dt;
+
+		return;
+	}else if(simStep == 1){
+		solvePlaneCollision(i, vec3(0,0,1));
+		return;
+	}
+
+}

@@ -74,6 +74,20 @@ namespace Merlin {
         }
     }
 
+    void Model::enableWireFrameMode(){
+        for (auto mesh : m_meshes) {
+            mesh->enableWireFrameMode();
+        }
+        RenderableObject::enableWireFrameMode();
+    }
+
+    void Model::disableWireFrameMode(){
+        for (auto mesh : m_meshes) {
+            mesh->disableWireFrameMode();
+        }
+        RenderableObject::disableWireFrameMode();
+    }
+
 
 
 }

@@ -63,10 +63,11 @@ struct Light {
     vec3 attenuation; //constant, linear, quadratic
     float cutOff;     // For spot lights
     int type;
-    sampler2D shadowMap;
-    samplerCube omniShadowMap;
     mat4 lightSpaceMatrix;
     float far_plane;
+    int castShadow;
+    sampler2D shadowMap;
+    samplerCube omniShadowMap;
 };
 
 uniform samplerCube skybox;
@@ -76,6 +77,7 @@ uniform Environment environment;
 uniform Light lights[MAX_LIGHTS];
 uniform int numLights;
 
+uniform bool useShadows = false;
 uniform mat4 model;
 uniform vec3 viewPos;
 
@@ -91,6 +93,8 @@ vec3 gridSamplingDisk[20] = vec3[]
 
 float computeShadow(Light li, vec4 fragPosLightSpace)
 {   
+    if(!useShadows) return 0.0;
+    if(li.castShadow == 0) return 0.0;
     float shadow = 0.0;
 
     if(li.type == DIRECTIONAL_LIGHT){
@@ -124,22 +128,19 @@ float computeShadow(Light li, vec4 fragPosLightSpace)
     }else if(li.type == POINT_LIGHT){
         vec3 fragToLight = vin.position - li.position;
         float currentDepth = length(fragToLight);
-        
+
         float bias = 0.35;
         int samples = 20;
         float viewDistance = length(viewPos - vin.position);
         float diskRadius = (1.0 + (viewDistance / li.far_plane)) / 25.0;
 
-        FragColor = vec4(vec3(texture(li.omniShadowMap, fragToLight).r / li.far_plane), 1.0);
-        for(int i = 0; i < samples; ++i){
+        // Correctly sample the shadow map using 3D texture coordinates
+        for (int i = 0; i < samples; ++i) {
             float closestDepth = texture(li.omniShadowMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
-            closestDepth *= li.far_plane;   // undo mapping [0;1]
-            //FragColor = vec4(vec3(currentDepth/ li.far_plane), 1.0);
-            if(currentDepth - bias > closestDepth){
+            closestDepth *= li.far_plane;  // undo mapping [0;1]
+            if (currentDepth - bias > closestDepth) {
                 shadow += 1.0;
-                //FragColor = vec4(vec3(1), 1.0);
             }
-            
         }
         shadow /= float(samples);
         
@@ -268,9 +269,8 @@ void main() {
     for (int i = 0; i < numLights; ++i) {
         finalColor += calculateLight(lights[i], N, vin.position, viewDir, ambientColor, diffuseColor, specularColor);
     }
-
-    float gamma = 1.2;
-    FragColor.rgb = pow(finalColor.rgb, vec3(1.0/gamma));
+    float gamma = 0.7;
+    FragColor.rgb = pow(finalColor.rgb * vin.color.rgb, vec3(1.0/gamma));
     //FragColor.rgb = N* 0.9 + FragColor.rgb * 0.1;
     //FragColor.rgb = normalize(vin.tangentBasis * (-lights[0].direction));
     //FragColor.rgb = normalize(vin.position);

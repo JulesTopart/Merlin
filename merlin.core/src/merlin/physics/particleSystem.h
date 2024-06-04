@@ -26,21 +26,33 @@ namespace Merlin {
 		void draw() const; //draw the mesh
 		void setInstancesCount(size_t count);
 
-		GenericBufferObject_Ptr getField(const std::string& name);
+		GenericBufferObject_Ptr getField(const std::string& name) const;
 		
-		void addField(const std::string& name, GenericBufferObject_Ptr buf);
-		bool hasField(const std::string& name);
+		void addField(GenericBufferObject_Ptr buf);
+		bool hasField(const std::string& name) const;
+		void writeField(const std::string& name, void* data);
 
 		void addProgram(ComputeShader_Ptr program);
-		void addProgram(const std::string& name, ComputeShader_Ptr program);
-		bool hasProgram(const std::string& name);
+		bool hasProgram(const std::string& name) const;
 		
 		void setShader(Shader_Ptr shader);
-		void setShader(const std::string& shader);
+		inline void setShader(std::string shaderName) { m_shaderName = shaderName; }
 		Shader_Ptr getShader() const;
+		inline const std::string& getShaderName() const { return m_shaderName; }
+
 		bool hasShader() const;
 
+		inline void setMaterial(Shared<MaterialBase> material) { m_material = material; }
+		inline void setMaterial(std::string materialName) { m_materialName = materialName; }
+		inline bool hasMaterial() const { return m_material != nullptr; }
+		inline const Shared<MaterialBase> getMaterial() const { return m_material; }
+		inline const std::string& getMaterialName() const { return m_materialName; }
+
+
 		void link(const std::string& shader, const std::string& field);
+		void solveLink(Shared<ShaderBase>);
+		bool hasLink(const std::string& name) const;
+
 
 		inline void setMesh(Shared<Mesh> geometry) { m_geometry = geometry; }
 		inline Shared<Mesh> getMesh() const { return m_geometry; }
@@ -58,7 +70,12 @@ namespace Merlin {
 
 	protected:
 		//Rendering
+		std::string m_materialName = "default";
+		Shared<MaterialBase> m_material = nullptr;
+
 		Shader_Ptr m_shader = nullptr;
+		std::string m_shaderName = "default";
+
 		Mesh_Ptr m_geometry = nullptr;
 		size_t m_instancesCount = 1;
 		ParticleSystemDisplayMode m_displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
@@ -67,6 +84,8 @@ namespace Merlin {
 		std::map<std::string, ComputeShader_Ptr> m_programs; //Shader to compute the particle position
 		std::map<std::string, GenericBufferObject_Ptr> m_fields; //Buffer to store particles fields
 		std::map<std::string, std::vector<std::string>> m_links;
+
+		std::string m_currentProgram = "";
 	};
 
 	typedef Shared<ParticleSystem> ParticleSystem_Ptr;

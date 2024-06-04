@@ -12,6 +12,7 @@ namespace Merlin {
 	void ShaderLibrary::LoadDefaultShaders() {
 		add(Shader::create("default.phong", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag"));
 		add(Shader::create("instanced.phong", "assets/common/shaders/instanced.model.vert", "assets/common/shaders/default.model.frag"));
+		add(Shader::create("instanced.sprite", "assets/common/shaders/instanced.sprite.vert", "assets/common/shaders/instanced.sprite.frag"));
 		add(Shader::create("shadow.depth", "assets/common/shaders/shadow.depth.vert", "assets/common/shaders/shadow.depth.frag"));
 		add(Shader::create("shadow.omni", "assets/common/shaders/shadow.omni.vert", "assets/common/shaders/shadow.omni.frag", "assets/common/shaders/shadow.omni.geom"));
 		add(Shader::create("default.light", "assets/common/shaders/default.light.vert", "assets/common/shaders/default.light.frag"));

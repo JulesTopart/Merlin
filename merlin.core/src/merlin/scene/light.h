@@ -45,8 +45,7 @@ namespace Merlin {
 
         virtual void setShadowResolution(GLuint res);
         inline GLuint shadowResolution() const { return m_shadowResolution; }
-        inline bool castShadow() const { return m_castShadow; }
-        inline void castShadow(bool state) { m_castShadow = state; }
+
 
         inline const void setAttenuation(glm::vec3 att) { attenuation_ = att; };
         inline const glm::vec3& attenuation() { return attenuation_; };
@@ -60,7 +59,6 @@ namespace Merlin {
 
 
     protected : 
-        bool m_castShadow = false;
         GLuint m_shadowResolution = 256;
 
     private:

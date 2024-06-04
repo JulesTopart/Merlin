@@ -1,4 +1,4 @@
-#version 450
+#version 430
 in vec4 position;
 in vec4 screen_position;
 //flat in vec3 normal;
@@ -10,8 +10,10 @@ in mat4 mv;
 out vec4 FragColor;
 
 uniform vec3 viewPos;
-uniform vec3 lightPos = vec3(10);
 uniform vec4 lightColor = vec4(1);
+
+uniform float pointRadius;
+uniform vec3 lightDir = vec3(0.577, 0.577, -0.8);
 
 void sprite() {
     // Calculate the center and radius of the sphere
@@ -31,11 +33,12 @@ void sprite() {
     //_normal.y = normal.z; 
 
     // Light calculations
-    vec3 lightDir = normalize(lightPos - (mv * gl_FragCoord).xyz);
-    float diff = max(dot(lightDir, n), 0.0);
+    //vec3 lightD = normalize(lightPos - (mv * gl_FragCoord).xyz);
+    vec3 lightD = normalize(lightDir);
+    float diff = max(dot(lightD, n), 0.0);
 
     vec3 viewDir = normalize(vec3(position) - viewPos);
-	vec3 reflectDir = reflect(lightDir, n);
+	vec3 reflectDir = reflect(lightD, n);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 0.5);
 
     // Ambient, Diffuse, and Specular Components
@@ -49,7 +52,7 @@ void sprite() {
     // Apply smoothstep for alpha blending at the edges
 	//finalColor.w = smoothstep(1, 0,length(center)*length(center));
 	
-
+    if(position.z < 0.08) finalColor = vec4(ambient + diffuse + specular, 1.0) * vec4(1,0,0,1);
     // Output the final color
     FragColor = finalColor;
 }
@@ -59,7 +62,6 @@ void main() {
     if(gl_PointCoord != vec2(0)) sprite();
 }
 
-uniform float pointRadius;
-uniform vec3 lightDir = vec3(0.577, 0.577, 0.577);
+
 
   

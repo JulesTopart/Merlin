@@ -41,6 +41,9 @@ namespace Merlin {
 		inline const std::string name() const { return m_name; }
 		inline void rename(std::string n) { m_name = n; };
 
+		inline bool castShadow() const { return m_castShadow; }
+		inline void castShadow(bool state) { m_castShadow = state; }
+
 		//Hierachy
 		void addChild(const Shared<RenderableObject>& child);
 		void removeChild(Shared<RenderableObject> child);
@@ -54,8 +57,8 @@ namespace Merlin {
 		bool hasChildren() const;
 
 		inline bool isWireFrame() const { return m_wireframe; }
-		inline void enableWireFrameMode() { m_wireframe = true; }
-		inline void disableWireFrameMode() { m_wireframe = false; }
+		virtual void enableWireFrameMode();
+		virtual void disableWireFrameMode();
 
 		std::list<Shared<RenderableObject>>& children();
 		Shared<RenderableObject> getChild(std::string name);
@@ -63,6 +66,7 @@ namespace Merlin {
 
 	protected:
 		static int nextID;
+		bool m_castShadow = false;
 		int m_ID;
 
 		bool m_wireframe = false;

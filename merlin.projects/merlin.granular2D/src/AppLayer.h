@@ -44,13 +44,14 @@ private:
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;
 
-	deprecated_ParticleSystem_Ptr particleSystem;
-	deprecated_ParticleSystem_Ptr binSystem;
+	ParticleSystem_Ptr ps;
+	ParticleSystem_Ptr bs;
 
 	//--- Solver and sort programs ---
 	StagedComputeShader_Ptr solver;
 	StagedComputeShader_Ptr prefixSum;
 
+	/*
 	// --- Buffers ---
 	SSBO_Ptr<Bin> binBuffer; //Particle buffer
 	SSBO_Ptr<glm::vec2> positionBuffer; // Position buffer
@@ -63,7 +64,7 @@ private:
 	SSBO_Ptr<float> cpyTemperatureBuffer; // Copy of the density buffer
 	SSBO_Ptr<glm::uvec4> metaBuffer; // Meta buffer containing phase, bin index, id, sortedID
 	SSBO_Ptr<glm::uvec4> cpymetaBuffer; // Copy of the meta buffer
-
+	*/
 
 	//Simulation
 	Settings settings;
