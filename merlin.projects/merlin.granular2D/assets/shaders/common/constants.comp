@@ -3,7 +3,7 @@
 #define INCLUDE_CONSTANTS_GLSL
 
 #define BTHREAD 128
-#define PTHREAD 1024
+#define PTHREAD 512
 
 #define UNUSED 0
 #define SOLID 1

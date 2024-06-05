@@ -299,13 +299,13 @@ namespace Merlin {
 				m_currentEnvironment->attach(*shader);
 			else m_defaultEnvironment->attach(*shader);
 
-			shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
+			if (shader->supportLights()) shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
 			shader->setMat4("model", currentTransform); //sync model matrix with GPU
 			shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
-			shader->setInt("useShadows", use_shadows);
+			if (shader->supportShadows())shader->setInt("useShadows", use_shadows);
 
 			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
-			shader->setInt("numLights", m_activeLights.size());
+			if(shader->supportLights()) shader->setInt("numLights", m_activeLights.size());
 
 			ps.draw();
 			mat->detach();

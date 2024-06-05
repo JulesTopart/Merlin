@@ -50,6 +50,11 @@ void AppLayer::onEvent(Event& event){
 		particleShader->use();
 		particleShader->setFloat("zoomLevel", camera->getZoom());
 	}
+	else if (event.getEventType() == EventType::WindowResize) {
+		particleShader->use();
+		particleShader->setVec2("WindowSize", glm::vec2(camera->width(), camera->height()));
+
+	}
 }
 
 float t = 0.0;
@@ -125,9 +130,16 @@ void AppLayer::InitGraphics() {
 	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
 
 	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
+	binShader->noEnvironment();
+	binShader->noMaterial();
+	binShader->noTexture();
+	binShader->noLights();
+	binShader->noShadows();
 
 	particleShader->use();
 	particleShader->setInt("colorCycle", 3);
+	particleShader->setVec2("WindowSize", glm::vec2(camera->width(), camera->height()));
+
 	binShader->use();
 	binShader->setInt("colorCycle", 3);
 	 
@@ -149,12 +161,8 @@ void AppLayer::InitPhysics() {
 
 	//create particle system
 	ps = ParticleSystem::create("ParticleSystem", settings.pThread);
-	Shared<Mesh> particle = Primitives::createPoint();
-	particle->rename("particle");
-	particle->setShader(particleShader);
 	ps->setShader(particleShader);
-	ps->setMesh(particle);
-	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
+	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 
 	Shared<Mesh> binInstance = Primitives::createQuadRectangle(settings.bWidth, settings.bWidth, true);
 	binInstance->rename("bin");
@@ -169,32 +177,22 @@ void AppLayer::InitPhysics() {
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
 	// reserve Buffer and double buffering
-	SSBO_Ptr<glm::vec2> positionBuffer = SSBO<glm::vec2>::create("PositionBuffer", settings.pThread);
-	SSBO_Ptr<glm::vec2> cpyPositionBuffer = SSBO<glm::vec2>::create("cpyPositionBuffer",settings.pThread);
-	SSBO_Ptr<glm::vec2> predictedPositionBuffer = SSBO<glm::vec2>::create("PredictedPositionBuffer",settings.pThread);
-	SSBO_Ptr<glm::vec2> cpyPredictedPositionBuffer = SSBO<glm::vec2>::create("cpyPredictedPositionBuffer",settings.pThread);
-	SSBO_Ptr<glm::vec2> velocityBuffer = SSBO<glm::vec2>::create("VelocityBuffer",settings.pThread);
-	SSBO_Ptr<glm::vec2> cpyVelocityBuffer = SSBO<glm::vec2>::create("cpyVelocityBuffer",settings.pThread);
-	SSBO_Ptr<float> temperatureBuffer = SSBO<float>::create("TemperatureBuffer", settings.pThread);
-	SSBO_Ptr<float> cpyTemperatureBuffer = SSBO<float>::create("cpyTemperatureBuffer",settings.pThread);
-	SSBO_Ptr<glm::uvec4> metaBuffer = SSBO<glm::uvec4>::create("MetaBuffer",settings.pThread);
-	SSBO_Ptr<glm::uvec4> cpymetaBuffer = SSBO<glm::uvec4>::create("cpyMetaBuffer",settings.pThread);
 
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
 	SSBO_Ptr<Bin> binBuffer = SSBO<Bin>::create("BinBuffer",settings.bThread);
 
 	//attach Buffers
 	ps->addProgram(solver);
-	ps->addField(positionBuffer);
-	ps->addField(cpyPositionBuffer);
-	ps->addField(predictedPositionBuffer);
-	ps->addField(cpyPredictedPositionBuffer);
-	ps->addField(velocityBuffer);
-	ps->addField(cpyVelocityBuffer);
-	ps->addField(temperatureBuffer);
-	ps->addField(cpyTemperatureBuffer);
-	ps->addField(metaBuffer);
-	ps->addField(cpymetaBuffer);
+	ps->addField<glm::vec2>("PositionBuffer");
+	ps->addField<glm::vec2>("cpyPositionBuffer");
+	ps->addField<glm::vec2>("PredictedPositionBuffer");
+	ps->addField<glm::vec2>("cpyPredictedPositionBuffer");
+	ps->addField<glm::vec2>("VelocityBuffer");
+	ps->addField<glm::vec2>("cpyVelocityBuffer");
+	ps->addField<float>("TemperatureBuffer");
+	ps->addField<float>("cpyTemperatureBuffer");
+	ps->addField<glm::uvec4>("MetaBuffer");
+	ps->addField<glm::uvec4>("cpyMetaBuffer");
 	ps->addField(binBuffer);
 	ps->solveLink(solver);
 
@@ -202,17 +200,17 @@ void AppLayer::InitPhysics() {
 	bs->addField(binBuffer);
 	bs->solveLink(prefixSum);
 	
-	ps->link(particleShader->name(), positionBuffer->name());
-	ps->link(particleShader->name(), predictedPositionBuffer->name());
-	ps->link(particleShader->name(), velocityBuffer->name());
-	ps->link(particleShader->name(), temperatureBuffer->name());
-	ps->link(particleShader->name(), metaBuffer->name());
+	ps->link(particleShader->name(), "PositionBuffer");
+	ps->link(particleShader->name(), "PredictedPositionBuffer");
+	ps->link(particleShader->name(), "VelocityBuffer");
+	ps->link(particleShader->name(), "TemperatureBuffer");
+	ps->link(particleShader->name(), "MetaBuffer");
 	ps->solveLink(particleShader);
 
-	bs->link(binShader->name(), positionBuffer->name());
-	bs->link(binShader->name(), velocityBuffer->name());
-	bs->link(binShader->name(), temperatureBuffer->name());
-	bs->link(binShader->name(), metaBuffer->name());
+	bs->link(binShader->name(), "PositionBuffer");
+	bs->link(binShader->name(), "VelocityBuffer");
+	bs->link(binShader->name(), "TemperatureBuffer");
+	bs->link(binShader->name(), "MetaBuffer");
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
 
@@ -509,8 +507,26 @@ void AppLayer::onImGuiRender() {
 	}
 
 	if (ImGui::Button("Debug")) {
+		
+		ps->getField("PositionBuffer")->bind();
+		std::vector<glm::vec2> pos = ps->getField("PositionBuffer")->read<glm::vec2>();
+
+		ps->getField("PredictedPositionBuffer")->bind();
+		std::vector<glm::vec2> ppos = ps->getField("PredictedPositionBuffer")->read<glm::vec2>();
+
+		ps->getField("VelocityBuffer")->bind();
+		std::vector<glm::vec2> vel = ps->getField("VelocityBuffer")->read<glm::vec2>();
+
+		ps->getField("TemperatureBuffer")->bind();
+		std::vector<float> temp = ps->getField("TemperatureBuffer")->read<float>();
+
+		ps->getField("MetaBuffer")->bind();
+		std::vector<glm::uvec4> meta = ps->getField("MetaBuffer")->read<glm::uvec4>();
+
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;
+
+
 	}
 	ImGui::End();
 }

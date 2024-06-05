@@ -22,7 +22,7 @@ uniform mat4 model;
 uniform int colorCycle = 0;
 uniform uint particleTest = 50;
 uniform int showBoundary = 0;
-uniform vec2 WindowSize;
+uniform vec2 WindowSize = vec2(1024, 1024);
 uniform float zoomLevel = 250;
 
 void main() {

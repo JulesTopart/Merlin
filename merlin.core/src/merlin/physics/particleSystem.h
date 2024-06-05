@@ -97,6 +97,10 @@ namespace Merlin {
 		}
 		SSBO_Ptr<T> f = SSBO<T>::create(name, m_instancesCount);
 		m_fields[name] = f;
+
+		if (hasLink(m_currentProgram)) {
+			link(m_currentProgram, f->name());
+		}
 	}
 
 }

@@ -35,7 +35,7 @@ namespace Merlin{
 	} //draw the mesh
 
 	void ParticleSystem::setInstancesCount(size_t count) {
-		if (count == m_instancesCount)return;
+		if (count == m_instancesCount) return;
 		if(m_fields.size() != 0) Console::warn() << "(Performance) Buffers of the particle system are being resized dynamically" << Console::endl;
 		m_instancesCount = count; 
 		for (auto field : m_fields) {
@@ -78,11 +78,11 @@ namespace Merlin{
 		if (hasProgram(program->name())) {
 			Console::warn("ParticleSystem") << program->name() << "has been overwritten" << Console::endl;
 		}
+		m_links[program->name()] = std::vector<std::string>();
 		m_programs[program->name()] = program;
 		m_currentProgram = program->name();
 
 		GLuint pWkgSize = 64; //Number of thread per workgroup
-
 		GLuint pWkgCount = (m_instancesCount + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 		program->SetWorkgroupLayout(pWkgCount);
 	}
@@ -109,7 +109,7 @@ namespace Merlin{
 	}
 
 	void ParticleSystem::link(const std::string& shader, const std::string& field) {
-		if (hasLink(shader)) {
+		if (!hasLink(shader)) {
 			m_links[shader] = std::vector<std::string>();
 		}
 		m_links[shader].push_back(field);
@@ -124,7 +124,13 @@ namespace Merlin{
 			for (auto& entry : m_links[shader->name()]) {
 				if(hasField(entry))
 					shader->attach(*getField(entry));
+				else
+					Console::error("ParticleSystem") << entry << " is not registered as field in the particle system" << Console::endl;
+				
 			}
+		}
+		else {
+			Console::error("ParticleSystem") << shader->name() << " is not registered in the particle system" << Console::endl;
 		}
 		
 	}

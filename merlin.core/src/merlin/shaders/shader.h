@@ -35,9 +35,13 @@ namespace Merlin {
 
 		inline bool supportTexture() const		{ return _supportTexture; }
 		inline bool supportMaterial() const		{ return _supportMaterial; }
+		inline bool supportLights() const		{ return _supportLights; }
+		inline bool supportShadows() const		{ return _supportShadows; }
 		inline bool supportEnvironment() const		{ return _supportEnvironment; }
 		inline void noMaterial()	{ _supportMaterial = false; }
 		inline void noTexture()	{ _supportTexture = false; }
+		inline void noLights()	{ _supportLights = false; }
+		inline void noShadows()	{ _supportShadows = false; }
 		inline void noEnvironment()	{ _supportEnvironment = false; }
 
 	protected:
@@ -45,7 +49,9 @@ namespace Merlin {
 		void compileShader(const std::string& name, const std::string& src, GLuint id);
 
 
+		bool _supportLights = true;
 		bool _supportTexture = true;
+		bool _supportShadows = true;
 		bool _supportMaterial = true;
 		bool _supportEnvironment = true;
 

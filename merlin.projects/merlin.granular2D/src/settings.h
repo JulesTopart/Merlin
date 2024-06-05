@@ -24,7 +24,7 @@ struct Particle {
 
 struct Settings {
 	const float particleRadius = 0.25;
-	const float smoothingRadius = 4 * particleRadius;
+	const float smoothingRadius = 5 * particleRadius;
 	const float bWidth = smoothingRadius;
 
 
@@ -50,7 +50,7 @@ struct Settings {
 	float overRelaxation = 1.0;
 
 	//calulated
-	GLuint pWkgSize = 1024; //Number of thread per workgroup
+	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint bWkgSize = 128; //Number of thread per workgroup
 
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
