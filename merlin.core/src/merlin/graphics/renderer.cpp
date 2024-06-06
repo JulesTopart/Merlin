@@ -14,6 +14,7 @@ namespace Merlin {
 
 	void Renderer::initialize() {
 		enableMultisampling();
+		enableSampleShading();
 		enableDepthTest();
 		enableCubeMap();
 		enableFaceCulling();

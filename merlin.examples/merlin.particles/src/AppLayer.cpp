@@ -8,22 +8,14 @@ using namespace Merlin;
 
 const float radius = 3;
 
-AppLayer::AppLayer(){
-	Window* w = &Application::get().getWindow();
-	int height = w->getHeight();
-	int width = w->getWidth();
-	camera = createShared<Camera>(width, height, Projection::Perspective);
-	camera->setNearPlane(0.1f);
-	camera->setFarPlane(100.0f);
-	camera->setFOV(60); //Use 90.0f as we are using cubemaps
-	camera->setPosition(glm::vec3(0.7, -25, 2.4));
-	camera->setRotation(glm::vec3(45, 0, +90));
-	cameraController = createShared<CameraController3D>(camera);
-}
+AppLayer::AppLayer(){}
 
 AppLayer::~AppLayer(){}
 
 void AppLayer::setupScene() {
+	camera().setPosition(glm::vec3(0.7, -35, 7.4));
+	camera().setRotation(glm::vec3(70, 0, +90));
+
 	Shared<Model> bunny = ModelLoader::loadModel("./assets/common/models/bunny.stl");
 	bunny->meshes()[0]->smoothNormals();
 	bunny->setMaterial("pearl");
@@ -63,15 +55,14 @@ void AppLayer::setupScene() {
 	/**/
 
 	scene.add(Primitives::createFloor(50, 0.5));
-	scene.setCamera(camera);
 }
 
 void AppLayer::setupPhysics() {
 
 	std::vector<glm::vec4> position;
-	for(float y = -24.5 * 0.5; y < 25 * 0.5; y += 0.25*0.25)
-		for (float x = -24.5 * 0.5; x < 25 * 0.5; x += 0.25 * 0.25) {
-			position.push_back(glm::vec4(x, y, (x + 25.0)/20.0, 0));
+	for(float y = -24.5 * 0.5; y < 25 * 0.5; y += 0.25*0.5)
+		for (float x = -24.5 * 0.5; x < 25 * 0.5; x += 0.25*0.5) {
+			position.push_back(glm::vec4(x, y, (0.5*(x + y) + 25.0)/20.0, 0));
 	}
 
 	ps = ParticleSystem::create("Particles", position.size());
@@ -87,6 +78,10 @@ void AppLayer::setupPhysics() {
 	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 	ps->setShader(Shader::create("particle", "./assets/shaders/particle.vert", "./assets/shaders/particle.frag"));
 
+	ps->link("particle", "position_buffer");
+	ps->link("particle", "old_position_buffer");
+	ps->solveLink(ps->getShader());
+
 	ps->link("solver", "position_buffer");
 	ps->link("solver", "old_position_buffer");
 	ps->solveLink(solver);
@@ -98,6 +93,7 @@ void AppLayer::setupPhysics() {
 }
 
 void AppLayer::onAttach(){
+	Layer3D::onAttach();
 	renderer.initialize();
 	renderer.enableSampleShading();
 	renderer.disableFaceCulling();
@@ -112,8 +108,7 @@ void AppLayer::onAttach(){
 void AppLayer::onDetach(){}
 
 void AppLayer::onEvent(Event& event){
-	camera->onEvent(event);
-	cameraController->onEvent(event);
+	Layer3D::onEvent(event);
 }
 
 void AppLayer::onPhysicsUpdate(Timestep ts) {
@@ -122,9 +117,10 @@ void AppLayer::onPhysicsUpdate(Timestep ts) {
 }
 
 void AppLayer::onUpdate(Timestep ts){
-	cameraController->onUpdate(ts);
+	Layer3D::onUpdate(ts);
+
 	renderer.clear();
-	renderer.renderScene(scene, *camera);
+	renderer.renderScene(scene, camera());
 
 	onPhysicsUpdate(0.016);
 }
@@ -133,9 +129,9 @@ void AppLayer::onImGuiRender()
 {
 	ImGui::Begin("Camera");
 
-	model_matrix_translation = camera->getPosition();
+	model_matrix_translation = camera().getPosition();
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
-		camera->setPosition(model_matrix_translation);
+		camera().setPosition(model_matrix_translation);
 
 	}
 	ImGui::End();

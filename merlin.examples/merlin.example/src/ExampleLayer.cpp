@@ -7,31 +7,16 @@ using namespace Merlin;
 
 const float radius = 3;
 
-ExampleLayer::ExampleLayer(){
-	Window* w = &Application::get().getWindow();
-	int height = w->getHeight();
-	int width = w->getWidth();
-	camera = createShared<Camera>(width, height, Projection::Perspective);
-	camera->setNearPlane(0.1f);
-	camera->setFarPlane(100.0f);
-	camera->setFOV(60); //Use 90.0f as we are using cubemaps
-	camera->setPosition(glm::vec3(0.7, -7, 2.4));
-	camera->setRotation(glm::vec3(0, 0, +90));
-	cameraController = createShared<CameraController3D>(camera);
+ExampleLayer::ExampleLayer() {
+	camera().setPosition(glm::vec3(0.7, -10, 2.4));
+	camera().setRotation(glm::vec3(30, 0, +90));
 }
 
-ExampleLayer::~ExampleLayer(){}
-
-Shared<Mesh> GetModel() {
-	//return ModelLoader::loadModel("assets/models/cube.stl")->meshes()[0];
-	Shared<Mesh> m = Primitives::createSphere(0.5, 40, 40);
-	return m;
-}
 
 void ExampleLayer::onAttach(){
+	Layer3D::onAttach();
+
 	renderer.initialize();
-	renderer.enableSampleShading();
-	renderer.disableFaceCulling();
 	renderer.setEnvironmentGradientColor(0.903, 0.803, 0.703);
 	renderer.showLights();
 
@@ -82,20 +67,18 @@ void ExampleLayer::onAttach(){
 
 	scene.add(Primitives::createFloor(50, 0.5));
 	//scene.add(Primitives::createRectangle(10, 10));
-	scene.setCamera(camera);
 }
 
 void ExampleLayer::onDetach(){}
 
 void ExampleLayer::onEvent(Event& event){
-	camera->onEvent(event);
-	cameraController->onEvent(event);
+	Layer3D::onEvent(event);
 }
 
 float t = 0.0;
 
 void ExampleLayer::onUpdate(Timestep ts){
-	cameraController->onUpdate(ts);
+	Layer3D::onUpdate(ts);
 	const float hpi = 3.14159265358;
 	t += ts;
 
@@ -104,16 +87,16 @@ void ExampleLayer::onUpdate(Timestep ts){
 	light->translate(glm::vec3(cos(t) * radius - x, sin(t) * radius - y, 0.0));
 
 	renderer.clear();
-	renderer.renderScene(scene, *camera);
+	renderer.renderScene(scene, camera());
 }
 
 void ExampleLayer::onImGuiRender()
 {
 	ImGui::Begin("Camera");
 
-	model_matrix_translation = camera->getPosition();
+	model_matrix_translation = camera().getPosition();
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
-		camera->setPosition(model_matrix_translation);
+		camera().setPosition(model_matrix_translation);
 
 	}
 	ImGui::End();

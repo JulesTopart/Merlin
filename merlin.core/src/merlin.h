@@ -20,6 +20,6 @@
 #include "merlin/shaders/computeShader.h"
 #include "merlin/physics/particleSystem.h"
 
-#include "merlin/utils/openGLDebug.h"
+
 #include "merlin/utils/modelLoader.h"
 #include "merlin/utils/primitives.h"

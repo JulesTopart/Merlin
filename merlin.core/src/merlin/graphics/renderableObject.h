@@ -66,7 +66,7 @@ namespace Merlin {
 
 	protected:
 		static int nextID;
-		bool m_castShadow = false;
+		bool m_castShadow = true;
 		int m_ID;
 
 		bool m_wireframe = false;

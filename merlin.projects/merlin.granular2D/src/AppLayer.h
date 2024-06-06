@@ -10,7 +10,7 @@ using namespace Merlin;
 #define GRANULAR 4
 #define BOUNDARY 5
 
-class AppLayer : public Merlin::Layer{
+class AppLayer : public Merlin::Layer2D{
 public:
 	AppLayer();
 	virtual ~AppLayer();
@@ -31,12 +31,9 @@ public:
 	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);
 
-	void updateFPS(Merlin::Timestep ts);
 private:
 
 	//--- Graphics ---
-	Camera_Ptr camera;
-	CameraController_Ptr cameraController;
 
 	Scene scene;
 	Renderer renderer;
@@ -70,8 +67,6 @@ private:
 	bool integrate = true;
 	float sim_speed = 1;
 	float camera_speed = 1;
-	float FPS = 0;
-	float FPS_sample = 0;
 	bool mousePressed = false;
 
 };

@@ -95,13 +95,13 @@ namespace Merlin {
 	void CameraController2D::onUpdate(Timestep ts)
 	{
 		if (Input::isKeyPressed(MRL_KEY_A))
-			_dU.x -= _CameraSpeed * ts;
+			_dU.x -= _ZoomLevel * _CameraSpeed * ts;
 		else if (Input::isKeyPressed(MRL_KEY_D))
-			_dU.x += _CameraSpeed * ts;
+			_dU.x += _ZoomLevel * _CameraSpeed * ts;
 		if (Input::isKeyPressed(MRL_KEY_W))
-			_dU.y -= _CameraSpeed * ts;
+			_dU.y -= _ZoomLevel * _CameraSpeed * ts;
 		else if (Input::isKeyPressed(MRL_KEY_S))
-			_dU.y += _CameraSpeed * ts;
+			_dU.y += _ZoomLevel * _CameraSpeed * ts;
 
 		_Camera->translate(_dU);
 
@@ -126,6 +126,7 @@ namespace Merlin {
 		_ZoomLevel = std::min<float>(_ZoomLevel, 500.f);
 		_ZoomLevel = std::max<float>(_ZoomLevel, 0.1);
 		_Camera->setZoom(_ZoomLevel);
+		Console::print() << _ZoomLevel << Console::endl;
 		return false;
 	}
 
@@ -135,8 +136,8 @@ namespace Merlin {
 		if (Input::isMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
 			_deltaMousePos = _lastMousePos - newMousePos;
 
-			_dU.x = _CameraSpeed * _deltaMousePos.x / _Camera->width();
-			_dU.y = _CameraSpeed * _deltaMousePos.y / _Camera->height();
+			_dU.x = 3.0 * _ZoomLevel * _CameraSpeed * _deltaMousePos.x / _Camera->width();
+			_dU.y = 3.0 * _ZoomLevel * _CameraSpeed * _deltaMousePos.y / _Camera->height();
 		}
 
 		_lastMousePos = newMousePos;

@@ -13,14 +13,6 @@ namespace Merlin {
 	const std::list<Shared<RenderableObject>>& Scene::nodes() const {
 		return m_rootNode->children();
 	}
-
-	void Scene::setCamera(Shared<Camera> camera) {
-		m_camera = camera;
-	}
-
-	Camera& Scene::camera() {
-		return *m_camera;
-	}
 	
 	void Scene::add(Shared<ParticleSystem> ps) {
 		m_currentNode->addChild(ps);

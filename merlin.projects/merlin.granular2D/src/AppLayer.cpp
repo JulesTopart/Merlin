@@ -13,24 +13,11 @@ using namespace Merlin;
 #define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
-AppLayer::AppLayer(){
-	Window* w = &Application::get().getWindow();
-	int height = w->getHeight();
-	int width = w->getWidth();
-	camera = createShared<Camera>(width, height, Projection::Orthographic);
-	camera->setNearPlane(0.0f);
-	camera->setFarPlane(10.0f);
-	camera->translate(glm::vec3(0, 0, 1));
-	cameraController = createShared<CameraController2D>(camera);
-	cameraController->setZoomLevel(250);
-	cameraController->setCameraSpeed(100);
-}
-
+AppLayer::AppLayer(){}
 AppLayer::~AppLayer(){}
 
 void AppLayer::onAttach(){
-	enableGLDebugging();
-	//ImGui::LoadIniSettingsFromDisk("imgui.ini");
+	Layer2D::onAttach();
 	Console::setLevel(ConsoleLevel::_TRACE);
 	glfwSwapInterval(0);
 
@@ -43,8 +30,7 @@ void AppLayer::onAttach(){
 void AppLayer::onDetach(){}
 
 void AppLayer::onEvent(Event& event){
-	camera->onEvent(event);
-	cameraController->onEvent(event);
+	Layer2D::onEvent(event);
 
 	if (event.getEventType() == EventType::MouseScrolled) {
 		particleShader->use();
@@ -60,11 +46,10 @@ void AppLayer::onEvent(Event& event){
 float t = 0.0;
 
 void AppLayer::onUpdate(Timestep ts){
-	cameraController->onUpdate(ts);
+	Layer2D::onUpdate(ts);
+	
 	PROFILE_END(total_start_time, total_time);
 	PROFILE_BEGIN(total_start_time);
-
-	updateFPS(ts);
 
 	GPU_PROFILE(render_time,
 		renderer.clear();
@@ -322,15 +307,6 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	
 }
 
-void AppLayer::updateFPS(Timestep ts) {
-	if (FPS_sample == 0) {
-		FPS = ts;
-	}
-	else {
-		FPS += ts;
-	}
-	FPS_sample++;
-}
 
 
 
@@ -344,10 +320,10 @@ void AppLayer::onImGuiRender() {
 	ImGui::LabelText(std::to_string(settings.bThread).c_str(), "bins");
 	ImGui::LabelText(std::to_string(elapsedTime).c_str(), "s");
 
-	if (FPS_sample > 0) {
-		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS / FPS_sample)).c_str());
-		if (FPS_sample > 50) FPS_sample = 0;
-	}
+
+	ImGui::LabelText("FPS", std::to_string(fps()).c_str());
+
+	
 
 	if (paused) {
 		if (ImGui::ArrowButton("Run simulation", 1)) {

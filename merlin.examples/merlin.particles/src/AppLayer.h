@@ -3,7 +3,7 @@
 #include <Merlin.h>
 using namespace Merlin;
 
-class AppLayer : public Layer
+class AppLayer : public Layer3D
 {
 public:
 	AppLayer();
@@ -19,9 +19,6 @@ public:
 	virtual void onUpdate(Timestep ts) override;
 	virtual void onImGuiRender() override;
 private:
-
-	Shared<Camera> camera;
-	Shared<CameraController> cameraController;
 
 	Scene scene;
 	Renderer renderer;

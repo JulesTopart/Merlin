@@ -3,7 +3,7 @@
 #include <Merlin.h>
 using namespace Merlin;
 
-class TemplateLayer : public Layer
+class TemplateLayer : public Layer2D
 {
 public:
 	TemplateLayer();
@@ -15,9 +15,6 @@ public:
 	virtual void onUpdate(Timestep ts) override;
 	virtual void onImGuiRender() override;
 private:
-
-	Shared<Camera> camera;
-
 	Scene scene;
 	Renderer renderer;
 

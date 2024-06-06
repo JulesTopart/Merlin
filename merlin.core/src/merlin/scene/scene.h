@@ -15,7 +15,6 @@ namespace Merlin {
 	class Scene : public RenderableObject {
 		Shared<RenderableObject> m_rootNode = nullptr;
 		Shared<RenderableObject> m_currentNode = nullptr;
-		Shared<Camera> m_camera = nullptr;
 		Shared<Environment> m_environment = nullptr;
 
 	public:
@@ -31,9 +30,6 @@ namespace Merlin {
 		bool hasEnvironment() const;
 		void setEnvironment(Shared<Environment> environment);
 		Shared<Environment> getEnvironment() const;
-
-		void setCamera(Shared<Camera> camera);
-		Camera& camera();
 
 		const std::list<Shared<RenderableObject>>& nodes() const;
 

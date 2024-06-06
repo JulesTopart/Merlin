@@ -1,9 +1,13 @@
 #version 430
-
+#include "../common/shaders/colors.comp"
 layout(location = 0) in vec3 _position;
 
 layout(std430) buffer position_buffer {
 	vec4 ssbo_position[];
+};
+
+layout(std430) buffer old_position_buffer {
+	vec4 ssbo_old_position[];
 };
 
 out vec4 position;
@@ -20,7 +24,7 @@ void main() {
 	vec3 offset = ssbo_position[i].xyz;
 	position = model * (vec4(_position + vec3(offset),1));
 	screen_position = projection * view * position;
-	color = vec4(1);
+	color = colorMap(length(ssbo_position[i].xyz - ssbo_old_position[i].xyz)*100.0,parula);
 	mv = projection * view;
 		
 	gl_Position = screen_position;
