@@ -90,7 +90,7 @@ void ExampleLayer::onAttach(){
 	scene.add(cube);
 	scene.add(model);
 	scene.add(floor);
-	scene.setCamera(camera);
+	//scene.setCamera(camera);
 
 	/*
 	Shared<Environment> env;

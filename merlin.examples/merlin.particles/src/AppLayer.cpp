@@ -60,30 +60,33 @@ void AppLayer::setupScene() {
 void AppLayer::setupPhysics() {
 
 	std::vector<glm::vec4> position;
+	std::vector<glm::vec4> velocity;
 	for(float y = -24.5 * 0.5; y < 25 * 0.5; y += 0.25*0.5)
 		for (float x = -24.5 * 0.5; x < 25 * 0.5; x += 0.25*0.5) {
 			position.push_back(glm::vec4(x, y, (0.5*(x + y) + 25.0)/20.0, 0));
+			velocity.push_back(glm::vec4(0));
+
 	}
 
 	ps = ParticleSystem::create("Particles", position.size());
 
 	SSBO_Ptr<glm::vec4> pos = SSBO<glm::vec4>::create("position_buffer", position.size(),position.data(), BufferUsage::STATIC_DRAW);
-	SSBO_Ptr<glm::vec4> old_pos = SSBO<glm::vec4>::create("old_position_buffer", position.size(),position.data(), BufferUsage::STATIC_DRAW);
+	SSBO_Ptr<glm::vec4> vel = SSBO<glm::vec4>::create("velocity_buffer", velocity.size(), velocity.data(), BufferUsage::STATIC_DRAW);
 
 	ps->addField(pos);
-	ps->addField(old_pos);
+	ps->addField(vel);
 
-	solver = StagedComputeShader::create("solver", "assets/shaders/solver.comp", 2);
+	solver = ComputeShader::create("solver", "assets/shaders/solver.comp");
 	ps->addProgram(solver);
 	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 	ps->setShader(Shader::create("particle", "./assets/shaders/particle.vert", "./assets/shaders/particle.frag"));
 
 	ps->link("particle", "position_buffer");
-	ps->link("particle", "old_position_buffer");
+	ps->link("particle", "velocity_buffer");
 	ps->solveLink(ps->getShader());
 
 	ps->link("solver", "position_buffer");
-	ps->link("solver", "old_position_buffer");
+	ps->link("solver", "velocity_buffer");
 	ps->solveLink(solver);
 
 	solver->use();
@@ -99,7 +102,7 @@ void AppLayer::onAttach(){
 	renderer.disableFaceCulling();
 	renderer.setEnvironmentGradientColor(0.903, 0.803, 0.703);
 	//renderer.showLights();
-	glfwSwapInterval(0);
+	//glfwSwapInterval(0);
 
 	setupScene();
 	setupPhysics();
@@ -113,7 +116,11 @@ void AppLayer::onEvent(Event& event){
 
 void AppLayer::onPhysicsUpdate(Timestep ts) {
 	solver->use();
-	solver->executeAll();
+	for (int i = 0; i < 20; i++) {
+		solver->dispatch();
+		solver->barrier();
+	}
+
 }
 
 void AppLayer::onUpdate(Timestep ts){

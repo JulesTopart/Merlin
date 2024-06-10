@@ -63,10 +63,11 @@ struct Light {
     vec3 attenuation; //constant, linear, quadratic
     float cutOff;     // For spot lights
     int type;
-    sampler2D shadowMap;
-    samplerCube omniShadowMap;
     mat4 lightSpaceMatrix;
     float far_plane;
+    int castShadow;
+    sampler2D shadowMap;
+    samplerCube omniShadowMap;
 };
 
 uniform samplerCube skybox;
@@ -93,6 +94,7 @@ vec3 gridSamplingDisk[20] = vec3[]
 float computeShadow(Light li, vec4 fragPosLightSpace)
 {   
     if(!useShadows) return 0.0;
+    if(li.castShadow == 0) return 0.0;
     float shadow = 0.0;
 
     if(li.type == DIRECTIONAL_LIGHT){
@@ -124,7 +126,7 @@ float computeShadow(Light li, vec4 fragPosLightSpace)
             shadow = 0.0;
         }
     }else if(li.type == POINT_LIGHT){
-vec3 fragToLight = vin.position - li.position;
+        vec3 fragToLight = vin.position - li.position;
         float currentDepth = length(fragToLight);
 
         float bias = 0.35;
@@ -267,9 +269,8 @@ void main() {
     for (int i = 0; i < numLights; ++i) {
         finalColor += calculateLight(lights[i], N, vin.position, viewDir, ambientColor, diffuseColor, specularColor);
     }
-
     float gamma = 0.7;
-    FragColor.rgb = pow(finalColor.rgb, vec3(1.0/gamma));
+    FragColor.rgb = pow(finalColor.rgb * vin.color.rgb, vec3(1.0/gamma));
     //FragColor.rgb = N* 0.9 + FragColor.rgb * 0.1;
     //FragColor.rgb = normalize(vin.tangentBasis * (-lights[0].direction));
     //FragColor.rgb = normalize(vin.position);

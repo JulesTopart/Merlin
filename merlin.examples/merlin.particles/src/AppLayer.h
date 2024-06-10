@@ -24,7 +24,7 @@ private:
 	Renderer renderer;
 
 	ParticleSystem_Ptr ps;
-	StagedComputeShader_Ptr solver;
+	ComputeShader_Ptr solver;
 	//ParticleSystem_Ptr bs;
 
 	glm::vec3 model_matrix_translation = { 0.8f, 0.2f, 0.3f};

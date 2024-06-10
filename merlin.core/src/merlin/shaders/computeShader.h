@@ -24,6 +24,9 @@ namespace Merlin{
 
 		void printLimits();
 
+		static Shared<ComputeShader> create(const std::string& n, const std::string& file_path) { return createShared<ComputeShader>(n, file_path); };
+
+
 	protected:
 		glm::uvec3 m_wkgrpLayout;
 		GLuint m_shaderID = 0;

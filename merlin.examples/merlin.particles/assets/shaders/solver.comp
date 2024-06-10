@@ -5,13 +5,11 @@
 
 layout (local_size_x = 64) in;
 
-void solve(uint i, uint simStep);
+void solve(uint i);
 
 // --- Domain ---
 uniform uint numParticles = 0;
-uniform float dt = 0.0016;
-uniform uint stage = 0;
-
+uniform float dt = 0.0008;
 // --- Constant ---
 const float particleRadius = 0.038;
 
@@ -20,7 +18,7 @@ void main() {
 	uint i = gl_GlobalInvocationID.x;
 	if (i >= numParticles) return;
 
-	solve(i,stage);
+	solve(i);
 }
 
  
@@ -30,48 +28,28 @@ float sdPlane( vec3 p, vec3 n, float h ){
 }
 
 void solvePlaneCollision(uint i, vec3 normal, vec3 center = vec3(0), float h = 0){
+
     normal = normalize(normal);  // Ensure normal is normalized
-    vec3 pos = xi - center;
-    vec3 delta = xi - Xi;
+    vec3 pos = (xi + vi*dt) - center;
     float distToPlane = dot(pos, normal) - h;
 
-    // Check if there is an overlap
-    if (distToPlane - particleRadius < 1e-6) {
-        // Determine the exact point of intersection (bounce point)
-        float travelDistance = dot(delta, normal);
-        float penetrationDepth = particleRadius - distToPlane;
-        float timeToCollision = penetrationDepth / travelDistance;
+    if (distToPlane < particleRadius) {
+        float dotProduct = dot(vi, normal);
+        if (dotProduct < 0) {
+            vi -= 2.0 * dotProduct * normal;
+            vi *= 0.95;
+        }
 
-        // Compute the exact bounce point
-        vec3 bouncePoint = Xi + delta * timeToCollision * 0.95;
-
-        // Reflect the trajectory
-        float dotProduct = dot(delta, normal);
-        vec3 reflection = delta - 2.0 * dotProduct * normal;
-
-        // Compute the new position from the bounce point
-        xi = bouncePoint + reflection * (1.0 - timeToCollision) * 0.95;
-
-        // Update xi for energy conservation
-        Xi = bouncePoint - (Xi - bouncePoint) * 0.95;
     }
 }
 
 
-void solve(uint i, uint simStep) {
-	
-	if(simStep == 0){
-		vec3 acceleration = vec3(0, 0, -2.81);
-		
-		// Verlet Integration for position update
-		vec3 deltaX = xi - Xi;
-		Xi = xi;
-        xi = xi + deltaX + acceleration * dt * dt;
+void solve(uint i) {
+    vec3 acceleration = vec3(0, 0, -9.8);  // Gravity acceleration
 
-		return;
-	}else if(simStep == 1){
-		solvePlaneCollision(i, vec3(0,0,1));//floor Z+
-		return;
-	}
+    vi += acceleration * dt;
+    solvePlaneCollision(i, vec3(0,0,1));//floor Z+
+    xi += vi * dt;
 
+	return;
 }
