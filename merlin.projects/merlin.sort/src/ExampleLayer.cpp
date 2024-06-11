@@ -91,7 +91,7 @@ double ExampleLayer::bench_gpu(int wkSize){
 	inDataBuffer.rename("inDataBuffer");
 	inDataBuffer.write(unsorted);
 
-	inDataBuffer.bind();
+	outDataBuffer.bind();
 	outDataBuffer.rename("outDataBuffer");
 	outDataBuffer.write(unsorted);
 
@@ -103,7 +103,7 @@ double ExampleLayer::bench_gpu(int wkSize){
 	compactSumBuffer.rename("compactSumBuffer");
 	compactSumBuffer.reserve(blocks);
 
-	inDataBuffer.setBindingPoint(0);
+	
 	outDataBuffer.setBindingPoint(1);
 	prefixSumBuffer.setBindingPoint(2);
 	compactSumBuffer.setBindingPoint(3);

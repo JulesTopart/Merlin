@@ -12,7 +12,7 @@ namespace Merlin {
 	class GLObject {
 	public:
 		GLObject(GLuint id, GLdestructor destroy) noexcept;
-		~GLObject();
+		virtual ~GLObject();
 
 		GLObject(GLObject&& mov) noexcept;
 		GLObject& operator=(GLObject&& mov) noexcept;

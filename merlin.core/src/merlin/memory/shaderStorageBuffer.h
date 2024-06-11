@@ -11,7 +11,7 @@ namespace Merlin {
 		ShaderStorageBuffer(std::string name);
 		ShaderStorageBuffer(std::string name, GLsizeiptr size, T* data, BufferUsage usage = BufferUsage::STATIC_DRAW);
 		ShaderStorageBuffer(std::string name, GLsizeiptr count, BufferUsage usage = BufferUsage::STATIC_DRAW);
-		~ShaderStorageBuffer();
+		virtual ~ShaderStorageBuffer();
 
 		static void copy(Shared<ShaderStorageBuffer> origin, Shared<ShaderStorageBuffer> target, GLsizeiptr size);
 		static Shared<ShaderStorageBuffer<T>> create(std::string name);

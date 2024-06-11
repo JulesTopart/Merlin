@@ -50,7 +50,7 @@ namespace Merlin{
 	class GenericBufferObject : public GLObject<> {
 	public :
 		GenericBufferObject(BufferType type, size_t elementSize, BufferTarget target = BufferTarget::ARRAY_BUFFER, const std::string& name = "buffer"); //default constructor
-		~GenericBufferObject() { releaseBindingPoint(); } //destructor
+		virtual ~GenericBufferObject() { releaseBindingPoint(); } //destructor
 
 		void bind();
 		void bindAs(GLenum target);
@@ -116,7 +116,6 @@ namespace Merlin{
 		
 	};
 	typedef Shared<GenericBufferObject> GenericBufferObject_Ptr;
-
 
 
 	template <typename T>
@@ -198,12 +197,11 @@ namespace Merlin{
 
 		BufferObject(const BufferObject& cpy) = delete;
 		BufferObject(BufferObject&& mov) noexcept = default;
+		virtual ~BufferObject() {};
 
 		BufferObject& operator=(const BufferObject& cpy) = delete; //avoid copying the GLObject
 		BufferObject& operator=(BufferObject&& mov) noexcept = default; //allow to move the GLObject
 
-		
-		void reserve(size_t count); //allcate space into device memory
 		void write(const std::vector<T>& data, BufferUsage = BufferUsage::DEFAULT_USAGE); //write data into device memory
 		void writeSub(size_t offset, const std::vector<T>& data);
 
@@ -274,12 +272,6 @@ namespace Merlin{
 	void BufferObject<T>::read(std::vector<T>& data) const {
 		GenericBufferObject::read<T>(data);
 	}
-
-	template <class T>
-	void BufferObject<T>::reserve(size_t size) {
-		GenericBufferObject::reserve(size * sizeof(T));
-	}
-
 
 	template <class T>
 	void BufferObject<T>::write(const std::vector<T>& data, BufferUsage usage) {
