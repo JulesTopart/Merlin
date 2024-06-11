@@ -138,12 +138,12 @@ namespace Merlin{
 
 	template <typename T>
 	void GenericBufferObject::write(const std::vector<T>& data, BufferUsage usage){
-		writeRaw(data.size() * sizeof(T), data.data(), usage);
+		writeRaw(data.size() * m_typeSize, data.data(), usage);
 	}
 
 	template <typename T>
 	void GenericBufferObject::writeSub(size_t offset, const std::vector<T>& data) {
-		writeRaw(offset * sizeof(T), data.size() * sizeof(T), data.data());
+		writeRaw(offset * m_typeSize, data.size() * m_typeSize, data.data());
 	}
 
 	template<typename T>
@@ -280,7 +280,7 @@ namespace Merlin{
 
 	template <class T>
 	void BufferObject<T>::writeSub(size_t offset, const std::vector<T>& data) {
-		GenericBufferObject::writeSub<T>(offset * sizeof(T), data);
+		GenericBufferObject::writeSub<T>(offset, data);
 	}
 
 	template<class T>
