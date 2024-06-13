@@ -18,7 +18,7 @@ AppLayer::~AppLayer(){}
 
 void AppLayer::onAttach(){
 	Layer2D::onAttach();
-	Console::setLevel(ConsoleLevel::_TRACE);
+
 	glfwSwapInterval(0);
 
 	InitGraphics();
@@ -34,16 +34,13 @@ void AppLayer::onEvent(Event& event){
 
 	if (event.getEventType() == EventType::MouseScrolled) {
 		particleShader->use();
-		particleShader->setFloat("zoomLevel", camera->getZoom());
+		particleShader->setFloat("zoomLevel", camera().getZoom());
 	}
 	else if (event.getEventType() == EventType::WindowResize) {
 		particleShader->use();
-		particleShader->setVec2("WindowSize", glm::vec2(camera->width(), camera->height()));
-
+		//particleShader->setVec2("WindowSize", glm::vec2(camera().width(), camera().height()));
 	}
 }
-
-float t = 0.0;
 
 void AppLayer::onUpdate(Timestep ts){
 	Layer2D::onUpdate(ts);
@@ -53,7 +50,7 @@ void AppLayer::onUpdate(Timestep ts){
 
 	GPU_PROFILE(render_time,
 		renderer.clear();
-		renderer.renderScene(scene, *camera);
+		renderer.renderScene(scene, camera());
 	)
 
 	if (!paused) {
@@ -69,7 +66,6 @@ void AppLayer::SyncUniforms() {
 
 	solver->use();
 
-	//settings.timestep.sync(*solver);
 	settings.particleMass.sync(*solver);
 	settings.restDensity.sync(*solver);
 	solver->setUInt("numParticles", numParticles);
@@ -88,20 +84,6 @@ void AppLayer::SyncUniforms() {
 
 
 
-void AppLayer::ApplyBufferSettings() {
-
-	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	settings.blockSize = floor(log2f(settings.bThread));
-	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
-	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
-
-	solver->SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
-
-	ps->setInstancesCount(settings.pThread);
-	bs->setInstancesCount(settings.bThread);
-	
-}
 
 void AppLayer::InitGraphics() {
 	// init OpenGL stuff
@@ -123,7 +105,7 @@ void AppLayer::InitGraphics() {
 
 	particleShader->use();
 	particleShader->setInt("colorCycle", 3);
-	particleShader->setVec2("WindowSize", glm::vec2(camera->width(), camera->height()));
+	particleShader->setVec2("WindowSize", glm::vec2(camera().width(), camera().height()));
 
 	binShader->use();
 	binShader->setInt("colorCycle", 3);
@@ -155,7 +137,6 @@ void AppLayer::InitPhysics() {
 	bs = ParticleSystem::create("BinSystem", settings.bThread);
 	bs->setDisplayMode(ParticleSystemDisplayMode::MESH);
 	bs->setMesh(binInstance);
-	bs->setShader(binShader);
 	bs->enableWireFrameMode();
 
 	solver->SetWorkgroupLayout(settings.pWkgCount);
@@ -167,6 +148,7 @@ void AppLayer::InitPhysics() {
 	SSBO_Ptr<Bin> binBuffer = SSBO<Bin>::create("BinBuffer",settings.bThread);
 
 	//attach Buffers
+	ps->setShader(particleShader);
 	ps->addProgram(solver);
 	ps->addField<glm::vec2>("PositionBuffer");
 	ps->addField<glm::vec2>("cpyPositionBuffer");
@@ -181,6 +163,7 @@ void AppLayer::InitPhysics() {
 	ps->addField(binBuffer);
 	ps->solveLink(solver);
 
+	bs->setShader(binShader);
 	bs->addProgram(prefixSum);
 	bs->addField(binBuffer);
 	bs->solveLink(prefixSum);
@@ -192,10 +175,6 @@ void AppLayer::InitPhysics() {
 	ps->link(particleShader->name(), "MetaBuffer");
 	ps->solveLink(particleShader);
 
-	bs->link(binShader->name(), "PositionBuffer");
-	bs->link(binShader->name(), "VelocityBuffer");
-	bs->link(binShader->name(), "TemperatureBuffer");
-	bs->link(binShader->name(), "MetaBuffer");
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
 
@@ -233,13 +212,22 @@ void AppLayer::ResetSimulation() {
 		numParticles++;
 	}
 
-
-	Console::info() << "Uploading buffer on device..." << Console::endl;
+	
 	settings.pThread = numParticles;
 	
-	ApplyBufferSettings();
-	SyncUniforms();
+	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
+	settings.blockSize = floor(log2f(settings.bThread));
+	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
+	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
 
+	solver->SetWorkgroupLayout(settings.pWkgCount);
+	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
+
+	ps->setInstancesCount(settings.pThread);
+	bs->setInstancesCount(settings.bThread);
+
+	SyncUniforms();
+	Console::info() << "Uploading buffer on device..." << Console::endl;
 	ps->writeField("PositionBuffer", cpu_position.data());
 	ps->writeField("PredictedPositionBuffer", cpu_predictedPosition.data());
 	ps->writeField("VelocityBuffer", cpu_velocity.data());
@@ -380,7 +368,7 @@ void AppLayer::onImGuiRender() {
 	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 200);
 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
-		camera->setPosition(model_matrix_translation);
+		camera().setPosition(model_matrix_translation);
 	}
 
 	if (ImGui::InputFloat("Time step", &settings.timestep.value(), 0.0, 0.02f)) {

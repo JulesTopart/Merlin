@@ -26,7 +26,6 @@ public:
 	void ResetSimulation();
 
 	void SyncUniforms();
-	void ApplyBufferSettings();
 
 	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);

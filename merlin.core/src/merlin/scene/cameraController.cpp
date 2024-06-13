@@ -126,7 +126,6 @@ namespace Merlin {
 		_ZoomLevel = std::min<float>(_ZoomLevel, 500.f);
 		_ZoomLevel = std::max<float>(_ZoomLevel, 0.1);
 		_Camera->setZoom(_ZoomLevel);
-		Console::print() << _ZoomLevel << Console::endl;
 		return false;
 	}
 

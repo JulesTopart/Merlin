@@ -47,15 +47,20 @@ namespace Merlin {
 		Shared<Shader> getShader(std::string n);
 		Shared<MaterialBase> getMaterial(std::string n);
 
+		inline void resetGlobalTransform() { m_globalTransform = glm::mat4(1); }
+		inline void applyGlobalTransform(glm::mat4 globalTransform) {m_globalTransform = globalTransform;}
+
 	private:
 		bool use_shadows = true;
 		bool use_environment = true;
-
 		bool display_lights = false;
+		
 		void pushMatrix();
 		void popMatrix();
 		void resetMatrix();
 		
+		glm::mat4 m_globalTransform;
+
 		bool debug = false;
 
 		glm::mat4 currentTransform;

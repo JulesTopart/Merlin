@@ -70,7 +70,7 @@ namespace Merlin{
 	void ParticleSystem::writeField(const std::string& name, void* data){
 		if (hasField(name)) {
 			m_fields[name]->bind();
-			m_fields[name]->writeRaw(m_fields[name]->size(), data);
+			m_fields[name]->writeRaw(m_fields[name]->dataSize() * m_instancesCount, data);
 		}
 	}
 
@@ -96,9 +96,6 @@ namespace Merlin{
 			m_links.erase(m_shader->name());
 		m_shader = shader;
 		m_currentProgram = m_shader->name();
-		if (hasField("position_buffer")) { //automatically link position_buffer
-			link(m_shader->name(), "position_buffer");
-		}
 	}
 
 	bool ParticleSystem::hasShader() const{

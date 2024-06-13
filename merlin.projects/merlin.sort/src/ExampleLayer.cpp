@@ -7,6 +7,7 @@ using namespace Merlin;
 #include <algorithm>
 #include <random>
 #include <GLFW/glfw3.h>
+#include <execution>
 
 ExampleLayer::ExampleLayer(){}
 
@@ -75,12 +76,12 @@ void ExampleLayer::onAttach(){
 
 	std::vector<std::string> results;
 
-	GLuint dataSize = 512 * 512 * 512;
-
+	for (GLuint dataSize = 512; dataSize <= 512*512*512; dataSize*=2)
 	for(GLuint wkIndex = 0; wkIndex <= 6; wkIndex++)
 		for (GLuint i = 0; i < 10; i++) {
 			GLuint wk = getwkSize(wkIndex);
 			Console::print() << "Starting new benchmark over " << dataSize << " entry " << ", using " << wk << " thread per workgroup" << Console::endl;
+			//results.push_back( std::to_string(dataSize) + ";" + std::to_string(wk) + ";" + std::to_string(i) + ";" + std::to_string(bench_cpu(dataSize)) + Console::endl);
 			results.push_back( std::to_string(dataSize) + ";" + std::to_string(wk) + ";" + std::to_string(i) + ";" + std::to_string(bench_cpu(dataSize)) + ";" + std::to_string(bench_gpu(wk, dataSize)) + Console::endl);
 		}
 
@@ -113,7 +114,7 @@ double ExampleLayer::bench_cpu(int n) {
 	std::shuffle(unsorted.begin(), unsorted.end(), std::default_random_engine());
 
 	double time = (double)glfwGetTime();
-	std::sort(unsorted.begin(), unsorted.end());
+	std::sort(std::execution::par, unsorted.begin(), unsorted.end());
 	double delta = (double)glfwGetTime() - time;
 	Console::success("Sorting") << "CPU Computation finished in " << delta << "s (" << delta * 1000.0 << " ms)" << Console::endl;
 

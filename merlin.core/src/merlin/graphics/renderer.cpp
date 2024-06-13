@@ -13,6 +13,7 @@ namespace Merlin {
 
 
 	void Renderer::initialize() {
+		resetGlobalTransform();
 		enableMultisampling();
 		enableSampleShading();
 		enableDepthTest();
@@ -36,7 +37,7 @@ namespace Merlin {
 		while(!matrixStack.empty()) {
 			matrixStack.pop();
 		}
-		currentTransform = glm::mat4(1);
+		currentTransform = m_globalTransform;
 	}
 
 	void Renderer::renderScene(const Scene& scene, const Camera& camera) {

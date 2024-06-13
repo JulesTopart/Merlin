@@ -68,6 +68,7 @@ namespace Merlin{
 
 		inline BufferTarget target() const { return m_target; }
 		inline size_t size() const { return m_bufferSize; }
+		inline size_t dataSize() const { return m_typeSize; }
 		inline GLuint bindingPoint() const { return m_bindingPoint; }
 
 		void reserveRaw(size_t size, BufferUsage usage); //allocate space into device memory
@@ -78,7 +79,6 @@ namespace Merlin{
 
 
 		//templates
-	protected:
 		template <typename T>
 		void write(const std::vector<T>& data, BufferUsage = BufferUsage::DEFAULT_USAGE); //write data into device memory
 
