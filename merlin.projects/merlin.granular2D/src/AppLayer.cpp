@@ -36,7 +36,7 @@ void AppLayer::onEvent(Event& event){
 	}
 	else if (event.getEventType() == EventType::WindowResize) {
 		particleShader->use();
-		//particleShader->setVec2("WindowSize", glm::vec2(camera().width(), camera().height()));
+		particleShader->setVec2("WindowSize", glm::vec2(camera().width(), camera().height()));
 	}
 }
 
@@ -90,9 +90,15 @@ void AppLayer::InitGraphics() {
 	renderer.disableEnvironment();
 	renderer.enableTransparency();
 	renderer.enableSampleShading();
+	renderer.disableShadows();
 
 	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
 	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
+	particleShader->noEnvironment();
+	particleShader->noMaterial();
+	particleShader->noTexture();
+	particleShader->noLights();
+	particleShader->noShadows();
 
 	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
 	binShader->noEnvironment();

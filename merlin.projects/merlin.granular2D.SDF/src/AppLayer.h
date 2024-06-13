@@ -10,10 +10,9 @@ using namespace Merlin;
 #define GRANULAR 4
 #define BOUNDARY 5
 
-class AppLayer : public Merlin::Layer{
+class AppLayer : public Merlin::Layer2D {
 public:
-	AppLayer();
-	virtual ~AppLayer();
+	AppLayer() {};
 
 	void onAttach() override;
 	void onDetach() override;
@@ -26,7 +25,6 @@ public:
 	void ResetSimulation();
 
 	void SyncUniforms();
-	void ApplyBufferSettings();
 
 	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);
@@ -35,35 +33,18 @@ public:
 private:
 
 	//--- Graphics ---
-	Camera_Ptr camera;
-	CameraController_Ptr cameraController;
-
 	Scene scene;
 	Renderer renderer;
 
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;
 
-	deprecated_ParticleSystem_Ptr particleSystem;
-	deprecated_ParticleSystem_Ptr binSystem;
+	ParticleSystem_Ptr ps;
+	ParticleSystem_Ptr bs;
 
 	//--- Solver and sort programs ---
 	StagedComputeShader_Ptr solver;
 	StagedComputeShader_Ptr prefixSum;
-
-	// --- Buffers ---
-	SSBO_Ptr<Bin> binBuffer; //Particle buffer
-	SSBO_Ptr<glm::vec2> positionBuffer; // Position buffer
-	SSBO_Ptr<glm::vec2> cpyPositionBuffer; // Copy of the position buffer
-	SSBO_Ptr<glm::vec2> predictedPositionBuffer; // Predicted position buffer
-	SSBO_Ptr<glm::vec2> cpyPredictedPositionBuffer; // Copy of the predicted position buffer
-	SSBO_Ptr<glm::vec2> velocityBuffer; // Velocity buffer
-	SSBO_Ptr<glm::vec2> cpyVelocityBuffer; // Copy of the velocity buffer
-	SSBO_Ptr<float> temperatureBuffer; // Density buffer
-	SSBO_Ptr<float> cpyTemperatureBuffer; // Copy of the density buffer
-	SSBO_Ptr<glm::uvec4> metaBuffer; // Meta buffer containing phase, bin index, id, sortedID
-	SSBO_Ptr<glm::uvec4> cpymetaBuffer; // Copy of the meta buffer
-
 
 	//Simulation
 	Settings settings;
@@ -84,8 +65,6 @@ private:
 	bool integrate = true;
 	float sim_speed = 1;
 	float camera_speed = 1;
-	float FPS = 0;
-	float FPS_sample = 0;
 	bool mousePressed = false;
 
 };

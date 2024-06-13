@@ -24,7 +24,7 @@ struct Particle {
 
 struct Settings {
 	const float particleRadius = 0.25;
-	const float smoothingRadius = 4 * particleRadius;
+	const float smoothingRadius = 5 * particleRadius;
 	const float bWidth = smoothingRadius;
 
 
@@ -32,7 +32,7 @@ struct Settings {
 	glm::vec2 bb = glm::vec2(300, 300);
 
 	// Physics Parameters
-	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);
+	Uniform<float> timestep							= Uniform<float>("dt", 0.00016);
 	Uniform<float> restDensity						= Uniform<float>("restDensity", 1.0);
 	Uniform<float> particleMass						= Uniform<float>("particleMass", smoothingRadius);
 	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 0.5);
@@ -50,7 +50,7 @@ struct Settings {
 	float overRelaxation = 1.0;
 
 	//calulated
-	GLuint pWkgSize = 1024; //Number of thread per workgroup
+	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint bWkgSize = 128; //Number of thread per workgroup
 
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
