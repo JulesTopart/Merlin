@@ -30,7 +30,6 @@ namespace Merlin {
 		}
 	}
 
-
 	GenericBufferObject::GenericBufferObject(BufferType type, size_t typeSize, BufferTarget target, const std::string& name) : GLObject(create(), destroy), m_type(type), m_typeSize(typeSize){
 		m_target = target;
 		m_bufferSize = 0;
@@ -112,8 +111,8 @@ namespace Merlin {
 		resizeRaw(size * m_typeSize);
 	}
 
-	void GenericBufferObject::reserve(size_t size) {
-		reserveRaw(size * m_typeSize);
+	void GenericBufferObject::reserve(size_t size, BufferUsage usage) {
+		reserveRaw(size * m_typeSize, usage);
 	}
 
 	void GenericBufferObject::writeRaw(size_t bytesize, const void* data, BufferUsage usage) {
@@ -121,7 +120,7 @@ namespace Merlin {
 		if (bytesize != m_bufferSize) {
 			m_bufferSize = bytesize;
 			float gb, mb, kb = bytesize / 1000.0; mb = kb / 1000.0; gb = mb / 1000.0;
-			Console::info("Buffer") << "allocating " << name().c_str() << " with " << int(m_bufferSize) << " elements" << Console::endl;
+			Console::info("Buffer") << "allocating " << name().c_str() << " with " << int(m_bufferSize/m_typeSize) << " elements" << Console::endl;
 			Console::info("Buffer") << "bound to binding point " << m_bindingPoint << Console::endl;
 			if (gb > 0.5)		Console::info("Buffer") << "allocating " << gb << "GB of GPU Memory" << Console::endl;
 			else if (mb > 0.5)	Console::info("Buffer") << "allocating " << mb << "MB of GPU Memory" << Console::endl;
@@ -143,14 +142,14 @@ namespace Merlin {
 		}
 	}
 
-	void GenericBufferObject::reserveRaw(size_t bytesize) {
-		m_bufferSize = bytesize;
-		glNamedBufferData(id(), m_bufferSize, nullptr, static_cast<GLenum>(m_usage));
+	void GenericBufferObject::reserveRaw(size_t bytesize, BufferUsage usage) {
+		writeRaw(bytesize, nullptr, usage);
+		clear();
 	}
 
 	void GenericBufferObject::clear() {
 		m_bufferSize = 0;
-		glNamedBufferData(id(), 0, nullptr, static_cast<GLenum>(m_usage));
+		glClearNamedBufferData(id(), GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, 0);
 	}
 
 	void GenericBufferObject::resizeRaw(GLuint byteSize){
@@ -158,7 +157,7 @@ namespace Merlin {
 		recreate(create());
 		bindAs(GL_COPY_WRITE_BUFFER);
 		GLsizeiptr oldSize = size();
-		reserveRaw(byteSize);
+		reserveRaw(byteSize, m_usage);
 		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, oldSize);
 	}
 

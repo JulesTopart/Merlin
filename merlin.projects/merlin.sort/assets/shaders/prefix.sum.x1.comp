@@ -1,6 +1,6 @@
 #include "common.glsl"
 
-const uint wgSize = 1; //WorkGroup size
+const uint wgSize = 1024; //WorkGroup size
 layout(local_size_x = wgSize) in;
 
 layout(std430) buffer compactSumBuffer {

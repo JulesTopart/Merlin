@@ -191,6 +191,7 @@ namespace Merlin {
 		setUInt("stage", m_stage);
 		dispatch(m_wkgrpLayout.x, m_wkgrpLayout.y, m_wkgrpLayout.z);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glFinish();
 		m_stage++;
 	}
 	void StagedComputeShader::execute(GLuint i) {

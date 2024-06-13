@@ -3,12 +3,6 @@
 #include <glm/glm.hpp>
 
 
-struct Bin {
-	GLuint count; //particle count in the bin
-	GLuint sum;   //global sum
-	GLuint csum;  //local sum
-	GLuint index; //bin index
-};
 
 struct Particle {
 	glm::vec2 position;
@@ -21,6 +15,14 @@ struct Particle {
 	GLuint id;
 	GLuint padding;
 };
+
+struct Bin {
+	GLuint count; //particle count in the bin
+	GLuint sum;   //global sum
+	GLuint csum;  //local sum
+	GLuint index; //bin index
+};
+
 
 struct Settings {
 	const float particleRadius = 0.25;

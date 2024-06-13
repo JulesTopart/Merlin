@@ -50,7 +50,7 @@ namespace Merlin{
 	class GenericBufferObject : public GLObject<> {
 	public :
 		GenericBufferObject(BufferType type, size_t elementSize, BufferTarget target = BufferTarget::ARRAY_BUFFER, const std::string& name = "buffer"); //default constructor
-		virtual ~GenericBufferObject() { releaseBindingPoint(); } //destructor
+		~GenericBufferObject() { releaseBindingPoint(); } //destructor
 
 		void bind();
 		void bindAs(GLenum target);
@@ -63,14 +63,14 @@ namespace Merlin{
 		void* map();
 		void unmap();
 		void clear();
-		void reserve(size_t size); //allcate space into device memory
+		void reserve(size_t size, BufferUsage usage = BufferUsage::DEFAULT_USAGE); //allcate space into device memory
 		void resize(size_t size); //allcate space into device memory
 
 		inline BufferTarget target() const { return m_target; }
 		inline size_t size() const { return m_bufferSize; }
 		inline GLuint bindingPoint() const { return m_bindingPoint; }
 
-		void reserveRaw(size_t size); //allocate space into device memory
+		void reserveRaw(size_t size, BufferUsage usage); //allocate space into device memory
 		void writeRaw(size_t size, const void* data, BufferUsage = BufferUsage::DEFAULT_USAGE);
 		void writeSubRaw(size_t offset, size_t size, const void* data);
 		void resizeRaw(GLuint byteSize); //resize buffer while keeping content
@@ -78,7 +78,7 @@ namespace Merlin{
 
 
 		//templates
-
+	protected:
 		template <typename T>
 		void write(const std::vector<T>& data, BufferUsage = BufferUsage::DEFAULT_USAGE); //write data into device memory
 
@@ -143,7 +143,7 @@ namespace Merlin{
 
 	template <typename T>
 	void GenericBufferObject::writeSub(size_t offset, const std::vector<T>& data) {
-		writeRaw(offset * m_typeSize, data.size() * m_typeSize, data.data());
+		writeSubRaw(offset * m_typeSize, data.size() * m_typeSize, data.data());
 	}
 
 	template<typename T>
@@ -197,7 +197,7 @@ namespace Merlin{
 
 		BufferObject(const BufferObject& cpy) = delete;
 		BufferObject(BufferObject&& mov) noexcept = default;
-		virtual ~BufferObject() {};
+		~BufferObject() {};
 
 		BufferObject& operator=(const BufferObject& cpy) = delete; //avoid copying the GLObject
 		BufferObject& operator=(BufferObject&& mov) noexcept = default; //allow to move the GLObject
@@ -256,6 +256,10 @@ namespace Merlin{
 		m_usage = usage;
 		writeRaw(size * sizeof(T), data, usage);
 	}
+
+
+
+
 
 	// methods
 	template <class T>
