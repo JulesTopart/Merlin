@@ -12,8 +12,7 @@ using namespace Merlin;
 
 class AppLayer : public Merlin::Layer2D{
 public:
-	AppLayer();
-	virtual ~AppLayer();
+	AppLayer() {};
 
 	void onAttach() override;
 	void onDetach() override;
@@ -33,7 +32,6 @@ public:
 private:
 
 	//--- Graphics ---
-
 	Scene scene;
 	Renderer renderer;
 

@@ -13,8 +13,6 @@ using namespace Merlin;
 #define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
-AppLayer::AppLayer(){}
-AppLayer::~AppLayer(){}
 
 void AppLayer::onAttach(){
 	Layer2D::onAttach();
