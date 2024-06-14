@@ -27,9 +27,12 @@ namespace Merlin {
 		void setInstancesCount(size_t count);
 
 		GenericBufferObject_Ptr getField(const std::string& name) const;
+		GenericBufferObject_Ptr getBuffer(const std::string& name) const;
 		
 		void addField(GenericBufferObject_Ptr buf);
+		void addBuffer(GenericBufferObject_Ptr buf);
 		bool hasField(const std::string& name) const;
+		bool hasBuffer(const std::string& name) const;
 		void writeField(const std::string& name, void* data);
 
 		void addProgram(ComputeShader_Ptr program);
@@ -64,6 +67,9 @@ namespace Merlin {
 		template<typename T>
 		void addField(const std::string& name);
 
+		template<typename T>
+		void addBuffer(const std::string& name);
+
 		static Shared<ParticleSystem> create(const std::string&, size_t count);
 
 
@@ -83,6 +89,7 @@ namespace Merlin {
 		//Simulation
 		std::map<std::string, ComputeShader_Ptr> m_programs; //Shader to compute the particle position
 		std::map<std::string, GenericBufferObject_Ptr> m_fields; //Buffer to store particles fields
+		std::map<std::string, GenericBufferObject_Ptr> m_buffers; //Buffer to store particles fields
 		std::map<std::string, std::vector<std::string>> m_links;
 
 		std::string m_currentProgram = "";

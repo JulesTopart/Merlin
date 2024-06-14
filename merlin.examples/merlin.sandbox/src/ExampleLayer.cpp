@@ -51,7 +51,7 @@ void ExampleLayer::onAttach(){
 	light->setAttenuation(glm::vec3(0.6, 0.08, 0.008));
 	light->setAmbient(0.05, 0.05, 0.05);
 	light->setDiffuse(1, 1, 1);
-	scene.add(light);
+	//scene.add(light);
 	/**/
 
 	Shared<DirectionalLight>  dirlight;
@@ -60,27 +60,27 @@ void ExampleLayer::onAttach(){
 	dirlight = createShared<DirectionalLight>("light1", glm::vec3(-0.5f, 0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1.0, 1.0, 1.0));
-	scene.add(dirlight);
+	//scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light2", glm::vec3(0.5f, 0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1));
-	scene.add(dirlight);
+	//scene.add(dirlight);
 	/**/
 
 	/**/
 	dirlight = createShared<DirectionalLight>("light3", glm::vec3(0.0f, -0.5f, -0.8f));
 	dirlight->translate(dirlight->direction() * glm::vec3(-10));
 	dirlight->setDiffuse(glm::vec3(1));
-	scene.add(dirlight);
+	//scene.add(dirlight);
 	/**/
 
 	/**/
 	Shared<AmbientLight> amLight = createShared<AmbientLight>("light4");
 	amLight->setAmbient(glm::vec3(0.1));
-	scene.add(amLight);
+	//scene.add(amLight);
 	/**/
 
 	Model_Ptr cube = Model::create("cube", Primitives::createCube(0.5));

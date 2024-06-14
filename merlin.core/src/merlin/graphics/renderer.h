@@ -51,18 +51,19 @@ namespace Merlin {
 		inline void applyGlobalTransform(glm::mat4 globalTransform) {m_globalTransform = globalTransform;}
 
 	private:
+		bool debug = false;
 		bool use_shadows = true;
 		bool use_environment = true;
 		bool display_lights = false;
 		
+		Shared<AmbientLight> m_defaultAmbient;
+		Shared<DirectionalLight> m_defaultDirLight;
+
 		void pushMatrix();
 		void popMatrix();
 		void resetMatrix();
 		
-		glm::mat4 m_globalTransform;
-
-		bool debug = false;
-
+		glm::mat4 m_globalTransform = glm::mat4(1);
 		glm::mat4 currentTransform;
 		std::stack<glm::mat4> matrixStack;
 		std::vector<Shared<Light>> m_activeLights;

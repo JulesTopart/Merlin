@@ -53,6 +53,16 @@ namespace Merlin{
 		}
 	}
 
+	GenericBufferObject_Ptr ParticleSystem::getBuffer(const std::string& name) const {
+		if (hasBuffer(name)) {
+			return m_buffers.at(name);
+		}
+		else {
+			Console::error("ParticleSystem") << "Unknown field " << name << Console::endl;
+			return nullptr;
+		}
+	}
+
 
 	void ParticleSystem::addField(GenericBufferObject_Ptr field) {
 		if (hasField(field->name())) {
@@ -63,8 +73,23 @@ namespace Merlin{
 			link(m_currentProgram, field->name());
 		}
 	}
+
+	void ParticleSystem::addBuffer(GenericBufferObject_Ptr buf){
+		if (hasBuffer(buf->name())) {
+			Console::warn("ParticleSystem") << buf->name() << "has been overwritten" << Console::endl;
+		}
+		m_buffers[buf->name()] = buf;
+		if (hasLink(m_currentProgram)) {
+			link(m_currentProgram, buf->name());
+		}
+	}
+
 	bool ParticleSystem::hasField(const std::string& name) const{
 		return m_fields.find(name) != m_fields.end();
+	}
+
+	bool ParticleSystem::hasBuffer(const std::string& name) const {
+		return m_buffers.find(name) != m_buffers.end();
 	}
 
 	void ParticleSystem::writeField(const std::string& name, void* data){
@@ -121,6 +146,8 @@ namespace Merlin{
 			for (auto& entry : m_links[shader->name()]) {
 				if(hasField(entry))
 					shader->attach(*getField(entry));
+				else if(hasBuffer(entry))
+					shader->attach(*getBuffer(entry));
 				else
 					Console::error("ParticleSystem") << entry << " is not registered as field in the particle system" << Console::endl;
 				

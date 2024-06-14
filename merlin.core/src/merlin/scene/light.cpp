@@ -143,7 +143,6 @@ namespace Merlin {
 		float near_plane = 1.0f;
 		float far_plane = 25.0f;
 		m_lightSpaceMatrix = glm::perspective(glm::radians(90.0f), 1.0f, near_plane, far_plane);
-
 	}
 
 
@@ -153,7 +152,6 @@ namespace Merlin {
 		glm::vec3 _Up = glm::normalize(glm::cross(_Right, _Front));
 
 		return glm::lookAt(position, position + _Front, _Up);
-
 	}
 
 
@@ -178,7 +176,6 @@ namespace Merlin {
 
 		for (int i = 0; i < m_shadowTransforms.size(); i++) {
 			shader.setMat4("shadowMatrices[" + std::to_string(i) + "]", m_shadowTransforms[i]);
-			//Console::info() << position() << Console::endl;
 		}
 
 		shader.setVec3("lightPos", position());
@@ -190,9 +187,9 @@ namespace Merlin {
 		shader.setVec3(base + ".ambient", ambient());
 		shader.setVec3(base + ".diffuse", glm::vec3(0));
 		shader.setVec3(base + ".specular", glm::vec3(0));
-		shader.setVec3(base + ".attenuation", attenuation());
+		//shader.setVec3(base + ".attenuation", attenuation());
 		shader.setInt(base + ".type", static_cast<int>(type()));
-		shader.setVec3(base + ".position", glm::vec3(getRenderTransform() * glm::vec4(glm::vec3(0,0,1000000), 1.0f)));
+		//shader.setVec3(base + ".position", glm::vec3(getRenderTransform() * glm::vec4(glm::vec3(0,0,1000000), 1.0f)));
 	}
 
 	void SpotLight::attach(int id, Shader& shader) {

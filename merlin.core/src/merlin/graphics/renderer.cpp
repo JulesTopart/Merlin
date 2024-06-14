@@ -11,7 +11,6 @@ namespace Merlin {
 
 	Renderer::~Renderer() {}
 
-
 	void Renderer::initialize() {
 		resetGlobalTransform();
 		enableMultisampling();
@@ -20,6 +19,8 @@ namespace Merlin {
 		enableCubeMap();
 		enableFaceCulling();
 		m_defaultEnvironment = createShared<Environment>("defaultEnvironment", 16);
+		m_defaultAmbient = createShared<AmbientLight>("defaultAmbientLight");
+		m_defaultDirLight = createShared<DirectionalLight>("defaultDirLight", glm::vec3(1,0.6,-1));
 	}
 
 	void Renderer::pushMatrix() {
@@ -52,17 +53,21 @@ namespace Merlin {
 		}
 		if(debug)Console::info() << "Rendering scene shadows" << Console::endl;
 
-		if(useFaceCulling()) glDisable(GL_CULL_FACE);
+		if (m_activeLights.size() == 0) {
+			m_activeLights.push_back(m_defaultAmbient);
+			m_activeLights.push_back(m_defaultDirLight);
+		}
+
 		if (use_shadows) {
+			if (useFaceCulling()) glDisable(GL_CULL_FACE);
 			for (const auto& light : m_activeLights) {
 				if (!light->castShadow()) continue;
 				castShadow(light, scene);
 			}
+			if (useFaceCulling()) glEnable(GL_CULL_FACE);
 		}
-		if (useFaceCulling()) glEnable(GL_CULL_FACE);
-
+		
 		camera.restoreViewport();
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//Render the scene
 		if (debug)Console::info() << "Rendering scene objects" << Console::endl;
 		for (const auto& node : scene.nodes()) {
@@ -146,7 +151,7 @@ namespace Merlin {
 		if (debug)Console::info() << "Rendering Mesh" << Console::endl;
 		Material_Ptr mat = nullptr;
 		Shader_Ptr shader = nullptr;
-		
+
 		if (mesh.hasMaterial()) mat = mesh.getMaterial();
 		else mat = getMaterial(mesh.getMaterialName());
 
@@ -154,12 +159,13 @@ namespace Merlin {
 			shader = mesh.getShader();
 		else {
 			if (mesh.getShaderName() == "default") {
-				if(mat->type() == MaterialType::PHONG) shader = getShader("default.phong");
-				else if(mat->type() == MaterialType::PBR) shader = getShader("default.pbr");
+				if (mat->type() == MaterialType::PHONG) shader = getShader("default.phong");
+				else if (mat->type() == MaterialType::PBR) shader = getShader("default.pbr");
 				else {
 					Console::error("Renderer") << "This material has no suitable shader. Please bind it manually" << Console::endl;
 				}
-			}else shader = getShader(mesh.getShaderName());
+			}
+			else shader = getShader(mesh.getShaderName());
 		}
 
 		if (!shader) {
@@ -169,9 +175,11 @@ namespace Merlin {
 
 		Texture2D::resetTextureUnits();
 		shader->use();
-		
-		for (int i = 0; i < m_activeLights.size(); i++) {
-			m_activeLights[i]->attach(i, *shader);
+
+		if (shader->supportLights()) {
+			for (int i = 0; i < m_activeLights.size(); i++) {
+				m_activeLights[i]->attach(i, *shader);
+			}
 		}
 
 		mat->attach(*shader);
@@ -186,19 +194,22 @@ namespace Merlin {
 		
 		shader->setInt("useShadows", use_shadows);
 
-
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 		shader->setInt("numLights", m_activeLights.size());
 
 		mesh.draw();
 		mat->detach();
 
-		if (m_currentEnvironment != nullptr)
-			m_currentEnvironment->detach();
-		else m_defaultEnvironment->detach();
+		if (shader->supportEnvironment()) {
+			if (m_currentEnvironment != nullptr)
+				m_currentEnvironment->detach();
+			else m_defaultEnvironment->detach();
+		}
 
-		for (int i = 0; i < m_activeLights.size(); i++) {
-			m_activeLights[i]->detach();
+		if(shader->supportLights()) {
+			for (int i = 0; i < m_activeLights.size(); i++) {
+				m_activeLights[i]->detach();
+			}
 		}
 
 	}
@@ -276,7 +287,7 @@ namespace Merlin {
 		else if (ps.getDisplayMode() == ParticleSystemDisplayMode::MESH) {
 			Mesh& mesh = *ps.getMesh();
 			Material_Ptr mat = mesh.getMaterial();
-			Shader_Ptr shader;;
+			Shader_Ptr shader;
 
 			if (ps.hasShader()) shader = ps.getShader();
 			else shader = getShader("instanced.phong");
@@ -297,9 +308,11 @@ namespace Merlin {
 
 			mat->attach(*shader);
 
-			if (m_currentEnvironment != nullptr)
-				m_currentEnvironment->attach(*shader);
-			else m_defaultEnvironment->attach(*shader);
+			if (shader->supportEnvironment()) {
+				if (m_currentEnvironment != nullptr)
+					m_currentEnvironment->attach(*shader);
+				else m_defaultEnvironment->attach(*shader);
+			}
 
 			if (shader->supportLights()) shader->setVec3("viewPos", camera.getPosition()); //sync model matrix with GPU
 			shader->setMat4("model", currentTransform); //sync model matrix with GPU
@@ -307,14 +320,16 @@ namespace Merlin {
 			if (shader->supportShadows())shader->setInt("useShadows", use_shadows);
 
 			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
-			if(shader->supportLights()) shader->setInt("numLights", m_activeLights.size());
+			if (shader->supportLights()) shader->setInt("numLights", m_activeLights.size());
 
 			ps.draw();
 			mat->detach();
 
-			if (m_currentEnvironment != nullptr)
-				m_currentEnvironment->detach();
-			else m_defaultEnvironment->detach();
+			if (shader->supportEnvironment()) {
+				if (m_currentEnvironment != nullptr)
+					m_currentEnvironment->detach();
+				else m_defaultEnvironment->detach();
+			}
 
 			for (int i = 0; i < m_activeLights.size(); i++) {
 				m_activeLights[i]->detach();

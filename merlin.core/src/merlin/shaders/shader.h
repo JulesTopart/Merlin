@@ -37,7 +37,7 @@ namespace Merlin {
 		inline bool supportMaterial() const		{ return _supportMaterial; }
 		inline bool supportLights() const		{ return _supportLights; }
 		inline bool supportShadows() const		{ return _supportShadows; }
-		inline bool supportEnvironment() const		{ return _supportEnvironment; }
+		inline bool supportEnvironment() const	{ return _supportEnvironment; }
 		inline void noMaterial()	{ _supportMaterial = false; }
 		inline void noTexture()	{ _supportTexture = false; }
 		inline void noLights()	{ _supportLights = false; }

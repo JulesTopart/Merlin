@@ -30,6 +30,7 @@ Mesh_Ptr generateMesh(std::vector<glm::vec2> m_surface) {
 }
 
 void AppLayer::onAttach(){
+	Layer2D::onAttach();
 	glfwSwapInterval(0);
 
 	InitGraphics();
@@ -96,13 +97,15 @@ void AppLayer::SyncUniforms() {
 }
 
 
+
 void AppLayer::InitGraphics() {
 	// init OpenGL stuff
 	renderer.initialize();
-	renderer.setBackgroundColor(0.203, 0.203, 0.203, 1.0);
+	renderer.setBackgroundColor(0.803, 0.803, 0.803, 1.0);
 	renderer.enableTransparency();
 	renderer.enableSampleShading();
 	renderer.disableShadows();
+	renderer.disableEnvironment();
 
 	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
 	particleShader->noEnvironment();
@@ -162,9 +165,11 @@ void AppLayer::InitGraphics() {
 	Model_Ptr temp = Model::create("nozzle", generateMesh(geomr));
 	temp->translate(glm::vec3(0, -100,0));
 	scene.add(temp);
+
 	temp = Model::create("nozzle", generateMesh(geoml));
 	temp->translate(glm::vec3(0, -100, 0));
 	scene.add(temp);
+
 	scene.add(TransformObject::create("origin"));
 
 }
@@ -181,7 +186,6 @@ void AppLayer::InitPhysics() {
 
 	Shared<Mesh> binInstance = Primitives::createQuadRectangle(settings.bWidth, settings.bWidth, true);
 	binInstance->rename("bin");
-	binInstance->setShader(binShader);
 	bs = ParticleSystem::create("BinSystem", settings.bThread);
 	bs->setDisplayMode(ParticleSystemDisplayMode::MESH);
 	bs->setMesh(binInstance);
@@ -206,7 +210,7 @@ void AppLayer::InitPhysics() {
 	ps->addField<float>("cpyTemperatureBuffer");
 	ps->addField<glm::uvec4>("MetaBuffer");
 	ps->addField<glm::uvec4>("cpyMetaBuffer");
-	ps->addField(binBuffer);
+	ps->addBuffer(binBuffer);
 	ps->solveLink(solver);
 
 	bs->setShader(binShader);

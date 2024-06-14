@@ -28,8 +28,6 @@ public:
 
 	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);
-
-	void updateFPS(Merlin::Timestep ts);
 private:
 
 	//--- Graphics ---
