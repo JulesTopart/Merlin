@@ -10,10 +10,9 @@ using namespace Merlin;
 #define GRANULAR 4
 #define BOUNDARY 5
 
-class AppLayer : public Merlin::Layer{
+class AppLayer : public Merlin::Layer2D{
 public:
-	AppLayer();
-	virtual ~AppLayer();
+	AppLayer() {}
 
 	void onAttach() override;
 	void onDetach() override;
@@ -26,36 +25,22 @@ public:
 	void ResetSimulation();
 
 	void SyncUniforms();
-	void ApplyBufferSettings();
 
 	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);
-
-	void updateFPS(Merlin::Timestep ts);
 private:
-
-	Camera_Ptr camera;
-	CameraController_Ptr cameraController;
-
 	Scene scene;
 	Renderer renderer;
-
-	//ScreenQuadRenderer qrenderer;
 
 	//Simulation
 	StagedComputeShader_Ptr solver;
 	StagedComputeShader_Ptr prefixSum;
 
-	SSBO_Ptr<Bin> binBuffer; //Particle buffer
-	SSBO_Ptr<Particle> particleBuffer; //Particle buffer
-	SSBO_Ptr<Particle> particleCpyBuffer; //Particle buffer
-	SSBO_Ptr<GLuint> sortedIndexBuffer; //Particle buffer
-
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;
 
-	deprecated_ParticleSystem_Ptr particleSystem;
-	deprecated_ParticleSystem_Ptr binSystem;
+	ParticleSystem_Ptr ps;
+	ParticleSystem_Ptr bs;
 	Settings settings;
 
 	//Simulation
@@ -76,8 +61,6 @@ private:
 	bool integrate = true;
 	float sim_speed = 1;
 	float camera_speed = 1;
-	float FPS = 0;
-	float FPS_sample = 0;
 	bool mousePressed = false;
 
 };

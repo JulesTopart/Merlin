@@ -30,23 +30,12 @@ AppLayer::AppLayer(){
 AppLayer::~AppLayer(){}
 
 void AppLayer::onAttach(){
-	enableGLDebugging();
-	//ImGui::LoadIniSettingsFromDisk("imgui.ini");
-	Console::setLevel(ConsoleLevel::_TRACE);
+	Layer2D::onAttach();
+
 	glfwSwapInterval(0);
 
 	InitGraphics();
 	InitPhysics();
-
-	particleShader->use();
-	particleShader->attach(*particleBuffer);
-	particleShader->attach(*sortedIndexBuffer);
-	particleShader->attach(*binBuffer);
-
-	binShader->use();
-	binShader->attach(*particleBuffer);
-	binShader->attach(*sortedIndexBuffer);
-	binShader->attach(*binBuffer);
 
 	ResetSimulation();
 }
@@ -54,27 +43,28 @@ void AppLayer::onAttach(){
 void AppLayer::onDetach(){}
 
 void AppLayer::onEvent(Event& event){
-	camera->onEvent(event);
-	cameraController->onEvent(event);
+	Layer2D::onEvent(event);
 
 	if (event.getEventType() == EventType::MouseScrolled) {
 		particleShader->use();
-		particleShader->setFloat("zoomLevel", camera->getZoom());
+		particleShader->setFloat("zoomLevel", camera().getZoom());
+	}
+	else if (event.getEventType() == EventType::WindowResize) {
+		particleShader->use();
+		particleShader->setVec2("WindowSize", glm::vec2(camera().width(), camera().height()));
 	}
 }
 
-float t = 0.0;
 
 void AppLayer::onUpdate(Timestep ts){
-	cameraController->onUpdate(ts);
+	Layer2D::onUpdate(ts);
+
 	PROFILE_END(total_start_time, total_time);
 	PROFILE_BEGIN(total_start_time);
 
-	updateFPS(ts);
-
 	GPU_PROFILE(render_time,
 		renderer.clear();
-		renderer.renderScene(scene, *camera);
+		renderer.renderScene(scene, camera());
 	)
 
 	if (!paused) {
@@ -108,60 +98,36 @@ void AppLayer::SyncUniforms() {
 }
 
 
-
-void AppLayer::ApplyBufferSettings() {
-
-	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	settings.blockSize = floor(log2f(settings.bThread));
-	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
-	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
-
-	solver->SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
-
-	/*
-	particleBuffer->bind();
-	particleBuffer->resize(settings.pThread);
-	particleBuffer->unbind();
-
-	particleCpyBuffer->bind();
-	particleCpyBuffer->resize(settings.pThread);
-	particleCpyBuffer->unbind();
-
-	sortedIndexBuffer->bind();
-	sortedIndexBuffer->resize(settings.pThread);
-	sortedIndexBuffer->unbind();
-
-	binBuffer->bind();
-	binBuffer->resize(settings.bThread);
-	binBuffer->unbind();
-	*/
-
-	particleSystem->setInstancesCount(settings.pThread);
-	binSystem->setInstancesCount(settings.bThread);
-	
-}
-
 void AppLayer::InitGraphics() {
 	// init OpenGL stuff
 	renderer.initialize();
 	renderer.setBackgroundColor(0.203, 0.203, 0.203, 1.0);
+	renderer.disableEnvironment();
 	renderer.enableTransparency();
 	renderer.enableSampleShading();
+	renderer.disableShadows();
 
 	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
-	particleShader->noTexture();
-	particleShader->noMaterial();
 	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
+	particleShader->noEnvironment();
+	particleShader->noMaterial();
+	particleShader->noTexture();
+	particleShader->noLights();
+	particleShader->noShadows();
 
 	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
-	binShader->noTexture();
+	binShader->noEnvironment();
 	binShader->noMaterial();
+	binShader->noTexture();
+	binShader->noLights();
+	binShader->noShadows();
 
 	particleShader->use();
-	particleShader->setInt("colorCycle", 0);
+	particleShader->setInt("colorCycle", 3);
+	particleShader->setVec2("WindowSize", glm::vec2(camera().width(), camera().height()));
+
 	binShader->use();
-	binShader->setInt("colorCycle", 0);
+	binShader->setInt("colorCycle", 3);
 	 
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
@@ -182,34 +148,27 @@ void AppLayer::InitPhysics() {
 	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 
 	//create particle system
-	particleSystem = deprecated_ParticleSystem::create("ParticleSystem", settings.pThread);
-	Shared<Mesh> particle = Primitives::createPoint();
-	particle->rename("particle");
-	particle->setShader(particleShader);
-	particleSystem->setMesh(particle);
-	particleSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
+	ps = ParticleSystem::create("ParticleSystem", settings.pThread);
+	ps->setShader(particleShader);
+	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 
 	Shared<Mesh> binInstance = Primitives::createQuadRectangle(settings.bWidth, settings.bWidth, true);
 	binInstance->rename("bin");
 	binInstance->setShader(binShader);
-	binSystem = deprecated_ParticleSystem::create("BinSystem", settings.bThread);
-	binSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::MESH);
-	binSystem->setMesh(binInstance);
-	binSystem->enableWireFrameMode();
+	bs = ParticleSystem::create("BinSystem", settings.bThread);
+	bs->setDisplayMode(ParticleSystemDisplayMode::MESH);
+	bs->setMesh(binInstance);
+	bs->enableWireFrameMode();
 
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
 
+
 	//reserve Buffers
 	Console::info() << "Particle struct size :" << sizeof(Particle) << Console::endl;
-	particleBuffer = SSBO<Particle>::create("ParticleBuffer",settings.pThread);
-	particleCpyBuffer = SSBO<Particle>::create("ParticleCpyBuffer",settings.pThread);
-
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
-	binBuffer = SSBO<Bin>::create("BinBuffer",settings.bThread);
-
-	sortedIndexBuffer = SSBO<GLuint>::create("SortedIndexBuffer",settings.pThread);
+	SSBO_Ptr<Bin> binBuffer = SSBO<Bin>::create("BinBuffer",settings.bThread);
 
 	particleBuffer->setBindingPoint(0);
 	particleCpyBuffer->setBindingPoint(1);

@@ -302,6 +302,7 @@ namespace Merlin {
 			Texture2D::resetTextureUnits();
 			shader->use();
 
+			if(shader->supportLights())
 			for (int i = 0; i < m_activeLights.size(); i++) {
 				m_activeLights[i]->attach(i, *shader);
 			}
@@ -331,6 +332,7 @@ namespace Merlin {
 				else m_defaultEnvironment->detach();
 			}
 
+			if (shader->supportLights())
 			for (int i = 0; i < m_activeLights.size(); i++) {
 				m_activeLights[i]->detach();
 			}
