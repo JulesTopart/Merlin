@@ -115,8 +115,8 @@ void AppLayer::InitGraphics() {
 	floorMat2->setAmbient(glm::vec3(0.015));
 	floorMat2->setDiffuse(glm::vec3(0.9));
 	floorMat2->setSpecular(glm::vec3(0.95));
-	floorMat2->setShininess(0.98);
-	floorMat2->loadTexture("assets/textures/bed.png", TextureType::ALBEDO);
+	floorMat2->setShininess(0.7);
+	floorMat2->loadTexture("assets/textures/bed.png", TextureType::DIFFUSE);
 
 	floorSurface->setMaterial(floorMat2);
 	scene.add(floorSurface);

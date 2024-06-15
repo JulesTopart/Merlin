@@ -14,21 +14,6 @@ using namespace Merlin;
 #define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
-AppLayer::AppLayer(){
-	Window* w = &Application::get().getWindow();
-	int height = w->getHeight();
-	int width = w->getWidth();
-	camera = createShared<Camera>(width, height, Projection::Orthographic);
-	camera->setNearPlane(0.0f);
-	camera->setFarPlane(10.0f);
-	camera->translate(glm::vec3(0, 0, 1));
-	cameraController = createShared<CameraController2D>(camera);
-	cameraController->setZoomLevel(20);
-	cameraController->setCameraSpeed(100);
-}
-
-AppLayer::~AppLayer(){}
-
 void AppLayer::onAttach(){
 	Layer2D::onAttach();
 
@@ -265,7 +250,7 @@ void AppLayer::ResetSimulation() {
 	SyncUniforms();
 	
 	Console::info() << "Uploading buffer on device..." << Console::endl;
-	ps->writeField("ParticleBuffer", cpu_particles);
+	ps->writeField("ParticleBuffer", cpu_particles.data());
 }
 
 
@@ -327,17 +312,6 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	
 }
 
-void AppLayer::updateFPS(Timestep ts) {
-	if (FPS_sample == 0) {
-		FPS = ts;
-	}
-	else {
-		FPS += ts;
-	}
-	FPS_sample++;
-}
-
-
 
 void AppLayer::onImGuiRender() {
 	//ImGui::ShowDemoWindow();
@@ -349,10 +323,7 @@ void AppLayer::onImGuiRender() {
 	ImGui::LabelText(std::to_string(settings.bThread).c_str(), "bins");
 	ImGui::LabelText(std::to_string(elapsedTime).c_str(), "s");
 
-	if (FPS_sample > 0) {
-		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS / FPS_sample)).c_str());
-		if (FPS_sample > 50) FPS_sample = 0;
-	}
+	ImGui::LabelText("FPS", std::to_string(fps()).c_str());
 
 	if (paused) {
 		if (ImGui::ArrowButton("Run simulation", 1)) {
@@ -366,10 +337,11 @@ void AppLayer::onImGuiRender() {
 	}
 
 
+
 	static bool transparency = true;
 	if (ImGui::Checkbox("Particle transparency", &transparency)) {
-		if (transparency) particleSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
-		else particleSystem->setDisplayMode(deprecated_ParticleSystemDisplayMode::POINT_SPRITE);
+		if (transparency) ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
+		else ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 	}
 
 	static bool showbed = true;
@@ -389,14 +361,14 @@ void AppLayer::onImGuiRender() {
 
 	static bool Pstate = true;
 	if (ImGui::Checkbox("Show Particles", &Pstate)) {
-		if (Pstate) particleSystem->show();
-		else particleSystem->hide();
+		if (Pstate) ps->show();
+		else ps->hide();
 	}
 
 	static bool Bstate = false;
 	if (ImGui::Checkbox("Show Bins", &Bstate)) {
-		if (Bstate) binSystem->show();
-		else binSystem->hide();
+		if (Bstate) bs->show();
+		else bs->hide();
 	}
 
 	static bool BBstate = false;
@@ -409,7 +381,7 @@ void AppLayer::onImGuiRender() {
 	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 200);
 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
-		camera->setPosition(model_matrix_translation);
+		camera().setPosition(model_matrix_translation);
 	}
 
 	if (ImGui::InputFloat("Time step", &settings.timestep.value(), 0.0, 0.02f)) {

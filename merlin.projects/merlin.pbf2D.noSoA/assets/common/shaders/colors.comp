@@ -5,12 +5,6 @@
 #ifndef INCLUDE_COLORS_GLSL
 #define INCLUDE_COLORS_GLSL
 
-#define LAMBDA_FIELD 0
-#define DENSITY_FIELD 1
-#define TEMPERATURE_FIELD 2
-#define VELOCITY_FIELD 3
-#define MAX_FIELD 3
-
 #define NEAR 0.1
 #define FAR  90.0
 
