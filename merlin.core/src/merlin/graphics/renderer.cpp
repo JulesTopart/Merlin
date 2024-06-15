@@ -20,6 +20,7 @@ namespace Merlin {
 		enableFaceCulling();
 		m_defaultEnvironment = createShared<Environment>("defaultEnvironment", 16);
 		m_defaultAmbient = createShared<AmbientLight>("defaultAmbientLight");
+		m_defaultAmbient->setAmbient(glm::vec3(0.8));
 		m_defaultDirLight = createShared<DirectionalLight>("defaultDirLight", glm::vec3(1,0.6,-1));
 	}
 

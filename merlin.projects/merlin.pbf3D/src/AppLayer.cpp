@@ -15,6 +15,9 @@ using namespace Merlin;
 
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
+	camera().setNearPlane(0.5);
+	camera().setFarPlane(2000.0);
+
 	glfwSwapInterval(0);
 
 	InitGraphics();
@@ -28,8 +31,6 @@ void AppLayer::onDetach() {}
 void AppLayer::onEvent(Event& event) {
 	Layer3D::onEvent(event);
 }
-
-float t = 0.0;
 
 void AppLayer::onUpdate(Timestep ts) {
 	Layer3D::onUpdate(ts);
