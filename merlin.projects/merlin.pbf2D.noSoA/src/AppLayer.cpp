@@ -163,42 +163,40 @@ void AppLayer::InitPhysics() {
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
-
-
 	//reserve Buffers
 	Console::info() << "Particle struct size :" << sizeof(Particle) << Console::endl;
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
 	SSBO_Ptr<Bin> binBuffer = SSBO<Bin>::create("BinBuffer",settings.bThread);
 
-	particleBuffer->setBindingPoint(0);
-	particleCpyBuffer->setBindingPoint(1);
-	sortedIndexBuffer->setBindingPoint(2);
-	binBuffer->setBindingPoint(3);
-
 	//attach Buffers
-	particleSystem->addComputeShader(solver);
-	particleSystem->addStorageBuffer(particleBuffer);
-	particleSystem->addStorageBuffer(particleCpyBuffer);
-	particleSystem->addStorageBuffer(sortedIndexBuffer);
-	particleSystem->addStorageBuffer(binBuffer);
+	ps->setShader(particleShader);
+	ps->addProgram(solver);
+	ps->addField<Particle>("ParticleBuffer");
+	ps->addField<Particle>("ParticleCpyBuffer");
+	ps->addField<GLuint>("SortedIndexBuffer");
+	ps->solveLink(solver);
 
-	binSystem->addComputeShader(prefixSum);
-	binSystem->addStorageBuffer(binBuffer);
+	bs->setShader(binShader);
+	bs->addProgram(prefixSum);
+	bs->addField(binBuffer);
+	bs->solveLink(prefixSum);
 	
-	scene.add(particleSystem);
-	scene.add(binSystem);
-	//scene.Add(constraintSystem);
-	binSystem->hide();
+	ps->link(particleShader->name(), "ParticleBuffer");
+	ps->solveLink(particleShader);
+
+	scene.add(ps);
+	scene.add(bs);
+	bs->hide();
 }
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
-	particleBuffer->clear();
 	
 	Console::info() << "Generating particles..." << Console::endl;
 
 	float spacing = settings.particleRadius * 2.0;
-	auto cpu_particles = particleBuffer->getEmptyArray();
+
+	auto cpu_particles = std::vector<Particle>();
 
 	Particle buf;
 	buf.velocity = glm::vec2(0);
@@ -250,19 +248,24 @@ void AppLayer::ResetSimulation() {
 		buf.binIndex = cpu_particles.size();
 		cpu_particles.push_back(buf);
 	}*/
-	
-	Console::info() << "Uploading buffer on device..." << Console::endl;
 
 	numParticles = cpu_particles.size();
 	settings.pThread = numParticles;
-	particleSystem->setInstancesCount(settings.pThread);
-	
-	ApplyBufferSettings();
+	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
+	settings.blockSize = floor(log2f(settings.bThread));
+	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
+	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
+
+	solver->SetWorkgroupLayout(settings.pWkgCount);
+	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
+
+	ps->setInstancesCount(settings.pThread);
+	bs->setInstancesCount(settings.bThread);
+
 	SyncUniforms();
 	
-	particleBuffer->bind();
-	particleBuffer->write(cpu_particles);
-	particleBuffer->unbind();
+	Console::info() << "Uploading buffer on device..." << Console::endl;
+	ps->writeField("ParticleBuffer", cpu_particles);
 }
 
 
