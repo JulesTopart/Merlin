@@ -72,7 +72,7 @@ void SolveDEM(uint i, uint simStep) {
 			if(length(rij) >= H || length(rij) <= 1e-6) continue;
 			if(i != j){
 				fpress += -normalize(rij) * particleMass * (Pi + Pj) / (2.0f * Rhoj) * spiky(rij);
-				fvisc -= 3*artificialViscosityMultiplier * particleMass * Vij / Rhoj * viscosityLaplacianKernel(rij);
+				//fvisc -= 3*artificialViscosityMultiplier * particleMass * Vij / Rhoj * viscosityLaplacianKernel(rij);
 			}
 		OVERNNS_END
 

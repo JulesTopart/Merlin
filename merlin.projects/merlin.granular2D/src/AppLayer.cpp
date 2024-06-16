@@ -335,15 +335,6 @@ void AppLayer::onImGuiRender() {
 		else ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 	}
 
-	static bool showbed = true;
-	if (ImGui::Checkbox("Show build plate", &showbed)) {
-		auto bedRef = scene.getChild("bed");
-		if (bedRef) {
-			if (showbed) scene.getChild("bed")->show();
-			else scene.getChild("bed")->hide();
-		}
-	}
-
 	ImGui::Checkbox("Integrate", &integrate);
 
 	if (ImGui::SmallButton("Reset simulation")) {

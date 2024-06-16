@@ -38,7 +38,7 @@ struct Settings {
 	Uniform<float> particleMass = Uniform<float>("particleMass", smoothingRadius * 0.28);
 	Uniform<float> artificialViscosityMultiplier = Uniform<float>("artificialViscosityMultiplier", 0.1);
 	Uniform<float> artificialPressureMultiplier = Uniform<float>("artificialPressureMultiplier", 2000000.0);
-	Uniform<float> XSPH = Uniform<float>("XSPH", 0.1);
+	Uniform<float> XSPH = Uniform<float>("XSPH", 0.41);
 	//Elastic solids
 	float stiffness = 0.0;
 
