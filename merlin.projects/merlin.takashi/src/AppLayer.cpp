@@ -6,59 +6,24 @@
 
 using namespace Merlin;
 
-
 #define PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 #define GPU_PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE glFinish(); VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
 
 #define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
-AppLayer::AppLayer() {
-	Window* w = &Application::get().getWindow();
-	int height = w->getHeight();
-	int width = w->getWidth();
-	camera = createShared<Camera>(width, height, Projection::Perspective);
-	camera->setNearPlane(0.1f);
-	camera->setFarPlane(1800.0f);
-	camera->setFOV(60); //Use 90.0f as we are using cubemaps
-	camera->setPosition(glm::vec3(0.0f, -300.0f, 80));
-	camera->setRotation(glm::vec3(0, 10, -270));
-	cameraController = createShared<CameraController3D>(camera);
-	cameraController->setZoomLevel(1);
-	cameraController->setCameraSpeed(100);
-}
-
-AppLayer::~AppLayer() {}
 
 void AppLayer::onAttach() {
-	enableGLDebugging();
-	//ImGui::LoadIniSettingsFromDisk("imgui.ini");
-	Console::setLevel(ConsoleLevel::_TRACE);
+	Layer3D::onAttach();
+	camera().setNearPlane(0.5);
+	camera().setFarPlane(2000.0);
+	camera().rotate(glm::vec3(20, 0, -90));
+	camera().translate(glm::vec3(0, -300, 50));
+
 	glfwSwapInterval(0);
-
-	bins = ParticleSystem::Create("bins", settings.pThread);
-
-	particles = ParticleSystem::Create("particles", settings.pThread);
 
 	InitGraphics();
 	InitPhysics();
-
-	particleShader->use();
-	particleShader->attach(*particles->getFieldBuffer("positionBuffer"));
-	particleShader->attach(*particles->getFieldBuffer("predictedPositionBuffer"));
-	particleShader->attach(*particles->getFieldBuffer("velocityBuffer"));
-	particleShader->attach(*particles->getFieldBuffer("densityBuffer"));
-	particleShader->attach(*particles->getFieldBuffer("lambdaBuffer"));
-	particleShader->attach(*particles->getFieldBuffer("metaBuffer"));
-
-	binShader->use();
-	binShader->attach(*particles->getFieldBuffer("positionBuffer"));
-	binShader->attach(*particles->getFieldBuffer("predictedPositionBuffer"));
-	binShader->attach(*particles->getFieldBuffer("velocityBuffer"));
-	binShader->attach(*particles->getFieldBuffer("densityBuffer"));
-	binShader->attach(*particles->getFieldBuffer("lambdaBuffer"));
-	binShader->attach(*particles->getFieldBuffer("metaBuffer"));
-	binShader->attach(*particles->getFieldBuffer("binBuffer"));
 
 	ResetSimulation();
 }
@@ -66,22 +31,18 @@ void AppLayer::onAttach() {
 void AppLayer::onDetach() {}
 
 void AppLayer::onEvent(Event& event) {
-	camera->onEvent(event);
-	cameraController->onEvent(event);
+	Layer3D::onEvent(event);
 }
 
-float t = 0.0;
-
 void AppLayer::onUpdate(Timestep ts) {
-	cameraController->onUpdate(ts);
+	Layer3D::onUpdate(ts);
+
 	PROFILE_END(total_start_time, total_time);
 	PROFILE_BEGIN(total_start_time);
 
-	updateFPS(ts);
-
 	GPU_PROFILE(render_time,
 		renderer.clear();
-	renderer.renderScene(scene, *camera);
+		renderer.renderScene(scene, camera());
 	)
 
 	if (!paused) {
@@ -115,81 +76,67 @@ void AppLayer::SyncUniforms() {
 }
 
 
-
-void AppLayer::ApplyBufferSettings() {
-
-	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	settings.blockSize = floor(log2f(settings.bThread));
-	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
-	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
-
-	solver->SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
-	particles->setInstancesCount(settings.pThread);
-	bins->setInstancesCount(settings.bThread);
-
-
-
-
-}
-
 void AppLayer::InitGraphics() {
 	// init OpenGL stuff
 	renderer.initialize();
-	renderer.setBackgroundColor(0.203, 0.203, 0.203, 1.0);
+	renderer.setBackgroundColor(0.803, 0.803, 0.803, 1.0);
 	renderer.enableTransparency();
 	renderer.enableSampleShading();
+	//renderer.disableShadows();
+	renderer.disableFaceCulling();
+	//renderer.applyGlobalTransform(glm::scale(glm::mat4(1), glm::vec3(0.001)));
 
 	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
-	particleShader->noTexture();
+	particleShader->noEnvironment();
 	particleShader->noMaterial();
-	particleShader->setVec3("lightPos", glm::vec3(0, 0, 500));
-	particleShader->setInt("colorCycle", 4);
+	particleShader->noTexture();
+	particleShader->noLights();
+	particleShader->noShadows();
+	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
 
 	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
-	binShader->noTexture();
+	binShader->noEnvironment();
 	binShader->noMaterial();
+	binShader->noTexture();
+	binShader->noLights();
+	binShader->noShadows();
+
+	particleShader->use();
+	particleShader->setInt("colorCycle", 4);
+	binShader->use();
 	binShader->setInt("colorCycle", 4);
 
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
-	renderer.addShader(modelShader);
-
-	Shared<Mesh> particle = Primitives::createPoint();
-	particle->rename("particle");
-	particle->setShader(particleShader);
-	particles->setMesh(particle);
-	particles->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
-
-	Shared<Mesh> binInstance = Primitives::createQuadCube(settings.bWidth, false);
-	binInstance->rename("bin");
-	binInstance->setShader(binShader);
-	particles->setDisplayMode(ParticleSystemDisplayMode::MESH);
-	bins->setMesh(binInstance);
-	bins->enableWireFrameMode();
-
-
-	modelShader = Shader::create("model", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag");
-	modelShader->setVec3("lightPos", glm::vec3(0, 0, 50));
-	//modelShader->noTexture();
-
-	Shared<Shader> skyShader = Shader::create("skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag");
-	Shared<SkyBox> sky = SkyBox::create("Sky");
-	sky->setShader(skyShader);
-	scene.add(sky);
 
 	Shared<Model> floor = ModelLoader::loadModel("./assets/models/bed.stl");
 	floor->translate(glm::vec3(0.75, -0.25, -0.1));
 	floor->scale(glm::vec3(1.025, 1.025, 1.0));
 	floor->setMaterial("chrome");
-	floor->setShader("model");
 	scene.add(floor);
+
+	//modelShader->Use();
+	//modelShader->setVec3("lightPos", glm::vec3(0.0, 10.0, 10));
+
+	Shared<Model> floorSurface = Model::create("floorSurface", Primitives::createRectangle(316, 216));
+	floorSurface->translate(glm::vec3(0.75, -0.25, 0));
+
+	Shared<PhongMaterial> floorMat2 = createShared<PhongMaterial>("floorMat2");
+	floorMat2->setAmbient(glm::vec3(0.02));
+	floorMat2->setDiffuse(glm::vec3(0.95));
+	floorMat2->setSpecular(glm::vec3(0.99));
+	floorMat2->setShininess(0.7);
+	floorMat2->loadTexture("assets/textures/bed.png", TextureType::DIFFUSE);
+
+	floorSurface->setMaterial(floorMat2);
+	scene.add(floorSurface);
 
 	Model_Ptr bbox = Model::create("bbox", Primitives::createQuadCube(settings.bb.x, settings.bb.y, settings.bb.z));
 	bbox->enableWireFrameMode();
 	bbox->setMaterial("default");
 	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
 	scene.add(bbox);
+
 	scene.add(TransformObject::create("origin"));
 
 }
@@ -200,32 +147,63 @@ void AppLayer::InitPhysics() {
 	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 
 	//create particle system
+	ps = ParticleSystem::create("ParticleSystem", settings.pThread);
+	ps->setShader(particleShader);
+	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
+
+	Shared<Mesh> binInstance = Primitives::createQuadCube(settings.bWidth, false);
+	binInstance->rename("bin");
+	bs = ParticleSystem::create("BinSystem", settings.bThread);
+	bs->setDisplayMode(ParticleSystemDisplayMode::MESH);
+	bs->setMesh(binInstance);
+	bs->enableWireFrameMode();
 
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
-	bins->addShader(prefixSum);
-	bins->addField<Bin>("BinBuffer");
+	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
+	SSBO_Ptr<Bin> binBuffer = SSBO<Bin>::create("BinBuffer", settings.bThread);
 
-	particles->addShader("solver", solver);
-	particles->addField<glm::vec4>("PositionBuffer");
-	particles->addField<glm::vec4>("cpyPositionBuffer");
-	particles->addField<glm::vec4>("PredictedPositionBuffer");
-	particles->addField<glm::vec4>("cpyPredictedPositionBuffer");
-	particles->addField<glm::vec4>("VelocityBuffer");
-	particles->addField<glm::vec4>("cpyVelocityBuffer");
-	particles->addField<float>("DensityBuffer");
-	particles->addField<float>("cpyDensityBuffer");
-	particles->addField<float>("LambdaBuffer");
-	particles->addField<float>("cpyLambdaBuffer");
-	particles->addField<glm::uvec4>("MetaBuffer");
-	particles->addField<glm::uvec4>("cpyMetaBuffer");
-	particles->addField<Bin>(bins->getField<Bin>("bins"));
+	//attach Buffers
+	ps->setShader(particleShader);
+	ps->addProgram(solver);
+	ps->addField<glm::vec4>("PositionBuffer");
+	ps->addField<glm::vec4>("cpyPositionBuffer");
+	ps->addField<glm::vec4>("PredictedPositionBuffer");
+	ps->addField<glm::vec4>("cpyPredictedPositionBuffer");
+	ps->addField<glm::vec4>("VelocityBuffer");
+	ps->addField<glm::vec4>("cpyVelocityBuffer");
+	ps->addField<float>("DensityBuffer");
+	ps->addField<float>("cpyDensityBuffer");
+	ps->addField<float>("LambdaBuffer");
+	ps->addField<float>("cpyLambdaBuffer");
+	ps->addField<float>("TemperatureBuffer");
+	ps->addField<float>("cpyTemperatureBuffer");
+	ps->addField<glm::uvec4>("MetaBuffer");
+	ps->addField<glm::uvec4>("cpyMetaBuffer");
+	ps->addBuffer(binBuffer);
+	ps->solveLink(solver);
 
-	scene.add(particles);
-	scene.add(bins);
-	//scene.Add(constraintSystem);
-	bins->hide();
+	bs->setShader(binShader);
+	bs->addProgram(prefixSum);
+	bs->addField(binBuffer);
+	bs->solveLink(prefixSum);
+
+	ps->link(particleShader->name(), "PositionBuffer");
+	ps->link(particleShader->name(), "PredictedPositionBuffer");
+	ps->link(particleShader->name(), "VelocityBuffer");
+	ps->link(particleShader->name(), "DensityBuffer");
+	ps->link(particleShader->name(), "LambdaBuffer");
+	ps->link(particleShader->name(), "TemperatureBuffer");
+	ps->link(particleShader->name(), "MetaBuffer");
+	ps->solveLink(particleShader);
+
+	bs->link(binShader->name(), binBuffer->name());
+	bs->solveLink(binShader);
+
+	scene.add(ps);
+	scene.add(bs);
+	bs->hide();
 }
 
 void AppLayer::ResetSimulation() {
@@ -238,6 +216,7 @@ void AppLayer::ResetSimulation() {
 	auto cpu_velocity = std::vector<glm::vec4>();
 	auto cpu_density = std::vector<float>();
 	auto cpu_lambda = std::vector<float>();
+	auto cpu_temp = std::vector<float>();
 	auto cpu_meta = std::vector<glm::uvec4>();
 
 	glm::vec3 cubeSize = glm::vec3(60, 195, 50);
@@ -256,6 +235,7 @@ void AppLayer::ResetSimulation() {
 				cpu_velocity.push_back(glm::vec4(0));
 				cpu_density.push_back(0.0);
 				cpu_lambda.push_back(0.0);
+				cpu_temp.push_back(298.15); //ambient
 				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
 				numParticles++;
 			}
@@ -274,6 +254,7 @@ void AppLayer::ResetSimulation() {
 				cpu_velocity.push_back(glm::vec4(0));
 				cpu_density.push_back(0.0);
 				cpu_lambda.push_back(0.0);
+				cpu_temp.push_back(298.15); //ambient
 				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
 				numParticles++;
 			}
@@ -283,17 +264,26 @@ void AppLayer::ResetSimulation() {
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 
 	settings.pThread = numParticles;
-	particles->setInstancesCount(settings.pThread);
+	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
+	settings.blockSize = floor(log2f(settings.bThread));
+	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
+	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
 
-	ApplyBufferSettings();
+	solver->SetWorkgroupLayout(settings.pWkgCount);
+	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
+
+	ps->setInstancesCount(settings.pThread);
+	bs->setInstancesCount(settings.bThread);
+
 	SyncUniforms();
-
-	particles->writeField<glm::vec4>("positionBuffer", cpu_position);
-	particles->writeField<glm::vec4>("predictedPositionBuffer", cpu_predictedPosition);
-	particles->writeField<glm::vec4>("velocityBuffer", cpu_velocity);
-	particles->writeField<float>("densityBuffer", cpu_density);
-	particles->writeField<float>("lambdaBuffer", cpu_lambda);
-	particles->writeField<glm::uvec4>("metaBuffer", cpu_meta);
+	Console::info() << "Uploading buffer on device..." << Console::endl;
+	ps->writeField("PositionBuffer", cpu_position.data());
+	ps->writeField("PredictedPositionBuffer", cpu_predictedPosition.data());
+	ps->writeField("VelocityBuffer", cpu_velocity.data());
+	ps->writeField("DensityBuffer", cpu_density.data());
+	ps->writeField("LambdaBuffer", cpu_lambda.data());
+	ps->writeField("TemperatureBuffer", cpu_temp.data());
+	ps->writeField("MetaBuffer", cpu_meta.data());
 }
 
 
@@ -359,18 +349,6 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 }
 
-void AppLayer::updateFPS(Timestep ts) {
-	if (FPS_sample == 0) {
-		FPS = ts;
-	}
-	else {
-		FPS += ts;
-	}
-	FPS_sample++;
-}
-
-
-
 void AppLayer::onImGuiRender() {
 	//ImGui::ShowDemoWindow();
 	ImGui::DockSpaceOverViewport((ImGuiViewport*)0, ImGuiDockNodeFlags_PassthruCentralNode);
@@ -381,10 +359,7 @@ void AppLayer::onImGuiRender() {
 	ImGui::LabelText(std::to_string(settings.bThread).c_str(), "bins");
 	ImGui::LabelText(std::to_string(elapsedTime).c_str(), "s");
 
-	if (FPS_sample > 0) {
-		ImGui::LabelText("FPS", std::to_string(1.0f / (FPS / FPS_sample)).c_str());
-		if (FPS_sample > 50) FPS_sample = 0;
-	}
+	ImGui::LabelText("FPS", std::to_string(fps()).c_str());
 
 	if (paused) {
 		if (ImGui::ArrowButton("Run simulation", 1)) {
@@ -399,9 +374,9 @@ void AppLayer::onImGuiRender() {
 
 
 	static bool transparency = true;
-	if (ImGui::Checkbox("Particle shading", &transparency)) {
-		if (transparency) particles->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
-		else particles->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
+	if (ImGui::Checkbox("Particle transparency", &transparency)) {
+		if (transparency) ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
+		else ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 	}
 
 	static bool showbed = true;
@@ -421,14 +396,14 @@ void AppLayer::onImGuiRender() {
 
 	static bool Pstate = true;
 	if (ImGui::Checkbox("Show Particles", &Pstate)) {
-		if (Pstate) particles->show();
-		else particles->hide();
+		if (Pstate) ps->show();
+		else ps->hide();
 	}
 
 	static bool Bstate = false;
 	if (ImGui::Checkbox("Show Bins", &Bstate)) {
-		if (Bstate) bins->show();
-		else bins->hide();
+		if (Bstate) bs->show();
+		else bs->hide();
 	}
 
 	static bool BBstate = false;
@@ -437,17 +412,12 @@ void AppLayer::onImGuiRender() {
 		particleShader->setInt("showBoundary", BBstate);
 	}
 
-	static bool Whirlpool = false;
-	if (ImGui::Checkbox("whirlpool", &Whirlpool)) {
-		solver->use();
-		solver->setInt("whirlpool", Whirlpool);
-	}
 
 	ImGui::DragInt("Solver substep", &settings.solver_substep, 1, 1, 200);
 	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 200);
 
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
-		camera->setPosition(model_matrix_translation);
+		camera().setPosition(model_matrix_translation);
 	}
 
 	if (ImGui::InputFloat("Time step", &settings.timestep.value(), 0.0, 0.02f)) {
@@ -471,16 +441,11 @@ void AppLayer::onImGuiRender() {
 		solver->use();
 		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
 	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 1000.0)) {
+	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 100.0)) {
 		solver->use();
 		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value()*0.001);
 	}
 
-	static float whirlpool = 50;
-	if (ImGui::SliderFloat("Whirlpool", &whirlpool, 0.0, 1000.0)) {
-		solver->use();
-		solver->setFloat("whirlpoolIntensity", whirlpool);
-	}
 
 	static int colorMode = 4;
 	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Velocity", "Mass", "Neighbors" };

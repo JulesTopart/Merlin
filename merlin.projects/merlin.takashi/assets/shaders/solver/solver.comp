@@ -14,8 +14,6 @@ layout (local_size_x = PTHREAD) in;
 void SolveFluid(uint i, uint simStep);
 void NNS(uint i, uint simStep);
 
-uniform bool whirlpool = false;
-uniform float whirlpoolIntensity = 50;
 uniform uint stage;
 uniform vec4 sourcePos;
 // XPBD_Main
@@ -61,7 +59,6 @@ void SolveFluid(uint i, uint simStep) {
 		Xi = xi + Vi * dt;
 		return;
 	}
-
 		
 	if(simStep == 3){ //compute lagrange multiplier
 		B_Lambda(i) = computeLambda(i);
@@ -78,26 +75,7 @@ void SolveFluid(uint i, uint simStep) {
 		if(isnan(Xi.x) || isnan(Xi.y) || isnan(Xi.z)) Xi = xi;
 		Vi = (Xi - xi)/dt;
 
-		if(whirlpool){
-		float radius = distance(Xi.xy, vec2(0,0));
-		if(radius < 80){
-			vec3 pos = normalize(vec3(Xi.xy,0));
-			float wi = whirlpoolIntensity;
-			vec3 Vdir = normalize(cross(pos, vec3(0,0,1)));
-			Vi += wi * radius  * Vdir * dt;
-		}}
-
-		vec3 xsphSum = vec3(0);
-
-		vec3 position = Xi;
-		OVERNNS
-			if(j == i) continue;
-			float dist = Dij;
-			if(dist < 1e-6) continue;
-			float Wij = poly6(dist);
-			xsphSum -= artificialViscosityMultiplier * Vij * Wij * Rhoj;
-		OVERNNS_END
-		Vi -= xsphSum;
+		Vi += computeXPSH(i);
 
 		xi = Xi;
 		return;

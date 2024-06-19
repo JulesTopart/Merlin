@@ -5,20 +5,43 @@ out vec4 FragColor;
 
 in vec3 texCoords;
 
-uniform bool isSkyboxBound = false;
-uniform samplerCube skybox;
+struct Environment{
+	vec3 ambient;
+	vec3 irradiance;
+	vec3 specular;
 
+	bool use_skybox_tex;
+	bool use_ambient_tex;
+	bool use_specular_tex;
+	bool use_specularBRDF_tex;
 
-vec4 sun(){
-    vec3 sunVector = vec3(1,-1,-1);
-    gl_FragDepth   = gl_DepthRange.far;
-    float gradient = dot(normalize(sunVector), normalize(texCoords)) / 2.0 + 0.5;
-    return vec4(pow(gradient, 32), pow(gradient, 48) / 2.0 + 0.5, gradient / 4.0 + 0.75, 1.0);
-}
+	samplerCube skybox_tex;
+	samplerCube specular_tex;
+	samplerCube irradiance_tex;
+	sampler2D specularBRDF_tex;
+};
+
+uniform Environment environment;
+
+uniform vec3 gradientColor = vec3(1);
 
 vec4 grayBox(){
-    return vec4(vec3(-texCoords.y)*0.5+0.8,1.0f);
+    float r = length(texCoords);
+    return vec4( vec3((acos(-texCoords.y / r)/ 3.0)) * gradientColor,1.0f);
 }
+
+
+void main()
+{    
+    if(environment.use_skybox_tex) FragColor = texture(environment.skybox_tex, texCoords); //Cubemap texture
+    else FragColor = grayBox(); //texcoord as color
+
+}
+
+
+
+
+
 
 /*
 licence.txt from Unity built-in shader source:
@@ -46,7 +69,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*
 Original code was translated and adapted for ShaderToy by P.Z.
 */
-
+/*
 const vec4 _LightColor0 = vec4(0.9,0.9,0.9,1.0);
 const  float _Exposure = 1.0;
 const vec3 _GroundColor = vec3(.2);
@@ -195,8 +218,16 @@ vec4 raymarch (vec3 ro, vec3 rd)
 	return vec4(0,0,0,1);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
+vec4 sun(){
+    vec3 sunVector = vec3(1,-1,-1);
+    gl_FragDepth   = gl_DepthRange.far;
+    float gradient = dot(normalize(sunVector), normalize(texCoords)) / 2.0 + 0.5;
+    return vec4(pow(gradient, 32), pow(gradient, 48) / 2.0 + 0.5, gradient / 4.0 + 0.75, 1.0);
+}
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+*/
 /*
 void main(){
     if(isSkyboxBound) FragColor = texture(skybox, texCoords); //Cubemap texture
@@ -208,10 +239,3 @@ void main(){
     }
 }
 */
-
-void main()
-{    
-    if(isSkyboxBound) FragColor = texture(skybox, texCoords); //Cubemap texture
-    else FragColor = grayBox(); //texcoord as color
-
-}
