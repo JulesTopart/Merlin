@@ -78,11 +78,13 @@ namespace Merlin {
     public:
         DirectionalLight(const std::string& name, const glm::vec3& direction = glm::vec3(0, 0, -1))
             : Light(name, LightType::Directional), direction_(direction) {
+            m_shadowResolution = 512;
             generateShadowMap();
             m_castShadow = true;
         }
         DirectionalLight(const std::string& name, const glm::vec3& direction, const glm::vec3& ambient, const glm::vec3& diffuse, const glm::vec3& specular)
             : Light(name, LightType::Directional, ambient, diffuse, specular), direction_(direction) {
+            m_shadowResolution = 512;
             generateShadowMap();
             m_castShadow = true;
         }

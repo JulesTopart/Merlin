@@ -47,7 +47,7 @@ float computeLambda(uint i) {
 		vec3 diff = Rij;
 		float dist = length(diff);
 		if(dist >= H || dist < 1e-6) continue;
-		vec3 gradCj = spiky_grad(diff);
+		vec3 gradCj = -spiky_grad(diff);
 		gradCi += gradCj;
 		if(i != j){
 			sumGradCj += dot(gradCj, gradCj);
@@ -88,7 +88,7 @@ vec3 computePositionDelta(uint i) {
 	vec3 position = Xi;
 	OVERNNS
 	if(j == i) continue;
-		vec3 dist = Rji;
+		vec3 dist = Rij;
         sCorr = -artificialPressureMultiplier * pow(poly6(dist) / poly6(normalize(vec3(1)) * 0.2*H), 4);
         posDelta += spikyGradient(dist) * (B_Lambda(i) + B_Lambda(j) + sCorr);
 	OVERNNS_END
