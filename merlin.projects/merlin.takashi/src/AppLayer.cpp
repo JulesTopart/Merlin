@@ -241,7 +241,7 @@ void AppLayer::ResetSimulation() {
 			}
 		}
 	}
-
+	/*
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
 			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
@@ -260,6 +260,107 @@ void AppLayer::ResetSimulation() {
 			}
 		}
 	}
+	/**/
+
+
+	for (int yi = 0; yi <= settings.bb.y / spacing; yi++) {
+		for (int zi = 0; zi <= settings.bb.z / spacing; zi++) {
+
+			float x = -settings.bb.x / 2;
+			float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
+			float z = -((zi + 1) * spacing) + (settings.bb.z);
+
+			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_velocity.push_back(glm::vec4(0));
+			cpu_density.push_back(0.0);
+			cpu_lambda.push_back(0.0);
+			cpu_temp.push_back(298.15); //ambient
+			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
+			numParticles++;
+
+			x = settings.bb.x/2;
+			y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
+			z = -((zi + 1) * spacing) + (settings.bb.z);
+
+			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_velocity.push_back(glm::vec4(0));
+			cpu_density.push_back(0.0);
+			cpu_lambda.push_back(0.0);
+			cpu_temp.push_back(298.15); //ambient
+			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
+			numParticles++;
+
+		}
+	}
+
+
+	for (int xi = 0; xi <= settings.bb.x / spacing; xi++) {
+		for (int yi = 0; yi <= settings.bb.y / spacing; yi++) {
+
+			float x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
+			float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
+			float z = 0;
+
+			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_velocity.push_back(glm::vec4(0));
+			cpu_density.push_back(0.0);
+			cpu_lambda.push_back(0.0);
+			cpu_temp.push_back(298.15); //ambient
+			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
+			numParticles++;
+
+			x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
+			y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
+			z = settings.bb.z;
+
+			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_velocity.push_back(glm::vec4(0));
+			cpu_density.push_back(0.0);
+			cpu_lambda.push_back(0.0);
+			cpu_temp.push_back(298.15); //ambient
+			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
+			numParticles++;
+
+		}
+	}
+
+	for (int xi = 0; xi <= settings.bb.x / spacing; xi++) {
+		for (int zi = 0; zi <= settings.bb.z / spacing; zi++) {
+
+			float x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
+			float y = -settings.bb.y / 2;;
+			float z = -((zi + 1) * spacing) + (settings.bb.z);
+			
+
+			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_velocity.push_back(glm::vec4(0));
+			cpu_density.push_back(0.0);
+			cpu_lambda.push_back(0.0);
+			cpu_temp.push_back(298.15); //ambient
+			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
+			numParticles++;
+
+			x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
+			y = settings.bb.y/2;
+			z = -((zi + 1) * spacing) + (settings.bb.z);
+
+			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_velocity.push_back(glm::vec4(0));
+			cpu_density.push_back(0.0);
+			cpu_lambda.push_back(0.0);
+			cpu_temp.push_back(298.15); //ambient
+			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
+			numParticles++;
+
+		}
+	}
+
 
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 

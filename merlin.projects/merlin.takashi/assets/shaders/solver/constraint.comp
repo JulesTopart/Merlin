@@ -44,29 +44,38 @@ float computeLambda(uint i) {
     float density = 0.0;
     vec3 position = Xi;
 
-
-
     OVERNNS
 		vec3 diff = Rij;
 		float dist = length(diff);
 		if(dist >= H || dist < 1e-6) continue;
 
-
-
-
 		vec3 gradCj = -spiky_grad(diff);
-		gradCi += gradCj;
+
+		if(B_Phase(j) == FLUID){
+			gradCi += Mj * gradCj;
+		}else if (B_Phase(j) == BOUNDARY){
+			gradCi += (1.0/Rhoj) * gradCj;
+		}
+
+		
 		if(i != j){
-			sumGradCj += dot(gradCj, gradCj);
-			density += Mj * poly6(dist);
+			if(B_Phase(j) == FLUID){
+				sumGradCj += dot(gradCj, gradCj);
+				density += Mj * poly6(dist);
+			}else if (B_Phase(j) == BOUNDARY){
+				density += (rho0/Rhoj) * poly6(dist);
+				vec3 gradCk = (1.0/Rhoj) * gradCj;
+				sumGradCj += dot(gradCk, gradCk);
+			}
 		}
 	OVERNNS_END
+
 	sumGradCj += dot(gradCi, gradCi);
 	sumGradCj = max(sumGradCj, 1e-6);
 
 	Rhoi = max(density, rho0);
     float C = max((density / rho0) - 1.0, 0.0);
-    return -C / (sumGradCj/pow(rho0, 2));
+    return - ((1.0/Mi) * C) / (sumGradCj/pow(rho0, 2));
 }
 
 
@@ -78,10 +87,16 @@ vec3 computePositionDelta(uint i) {
 	if(Rhoi -  restDensity < 0) return posDelta;
 	vec3 position = Xi;
 	OVERNNS
-	if(j == i) continue;
-		vec3 dist = Rij;
-        sCorr = -artificialPressureMultiplier * pow(poly6(dist) / poly6(normalize(vec3(1)) * 0.2*H), 4);
-        posDelta += spikyGradient(dist) * (B_Lambda(i) + B_Lambda(j) + sCorr);
+		if(j == i) continue;
+
+		if(B_Phase(j) == FLUID){
+			sCorr = -artificialPressureMultiplier * H2 * pow(poly6(Dij) / poly6(normalize(vec3(1)) * 0.2*H), 4);
+			posDelta += spikyGradient(Rij) * (B_Lambda(i) + B_Lambda(j) + sCorr);
+		}else if(B_Phase(j) == BOUNDARY){
+			sCorr = -artificialPressureMultiplier * H2 * pow(poly6(Dij) / poly6(normalize(vec3(1)) * 0.2*H), 4);
+			posDelta += spikyGradient(Rij) * (1.0/Rhoj) * (2.0 * B_Lambda(i) + sCorr);
+		}
+
 	OVERNNS_END
 	posDelta /= rho0;
 	//posDelta = clamp(posDelta, -MAX_DELTA_PI, MAX_DELTA_PI);
@@ -98,7 +113,10 @@ vec3 computeXPSH(uint i){
 		float dist = Dij;
 		if(dist < 1e-6) continue;
 		float Wij = poly6(dist);
-		xsphSum += (Mj/Rhoj) * Vji * Wij;
+		if(B_Phase(j) == FLUID)
+			xsphSum += (Mj/Rhoj) * Vji * Wij;
+		else if(B_Phase(j) == BOUNDARY)
+			xsphSum += (1.0/Rhoj) * Vji * Wij;
 	OVERNNS_END
 	return artificialViscosityMultiplier * xsphSum;
 }
