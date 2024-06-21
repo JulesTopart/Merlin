@@ -59,7 +59,7 @@ namespace Merlin {
 
 
     protected : 
-        GLuint m_shadowResolution = 256;
+        GLuint m_shadowResolution = 512;
 
     private:
         glm::vec3 ambient_;

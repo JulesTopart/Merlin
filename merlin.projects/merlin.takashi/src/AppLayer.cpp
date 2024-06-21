@@ -20,6 +20,8 @@ void AppLayer::onAttach() {
 	camera().rotate(glm::vec3(20, 0, -90));
 	camera().translate(glm::vec3(0, -300, 50));
 
+	Console::setLevel(ConsoleLevel::_TRACE);
+
 	glfwSwapInterval(0);
 
 	InitGraphics();
@@ -206,6 +208,60 @@ void AppLayer::InitPhysics() {
 	bs->hide();
 }
 
+
+
+
+
+std::vector<glm::vec4> generateParticlesInSphere(int n, double radius) {
+	std::vector<glm::vec4> particles;
+	particles.reserve(n);
+	std::srand(std::time(nullptr)); // Seed for randomness
+
+	for (int i = 0; i < n; ++i) {
+		double theta = 2.0 * glm::pi<float>() * (std::rand() / (double)RAND_MAX);
+		double phi = acos(2.0 * (std::rand() / (double)RAND_MAX) - 1.0);
+		double r = radius * std::cbrt(std::rand() / (double)RAND_MAX);
+
+		glm::vec4 p;
+		p.x = r * sin(phi) * cos(theta);
+		p.y = r * sin(phi) * sin(theta);
+		p.z = r * cos(phi);
+
+		particles.push_back(p);
+	}
+
+	return particles;
+}
+
+
+std::vector<glm::vec4> generateParticlesInDisk(int n, double radius) {
+	std::vector<glm::vec4> particles;
+	particles.reserve(n);
+	std::srand(std::time(nullptr)); // Seed for randomness
+
+	for (int i = 0; i < n; ++i) {
+		double theta = 2.0 * glm::pi<float>() * (std::rand() / (double)RAND_MAX);
+		double r = radius * sqrt(std::rand() / (double)RAND_MAX);
+
+		glm::vec4 p;
+		p.x = r * cos(theta);
+		p.y = r * sin(theta);
+		p.z = 0;
+		p.w = 0;
+
+		particles.push_back(p);
+	}
+
+	return particles;
+}
+
+
+
+
+
+
+
+
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
 	Console::info() << "Generating particles..." << Console::endl;
@@ -221,8 +277,10 @@ void AppLayer::ResetSimulation() {
 
 	glm::vec3 cubeSize = glm::vec3(60, 195, 50);
 	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
-
 	numParticles = 0;
+
+
+
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
 			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
@@ -240,8 +298,8 @@ void AppLayer::ResetSimulation() {
 				numParticles++;
 			}
 		}
-	}
-	/*
+	}/**/
+
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
 			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
@@ -262,6 +320,35 @@ void AppLayer::ResetSimulation() {
 	}
 	/**/
 
+	/*
+	for (int n = 0; n < 100000; n += 50) {
+		std::vector<glm::vec4> disk = generateParticlesInDisk(50, 10);
+		for (int i = 0; i < disk.size(); i++) {
+			cpu_position.push_back(disk[i] + glm::vec4(0, 0, cubeSize.z*2, 0));
+			cpu_predictedPosition.push_back(disk[i] + glm::vec4(0, 0, cubeSize.z*2, 0));
+			cpu_velocity.push_back(glm::vec4(0));
+			cpu_density.push_back(0.0);
+			cpu_lambda.push_back(0.0);
+			cpu_temp.push_back(298.15); //ambient
+			cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
+			numParticles++;
+		}
+	}*/
+	/*
+	std::vector<glm::vec4> sphere = generateParticlesInSphere(500, 10);
+	for (int i = 0; i < sphere.size(); i++) {
+		cpu_position.push_back(sphere[i] + glm::vec4(0, 0, cubeSize.z * 2, 0));
+		cpu_predictedPosition.push_back(sphere[i] + glm::vec4(0, 0, cubeSize.z * 2, 0));
+		cpu_velocity.push_back(glm::vec4(0));
+		cpu_density.push_back(0.0);
+		cpu_lambda.push_back(0.0);
+		cpu_temp.push_back(298.15); //ambient
+		cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
+		numParticles++;
+	}*/
+
+
+	int realParticles = numParticles;
 
 	for (int yi = 0; yi <= settings.bb.y / spacing; yi++) {
 		for (int zi = 0; zi <= settings.bb.z / spacing; zi++) {
@@ -279,7 +366,7 @@ void AppLayer::ResetSimulation() {
 			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
 			numParticles++;
 
-			x = settings.bb.x/2;
+			x = settings.bb.x / 2;
 			y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
 			z = -((zi + 1) * spacing) + (settings.bb.z);
 
@@ -334,7 +421,7 @@ void AppLayer::ResetSimulation() {
 			float x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
 			float y = -settings.bb.y / 2;;
 			float z = -((zi + 1) * spacing) + (settings.bb.z);
-			
+
 
 			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
 			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
@@ -346,7 +433,7 @@ void AppLayer::ResetSimulation() {
 			numParticles++;
 
 			x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
-			y = settings.bb.y/2;
+			y = settings.bb.y / 2;
 			z = -((zi + 1) * spacing) + (settings.bb.z);
 
 			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
@@ -360,6 +447,8 @@ void AppLayer::ResetSimulation() {
 
 		}
 	}
+	numBoundaryParticles = numParticles - realParticles;
+
 
 
 	Console::info() << "Uploading buffer on device..." << Console::endl;
@@ -385,6 +474,8 @@ void AppLayer::ResetSimulation() {
 	ps->writeField("LambdaBuffer", cpu_lambda.data());
 	ps->writeField("TemperatureBuffer", cpu_temp.data());
 	ps->writeField("MetaBuffer", cpu_meta.data());
+
+	
 }
 
 
@@ -422,10 +513,9 @@ void AppLayer::NeigborSearch() {
 	solver->execute(1); //Sort
 }
 
-
 void AppLayer::Simulate(Merlin::Timestep ts) {
-
 	solver->use();
+
 
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {

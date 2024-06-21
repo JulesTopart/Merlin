@@ -41,6 +41,12 @@ namespace Merlin{
 		for (auto field : m_fields) {
 			field.second->reserve(count);
 		}
+		setActiveInstancesCount(m_instancesCount);
+	}
+
+	void ParticleSystem::setActiveInstancesCount(size_t count) {
+		m_activeInstancesCount = count;
+		if (m_activeInstancesCount > m_instancesCount) m_activeInstancesCount = m_instancesCount;
 	}
 
 	GenericBufferObject_Ptr ParticleSystem::getField(const std::string& name) const {

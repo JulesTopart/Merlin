@@ -48,6 +48,7 @@ private:
 	// --- Simulation--- 
 	Settings settings;
 	GLuint numParticles = 0;
+	GLuint numActiveParticles = 0;
 	GLuint numConstraint = 0;
 	GLuint numBoundaryParticles = 0;
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };

@@ -8,8 +8,6 @@
 //?#include "../common/nns.comp"
 //?#include "sph.kernels.comp" 
 
-
-
 vec3 solveFloorCollision(uint i){
 	vec3 correctedPosition = Xi;
 	for (int i = 0; i < 3; i++){
@@ -87,7 +85,7 @@ vec3 computePositionDelta(uint i) {
 	if(Rhoi -  restDensity < 0) return posDelta;
 	vec3 position = Xi;
 	OVERNNS
-		if(j == i) continue;
+		//if(j == i) continue;
 
 		if(B_Phase(j) == FLUID){
 			sCorr = -artificialPressureMultiplier * H2 * pow(poly6(Dij) / poly6(normalize(vec3(1)) * 0.2*H), 4);

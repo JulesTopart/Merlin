@@ -25,6 +25,7 @@ namespace Merlin {
 		ParticleSystem(const std::string& name, size_t count);
 		void draw() const; //draw the mesh
 		void setInstancesCount(size_t count);
+		void setActiveInstancesCount(size_t count);
 
 		GenericBufferObject_Ptr getField(const std::string& name) const;
 		GenericBufferObject_Ptr getBuffer(const std::string& name) const;
@@ -51,11 +52,9 @@ namespace Merlin {
 		inline const Shared<MaterialBase> getMaterial() const { return m_material; }
 		inline const std::string& getMaterialName() const { return m_materialName; }
 
-
 		void link(const std::string& shader, const std::string& field);
 		void solveLink(Shared<ShaderBase>);
 		bool hasLink(const std::string& name) const;
-
 
 		inline void setMesh(Shared<Mesh> geometry) { m_geometry = geometry; }
 		inline Shared<Mesh> getMesh() const { return m_geometry; }
@@ -84,6 +83,7 @@ namespace Merlin {
 
 		Mesh_Ptr m_geometry = nullptr;
 		size_t m_instancesCount = 1;
+		size_t m_activeInstancesCount = 1;
 		ParticleSystemDisplayMode m_displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
 
 		//Simulation
