@@ -142,6 +142,15 @@ void AppLayer::InitGraphics() {
 	bunny->meshes()[0]->scale(8);
 	bunny->setMaterial("gold");
 	scene.add(bunny);
+	bunny->meshes()[0]->computeBoundingBox();
+	BoundingBox bb = bunny->meshes()[0]->getBoundingBox();
+
+	glm::vec3 c_size = bb.max - bb.min;
+	auto b_box = Primitives::createCube(c_size.x, c_size.y, c_size.z);
+	b_box->enableWireFrameMode();
+	c_size *= 0.5;
+	b_box->translate(bb.min + c_size);
+	scene.add(b_box);
 
 	scene.add(TransformObject::create("origin"));
 
@@ -288,19 +297,20 @@ void AppLayer::ResetSimulation() {
 	numParticles = 0;
 
 
-	for (int i = 0; i < voxels.size(); i++) {
-		if (voxels[i] != 0 || true) {
-			BoundingBox aabb = bunny->meshes()[0]->getBoundingBox();
-			glm::vec3 bb_size = aabb.max - aabb.min;
-			int gridSizeX = ceil(bb_size.x / spacing);
-			int gridSizeY = ceil(bb_size.y / spacing);
-			int gridSizeZ = ceil(bb_size.z / spacing);
+	BoundingBox aabb = bunny->meshes()[0]->getBoundingBox();
+	glm::vec3 bb_size = aabb.max - aabb.min;
+	int gridSizeX = ceil(bb_size.x / spacing);
+	int gridSizeY = ceil(bb_size.y / spacing);
+	int gridSizeZ = ceil(bb_size.z / spacing);
+
+	for (int i = 0; i < gridSizeX * gridSizeY * gridSizeZ; i++) {
+		if (voxels[i] != 0) {
 
 			int index = i;
 			int vz = index / (gridSizeX * gridSizeY);
 			index -= (vz * gridSizeX * gridSizeY);
 			int vy = index / gridSizeX;
-			int vx = index % gridSizeY;
+			int vx = index % gridSizeX;
 
 			float x = aabb.min.x + (vx + 0.5) * spacing;
 			float y = aabb.min.y + (vy + 0.5) * spacing;
@@ -316,6 +326,9 @@ void AppLayer::ResetSimulation() {
 			numParticles++;
 		}
 	}
+
+
+
 
 	/*
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
@@ -371,6 +384,7 @@ void AppLayer::ResetSimulation() {
 			numParticles++;
 		}
 	}*/
+
 	/*
 	std::vector<glm::vec4> sphere = generateParticlesInSphere(500, 10);
 	for (int i = 0; i < sphere.size(); i++) {

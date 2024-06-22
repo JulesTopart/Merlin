@@ -30,8 +30,8 @@ namespace Merlin {
 		BoundingBox bb = mesh.getBoundingBox();
 		glm::vec3 bb_size = bb.max - bb.min;
 
-		GLuint voxThread = ceil(bb_size.x / (vox_size)) * ceil(bb_size.y / (vox_size)) * ceil(bb_size.z / (vox_size)); //Total number of bin (thread)
-		SSBO_Ptr<int> voxBuffer = SSBO<int>::create("voxel_buffer", voxThread); //full grid
+		GLuint voxThread = ceil(bb_size.x / vox_size) * ceil(bb_size.y / vox_size) * ceil(bb_size.z / vox_size); //Total number of bin (thread)
+		SSBO_Ptr<GLint> voxBuffer = SSBO<GLint>::create("voxel_buffer", voxThread); //full grid
 		SSBO_Ptr<Facet> facetBuffer = SSBO<Facet>::create("vertex_buffer", facets.size(), facets.data()); //full grid
 
 

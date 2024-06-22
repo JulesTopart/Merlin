@@ -10,9 +10,10 @@ namespace Merlin {
 
 	private :
 		struct Facet {
-			glm::vec4 v0;
-			glm::vec4 v1;
-			glm::vec4 v2;
+			alignas(16) glm::vec4 v0;
+			alignas(16) glm::vec4 v1;
+			alignas(16) glm::vec4 v2;
+			alignas(16) glm::vec4 dummy;
 		};
 
 	};
