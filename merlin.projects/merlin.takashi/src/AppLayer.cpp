@@ -17,10 +17,8 @@ void AppLayer::onAttach() {
 	Layer3D::onAttach();
 	camera().setNearPlane(0.5);
 	camera().setFarPlane(2000.0);
-	camera().rotate(glm::vec3(20, 0, -90));
 	camera().translate(glm::vec3(0, -300, 50));
-
-	Console::setLevel(ConsoleLevel::_TRACE);
+	camera().rotate(glm::vec3(20, 0, 90));
 
 	glfwSwapInterval(0);
 
@@ -67,6 +65,7 @@ void AppLayer::SyncUniforms() {
 	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
 	solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.01);
 	solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.01);
+	solver->setFloat("extensionViscosity", settings.extensionViscosity.value());
 
 	particleShader->use();
 	particleShader->setUInt("numParticles", numParticles);

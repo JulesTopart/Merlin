@@ -25,7 +25,7 @@ void main() {
 	if(B_Phase(i) != BOUNDARY)	SolveFluid(i, stage);
 	else if(B_Phase(i) == BOUNDARY){
 		if(stage != 2) return;
-		float pseudomass = 0;
+		float pseudomass = 1;
 		vec3 position = Xi;
 		OVERNNS
 			if(B_Phase(j) == BOUNDARY)
@@ -78,6 +78,7 @@ void SolveFluid(uint i, uint simStep) {
 		
 	if(simStep == 4){//correct density error and update position
 		Xi += computePositionDelta(i);
+		Xi += computeViscosityCorrection(i);
 		Xi += solveFloorCollision(i);
 		//particles[i].pposition = clampToDomain(particles[i].pposition);
 		return;

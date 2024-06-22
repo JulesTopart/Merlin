@@ -25,6 +25,9 @@ struct Settings {
 	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 0.5);
 	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 2.0);
 
+	Uniform<float> extensionViscosity = Uniform<float>("extensionViscosity", 1.005);
+
+
 	//Elastic solids
 	float stiffness = 0.0;
 

@@ -118,7 +118,34 @@ vec3 computeXPSH(uint i){
 	OVERNNS_END
 	return artificialViscosityMultiplier * xsphSum;
 }
+ 
+vec3 computeViscosityCorrection(uint i){
+	vec3 posDelta = vec3(0.0f);
+	float sCorr = 0.0;
+	vec3 position = xi;
 
+	OVERNNS
+		if(j == i) continue;
+		if(Dij > 2*H) continue;//if the predicted position are far enough break constraint
 
+		if(B_Phase(j) == FLUID){
+			float dij = length(xi - xj);
+			if(dij > H) continue; //if the stable position are close enough
+			float C = dij - Dij;
+			if(C < 0){
+				dij += 1.0*dij;
+
+				if(dij - Dij - dij*0.1 > 0) continue;
+				posDelta += (Dij - dij) * normalize(Rij);
+			}
+
+			
+		}
+
+	OVERNNS_END
+	posDelta *= 0.01;
+
+	return posDelta;
+}
 
 #endif
