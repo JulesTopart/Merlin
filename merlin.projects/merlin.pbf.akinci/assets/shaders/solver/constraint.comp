@@ -85,18 +85,18 @@ vec3 computePositionDelta(uint i) {
 	if(Rhoi -  restDensity < 0) return posDelta;
 	vec3 position = Xi;
 	OVERNNS
-		//if(j == i) continue;
-
+		if(j == i) continue;
+		float dist = Dij;
+		if(dist > H || dist <= 1e-6) continue;
+		sCorr = -artificialPressureMultiplier * H2 * pow(poly6(dist) / poly6(normalize(vec3(1)) * 0.2*H), 4);
 		if(B_Phase(j) == FLUID){
-			sCorr = -artificialPressureMultiplier * H2 * pow(poly6(Dij) / poly6(normalize(vec3(1)) * 0.2*H), 4);
-			posDelta += spikyGradient(Rij) * (B_Lambda(i) + B_Lambda(j) + sCorr);
+			posDelta += (spikyGradient(Rij) * (B_Lambda(i) + B_Lambda(j) + sCorr)) / rho0;
 		}else if(B_Phase(j) == BOUNDARY){
-			sCorr = -artificialPressureMultiplier * H2 * pow(poly6(Dij) / poly6(normalize(vec3(1)) * 0.2*H), 4);
 			posDelta += spikyGradient(Rij) * (1.0/Rhoj) * (2.0 * B_Lambda(i) + sCorr);
 		}
 
 	OVERNNS_END
-	posDelta /= rho0;
+
 	//posDelta = clamp(posDelta, -MAX_DELTA_PI, MAX_DELTA_PI);
 	return posDelta;
 }
@@ -109,7 +109,7 @@ vec3 computeXPSH(uint i){
 	OVERNNS
 		if(j == i) continue;
 		float dist = Dij;
-		if(dist < 1e-6) continue;
+		if(dist > H || dist <= 1e-6) continue;
 		float Wij = poly6(dist);
 		if(B_Phase(j) == FLUID)
 			xsphSum += (Mj/Rhoj) * Vji * Wij;

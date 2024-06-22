@@ -447,7 +447,6 @@ void AppLayer::ResetSimulation() {
 
 		}
 	}
-	numBoundaryParticles = numParticles - realParticles;
 
 
 

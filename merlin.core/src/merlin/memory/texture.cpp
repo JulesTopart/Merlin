@@ -309,8 +309,8 @@ namespace Merlin {
 		return tex;
 	}
 
-	Shared<Texture2D> Texture2D::create(const std::string& path, TextureType t){
-		ImageData data = TextureLoader::loadImageData(path);
+	Shared<Texture2D> Texture2D::create(const std::string& path, TextureType t, bool flipped){
+		ImageData data = TextureLoader::loadImageData(path, flipped);
 		
 		Shared<Texture2D> tex = createShared<Texture2D>(t);
 		tex->bind();

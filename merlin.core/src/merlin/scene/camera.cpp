@@ -84,8 +84,9 @@ namespace Merlin {
 	void Camera::translate(glm::vec3 du) {
 		glm::vec3 transform(0.0f, 0.0f, 0.0f);
 
-		transform += _Right * du.x;
-		transform += _Front * du.y;
+		
+		transform += _Front * du.x;
+		transform += _Right * -du.y;
 		transform += _Up * du.z;
 
 		_Position += transform;

@@ -11,7 +11,7 @@ namespace Merlin {
 	public:
 		// Load a texture from the specified file and return a pointer to a new Texture object
 		static Shared<Texture2D> loadTexture(const std::string& filepath, TextureType  t = TextureType::ALBEDO);
-		static ImageData loadImageData(const std::string& filepath);
+		static ImageData loadImageData(const std::string& filepath, bool flipped = false);
 
 
 	private:

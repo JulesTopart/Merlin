@@ -18,20 +18,20 @@ namespace Merlin {
 	{
 		if (Input::isKeyPressed(MRL_KEY_A))
 		{
-			_dU.x -= _CameraSpeed *ts;
+			_dU.y += _CameraSpeed *ts;
 		}
 		else if (Input::isKeyPressed(MRL_KEY_D))
 		{
-			_dU.x += _CameraSpeed *ts;
+			_dU.y -= _CameraSpeed *ts;
 		}
 
 		if (Input::isKeyPressed(MRL_KEY_W))
 		{
-			_dU.y += _CameraSpeed *ts;
+			_dU.x += _CameraSpeed *ts;
 		}
 		else if (Input::isKeyPressed(MRL_KEY_S))
 		{
-			_dU.y -= _CameraSpeed *ts;
+			_dU.x -= _CameraSpeed *ts;
 		}
 
 		if (Input::isKeyPressed(MRL_KEY_LEFT_CONTROL))

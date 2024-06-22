@@ -17,8 +17,9 @@ void AppLayer::onAttach() {
 	Layer3D::onAttach();
 	camera().setNearPlane(0.5);
 	camera().setFarPlane(2000.0);
-	camera().rotate(glm::vec3(20, 0, -90));
-	camera().translate(glm::vec3(0, -300, 50));
+	camera().translate(glm::vec3(0, -500, 100));
+	camera().rotate(glm::vec3(40, 0, 90));
+	
 
 	Console::setLevel(ConsoleLevel::_TRACE);
 
@@ -128,7 +129,7 @@ void AppLayer::InitGraphics() {
 	floorMat2->setDiffuse(glm::vec3(0.95));
 	floorMat2->setSpecular(glm::vec3(0.99));
 	floorMat2->setShininess(0.7);
-	floorMat2->loadTexture("assets/textures/bed.png", TextureType::DIFFUSE);
+	floorMat2->loadTexture("assets/textures/bed.png", TextureType::DIFFUSE, true);
 
 	floorSurface->setMaterial(floorMat2);
 	scene.add(floorSurface);
@@ -139,7 +140,7 @@ void AppLayer::InitGraphics() {
 	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
 	scene.add(bbox);
 
-	scene.add(TransformObject::create("origin"));
+	scene.add(TransformObject::create("origin", 10));
 
 }
 
@@ -280,9 +281,9 @@ void AppLayer::ResetSimulation() {
 	numParticles = 0;
 
 
-
-	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
-		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
+	
+	for (int xi = 1; xi <= -1+cubeSize.x / spacing; xi++) {
+		for (int yi = 1; yi <= -1+cubeSize.y / spacing; yi++) {
 			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
 				float x = ((xi + 1) * spacing) - (settings.bb.x / 2.0);
 				float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
@@ -299,9 +300,9 @@ void AppLayer::ResetSimulation() {
 			}
 		}
 	}/**/
-
-	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
-		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
+	
+	for (int xi = 1; xi <= -1+cubeSize.x / spacing; xi++) {
+		for (int yi = 1; yi <= -1+cubeSize.y / spacing; yi++) {
 			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
 				float x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
 				float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
@@ -317,8 +318,8 @@ void AppLayer::ResetSimulation() {
 				numParticles++;
 			}
 		}
-	}
-	/**/
+	}/**/
+	
 
 	/*
 	for (int n = 0; n < 100000; n += 50) {
@@ -350,103 +351,71 @@ void AppLayer::ResetSimulation() {
 
 	int realParticles = numParticles;
 
-	for (int yi = 0; yi <= settings.bb.y / spacing; yi++) {
-		for (int zi = 0; zi <= settings.bb.z / spacing; zi++) {
+	std::vector<glm::vec4> boundaryPos;
+	float halfSpacing = spacing / 2.0;
 
-			float x = -settings.bb.x / 2;
-			float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
-			float z = -((zi + 1) * spacing) + (settings.bb.z);
+	for (int yi = 0; yi <= (settings.bb.y - spacing) / spacing; yi++) {
+		for (int zi = 0; zi <= (settings.bb.z - spacing) / spacing; zi++) {
 
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
+			float x = -settings.bb.x / 2 + halfSpacing;
+			float y = (yi * spacing) - (settings.bb.y / 2.0) + halfSpacing;
+			float z = -(zi * spacing) + settings.bb.z - halfSpacing;
 
-			x = settings.bb.x / 2;
-			y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
-			z = -((zi + 1) * spacing) + (settings.bb.z);
+			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
 
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
+			x = settings.bb.x / 2 - halfSpacing;
+			y = (yi * spacing) - (settings.bb.y / 2.0) + halfSpacing;
+			z = -(zi * spacing) + settings.bb.z - halfSpacing;
 
+			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
 		}
 	}
 
+	for (int xi = 0; xi <= (settings.bb.x - spacing) / spacing; xi++) {
+		for (int yi = 0; yi <= (settings.bb.y - spacing) / spacing; yi++) {
 
-	for (int xi = 0; xi <= settings.bb.x / spacing; xi++) {
-		for (int yi = 0; yi <= settings.bb.y / spacing; yi++) {
+			float x = -(xi * spacing) + (settings.bb.x / 2.0) - halfSpacing;
+			float y = (yi * spacing) - (settings.bb.y / 2.0) + halfSpacing;
+			float z = halfSpacing;
 
-			float x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
-			float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
-			float z = 0;
+			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
 
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
+			x = -(xi * spacing) + (settings.bb.x / 2.0) - halfSpacing;
+			y = (yi * spacing) - (settings.bb.y / 2.0) + halfSpacing;
+			z = settings.bb.z - halfSpacing;
 
-			x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
-			y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
-			z = settings.bb.z;
-
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
-
+			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
 		}
 	}
 
-	for (int xi = 0; xi <= settings.bb.x / spacing; xi++) {
-		for (int zi = 0; zi <= settings.bb.z / spacing; zi++) {
+	for (int xi = 0; xi <= (settings.bb.x - spacing) / spacing; xi++) {
+		for (int zi = 0; zi <= (settings.bb.z - spacing) / spacing; zi++) {
 
-			float x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
-			float y = -settings.bb.y / 2;;
-			float z = -((zi + 1) * spacing) + (settings.bb.z);
+			float x = -(xi * spacing) + (settings.bb.x / 2.0) - halfSpacing;
+			float y = -settings.bb.y / 2 + halfSpacing;
+			float z = -(zi * spacing) + settings.bb.z - halfSpacing;
 
+			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
 
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
+			x = -(xi * spacing) + (settings.bb.x / 2.0) - halfSpacing;
+			y = settings.bb.y / 2 - halfSpacing;
+			z = -(zi * spacing) + settings.bb.z - halfSpacing;
 
-			x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
-			y = settings.bb.y / 2;
-			z = -((zi + 1) * spacing) + (settings.bb.z);
-
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
-
+			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
 		}
 	}
+
+	for (int i = 0; i < boundaryPos.size(); i++) {
+		cpu_position.push_back(glm::vec4(boundaryPos[i].x, boundaryPos[i].y, boundaryPos[i].z, 0.0));
+		cpu_predictedPosition.push_back(glm::vec4(boundaryPos[i].x, boundaryPos[i].y, boundaryPos[i].z, 0.0));
+		cpu_velocity.push_back(glm::vec4(0));
+		cpu_density.push_back(0.0);
+		cpu_lambda.push_back(0.0);
+		cpu_temp.push_back(298.15); //ambient
+		cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
+		numParticles++;
+	}
+
 	numBoundaryParticles = numParticles - realParticles;
 
 
@@ -519,21 +488,21 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
-			solver->execute(2);
+			if (integrate) solver->execute(2);
 			GPU_PROFILE(nns_time,
 				NeigborSearch();
 			)
 
-				if (integrate) {
-					GPU_PROFILE(jacobi_time,
-						for (int j = 0; j < settings.solver_iteration; j++) {
-							solver->execute(3);
-							solver->execute(4);
-						}
-					)
-						solver->execute(5);
+			if (integrate) {
+				GPU_PROFILE(jacobi_time,
+					for (int j = 0; j < settings.solver_iteration; j++) {
+						solver->execute(3);
+						solver->execute(4);
+					}
+				)
+					solver->execute(5);
 
-				}
+			}
 		}
 	)
 		elapsedTime += settings.timestep.value();

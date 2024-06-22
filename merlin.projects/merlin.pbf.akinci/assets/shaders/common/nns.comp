@@ -33,10 +33,9 @@ uint getBinIndex(vec3 position) {
 }
 
 uvec3 getBinCoordFromIndex(uint index) {
-	uint z = index / (binMax.x * binMax.y);
-	index -= (z * binMax.x * binMax.y);
-	uint y = index / binMax.x;
-	uint x = index % binMax.x;
+	uint z = (index / (binMax.x * binMax.y));
+	uint y = (index - (z * binMax.x * binMax.y)) / binMax.x;
+	uint x = index - binMax.x * (y + binMax.y * z);
 	return uvec3(x, y, z);
 }
 

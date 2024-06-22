@@ -5,8 +5,8 @@
 
 namespace Merlin {
 
-	void PhongMaterial::loadTexture(const std::string& path, TextureType t) {
-		Shared<Texture2D> tex = Texture2D::create(path, t);
+	void PhongMaterial::loadTexture(const std::string& path, TextureType t, bool flipped) {
+		Shared<Texture2D> tex = Texture2D::create(path, t, flipped);
 		tex->setInterpolationMode(GL_LINEAR, GL_LINEAR);
 		tex->generateMipmap();
 		switch (t) {

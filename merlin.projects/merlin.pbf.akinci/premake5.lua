@@ -1,2 +1,2 @@
 include (solutiondir .. "/merlin.template/template.lua")
-newProject("merlin.takashi")
+newProject("merlin.pbf.akinci")

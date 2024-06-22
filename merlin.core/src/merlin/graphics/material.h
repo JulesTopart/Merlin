@@ -49,7 +49,7 @@ namespace Merlin {
         inline void setSpecular(const glm::vec3& specular) { m_specular_color = specular; };
         inline void setShininess(const float& shininess) { m_shininess = shininess; };
 
-        void loadTexture(const std::string& path, TextureType t = TextureType::DIFFUSE);
+        void loadTexture(const std::string& path, TextureType t = TextureType::DIFFUSE, bool flipped = false);
 
         inline void setDiffuseTexture(Texture2D_Ptr tex) { m_diffuse_tex = tex; }
         inline void setSpecularTexture(Texture2D_Ptr tex) { m_specular_tex = tex; }

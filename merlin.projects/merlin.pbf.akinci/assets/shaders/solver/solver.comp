@@ -25,9 +25,10 @@ void main() {
 	if(B_Phase(i) != BOUNDARY)	SolveFluid(i, stage);
 	else if(B_Phase(i) == BOUNDARY){
 		if(stage != 2) return;
-		float pseudomass = 0;
+		float pseudomass = 1; //to avoid dividing by zero in compute delta
 		vec3 position = Xi;
 		OVERNNS
+			if(Dij >= H || Dij < 1e-6) continue;
 			if(B_Phase(j) == BOUNDARY)
 				pseudomass += poly6(Dij);
 		OVERNNS_END
@@ -78,7 +79,7 @@ void SolveFluid(uint i, uint simStep) {
 		
 	if(simStep == 4){//correct density error and update position
 		Xi += computePositionDelta(i);
-		Xi += solveFloorCollision(i);
+		//Xi += solveFloorCollision(i);
 		//particles[i].pposition = clampToDomain(particles[i].pposition);
 		return;
 	}
