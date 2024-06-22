@@ -140,14 +140,23 @@ namespace Merlin {
 
 
 	void Mesh::computeBoundingBox() {
-		for (Vertex& v : m_vertices) {
-			if (v.position.x > m_bbox.max.x) m_bbox.max.x = v.position.x;
-			if (v.position.y > m_bbox.max.y) m_bbox.max.y = v.position.y;
-			if (v.position.z > m_bbox.max.z) m_bbox.max.z = v.position.z;
+		glm::vec3 sc = scale();
 
-			if (v.position.x < m_bbox.min.x) m_bbox.min.x = v.position.x;
-			if (v.position.y < m_bbox.min.y) m_bbox.min.y = v.position.y;
-			if (v.position.z < m_bbox.min.z) m_bbox.min.z = v.position.z;
+		m_bbox.max.x = -INFINITY;
+		m_bbox.min.x = INFINITY;
+		m_bbox.max.y = -INFINITY;
+		m_bbox.min.y = INFINITY;
+		m_bbox.max.z = -INFINITY;
+		m_bbox.min.z = INFINITY;
+
+		for (Vertex& v : m_vertices) {
+			if (v.position.x * sc.x > m_bbox.max.x) m_bbox.max.x = v.position.x * sc.x;
+			if (v.position.y * sc.y > m_bbox.max.y) m_bbox.max.y = v.position.y * sc.y;
+			if (v.position.z * sc.z > m_bbox.max.z) m_bbox.max.z = v.position.z * sc.z;
+
+			if (v.position.x * sc.x < m_bbox.min.x) m_bbox.min.x = v.position.x * sc.x;
+			if (v.position.y * sc.y < m_bbox.min.y) m_bbox.min.y = v.position.y * sc.y;
+			if (v.position.z * sc.z < m_bbox.min.z) m_bbox.min.z = v.position.z * sc.z;
 		}
 		Console::info("Mesh") << "Bounding box is " << m_bbox.max - m_bbox.min << " starting at " << m_bbox.min << " and ending at " << m_bbox.max << Console::endl;
 	}

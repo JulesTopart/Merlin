@@ -148,7 +148,6 @@ namespace Merlin {
 	}
 
 	void GenericBufferObject::clear() {
-		m_bufferSize = 0;
 		glClearNamedBufferData(id(), GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, 0);
 	}
 

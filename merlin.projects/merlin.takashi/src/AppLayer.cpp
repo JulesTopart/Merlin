@@ -138,11 +138,20 @@ void AppLayer::InitGraphics() {
 	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
 	scene.add(bbox);
 
+	bunny = ModelLoader::loadModel("./assets/common/models/bunny.stl");
+	bunny->meshes()[0]->scale(8);
+	bunny->setMaterial("gold");
+	scene.add(bunny);
+
 	scene.add(TransformObject::create("origin"));
 
 }
 
 void AppLayer::InitPhysics() {
+
+	
+	voxels = Voxelizer::voxelize(*bunny->meshes()[0], 2.0 * settings.particleRadius);
+
 	//Compute Shaders
 	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6);
 	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
@@ -201,10 +210,6 @@ void AppLayer::InitPhysics() {
 
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
-	
-	bunny = ModelLoader::loadModel("./assets/common/models/bunny.stl");
-	voxels = Voxelizer::voxelize(*bunny->meshes()[0], 2.0*settings.particleRadius);
-
 
 	scene.add(ps);
 	scene.add(bs);
@@ -282,12 +287,24 @@ void AppLayer::ResetSimulation() {
 	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
 	numParticles = 0;
 
+
 	for (int i = 0; i < voxels.size(); i++) {
-		if (voxels[i] != 0) {
+		if (voxels[i] != 0 || true) {
 			BoundingBox aabb = bunny->meshes()[0]->getBoundingBox();
-			float x = aabb.min.x + (x + 0.5) * spacing;
-			float y = aabb.min.y + (y + 0.5) * spacing;
-			float z = aabb.min.z + (z + 0.5) * spacing;
+			glm::vec3 bb_size = aabb.max - aabb.min;
+			int gridSizeX = ceil(bb_size.x / spacing);
+			int gridSizeY = ceil(bb_size.y / spacing);
+			int gridSizeZ = ceil(bb_size.z / spacing);
+
+			int index = i;
+			int vz = index / (gridSizeX * gridSizeY);
+			index -= (vz * gridSizeX * gridSizeY);
+			int vy = index / gridSizeX;
+			int vx = index % gridSizeY;
+
+			float x = aabb.min.x + (vx + 0.5) * spacing;
+			float y = aabb.min.y + (vy + 0.5) * spacing;
+			float z = aabb.min.z + (vz + 0.5) * spacing;
 
 			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
 			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
@@ -300,6 +317,7 @@ void AppLayer::ResetSimulation() {
 		}
 	}
 
+	/*
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
 			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
@@ -318,7 +336,7 @@ void AppLayer::ResetSimulation() {
 			}
 		}
 	}/**/
-
+	/*
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
 			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {

@@ -145,7 +145,15 @@ namespace Merlin {
 		return rotation;
 	}
 
-	
+	const glm::vec3& RenderableObject::scale() const {
+		glm::vec3 scale;
+		glm::quat rotation;
+		glm::vec3 translation;
+		glm::vec3 skew;
+		glm::vec4 perspective;
+		glm::decompose(m_transform, scale, rotation, translation, skew, perspective);
+		return scale;
+	}
 
 
 }

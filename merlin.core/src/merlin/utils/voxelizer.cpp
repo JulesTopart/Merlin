@@ -5,8 +5,7 @@
 namespace Merlin {
 
 	std::vector<int> Voxelizer::voxelize(Mesh& mesh, float vox_size){
-		mesh.computeBoundingBox();
-
+		
 		Vertices vertices = mesh.getVertices();
 		Indices indices = mesh.getIndices();
 
@@ -27,27 +26,34 @@ namespace Merlin {
 			}
 		}
 
+		mesh.computeBoundingBox();
 		BoundingBox bb = mesh.getBoundingBox();
 		glm::vec3 bb_size = bb.max - bb.min;
 
 		GLuint voxThread = ceil(bb_size.x / (vox_size)) * ceil(bb_size.y / (vox_size)) * ceil(bb_size.z / (vox_size)); //Total number of bin (thread)
 		SSBO_Ptr<int> voxBuffer = SSBO<int>::create("voxel_buffer", voxThread); //full grid
-		SSBO_Ptr<Facet> facetBuffer = SSBO<Facet>::create("vertex_buffer", voxThread); //full grid
+		SSBO_Ptr<Facet> facetBuffer = SSBO<Facet>::create("vertex_buffer", facets.size(), facets.data()); //full grid
+
+
 
 		ComputeShader voxelize("voxelize", "./assets/common/shaders/voxelize.comp");
+		voxelize.use();
 		voxelize.attach(*voxBuffer);
 		voxelize.attach(*facetBuffer);
 
-		voxelize.setVec3("",bb.min);
-		voxelize.setVec3("", bb.max);
-		voxelize.setFloat("", vox_size);
-		voxelize.setUInt("", facets.size());
+		voxelize.setVec3("aabbMin",bb.min);
+		voxelize.setVec3("aabbMax", bb.max);
+		voxelize.setVec3("scale", mesh.scale());
+		voxelize.setFloat("voxelSize", vox_size);
+		voxelize.setUInt("facetCount", facets.size());
+		voxelize.setUInt("voxelCount", voxThread);
 
-		GLuint pWkgSize = 256;
-		GLuint pWkgCount = (facets.size() + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
+		GLuint pWkgSize = 64;
+		GLuint pWkgCount = (voxThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
 		voxelize.dispatch(pWkgCount);
 		voxelize.barrier();
+		facetBuffer->releaseBindingPoint();
 
 		voxBuffer->bind();
 		return voxBuffer->read();

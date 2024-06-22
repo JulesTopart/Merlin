@@ -123,6 +123,7 @@ namespace Merlin{
 		std::vector<T> result;
 		result.resize(m_bufferSize / m_typeSize);
 		read(result.data());
+
 		return result;
 	}
 

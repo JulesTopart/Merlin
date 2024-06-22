@@ -37,6 +37,7 @@ namespace Merlin {
 		//Getters
 		const glm::vec3& position() const;
 		const glm::quat& rotation() const;
+		const glm::vec3& scale() const;
 		inline const glm::mat4& transform() const { return m_transform; }
 		inline const std::string name() const { return m_name; }
 		inline void rename(std::string n) { m_name = n; };

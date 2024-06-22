@@ -1,11 +1,6 @@
-//This file was automatically generated 
-//DO NOT CHANGE !
+#version 430
 
-//? #version 430
-#ifndef INCLUDE_COLORS_GLSL
-#define INCLUDE_COLORS_GLSL
-
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
 layout(std430) readonly buffer vertex_buffer {
     vec4[3] facets[];
@@ -17,8 +12,10 @@ layout(std430) writeonly buffer voxel_buffer {
 
 uniform vec3 aabbMin;
 uniform vec3 aabbMax;
+uniform vec3 scale;
 uniform float voxelSize;
 uniform uint facetCount = 0;
+uniform uint voxelCount = 0;
 
 #define INTERSECT_EPSILON 1e-6
 #define INTERSECT_MAX_DIST 1e6
@@ -53,9 +50,9 @@ bool raytrace(inout vec3 ro, vec3 rd){
         //Intersection test, result : Facet id
         //Find the closest point of the geometry on the ray path
         
-        vec3 a = f[0].xyz;
-        vec3 b = f[1].xyz;
-        vec3 c = f[2].xyz;
+        vec3 a = f[0].xyz * scale;
+        vec3 b = f[1].xyz * scale;
+        vec3 c = f[2].xyz * scale;
         
         hitFacet = IntersectTriangle( ro, rd, a, b, c , hit);
         
@@ -91,14 +88,18 @@ uvec3 getVoxelCoordFromIndex(uint index) {
 
 void main(){
     uint index = gl_GlobalInvocationID.x;
+    if(index >= voxelCount) return;
     uvec3 index3D = getVoxelCoordFromIndex(index);
     
-    const vec3 rd = vec3(1.5468,0.25654,-0.2568);
+    const vec3 rd = vec3(1,0,0);
 
     vec3 ro = aabbMin + (vec3(index3D) + 0.5) * voxelSize;
 
-    voxelArray[index] = raytrace(ro, rd) ? 1 : 0;
+    if(index3D.x == 0)
+        voxelArray[index] = 1;
+    else 
+        voxelArray[index] = 0;
+
+    //voxelArray[index] = raytrace(ro, rd) ? 1 : 0;
+
 }
-
-
-#endif
