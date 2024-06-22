@@ -23,3 +23,4 @@
 
 #include "merlin/utils/modelLoader.h"
 #include "merlin/utils/primitives.h"
+#include "merlin/utils/voxelizer.h"

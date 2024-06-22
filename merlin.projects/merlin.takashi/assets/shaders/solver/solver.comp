@@ -19,15 +19,19 @@ uniform vec4 sourcePos;
 
 // XPBD_Main
 void main() {
+	if (gl_GlobalInvocationID.x >= numParticles) return;
+
 	uint i = gl_GlobalInvocationID.x;
-	if (i >= numParticles) return;
+	
 	NNS(i, stage);
+
 	if(B_Phase(i) != BOUNDARY)	SolveFluid(i, stage);
 	else if(B_Phase(i) == BOUNDARY){
 		if(stage != 2) return;
 		float pseudomass = 1;
 		vec3 position = Xi;
 		OVERNNS
+			if(Dij > H) continue;
 			if(B_Phase(j) == BOUNDARY)
 				pseudomass += poly6(Dij);
 		OVERNNS_END
@@ -78,7 +82,7 @@ void SolveFluid(uint i, uint simStep) {
 		
 	if(simStep == 4){//correct density error and update position
 		Xi += computePositionDelta(i);
-		Xi += computeViscosityCorrection(i);
+		///Xi += computeViscosityCorrection(i);
 		Xi += solveFloorCollision(i);
 		//particles[i].pposition = clampToDomain(particles[i].pposition);
 		return;

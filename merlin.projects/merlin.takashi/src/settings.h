@@ -10,13 +10,13 @@ struct Bin {
 };
 
 struct Settings {
-	const float particleRadius = 1.0;
+	const float particleRadius = 0.5;
 	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius;
 
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(300, 200, 80);
+	glm::vec3 bb = glm::vec3(300, 200, 100);
 
 	// Physics Parameters
 	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);
@@ -40,8 +40,8 @@ struct Settings {
 	float overRelaxation = 1.0;
 
 	//calulated
-	GLuint pWkgSize = 512; //Number of thread per workgroup
-	GLuint bWkgSize = 256; //Number of thread per workgroup
+	GLuint pWkgSize = 1024; //Number of thread per workgroup
+	GLuint bWkgSize = 512; //Number of thread per workgroup
 
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 	GLuint bThread = int(bb.x / (bWidth)) * int(bb.y / (bWidth)) * int(bb.z / (bWidth)); //Total number of bin (thread)

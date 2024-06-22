@@ -201,6 +201,10 @@ void AppLayer::InitPhysics() {
 
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
+	
+	bunny = ModelLoader::loadModel("./assets/common/models/bunny.stl");
+	voxels = Voxelizer::voxelize(*bunny->meshes()[0], 2.0*settings.particleRadius);
+
 
 	scene.add(ps);
 	scene.add(bs);
@@ -274,11 +278,27 @@ void AppLayer::ResetSimulation() {
 	auto cpu_temp = std::vector<float>();
 	auto cpu_meta = std::vector<glm::uvec4>();
 
-	glm::vec3 cubeSize = glm::vec3(60, 195, 50);
+	glm::vec3 cubeSize = glm::vec3(60, 195, 30);
 	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
 	numParticles = 0;
 
+	for (int i = 0; i < voxels.size(); i++) {
+		if (voxels[i] != 0) {
+			BoundingBox aabb = bunny->meshes()[0]->getBoundingBox();
+			float x = aabb.min.x + (x + 0.5) * spacing;
+			float y = aabb.min.y + (y + 0.5) * spacing;
+			float z = aabb.min.z + (z + 0.5) * spacing;
 
+			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
+			cpu_velocity.push_back(glm::vec4(0));
+			cpu_density.push_back(0.0);
+			cpu_lambda.push_back(0.0);
+			cpu_temp.push_back(298.15); //ambient
+			cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
+			numParticles++;
+		}
+	}
 
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
@@ -514,24 +534,25 @@ void AppLayer::NeigborSearch() {
 void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 
+	GPU_PROFILE(nns_time,
+		NeigborSearch();
+	)
 
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
 			solver->execute(2);
-			GPU_PROFILE(nns_time,
-				NeigborSearch();
-			)
 
-				if (integrate) {
-					GPU_PROFILE(jacobi_time,
-						for (int j = 0; j < settings.solver_iteration; j++) {
-							solver->execute(3);
-							solver->execute(4);
-						}
-					)
-						solver->execute(5);
-
+			if (integrate) {
+				GPU_PROFILE(jacobi_time,
+				for (int j = 0; j < settings.solver_iteration; j++) {
+					solver->execute(3);
+					solver->execute(4);
 				}
+				)
+				
+				solver->execute(5);
+
+			}
 		}
 	)
 		elapsedTime += settings.timestep.value();

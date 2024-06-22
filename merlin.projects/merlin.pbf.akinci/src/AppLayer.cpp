@@ -485,13 +485,13 @@ void AppLayer::NeigborSearch() {
 void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 
-
+	GPU_PROFILE(nns_time,
+		NeigborSearch();
+	)
+	
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
 			if (integrate) solver->execute(2);
-			GPU_PROFILE(nns_time,
-				NeigborSearch();
-			)
 
 			if (integrate) {
 				GPU_PROFILE(jacobi_time,
@@ -601,7 +601,7 @@ void AppLayer::onImGuiRender() {
 		solver->use();
 		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
 	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 100.0)) {
+	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 200.0)) {
 		solver->use();
 		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value()*0.001);
 	}

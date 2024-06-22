@@ -1,6 +1,7 @@
 
 #include "glpch.h"
 #include "merlin/utils/util.h"
+#include "merlin/utils/voxelizer.h"
 
 
 namespace Merlin {	

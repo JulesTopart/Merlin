@@ -23,8 +23,8 @@ namespace Merlin {
 		void draw() const;
 		void drawInstanced(GLsizeiptr instanced) const;
 
-		void calculateBoundingBox();
-		void calculateNormals();
+		void computeBoundingBox();
+		void computeNormals();
 		void smoothNormals();
 		void calculateIndices();
 		void removeUnusedVertices();

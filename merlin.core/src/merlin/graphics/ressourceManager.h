@@ -50,12 +50,12 @@ namespace Merlin {
     class ShaderLibrary : public RessourceManager<Shader> {
         SINGLETON(ShaderLibrary)
     public:
-        inline void add(Shared<Shader> shader){ RessourceManager::add(shader->name(), shader); };
+        inline void add(Shared<Shader> shader) { RessourceManager::add(shader->name(), shader); };
 
-    private: 
+    private:
         ShaderLibrary();
         void LoadDefaultShaders();
-        
+
     };
 
 

@@ -139,7 +139,7 @@ namespace Merlin {
 	}
 
 
-	void Mesh::calculateBoundingBox() {
+	void Mesh::computeBoundingBox() {
 		for (Vertex& v : m_vertices) {
 			if (v.position.x > m_bbox.max.x) m_bbox.max.x = v.position.x;
 			if (v.position.y > m_bbox.max.y) m_bbox.max.y = v.position.y;
@@ -152,7 +152,7 @@ namespace Merlin {
 		Console::info("Mesh") << "Bounding box is " << m_bbox.max - m_bbox.min << " starting at " << m_bbox.min << " and ending at " << m_bbox.max << Console::endl;
 	}
 
-	void Mesh::calculateNormals(){
+	void Mesh::computeNormals(){
 		// Initialize all normals to zero
 		for (auto& vertex : m_vertices) {
 			vertex.normal = glm::vec3(0);

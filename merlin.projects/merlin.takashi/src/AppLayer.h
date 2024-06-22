@@ -48,6 +48,10 @@ private:
 	// --- Simulation--- 
 	Settings settings;
 	GLuint numParticles = 0;
+
+	std::vector<int> voxels;
+	Model_Ptr bunny;
+	
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 
 	double nns_time = 0;
