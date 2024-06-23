@@ -44,7 +44,6 @@ void NNS(uint i, uint simStep){
 		ssbo_cpy_velocity[i] = ssbo_velocity[i];
 		ssbo_cpy_density[i] = ssbo_density[i];
 		ssbo_cpy_lambda[i] = ssbo_lambda[i];
-		ssbo_cpy_temperature[i] = ssbo_temperature[i];
 		ssbo_cpy_meta[i] = ssbo_meta[i];
 
 		return;
@@ -56,7 +55,6 @@ void NNS(uint i, uint simStep){
 		ssbo_velocity[newID]  = ssbo_cpy_velocity[i];
 		ssbo_density[newID]   = ssbo_cpy_density[i];
 		ssbo_lambda[newID]    = ssbo_cpy_lambda[i];
-		ssbo_temperature[newID]    = ssbo_cpy_temperature[i];
 		ssbo_meta[newID]      = ssbo_cpy_meta[i];
 		ssbo_meta[ssbo_meta[newID].z].z = newID;
 		return;

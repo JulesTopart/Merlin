@@ -42,6 +42,10 @@ private:
 	ParticleSystem_Ptr ps;
 	ParticleSystem_Ptr bs;
 
+	Mesh_Ptr emitter;
+	Mesh_Ptr geom;
+	Mesh_Ptr slope;
+
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;
 

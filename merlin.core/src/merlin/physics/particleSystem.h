@@ -68,7 +68,7 @@ namespace Merlin {
 		void addField(const std::string& name);
 
 		template<typename T>
-		void addBuffer(const std::string& name);
+		void addBuffer(const std::string& name, GLsizei size);
 
 		static Shared<ParticleSystem> create(const std::string&, size_t count);
 
@@ -105,6 +105,19 @@ namespace Merlin {
 		}
 		SSBO_Ptr<T> f = SSBO<T>::create(name, m_instancesCount);
 		m_fields[name] = f;
+
+		if (hasLink(m_currentProgram)) {
+			link(m_currentProgram, f->name());
+		}
+	}
+
+	template<typename T>
+	void ParticleSystem::addBuffer(const std::string& name, GLsizei size) {
+		if (hasBuffer(name)) {
+			Console::warn("ParticleSystem") << name << "has been overwritten" << Console::endl;
+		}
+		SSBO_Ptr<T> f = SSBO<T>::create(name, size);
+		m_buffers[name] = f;
 
 		if (hasLink(m_currentProgram)) {
 			link(m_currentProgram, f->name());

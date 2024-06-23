@@ -47,14 +47,21 @@ void AppLayer::onUpdate(Timestep ts) {
 		renderer.renderScene(scene, camera());
 	)
 
+	ps->detach(particleShader);
+	bs->detach(binShader);
+
+
+	ps->solveLink(solver);
+	bs->solveLink(prefixSum);
+
 	if (!paused) {
 		GPU_PROFILE(solver_total_time,
 			Simulate(0.016);
 		)
 	}
 
-	ps->detach(particleShader);
-	bs->detach(binShader);
+	ps->detach(solver);
+	bs->detach(prefixSum);
 }
 
 
@@ -569,9 +576,6 @@ void AppLayer::NeigborSearch() {
 
 void AppLayer::Simulate(Merlin::Timestep ts) {
 
-	ps->solveLink(solver);
-	bs->solveLink(prefixSum);
-
 	solver->use();
 
 	GPU_PROFILE(nns_time,
@@ -595,10 +599,8 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 			}
 		}
 	)
-		elapsedTime += settings.timestep.value();
+	elapsedTime += settings.timestep.value();
 
-	ps->detach(solver);
-	bs->detach(prefixSum);
 }
 
 void AppLayer::onImGuiRender() {

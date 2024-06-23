@@ -1,6 +1,7 @@
 #pragma once
 #include "merlin/graphics/mesh.h"
 #include "merlin/memory/shaderStorageBuffer.h"
+#include "merlin/shaders/computeShader.h"
 
 namespace Merlin {
 	class Voxelizer {
@@ -9,6 +10,9 @@ namespace Merlin {
 		static std::vector<int> voxelize(Mesh& mesh, float vox_size);
 
 	private :
+
+		inline static ComputeShader_Ptr m_voxelize = nullptr;
+
 		struct Facet {
 			alignas(16) glm::vec4 v0;
 			alignas(16) glm::vec4 v1;

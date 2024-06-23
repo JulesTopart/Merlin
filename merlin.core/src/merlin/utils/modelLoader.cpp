@@ -150,6 +150,38 @@ namespace Merlin {
         }
     }
 
+    // Load a model from the specified file and return a pointer to a new Mesh object
+    Shared<Mesh> ModelLoader::loadMesh(const std::string& file_path) {
+
+        Assimp::Importer importer;
+        const aiScene* scene = importer.ReadFile(file_path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+            std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
+
+            //fallback to custom made importer
+            FileType ft = getFileType(file_path);
+            if (ft == FileType::OBJ || ft == FileType::STL || ft == FileType::GEOM) {
+                Vertices vertices;
+                Indices indices;
+                if (!parseMesh(file_path, vertices, indices)) {
+                    throw std::runtime_error("Unknown file type: " + file_path);
+                }
+                // create a Mesh object using the parsed vertex and index data
+                auto mesh = Mesh::create(getFileName(file_path), vertices, indices);
+                //mesh->calculateNormals();
+
+                return mesh;
+            }
+            return nullptr;
+        }
+
+        std::vector<Shared<Mesh>> meshes;
+        processNode(file_path, scene->mRootNode, scene, meshes);
+
+        return meshes[0];
+    }
+
 	// Load a model from the specified file and return a pointer to a new Mesh object
     Shared<Model> ModelLoader::loadModel(const std::string& file_path) {
 
@@ -168,7 +200,7 @@ namespace Merlin {
                     throw std::runtime_error("Unknown file type: " + file_path);
                 }
                 // create a Mesh object using the parsed vertex and index data
-                auto mesh = Mesh::create("Mesh", vertices, indices);
+                auto mesh = Mesh::create(getFileName(file_path) + "_mesh", vertices, indices);
                 //mesh->calculateNormals();
 
                 return Model::create(getFileName(file_path), mesh);

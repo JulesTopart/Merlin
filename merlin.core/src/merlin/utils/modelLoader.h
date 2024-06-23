@@ -12,6 +12,7 @@ namespace Merlin{
 	public:
 		// Load a model from the specified file and return a pointer to a new Mesh object
 		static Shared<Model> loadModel(const std::string& filepath);
+		static Shared<Mesh> loadMesh(const std::string& filepath);
 
 		// Load a GLTF file and extract the data
 		//static Shared<Model> LoadGLTF(const std::string& file_path);
