@@ -3,6 +3,9 @@
 #include "merlin/core/log.h"
 #include "merlin/graphics/mesh.h"
 
+#define DEG_TO_RAD 0.01745329251994
+#define RAD_TO_DEG 57.2957795130823
+
 namespace Merlin {
 
 	enum class FileType {

@@ -50,11 +50,17 @@ namespace Merlin {
 		int block_index = glGetProgramResourceIndex(m_programID, GL_SHADER_STORAGE_BLOCK, buf.name().c_str());
 		if (block_index == -1) Console::error("ShaderBase") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
 		else {
+			buf.releaseBindingPoint();
+			buf.setBindingPoint();
 			GLuint bindingPoint = buf.bindingPoint();
 			buf.bind();
-			Console::info("ShaderBase") << buf.name() << "( block index " << block_index << ") is now bound to " << name() << " using binding point " << bindingPoint << Console::endl;
+			Console::trace("ShaderBase") << buf.name() << "( block index " << block_index << ") is now bound to " << name() << " using binding point " << bindingPoint << Console::endl;
 			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint);//Do this explicitly in your shader !
 		}
+	}
+
+	void ShaderBase::detach(GenericBufferObject& buf){
+		buf.releaseBindingPoint();
 	}
 
 	//TODO : bind the shaders automatically before setting uniforms.

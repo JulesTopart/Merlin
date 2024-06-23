@@ -23,6 +23,7 @@ namespace Merlin {
 		void draw() const;
 		void drawInstanced(GLsizeiptr instanced) const;
 
+		void voxelize(float size);
 		void computeBoundingBox();
 		void computeNormals();
 		void smoothNormals();
@@ -41,6 +42,7 @@ namespace Merlin {
 		inline bool hasMaterial() const { return m_material != nullptr; }
 
 		inline GLuint getDrawMode() const { return m_drawMode; }
+		inline const std::vector<int>& getVoxels() const { return m_voxels;  }
 		inline const std::vector<Vertex>& getVertices() const { return m_vertices;  }
 		inline const std::vector<GLuint>& getIndices() const{ return m_indices; }
 		inline const glm::mat4& getTransform() const { return m_transform; }
@@ -60,6 +62,7 @@ namespace Merlin {
 		GLuint m_drawMode;
 		std::vector<Vertex> m_vertices;
 		std::vector<GLuint> m_indices;
+		std::vector<int> m_voxels;
 
 		BoundingBox m_bbox;
 

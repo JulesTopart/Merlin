@@ -61,7 +61,7 @@ namespace Merlin {
 
 	void GenericBufferObject::setBindingPoint(GLuint bp) {
 		m_bindingPoint = bp;
-		Console::info("ShaderBase") << name() << "( block id " << id() << ") is now bound to binding point " << m_bindingPoint << Console::endl;
+		Console::trace("ShaderBase") << name() << "( block id " << id() << ") is now bound to binding point " << m_bindingPoint << Console::endl;
 		glBindBufferBase(static_cast<GLenum>(m_target), m_bindingPoint, id());
 	}
 
@@ -73,7 +73,7 @@ namespace Merlin {
 			}
 			else {
 				m_bindingPoint = BindingPointManager::instance().allocateBindingPoint(m_type);
-				Console::info("BufferBase") << name() << "( block id " << id() << ") has now binding point " << m_bindingPoint << Console::endl;
+				Console::trace("BufferBase") << name() << "( block id " << id() << ") has now binding point " << m_bindingPoint << Console::endl;
 				glBindBufferBase(static_cast<GLenum>(m_target), m_bindingPoint, id());
 			}
 		}

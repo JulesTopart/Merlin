@@ -49,8 +49,8 @@ private:
 	Settings settings;
 	GLuint numParticles = 0;
 
-	std::vector<int> voxels;
-	Model_Ptr bunny;
+	Mesh_Ptr emitter;
+	Mesh_Ptr nozzle;
 	
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 

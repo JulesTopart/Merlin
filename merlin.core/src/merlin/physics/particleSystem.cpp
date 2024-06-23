@@ -147,6 +147,23 @@ namespace Merlin{
 		return m_links.find(shader) != m_links.end();
 	}
 
+	void ParticleSystem::detach(Shared<ShaderBase> shader) {
+		if (hasLink(shader->name())) {
+			for (auto& entry : m_links[shader->name()]) {
+				if (hasField(entry))
+					shader->detach(*getField(entry));
+				else if (hasBuffer(entry))
+					shader->detach(*getBuffer(entry));
+				else
+					Console::error("ParticleSystem") << entry << " is not registered as field in the particle system" << Console::endl;
+
+			}
+		}
+		else {
+			Console::error("ParticleSystem") << shader->name() << " is not registered in the particle system" << Console::endl;
+		}
+	}
+
 	void ParticleSystem::solveLink(Shared<ShaderBase> shader) {
 		if (hasLink(shader->name())) {
 			for (auto& entry : m_links[shader->name()]) {
@@ -162,7 +179,6 @@ namespace Merlin{
 		else {
 			Console::error("ParticleSystem") << shader->name() << " is not registered in the particle system" << Console::endl;
 		}
-		
 	}
 
 

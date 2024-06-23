@@ -53,6 +53,7 @@ namespace Merlin {
 		inline const std::string& getMaterialName() const { return m_materialName; }
 
 		void link(const std::string& shader, const std::string& field);
+		void detach(Shared<ShaderBase>);
 		void solveLink(Shared<ShaderBase>);
 		bool hasLink(const std::string& name) const;
 

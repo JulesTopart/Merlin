@@ -1,6 +1,7 @@
 #include "glpch.h"
 #include "mesh.h"
 #include "merlin/memory/indexBuffer.h"
+#include "merlin/utils/voxelizer.h"
 
 #include <unordered_map>
 #include <vector>
@@ -138,9 +139,11 @@ namespace Merlin {
 		updateVAO();
 	}
 
+	void Mesh::voxelize(float size) {
+		m_voxels = Voxelizer::voxelize(*this, size);
+	}
 
 	void Mesh::computeBoundingBox() {
-		glm::vec3 sc = scale();
 
 		m_bbox.max.x = -INFINITY;
 		m_bbox.min.x = INFINITY;
@@ -149,14 +152,19 @@ namespace Merlin {
 		m_bbox.max.z = -INFINITY;
 		m_bbox.min.z = INFINITY;
 
-		for (Vertex& v : m_vertices) {
-			if (v.position.x * sc.x > m_bbox.max.x) m_bbox.max.x = v.position.x * sc.x;
-			if (v.position.y * sc.y > m_bbox.max.y) m_bbox.max.y = v.position.y * sc.y;
-			if (v.position.z * sc.z > m_bbox.max.z) m_bbox.max.z = v.position.z * sc.z;
+		glm::mat4 modelMat = globalTransform();
 
-			if (v.position.x * sc.x < m_bbox.min.x) m_bbox.min.x = v.position.x * sc.x;
-			if (v.position.y * sc.y < m_bbox.min.y) m_bbox.min.y = v.position.y * sc.y;
-			if (v.position.z * sc.z < m_bbox.min.z) m_bbox.min.z = v.position.z * sc.z;
+		for (Vertex& v : m_vertices) {
+
+			glm::vec4 vec = modelMat * glm::vec4(v.position, 1);
+
+			if (vec.x > m_bbox.max.x) m_bbox.max.x = vec.x;
+			if (vec.y > m_bbox.max.y) m_bbox.max.y = vec.y;
+			if (vec.z > m_bbox.max.z) m_bbox.max.z = vec.z;
+	
+			if (vec.x < m_bbox.min.x) m_bbox.min.x = vec.x;
+			if (vec.y < m_bbox.min.y) m_bbox.min.y = vec.y;
+			if (vec.z < m_bbox.min.z) m_bbox.min.z = vec.z;
 		}
 		Console::info("Mesh") << "Bounding box is " << m_bbox.max - m_bbox.min << " starting at " << m_bbox.min << " and ending at " << m_bbox.max << Console::endl;
 	}

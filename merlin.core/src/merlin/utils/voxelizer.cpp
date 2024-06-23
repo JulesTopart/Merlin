@@ -16,11 +16,11 @@ namespace Merlin {
 		for (const auto& i : indices) {
 			index++;
 			if(index == 1)
-				buf.v0 = glm::vec4(vertices[i].position, 0);
+				buf.v0 = glm::vec4(vertices[i].position, 1);
 			else if (index == 2)
-				buf.v1 = glm::vec4(vertices[i].position, 0);
+				buf.v1 = glm::vec4(vertices[i].position, 1);
 			else if (index == 3) {
-				buf.v1 = glm::vec4(vertices[i].position, 0);
+				buf.v2 = glm::vec4(vertices[i].position, 1);
 				facets.push_back(buf);
 				index = 0;
 			}
@@ -34,16 +34,14 @@ namespace Merlin {
 		SSBO_Ptr<GLint> voxBuffer = SSBO<GLint>::create("voxel_buffer", voxThread); //full grid
 		SSBO_Ptr<Facet> facetBuffer = SSBO<Facet>::create("vertex_buffer", facets.size(), facets.data()); //full grid
 
-
-
 		ComputeShader voxelize("voxelize", "./assets/common/shaders/voxelize.comp");
 		voxelize.use();
 		voxelize.attach(*voxBuffer);
 		voxelize.attach(*facetBuffer);
 
-		voxelize.setVec3("aabbMin",bb.min);
-		voxelize.setVec3("aabbMax", bb.max);
-		voxelize.setVec3("scale", mesh.scale());
+		voxelize.setVec4("aabbMin", glm::vec4(bb.min, 1));
+		voxelize.setVec4("aabbMax", glm::vec4(bb.max, 1));
+		voxelize.setMat4("modelMatrix", mesh.globalTransform());
 		voxelize.setFloat("voxelSize", vox_size);
 		voxelize.setUInt("facetCount", facets.size());
 		voxelize.setUInt("voxelCount", voxThread);
@@ -54,6 +52,7 @@ namespace Merlin {
 		voxelize.dispatch(pWkgCount);
 		voxelize.barrier();
 		facetBuffer->releaseBindingPoint();
+		voxBuffer->releaseBindingPoint();
 
 		voxBuffer->bind();
 		return voxBuffer->read();

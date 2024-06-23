@@ -39,6 +39,7 @@ namespace Merlin {
 		void setIntArray(const std::string name, GLint* values, uint32_t count) const;
 
 		void attach(GenericBufferObject& buf);
+		void detach(GenericBufferObject& buf);
 
 		inline const GLuint id() const { return m_programID; }
 		inline void setID(GLuint _id_) { m_programID = _id_; };

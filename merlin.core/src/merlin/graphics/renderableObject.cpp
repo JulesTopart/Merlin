@@ -155,5 +155,25 @@ namespace Merlin {
 		return scale;
 	}
 
+	glm::mat4& RenderableObject::globalTransform() {
+		//loop to the scene graph to get global transform
+		glm::mat4 globalTransform = glm::mat4(1.0f); // Initialize with identity matrix
+		std::vector<glm::mat4> nodeStack;
+
+		RenderableObject* node = this;
+		int it = 0;
+
+		while (node && it < 50) {// Push all nodes to the stack
+			nodeStack.push_back(node->transform());
+			node = node->parent();
+		}
+
+		// Multiply matrices in the correct order (from root to leaf)
+		for (auto it = nodeStack.rbegin(); it != nodeStack.rend(); ++it) {
+			globalTransform = globalTransform * (*it);
+		}
+		return globalTransform;
+	}
+
 
 }

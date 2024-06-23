@@ -6,7 +6,6 @@
 #include "merlin/memory/indexBuffer.h"
 #include "merlin/utils/util.h"
 
-
 namespace Merlin{
 
 	class ModelLoader {

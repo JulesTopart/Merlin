@@ -10,12 +10,13 @@ layout(std430) writeonly buffer voxel_buffer {
     int voxelArray[];
 };
 
-uniform vec3 aabbMin;
-uniform vec3 aabbMax;
-uniform vec3 scale;
+uniform vec4 aabbMin;
+uniform vec4 aabbMax;
 uniform float voxelSize;
 uniform uint facetCount = 0;
 uniform uint voxelCount = 0;
+
+uniform mat4 modelMatrix; // Model transformation matrix
 
 #define INTERSECT_EPSILON 1e-4
 #define INTERSECT_MAX_DIST 1e6
@@ -37,15 +38,15 @@ bool IntersectTriangle(vec3 ro, vec3 rd, vec3 p0, vec3 p1, vec3 p2)
 }
 
 int raytrace(inout vec3 ro, vec3 rd){
-    int hit;
+    int hit = 0;
     for(uint i = 0; i < facetCount; i++){   //Loop for identify the facet intersected by the ray
         vec4[4] f = facets[i];
         //Intersection test, result : Facet id
         //Find the closest point of the geometry on the ray path
         
-        vec3 a = f[0].xyz * scale;
-        vec3 b = f[1].xyz * scale;
-        vec3 c = f[2].xyz * scale;
+        vec3 a = vec3(modelMatrix * f[0]);
+        vec3 b = vec3(modelMatrix * f[1]);
+        vec3 c = vec3(modelMatrix * f[2]);
         
         if(IntersectTriangle( ro, rd, a, b, c))
             hit++;
@@ -75,11 +76,11 @@ void main(){
 
     const vec3 rd = vec3(0,0,1); //random vector
 
-    vec3 ro = aabbMin + (vec3(index3D) + 0.5) * voxelSize;
+    vec3 ro = aabbMin.xyz + (vec3(index3D) + 0.5) * voxelSize;
 
     int hit = raytrace(ro, rd);
 
     if(hit == 0) voxelArray[index] = 0;
-    else voxelArray[index] = hit % 2 >= 1 ? 0 : 1;
+    else voxelArray[index] = hit % 2 == 1 ? 1 : 0;
 
 }
