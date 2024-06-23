@@ -1,0 +1,64 @@
+//? #version 430
+#ifndef INCLUDE_CONSTRAINTS_GLSL
+#define INCLUDE_CONSTRAINTS_GLSL
+
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+
+vec3 solveFloorCollision(uint i){
+	vec3 correctedPosition = Xi;
+	for (int i = 0; i < 3; i++){
+		if (correctedPosition[i] - particleRadius <= boundaryMin[i] ){
+			correctedPosition[i] = (boundaryMin[i]) + particleRadius + 1e-2;;
+		}
+		else if (correctedPosition[i] + particleRadius >= boundaryMax[i])
+		{
+			correctedPosition[i] =  boundaryMax[i] - particleRadius - 1e-2;
+		}
+	}
+
+	return (correctedPosition - Xi)*0.8;
+}
+
+vec3 solveDistanceConstraint(uint i){
+	int n = 0;
+	vec3 deltaPosition = vec3(0);
+
+	vec3 position = Xi;
+	OVERNNS
+		if(Dij > 4*particleRadius || Dij < 1e6) continue; //Ignore particle that are too far
+
+		float l0 = 2.0*particleRadius; //rest distance
+		float l = Dij; // Calculate the current length
+		// Calculate the constraint violation
+		float C = l - l0;
+
+		if(abs(C) < 1e-06) continue;
+		// Calculate the gradient of the constraint function
+		vec3 gradC = normalize(Rij);
+
+		// Calculate the effective mass matrix
+		float inverseMass = (1.0/Mi) + (1.0/Mj);
+
+		/*float compliance = 1.0/stiffness; // Compliance of the constraints
+		float complianceSc = compliance/(dt*dt);*/
+		//float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
+		float deltaLambda = -C / ( inverseMass); 
+
+		// Calculate and apply the position corrections
+		deltaPosition += gradC * deltaLambda * Mi;
+		n++;
+		//particles[i].lambda += deltaLambda;
+
+	OVERNNS_END
+	if(n > 1) return deltaPosition/float(n);
+	else return deltaPosition;
+}
+
+
+
+
+#endif
