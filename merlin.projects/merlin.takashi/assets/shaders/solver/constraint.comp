@@ -147,4 +147,41 @@ vec3 computeViscosityCorrection(uint i){
 	return posDelta;
 }
 
+vec3 solveDistanceConstraint(uint i){
+	int n = 0;
+	vec3 deltaPosition = vec3(0);
+
+	vec3 position = Xi;
+	OVERNNS
+		float l0 = distance(Rxi, Rxj);
+		if(i == j) continue;
+		if(l0 >= 4*particleRadius || Dij < 1e-6) continue; //Ignore particle that are too far
+
+		float l = Dij; // Calculate the current length
+		
+		float C = l - l0; // Calculate the constraint violation
+
+		//if(abs(C) < 1e-06) continue;
+		// Calculate the gradient of the constraint function
+		vec3 gradC = normalize(Rij);
+
+		// Calculate the effective mass matrix
+		float inverseMass = (1.0/Mi) + (1.0/Mj);
+
+		float compliance = 1.0/stiffness; // Compliance of the constraints
+		float complianceSc = compliance/(dt*dt);
+		//float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
+		float deltaLambda = -C / ( inverseMass + complianceSc); 
+
+		// Calculate and apply the position corrections
+		deltaPosition += gradC * deltaLambda * Mi;
+		n++;
+		//particles[i].lambda += deltaLambda;
+
+	OVERNNS_END
+
+	if(n > 1) return deltaPosition/float(n);
+	else return deltaPosition;
+}
+
 #endif

@@ -12,6 +12,19 @@ using namespace Merlin;
 #define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
+struct CopyContent {
+	glm::vec4 position;
+	glm::vec4 rposition;
+	glm::vec4 pposition;
+	glm::vec4 velocity;
+	float density;
+	float lambda;
+	float temperature;
+	float _padding;
+	glm::uvec4 meta;
+};
+
+
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
 	camera().setNearPlane(0.5);
@@ -205,19 +218,14 @@ void AppLayer::InitPhysics() {
 	ps->setShader(particleShader);
 	ps->addProgram(solver);
 	ps->addField<glm::vec4>("PositionBuffer");
-	ps->addField<glm::vec4>("cpyPositionBuffer");
 	ps->addField<glm::vec4>("PredictedPositionBuffer");
-	ps->addField<glm::vec4>("cpyPredictedPositionBuffer");
+	ps->addField<glm::vec4>("RestPositionBuffer");
 	ps->addField<glm::vec4>("VelocityBuffer");
-	ps->addField<glm::vec4>("cpyVelocityBuffer");
 	ps->addField<float>("DensityBuffer");
-	ps->addField<float>("cpyDensityBuffer");
 	ps->addField<float>("LambdaBuffer");
-	ps->addField<float>("cpyLambdaBuffer");
 	ps->addField<float>("TemperatureBuffer");
-	ps->addField<float>("cpyTemperatureBuffer");
 	ps->addField<glm::uvec4>("MetaBuffer");
-	ps->addField<glm::uvec4>("cpyMetaBuffer");
+	ps->addField<CopyContent>("CopyBuffer");
 	ps->addBuffer(binBuffer);
 	ps->solveLink(solver);
 	ps->detach(solver);//test binding points
@@ -229,6 +237,7 @@ void AppLayer::InitPhysics() {
 	bs->detach(prefixSum);//test binding points
 
 	ps->link(particleShader->name(), "PositionBuffer");
+	ps->link(particleShader->name(), "RestPositionBuffer");
 	ps->link(particleShader->name(), "PredictedPositionBuffer");
 	ps->link(particleShader->name(), "VelocityBuffer");
 	ps->link(particleShader->name(), "DensityBuffer");
@@ -254,10 +263,6 @@ void AppLayer::ResetSimulation() {
 
 	float spacing = settings.particleRadius * 2.0;
 	auto cpu_position = std::vector<glm::vec4>();
-	auto cpu_predictedPosition = std::vector<glm::vec4>();
-	auto cpu_velocity = std::vector<glm::vec4>();
-	auto cpu_density = std::vector<float>();
-	auto cpu_lambda = std::vector<float>();
 	auto cpu_temp = std::vector<float>();
 	auto cpu_meta = std::vector<glm::uvec4>();
 
@@ -290,10 +295,6 @@ void AppLayer::ResetSimulation() {
 				float z = aabb.min.z + (vz + 0.5) * spacing;
 
 				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_velocity.push_back(glm::vec4(0));
-				cpu_density.push_back(0.0);
-				cpu_lambda.push_back(0.0);
 				cpu_temp.push_back(298.15); //ambient
 				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
 				numParticles++;
@@ -325,10 +326,6 @@ void AppLayer::ResetSimulation() {
 				float z = aabb.min.z + (vz + 0.5) * spacing;
 
 				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_velocity.push_back(glm::vec4(0));
-				cpu_density.push_back(0.0);
-				cpu_lambda.push_back(0.0);
 				cpu_temp.push_back(298.15); //ambient
 				cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
 				numParticles++;
@@ -418,10 +415,6 @@ void AppLayer::ResetSimulation() {
 			float z = -((zi + 1) * spacing) + (settings.bb.z);
 
 			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
 			cpu_temp.push_back(298.15); //ambient
 			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
 			numParticles++;
@@ -431,10 +424,6 @@ void AppLayer::ResetSimulation() {
 			z = -((zi + 1) * spacing) + (settings.bb.z);
 
 			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
 			cpu_temp.push_back(298.15); //ambient
 			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
 			numParticles++;
@@ -451,10 +440,6 @@ void AppLayer::ResetSimulation() {
 			float z = 0;
 
 			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
 			cpu_temp.push_back(298.15); //ambient
 			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
 			numParticles++;
@@ -464,10 +449,6 @@ void AppLayer::ResetSimulation() {
 			z = settings.bb.z;
 
 			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
 			cpu_temp.push_back(298.15); //ambient
 			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
 			numParticles++;
@@ -484,10 +465,6 @@ void AppLayer::ResetSimulation() {
 
 
 			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
 			cpu_temp.push_back(298.15); //ambient
 			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
 			numParticles++;
@@ -497,10 +474,6 @@ void AppLayer::ResetSimulation() {
 			z = -((zi + 1) * spacing) + (settings.bb.z);
 
 			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
 			cpu_temp.push_back(298.15); //ambient
 			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
 			numParticles++;
@@ -527,14 +500,9 @@ void AppLayer::ResetSimulation() {
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 	ps->writeField("PositionBuffer", cpu_position.data());
-	ps->writeField("PredictedPositionBuffer", cpu_predictedPosition.data());
-	ps->writeField("VelocityBuffer", cpu_velocity.data());
-	ps->writeField("DensityBuffer", cpu_density.data());
-	ps->writeField("LambdaBuffer", cpu_lambda.data());
+	ps->writeField("PredictedPositionBuffer", cpu_position.data());
 	ps->writeField("TemperatureBuffer", cpu_temp.data());
 	ps->writeField("MetaBuffer", cpu_meta.data());
-
-	
 }
 
 
