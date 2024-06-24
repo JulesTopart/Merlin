@@ -35,6 +35,9 @@ namespace Merlin {
 		void setVec2(const std::string name, glm::vec2 value) const;
 		void setVec3(const std::string name, glm::vec3 value) const;
 		void setVec4(const std::string name, glm::vec4 value) const;
+		void setUVec2(const std::string name, glm::uvec2 value) const;
+		void setUVec3(const std::string name, glm::uvec3 value) const;
+		void setUVec4(const std::string name, glm::uvec4 value) const;
 		void setMat4(const std::string name, glm::mat4 mat) const;
 		void setIntArray(const std::string name, GLint* values, uint32_t count) const;
 

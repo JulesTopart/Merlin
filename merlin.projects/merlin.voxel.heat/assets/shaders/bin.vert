@@ -17,7 +17,7 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 model;
 
-uniform int colorCycle;
+uniform int colorCycle = 2;
 
 void main() {
 	int i = gl_InstanceID;
@@ -29,7 +29,7 @@ void main() {
 	if(colorCycle == 1){
 		color.rgb = (normalize(offset)+vec3(1)) / 2.0;
 	}else if(colorCycle == 2){
-		color  = colorMap(float(Ti / 295.0), inferno);
+		color  = colorMap(float((Ti - 200)/298.15), inferno);
 	}
 
 	gl_Position = projection * view * vec4(position, 1.0f);

@@ -12,19 +12,6 @@ using namespace Merlin;
 #define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
-struct CopyContent {
-	glm::vec4 position;
-	glm::vec4 rposition;
-	glm::vec4 pposition;
-	glm::vec4 velocity;
-	float density;
-	float lambda;
-	float temperature;
-	float _padding;
-	glm::uvec4 meta;
-};
-
-
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
 	camera().setNearPlane(0.5);
@@ -79,11 +66,20 @@ void AppLayer::SyncUniforms() {
 
 	solver->use();
 
-	//settings.timestep.sync(*solver);
-	settings.particleMass.sync(*solver);
-	settings.restDensity.sync(*solver);
-	solver->setUInt("numParticles", numVoxels);
+	solver->setUInt("numVoxels", numVoxels);
+
+	bunny->computeBoundingBox();
+	BoundingBox aabb = bunny->getBoundingBox();
+	glm::vec3 bb_size = aabb.max - aabb.min;
+	int gridSizeX = ceil(bb_size.x / (settings.particleRadius * 2.0));
+	int gridSizeY = ceil(bb_size.y / (settings.particleRadius * 2.0));
+	int gridSizeZ = ceil(bb_size.z / (settings.particleRadius * 2.0));
+
+	solver->setUVec3("dim", glm::uvec3(gridSizeX, gridSizeY, gridSizeZ));
 	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
+
+	binShader->use();
+	binShader->setUInt("numVoxels", numVoxels);
 
 }
 
@@ -106,7 +102,7 @@ void AppLayer::InitGraphics() {
 	binShader->noShadows();
 
 	binShader->use();
-	binShader->setInt("colorCycle", 4);
+	binShader->setInt("colorCycle", 2);
 
 	renderer.addShader(binShader);
 
@@ -132,16 +128,10 @@ void AppLayer::InitGraphics() {
 	floorSurface->setMaterial(floorMat2);
 	scene.add(floorSurface);
 
-	Model_Ptr bbox = Model::create("bbox", Primitives::createQuadCube(settings.bb.x, settings.bb.y, settings.bb.z));
-	bbox->enableWireFrameMode();
-	bbox->setMaterial("default");
-	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
-	scene.add(bbox);
-
 	bunny = ModelLoader::loadMesh("./assets/common/models/bunny.stl");
 	bunny->setMaterial("jade");
 	bunny->scale(4);
-	scene.add(bunny);
+	//scene.add(bunny);
 
 	scene.add(TransformObject::create("origin"));
 }
@@ -149,7 +139,7 @@ void AppLayer::InitGraphics() {
 void AppLayer::InitPhysics() {
 
 	//Compute Shaders
-	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6);
+	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 2);
 
 	//create particle system
 	voxels = ParticleSystem::create("Voxels", settings.pThread);
@@ -165,6 +155,7 @@ void AppLayer::InitPhysics() {
 	voxels->addProgram(solver);
 	voxels->addField<glm::vec4>("PositionBuffer");
 	voxels->addField<float>("TemperatureBuffer");
+	voxels->addField<float>("TemperatureOutBuffer");
 	voxels->solveLink(solver);
 	voxels->detach(solver);//test binding points
 
@@ -216,7 +207,8 @@ void AppLayer::ResetSimulation() {
 				float z = aabb.min.z + (vz + 0.5) * spacing;
 
 				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_temp.push_back(298.15); //ambient
+				if(vz == 0) cpu_temp.push_back(398.15); //ambient
+				else cpu_temp.push_back(298.15); //ambient
 				cpu_meta.push_back(glm::uvec4(FLUID, numVoxels, numVoxels, 0.0));
 				numVoxels++;
 			}
@@ -229,9 +221,6 @@ void AppLayer::ResetSimulation() {
 
 	settings.pThread = numVoxels;
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	settings.blockSize = floor(log2f(settings.bThread));
-	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
-	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
 
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 
@@ -251,7 +240,8 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
-			solver->execute(2);
+			solver->execute(0);
+			solver->execute(1);
 		}
 	)
 	elapsedTime += settings.timestep.value();
@@ -265,7 +255,6 @@ void AppLayer::onImGuiRender() {
 
 
 	ImGui::LabelText(std::to_string(numVoxels).c_str(), "particles");
-	ImGui::LabelText(std::to_string(settings.bThread).c_str(), "bins");
 	ImGui::LabelText(std::to_string(elapsedTime).c_str(), "s");
 
 	ImGui::LabelText("FPS", std::to_string(fps()).c_str());
@@ -321,24 +310,9 @@ void AppLayer::onImGuiRender() {
 		solver->setFloat("dt", settings.timestep.value());
 	}
 
-
-	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.1, 2.0)) {
-		solver->use();
-		settings.particleMass.sync(*solver);
-	}
-	if (ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier.value(), 0.0, 20.0)) {
-		solver->use();
-		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
-	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 200.0)) {
-		solver->use();
-		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value()*0.001);
-	}
-
-
-	static int colorMode = 4;
+	static int colorMode = 2;
 	static const char* options[] = { "Solid color", "Position" , "Temperature" };
-	if (ImGui::ListBox("Colored field", &colorMode, options, 7)) {
+	if (ImGui::ListBox("Colored field", &colorMode, options, 3)) {
 		binShader->use();
 		binShader->setInt("colorCycle", colorMode);
 	}

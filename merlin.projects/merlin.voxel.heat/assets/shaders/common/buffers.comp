@@ -5,6 +5,7 @@
 //Macro to access buffer
 #define B_x(buffer_index) ssbo_position[buffer_index].xyz
 #define B_T(buffer_index) ssbo_temperature[buffer_index]
+#define B_To(buffer_index) ssbo_temperature_out[buffer_index]
 #define B_BinIndex(buffer_index) ssbo_meta[buffer_index].y
 #define B_ID(buffer_index) ssbo_meta[buffer_index].z
 #define B_SortedID(buffer_index) ssbo_meta[buffer_index].w
@@ -12,7 +13,7 @@
 //Shortcuts
 #define xi B_x(i)
 #define Ti B_T(i)
-#define Tj B_T(j)
+#define To(i) B_To(i)
 
 layout(std430) buffer PositionBuffer {
 	vec4 ssbo_position[];
@@ -20,6 +21,10 @@ layout(std430) buffer PositionBuffer {
 
 layout(std430) buffer TemperatureBuffer {
 	float ssbo_temperature[];
+};
+
+layout(std430) buffer TemperatureOutBuffer {
+	float ssbo_temperature_out[];
 };
 
 layout(std430) buffer MetaBuffer {
