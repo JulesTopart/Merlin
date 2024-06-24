@@ -504,7 +504,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 			}
 		}
 	)
-		elapsedTime += settings.timestep.value();
+		elapsedTime += settings.solver_substep * settings.timestep.value();
 
 }
 

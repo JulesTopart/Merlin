@@ -150,9 +150,11 @@ void AppLayer::InitGraphics() {
 	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
 	scene.add(bbox);
 
-	//geom = ModelLoader::loadModel("./assets/common/models/bunny.stl")->meshes()[0];
-	object = Primitives::createCube(20);
+	object = ModelLoader::loadMesh("./assets/common/models/bunny.stl");
 	object->translate(glm::vec3(0, 0, 30));
+	object->scale(4);
+	//object = Primitives::createCube(20);
+	
 	object->setMaterial("red plastic");
 	//scene.add(object);
 

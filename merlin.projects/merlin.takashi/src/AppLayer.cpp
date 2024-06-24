@@ -336,7 +336,7 @@ void AppLayer::ResetSimulation() {
 
 
 
-	/*
+	/**/
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
 		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
 			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
@@ -345,10 +345,6 @@ void AppLayer::ResetSimulation() {
 				float z = ((zi + 1) * spacing);
 
 				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_velocity.push_back(glm::vec4(0));
-				cpu_density.push_back(0.0);
-				cpu_lambda.push_back(0.0);
 				cpu_temp.push_back(298.15); //ambient
 				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
 				numParticles++;
