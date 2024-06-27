@@ -76,6 +76,7 @@ void AppLayer::SyncUniforms() {
 	int gridSizeZ = ceil(bb_size.z / (settings.particleRadius * 2.0));
 
 	solver->setUVec3("dim", glm::uvec3(gridSizeX, gridSizeY, gridSizeZ));
+	solver->setFloat("spacing", 2 * settings.particleRadius);
 	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
 
 	binShader->use();
