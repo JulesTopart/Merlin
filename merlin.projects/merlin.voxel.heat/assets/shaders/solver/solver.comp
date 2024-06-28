@@ -10,7 +10,6 @@ layout (local_size_x = PTHREAD) in;
 void solve(uint i, uint simStep);
 
 uniform uint stage;
-uniform float spacing;
 uniform uvec3 dim;
 
 // XPBD_Main
@@ -19,15 +18,18 @@ void main() {
 
 	uint i = gl_GlobalInvocationID.x;
 
+    if(ssbo_position[i].w == -1) return;
+
 	solve(i, stage);
 }
 
 // Function to calculate the 3D coordinates from a 1D index
-uvec3 getCoordinates(uint i) {
-
-    vec3 pos = xi;
-
-    return uvec3(xi.x / spacing, xi.y / spacing, xi.z / spacing);
+uvec3 getCoordinates(uint index) {
+	uint vz = index / (dim.x * dim.y);
+	index -= (vz * dim.x * dim.y);
+	uint vy = index / dim.x;
+	uint vx = index % dim.x;
+    return uvec3(vx, vy, vz);
 }
 
 uint getIndex(uvec3 coord) {
@@ -45,36 +47,85 @@ float getTemp(uint i, uvec3 offset){
         coord.z < dim.z && 
         coord.x >= 0 && 
         coord.y >= 0 && 
-        coord.z >= 0){
+        coord.z >= 0 && 
+        ssbo_position[getIndex(coord)].w != -1){
 
-        if(getIndex(coord) != 0) return 0;
-        else return 1;
-
-        vec3 nn_pos = vec3(B_X(getIndex(coord)));
-
-        if(distance(xi + vec3(offset)* spacing, nn_pos) < 1e-6) 
-            return B_T(getIndex(coord));
+        return B_T(getIndex(coord));
     }
-    return 0;
+    return B_T(i);
 }
 
 void solve(uint i, uint simStep) {
-    if(i == 0){
-        Ti = 360;
-        return;
-    }else{
+
+	if(simStep == 0){
+        float alpha = 0.06; //diffusivity
+
         float tempSum = 0;
+
         tempSum += getTemp(i, uvec3( 1, 0, 0));
         tempSum += getTemp(i, uvec3(-1, 0, 0));
         tempSum += getTemp(i, uvec3( 0, 1, 0));
         tempSum += getTemp(i, uvec3( 0,-1, 0));
         tempSum += getTemp(i, uvec3( 0, 0, 1));
         tempSum += getTemp(i, uvec3( 0, 0,-1));
-        Ti = tempSum;
-        return;
-    }   
+
+        float laplacian = tempSum - 6.0 * Ti;
+
+        To(i) = Ti + alpha * laplacian;
+        
+	return;
+	}
+
+    if(simStep == 1){
+     Ti = To(i);
+     if(getCoordinates(i).z == 0) Ti = 3980;
+	return;
+	}
+				
+}
 
 
+
+/*
+#version 430
+
+#pragma once
+#include "../common/uniforms.comp"
+#include "../common/constants.comp"
+#include "../common/buffers.comp"
+#include "../common/colors.comp"
+
+layout (local_size_x = PTHREAD) in;
+void solve(uint i, uint simStep);
+
+uniform uint stage;
+uniform uvec3 dim;
+
+// XPBD_Main
+void main() {
+	if (gl_GlobalInvocationID.x >= numVoxels) return;
+
+	uint i = gl_GlobalInvocationID.x;
+
+	solve(i, stage);
+}
+
+
+
+float getTemp(uint i, uvec3 offset){
+    uvec3 coord = getCoordinates(i) + offset;
+    if( coord.x < dim.x &&
+        coord.y < dim.y &&
+        coord.z < dim.z && 
+        coord.x >= 0 && 
+        coord.y >= 0 && 
+        coord.z >= 0){
+        return B_T(getIndex(coord));
+    }
+    return B_T(i);
+}
+
+void solve(uint i, uint simStep) {
 	if(simStep == 0){
         float alpha = 0.06; //diffusivity
 
@@ -102,3 +153,7 @@ void solve(uint i, uint simStep) {
 				
 }
 
+
+
+
+*/

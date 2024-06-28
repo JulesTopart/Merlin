@@ -76,7 +76,6 @@ void AppLayer::SyncUniforms() {
 	int gridSizeZ = ceil(bb_size.z / (settings.particleRadius * 2.0));
 
 	solver->setUVec3("dim", glm::uvec3(gridSizeX, gridSizeY, gridSizeZ));
-	solver->setFloat("spacing", 2 * settings.particleRadius);
 	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
 
 	binShader->use();
@@ -177,7 +176,6 @@ void AppLayer::ResetSimulation() {
 	float spacing = settings.particleRadius * 2.0;
 	auto cpu_position = std::vector<glm::vec4>();
 	auto cpu_temp = std::vector<float>();
-	auto cpu_meta = std::vector<glm::uvec4>();
 
 	glm::vec3 cubeSize = glm::vec3(60, 195, 30);
 	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
@@ -191,8 +189,6 @@ void AppLayer::ResetSimulation() {
 		int gridSizeX = ceil(bb_size.x / spacing);
 		int gridSizeY = ceil(bb_size.y / spacing);
 		int gridSizeZ = ceil(bb_size.z / spacing);
-
-
 
 		for (int i = 0; i < gridSizeX * gridSizeY * gridSizeZ; i++) {
 			if (bunny->getVoxels()[i] != 0) {
@@ -210,7 +206,11 @@ void AppLayer::ResetSimulation() {
 				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
 				if(vz == 0) cpu_temp.push_back(398.15); //ambient
 				else cpu_temp.push_back(298.15); //ambient
-				cpu_meta.push_back(glm::uvec4(FLUID, numVoxels, numVoxels, 0.0));
+				numVoxels++;
+			}
+			else {
+				cpu_position.push_back(glm::vec4(0, 0, 0, -1)); //disable voxel
+				cpu_temp.push_back(0); //ambient
 				numVoxels++;
 			}
 		}
@@ -231,7 +231,6 @@ void AppLayer::ResetSimulation() {
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 	voxels->writeField("PositionBuffer", cpu_position.data());
 	voxels->writeField("TemperatureBuffer", cpu_temp.data());
-	voxels->writeField("MetaBuffer", cpu_meta.data());
 }
 
 
