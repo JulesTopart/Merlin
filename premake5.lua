@@ -129,3 +129,5 @@ group "Projects"
 	include "merlin.projects/merlin.pbf.fdm3D"
 	include "merlin.projects/merlin.pbd.elasticity"
 	include "merlin.projects/merlin.voxel.heat"
+
+	include "merlin.projects/merlin.voxel.moving.heat"

@@ -1,0 +1,8 @@
+//? #version 430
+#ifndef INCLUDE_UNIFORMS_GLSL
+#define INCLUDE_UNIFORMS_GLSL
+
+uniform float dt = 0.05;//s
+uniform uint numVoxels = 0;
+
+#endif

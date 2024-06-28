@@ -1,0 +1,96 @@
+#version 430
+
+#pragma once
+#include "../common/uniforms.comp"
+#include "../common/constants.comp"
+#include "../common/buffers.comp"
+#include "../common/colors.comp"
+
+layout (local_size_x = PTHREAD) in;
+void solve(uint i, uint simStep);
+
+uniform uint stage;
+uniform uvec3 dim;
+uniform vec3 heatPos;
+
+// XPBD_Main
+void main() {
+	if (gl_GlobalInvocationID.x >= numVoxels) return;
+
+	uint i = gl_GlobalInvocationID.x;
+
+    if(ssbo_position[i].w == -1){
+        if(distance(heatPos, ssbo_position[i].xyz) < 0.4){
+            ssbo_position[i].w = 1;
+            Ti = nozzleTemperature;
+        }else return;
+    };
+
+	solve(i, stage);
+}
+
+// Function to calculate the 3D coordinates from a 1D index
+uvec3 getCoordinates(uint index) {
+	uint vz = index / (dim.x * dim.y);
+	index -= (vz * dim.x * dim.y);
+	uint vy = index / dim.x;
+	uint vx = index % dim.x;
+    return uvec3(vx, vy, vz);
+}
+
+uint getIndex(uvec3 coord) {
+    return coord.x + coord.y * dim.x + coord.z * dim.y * dim.x;
+}
+uint getIndex(uint x, uint y, uint z) {
+    return x + y * dim.x + z * dim.y * dim.x;
+}
+
+float getTemp(uint i, uvec3 offset){
+    vec3 pos = xi;
+    uvec3 coord = getCoordinates(i) + offset;
+    if( coord.x < dim.x &&
+        coord.y < dim.y &&
+        coord.z < dim.z && 
+        coord.x >= 0 && 
+        coord.y >= 0 && 
+        coord.z >= 0 && 
+        ssbo_position[getIndex(coord)].w != -1){
+
+        return B_T(getIndex(coord));
+    }
+    return B_T(i);
+}
+
+void solve(uint i, uint simStep) {
+
+	if(simStep == 0){
+        float alpha = 91; //diffusivity
+        //float alpha = 0.058; //diffusivity
+
+        float tempSum = 0;
+
+        tempSum += getTemp(i, uvec3( 1, 0, 0));
+        tempSum += getTemp(i, uvec3(-1, 0, 0));
+        tempSum += getTemp(i, uvec3( 0, 1, 0));
+        tempSum += getTemp(i, uvec3( 0,-1, 0));
+        tempSum += getTemp(i, uvec3( 0, 0, 1));
+        tempSum += getTemp(i, uvec3( 0, 0,-1));
+
+        float laplacian = tempSum - 6.0 * Ti;
+
+        To(i) = Ti*0.99997 + alpha * laplacian * dt;
+
+        
+	return;
+	}
+
+    if(simStep == 1){
+     Ti = To(i);
+     if(getCoordinates(i).z == 0) Ti = bedTemperature;
+     if(distance(heatPos, ssbo_position[i].xyz) < 0.4){
+            Ti = nozzleTemperature;
+        }
+	return;
+	}
+				
+}
