@@ -53,7 +53,7 @@ void AppLayer::onUpdate(Timestep ts) {
 
 	if (!paused) {
 		GPU_PROFILE(solver_total_time,
-			Simulate(0.016);
+			Simulate(ts);
 		)
 	}
 
@@ -204,7 +204,7 @@ void AppLayer::ResetSimulation() {
 				float z = aabb.min.z + (vz + 0.5) * spacing;
 
 				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				if(vz == 0) cpu_temp.push_back(398.15); //ambient
+				if(vz == 0) cpu_temp.push_back(333.15); //ambient
 				else cpu_temp.push_back(298.15); //ambient
 				numVoxels++;
 			}
@@ -237,14 +237,14 @@ void AppLayer::ResetSimulation() {
 void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->use();
-
+	solver->setFloat("dt", ts / float(settings.solver_substep)); //Spawn particle after prediction
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
 			solver->execute(0);
 			solver->execute(1);
 		}
 	)
-	elapsedTime += settings.timestep.value();
+	elapsedTime += ts;
 
 }
 

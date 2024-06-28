@@ -15,6 +15,9 @@
 #define EPSILON 1e-6
 #define MAX_DELTA_PI 0.1
 
+const float bedTemperature = 333.15;
+const float nozzleTemperature = 488.15;
+
 
 // --- Domain ---
 const vec3 domain = vec3(300, 200, 100);

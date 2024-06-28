@@ -29,7 +29,7 @@ void main() {
 	if(colorCycle == 1){
 		color.rgb = (normalize(offset)+vec3(1)) / 2.0;
 	}else if(colorCycle == 2){
-		color  = colorMap(float((Ti - 200)/298.15), inferno);
+		color  = colorMap(float((Ti - 298.15)/298.15), inferno);
 	}
 
 	gl_Position = projection * view * vec4(position, 1.0f);
