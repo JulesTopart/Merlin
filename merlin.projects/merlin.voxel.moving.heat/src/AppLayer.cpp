@@ -128,11 +128,11 @@ void AppLayer::InitGraphics() {
 	floorSurface->setMaterial(floorMat2);
 	scene.add(floorSurface);
 
-	source = Primitives::createCylinder(1, 10, 30);
+	source = Primitives::createCylinder(0.2, 10, 30);
 	domain = Primitives::createCube(100,10,1);
 	domain->setMaterial("chrome");
 	//domain->scale(4);
-	scene.add(domain);
+	//scene.add(domain);
 	scene.add(source);
 
 	scene.add(TransformObject::create("origin"));
@@ -234,11 +234,11 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	const double RECT_WIDTH = 100.0;
 	const double RECT_HEIGHT = 10.0;
 	const double SPEED = 50.0; // mm/s
-	const double STEP_Y = 0.4;
+	const double STEP_Y = 1.0;
 	const double DT = ts / float(settings.solver_substep);
 
 	static double x = -RECT_WIDTH / 2.0;
-	static double y = -RECT_HEIGHT / 2.0;
+	static double y = STEP_Y/2.0 - RECT_HEIGHT / 2.0;
 	static int direction = 1; // 1 for right, -1 for left
 
 	source->setPosition(glm::vec3(x, y, 1));

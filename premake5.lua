@@ -131,3 +131,5 @@ group "Projects"
 	include "merlin.projects/merlin.voxel.heat"
 
 	include "merlin.projects/merlin.voxel.moving.heat"
+	include "merlin.projects/merlin.pbf.sla"
+	include "merlin.projects/merlin.granular3D.sls"

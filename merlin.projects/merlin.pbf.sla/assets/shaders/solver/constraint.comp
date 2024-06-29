@@ -1,0 +1,124 @@
+//? #version 430
+#ifndef INCLUDE_CONSTRAINTS_GLSL
+#define INCLUDE_CONSTRAINTS_GLSL
+
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+
+vec3 solveFloorCollision(uint i){
+	vec3 correctedPosition = Xi;
+	for (int i = 0; i < 3; i++){
+		if (correctedPosition[i] - particleRadius <= boundaryMin[i] ){
+			correctedPosition[i] = (boundaryMin[i]) + particleRadius + 1e-2;;
+		}
+		else if (correctedPosition[i] + particleRadius >= boundaryMax[i])
+		{
+			correctedPosition[i] =  boundaryMax[i] - particleRadius - 1e-2;
+		}
+	}
+
+	return (correctedPosition - Xi)*0.8;
+}
+
+
+vec3 clampToDomain(vec3 position){
+	position.x = max(position.x, boundaryMin.x + particleRadius);
+	position.x = min(position.x, boundaryMax.x - particleRadius);
+	position.y = max(position.y, boundaryMin.y + particleRadius);
+	position.y = min(position.y, boundaryMax.y - particleRadius);
+	position.z = max(position.z, boundaryMin.z + particleRadius);
+	position.z = min(position.z, boundaryMax.z - particleRadius);
+	return position;
+}
+
+
+float computeLambda(uint i) {
+    float rho0 = restDensity;
+    float sumGradCj = 0;
+    vec3 gradCi = vec3(0);
+    float density = 0.0;
+    vec3 position = Xi;
+
+    OVERNNS
+		vec3 diff = Rij;
+		float dist = length(diff);
+		if(dist >= H || dist < 1e-6) continue;
+
+		vec3 gradCj = -spiky_grad(diff);
+
+		if(B_Phase(j) == FLUID){
+			gradCi += Mj * gradCj;
+		}else if (B_Phase(j) >= BOUNDARY){
+			gradCi += (1.0/Rhoj) * gradCj;
+		}
+
+		
+		if(i != j){
+			if(B_Phase(j) == FLUID){
+				sumGradCj += dot(gradCj, gradCj);
+				density += Mj * poly6(dist);
+			}else if (B_Phase(j) >= BOUNDARY){
+				density += (rho0/Rhoj) * poly6(dist);
+				vec3 gradCk = (1.0/Rhoj) * gradCj;
+				sumGradCj += dot(gradCk, gradCk);
+			}
+		}
+	OVERNNS_END
+
+	sumGradCj += dot(gradCi, gradCi);
+	sumGradCj = max(sumGradCj, 1e-6);
+
+	Rhoi = max(density, rho0);
+    float C = max((density / rho0) - 1.0, 0.0);
+    return - ((1.0/Mi) * C) / (sumGradCj/pow(rho0, 2));
+}
+
+
+//Compute position deltas w neigbor
+vec3 computePositionDelta(uint i) {
+	vec3 posDelta = vec3(0.0f);
+	float rho0 = restDensity;
+	float sCorr = 0.0;
+	if(Rhoi -  restDensity < 0) return posDelta;
+	vec3 position = Xi;
+	OVERNNS
+		if(j == i) continue;
+		float dist = Dij;
+		if(dist > H || dist <= 1e-6) continue;
+		sCorr = -artificialPressureMultiplier * H2 * pow(poly6(dist) / poly6(normalize(vec3(1)) * 0.2*H), 4);
+		if(B_Phase(j) == FLUID){
+			posDelta += (spikyGradient(Rij) * (B_Lambda(i) + B_Lambda(j) + sCorr)) / rho0;
+		}else if(B_Phase(j) >= BOUNDARY){
+			posDelta += spikyGradient(Rij) * (1.0/Rhoj) * (2.0 * B_Lambda(i) + sCorr);
+		}
+
+	OVERNNS_END
+
+	//posDelta = clamp(posDelta, -MAX_DELTA_PI, MAX_DELTA_PI);
+	return posDelta;
+}
+
+
+vec3 computeXPSH(uint i){
+	vec3 xsphSum = vec3(0);
+
+	vec3 position = Xi;
+	OVERNNS
+		if(j == i) continue;
+		float dist = Dij;
+		if(dist < 1e-6 || dist > H) continue;
+		float Wij = poly6(dist);
+		if(B_Phase(j) == FLUID)
+			xsphSum += (Mj/Rhoj) * Vji * Wij;
+		else if(B_Phase(j) >= BOUNDARY)
+			xsphSum += (1.0/Rhoj) * Vji * Wij;
+	OVERNNS_END
+	return artificialViscosityMultiplier * xsphSum;
+}
+
+
+
+#endif
