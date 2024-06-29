@@ -10,7 +10,7 @@ struct Bin {
 };
 
 struct Settings {
-	const float particleRadius = 0.4;
+	const float particleRadius = 0.3;
 
 	// Physics Parameters
 	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);

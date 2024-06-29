@@ -110,23 +110,23 @@ void AppLayer::InitGraphics() {
 	bed->setMaterial("chrome");
 	scene.add(bed);
 
-	emitter = Primitives::createCylinder(40, 80, 20);
-	emitter->translate(glm::vec3(-142,5,35));
+	emitter = Primitives::createCylinder(44, 85, 20);
+	emitter->translate(glm::vec3(-142,5,45));
 	emitter->enableWireFrameMode();
-	scene.add(emitter);
+	//scene.add(emitter);
 
 	pistonA = Primitives::createCylinder(44, 5, 20);
-	pistonA->translate(glm::vec3(-142, 5, 27));
+	pistonA->translate(glm::vec3(-142, 5, 45));
 	pistonA->setMaterial("red plastic");
 	scene.add(pistonA);
 
 	pistonB = Primitives::createCylinder(44, 5, 20);
-	pistonB->translate(glm::vec3(-18, 5, 80));
+	pistonB->translate(glm::vec3(-18, 5, 120));
 	pistonB->setMaterial("green plastic");
 	scene.add(pistonB);
 
-	roller = Primitives::createCube(10, 300, 10);
-	roller->translate(glm::vec3(-250, 5, 130));
+	roller = Primitives::createCube(5, 300, 30);
+	roller->translate(glm::vec3(-250, 5, 142));
 	roller->setMaterial("black plastic");
 	scene.add(roller);
 
@@ -479,26 +479,30 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 		solver->setFloat("pistonASpeed", 0.02);
 		solver->setFloat("pistonBSpeed", 0.0);
 		solver->setFloat("rollerSpeed", 0.0);
-		if (pistonAPos >= 1)step = 1;
-	}else if (step == 2) {
+		pistonA->translate(glm::vec3(0,0, settings.solver_substep * 0.02));
+		if (pistonAPos >= 2)step = 1;
+	}else if (step == 1) {
 		pistonAPos = 0;
 		pistonBPos += settings.solver_substep * -0.02;
 		solver->setFloat("pistonASpeed", 0.0);
 		solver->setFloat("pistonBSpeed", -0.02);
 		solver->setFloat("rollerSpeed", 0.0);
+		pistonB->translate(glm::vec3(0, 0, settings.solver_substep * -0.02));
 		if (pistonBPos <= -1) step = 2;
 	}else if (step == 2) {
 		pistonBPos = 0;
-		rollerPos += settings.solver_substep * 0.05;
+		rollerPos += settings.solver_substep * 0.2;
 		solver->setFloat("pistonASpeed", 0.0);
 		solver->setFloat("pistonBSpeed", 0.0);
-		solver->setFloat("rollerSpeed", 0.05);
-		if (rollerPos >= 80) step = 3;
+		solver->setFloat("rollerSpeed", 0.2);
+		roller->translate(glm::vec3(settings.solver_substep * 0.2,0,0));
+		if (rollerPos >= 250) step = 3;
 	}else if (step == 3) {
-		rollerPos -= settings.solver_substep * 0.05;
+		rollerPos -= settings.solver_substep * 0.40;
 		solver->setFloat("pistonASpeed", 0.0);
 		solver->setFloat("pistonBSpeed", 0.0);
-		solver->setFloat("rollerSpeed", -0.05);
+		solver->setFloat("rollerSpeed", -0.40);
+		roller->translate(glm::vec3(-settings.solver_substep * 0.40, 0, 0));
 		if (rollerPos <= 0) step = 0;
 	}
 
@@ -537,6 +541,10 @@ void AppLayer::onImGuiRender() {
 	ImGui::LabelText(std::to_string(elapsedTime).c_str(), "s");
 
 	ImGui::LabelText("FPS", std::to_string(fps()).c_str());
+
+	ImGui::LabelText("pistonA", std::to_string(pistonAPos).c_str());
+	ImGui::LabelText("pistonB", std::to_string(pistonBPos).c_str());
+	ImGui::LabelText("roller", std::to_string(rollerPos).c_str());
 
 	if (paused) {
 		if (ImGui::ArrowButton("Run simulation", 1)) {

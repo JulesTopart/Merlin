@@ -14,9 +14,9 @@ layout (local_size_x = PTHREAD) in;
 void SolveGranularPBD(uint i, uint simStep);
 void NNS(uint i, uint simStep);
 
-float pistonASpeed = 0.01;
-float pistonBSpeed = 0.01;
-float rollerSpeed = 0.01;
+uniform float pistonASpeed = 0.01;
+uniform float pistonBSpeed = 0.01;
+uniform float rollerSpeed = 0.01;
 
 uniform uint stage;
 // XPBD_Main
@@ -32,8 +32,8 @@ void main() {
 		Xi.z+=pistonBSpeed;
 		xi.z+=pistonBSpeed;
 	}else if(B_Phase(i) == BOUNDARY +3 && stage == 2){
-		Xi.z+=rollerSpeed;
-		xi.z+=rollerSpeed;
+		Xi.x+=rollerSpeed;
+		xi.x+=rollerSpeed;
 	}
 }
 

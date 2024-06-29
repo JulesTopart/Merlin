@@ -237,7 +237,7 @@ void AppLayer::ResetSimulation() {
 void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->use();
-	solver->setFloat("dt", ts / float(settings.solver_substep)); //Spawn particle after prediction
+	solver->setFloat("dt", 0.0016/ float(settings.solver_substep)); //Spawn particle after prediction
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
 			solver->execute(0);

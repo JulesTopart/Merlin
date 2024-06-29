@@ -52,7 +52,7 @@ vec3 solveParticleCollision(uint i){
 		 
 		// Calculate the effective mass matrix
 		float inverseMass = (1.0/Mi) + (1.0/Mj);
-		float compliance = 0.000000001; // Compliance of the constraints
+		float compliance = 0.0000000001; // Compliance of the constraints
 		float deltaLambda = -C / ( inverseMass + (compliance/ (dt * dt)));
 
 
