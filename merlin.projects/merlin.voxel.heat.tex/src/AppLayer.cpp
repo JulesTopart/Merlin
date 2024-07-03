@@ -63,11 +63,6 @@ void AppLayer::onUpdate(Timestep ts) {
 
 
 void AppLayer::SyncUniforms() {
-
-	solver->use();
-
-	solver->setUInt("numVoxels", numVoxels);
-
 	bunny->computeBoundingBox();
 	BoundingBox aabb = bunny->getBoundingBox();
 	glm::vec3 bb_size = aabb.max - aabb.min;
@@ -75,12 +70,18 @@ void AppLayer::SyncUniforms() {
 	int gridSizeY = ceil(bb_size.y / (settings.particleRadius * 2.0));
 	int gridSizeZ = ceil(bb_size.z / (settings.particleRadius * 2.0));
 
-	solver->setUVec3("dim", glm::uvec3(gridSizeX, gridSizeY, gridSizeZ));
+	solver->use();
+	solver->setUInt("numVoxels", numVoxels);
+	solver->setIVec3("dim", glm::ivec3(gridSizeX, gridSizeY, gridSizeZ));
 	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
 
 	binShader->use();
 	binShader->setUInt("numVoxels", numVoxels);
+	binShader->setIVec3("dim", glm::ivec3(gridSizeX, gridSizeY, gridSizeZ));
 
+	init->use();
+	init->setUInt("numVoxels", numVoxels);
+	init->setIVec3("dim", glm::ivec3(gridSizeX, gridSizeY, gridSizeZ));
 }
 
 
@@ -140,6 +141,7 @@ void AppLayer::InitPhysics() {
 
 	//Compute Shaders
 	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 2);
+	init = ComputeShader::create("init", "assets/shaders/solver/init.comp");
 
 	//create particle system
 	voxels = ParticleSystem::create("Voxels", settings.pThread);
@@ -148,19 +150,22 @@ void AppLayer::InitPhysics() {
 	voxels->setDisplayMode(ParticleSystemDisplayMode::MESH);
 
 	solver->SetWorkgroupLayout(settings.pWkgCount);
+	init->SetWorkgroupLayout(settings.pWkgCount);
 
 
 	//attach Buffers
 	voxels->setShader(binShader);
+	voxels->addProgram(init);
 	voxels->addProgram(solver);
 	voxels->addField<glm::vec4>("PositionBuffer");
 	voxels->solveLink(solver);
+	voxels->solveLink(init);
 	voxels->detach(solver);//test binding points
+	voxels->detach(init);//test binding points
 
 	voxels->link(binShader->name(), "PositionBuffer");
 	voxels->solveLink(binShader);
 	voxels->detach(binShader);//test binding points
-
 
 	scene.add(voxels);
 }
@@ -174,15 +179,18 @@ void AppLayer::ResetSimulation() {
 	auto cpu_position = std::vector<glm::vec4>();
 
 	numVoxels = 0;
+	int gridSizeX;
+	int gridSizeY;
+	int gridSizeZ;
 
 	{
 		bunny->computeBoundingBox();
 		bunny->voxelize(spacing);
 		BoundingBox aabb = bunny->getBoundingBox();
 		glm::vec3 bb_size = aabb.max - aabb.min;
-		int gridSizeX = ceil(bb_size.x / spacing);
-		int gridSizeY = ceil(bb_size.y / spacing);
-		int gridSizeZ = ceil(bb_size.z / spacing);
+		gridSizeX = ceil(bb_size.x / spacing);
+		gridSizeY = ceil(bb_size.y / spacing);
+		gridSizeZ = ceil(bb_size.z / spacing);
 
 		for (int i = 0; i < gridSizeX * gridSizeY * gridSizeZ; i++) {
 			if (bunny->getVoxels()[i] != 0) {
@@ -197,28 +205,14 @@ void AppLayer::ResetSimulation() {
 				float y = aabb.min.y + (vy + 0.5) * spacing;
 				float z = aabb.min.z + (vz + 0.5) * spacing;
 
-				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
+				cpu_position.push_back(glm::vec4(x, y, z, 1.0));
 				numVoxels++;
 			}
 			else {
-				cpu_position.push_back(glm::vec4(0, 0, 0, -1)); //disable voxel
+				cpu_position.push_back(glm::vec4(0, 0, 0, 0)); //disable voxel
 				numVoxels++;
 			}
 		}
-
-		voxels_temp_in = Texture3D::create(gridSizeX, gridSizeY, gridSizeZ, 1, 8);
-		voxels_temp_out = Texture3D::create(gridSizeX, gridSizeY, gridSizeZ, 1, 8);
-		
-		voxels_temp_in->autoSetUnit();
-		voxels_temp_in->bind();
-		voxels_temp_in->syncTextureUnit(*solver, "voxels_temp_in");
-		voxels_temp_in->syncTextureUnit(*binShader, "temp");
-		/**/
-		voxels_temp_out->autoSetUnit();
-		voxels_temp_out->bind();
-		voxels_temp_out->syncTextureUnit(*solver, "voxels_temp_out");
-
-		
 	}
 
 
@@ -228,13 +222,32 @@ void AppLayer::ResetSimulation() {
 	settings.pThread = numVoxels;
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
 
+	init->SetWorkgroupLayout(settings.pWkgCount);
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	voxels->setInstancesCount(settings.pThread);
 
 	SyncUniforms();
+
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 	voxels->writeField("PositionBuffer", cpu_position.data());
 
+
+
+	Console::info() << "Initializing 3D texture..." << Console::endl;
+
+	voxels_temp_in = Texture3D::create(gridSizeX, gridSizeY, gridSizeZ, 1, 32);
+	voxels_temp_out = Texture3D::create(gridSizeX, gridSizeY, gridSizeZ, 1, 32);
+
+	voxels_temp_in->setUnit(0);
+	voxels_temp_out->setUnit(1);
+	
+	binShader->use();
+	voxels_temp_in->bindImage();
+
+	init->use();
+	voxels_temp_in->bindImage();
+	init->dispatch();
+	init->barrier(GL_ALL_BARRIER_BITS);
 }
 
 
@@ -242,13 +255,17 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->use();
 	solver->setFloat("dt", 0.0016/ float(settings.solver_substep)); //Spawn particle after prediction
+
+	voxels_temp_in->bindImage();
+	voxels_temp_out->bindImage();
+
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
 			solver->execute(0);
 			solver->execute(1);
 		}
 	)
-	elapsedTime += ts;
+	elapsedTime += 0.0016;
 
 }
 

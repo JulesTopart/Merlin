@@ -106,6 +106,11 @@ namespace Merlin {
 		glUniform4fv(getUniformLocation(name.c_str()), 1, glm::value_ptr(value));
 	}
 
+	void ShaderBase::setIVec4(const std::string name, glm::ivec4 value) const {
+		if (!isCompiled()) return;
+		glUniform4i(getUniformLocation(name.c_str()), value.x, value.y, value.z, value.w);
+	}
+
 	void ShaderBase::setUVec4(const std::string name, glm::uvec4 value) const {
 		if (!isCompiled()) return;
 		glUniform4ui(getUniformLocation(name.c_str()), value.x, value.y, value.z, value.w);
@@ -116,6 +121,11 @@ namespace Merlin {
 		glUniform3fv(getUniformLocation(name.c_str()), 1, glm::value_ptr(value));
 	}
 
+	void ShaderBase::setIVec3(const std::string name, glm::ivec3 value) const {
+		if (!isCompiled()) return;
+		glUniform3i(getUniformLocation(name.c_str()), value.x, value.y, value.z);
+	}
+
 	void ShaderBase::setUVec3(const std::string name, glm::uvec3 value) const {
 		if (!isCompiled()) return;
 		glUniform3ui(getUniformLocation(name.c_str()), value.x, value.y, value.z);
@@ -124,6 +134,11 @@ namespace Merlin {
 	void ShaderBase::setVec2(const std::string name, glm::vec2 value) const {
 		if (!isCompiled()) return;
 		glUniform2fv(getUniformLocation(name.c_str()), 1, glm::value_ptr(value));
+	}
+
+	void ShaderBase::setIVec2(const std::string name, glm::ivec2 value) const {
+		if (!isCompiled()) return;
+		glUniform2i(getUniformLocation(name.c_str()), value.x, value.y);
 	}
 
 	void ShaderBase::setUVec2(const std::string name, glm::uvec2 value) const {

@@ -1,0 +1,36 @@
+#version 430
+
+#pragma once
+#include "../common/uniforms.comp"
+#include "../common/constants.comp"
+#include "../common/buffers.comp"
+#include "../common/colors.comp"
+
+layout (local_size_x = PTHREAD) in;
+
+uniform ivec3 dim;
+
+layout(r32f, binding = 0) uniform image3D voxels_temp_in;
+layout(r32f, binding = 1) uniform image3D voxels_temp_out;
+
+ivec3 getCoordinates(int index) {
+	int vz = index / (dim.x * dim.y);
+	index -= (vz * dim.x * dim.y);
+	int vy = index / dim.x;
+	int vx = index % dim.x;
+    return ivec3(vx, vy, vz);
+}
+
+
+void main() {
+	if (gl_GlobalInvocationID.x >= numVoxels) return;
+	int i = int(gl_GlobalInvocationID.x);
+    if(ssbo_position[i].w == 1) //It's active
+		imageStore(voxels_temp_in, getCoordinates(i),  vec4(ssbo_position[i].z == 0 ? 333.15 : 298.5,0,0,0));
+	else
+		imageStore(voxels_temp_in, getCoordinates(i),  vec4(0,0,0,0));
+
+	
+	//imageStore(voxels_temp_in, getCoordinates(i),  vec4((getCoordinates(i)/dim).x,0,0,0));
+    //imageStore(voxels_temp_in, getCoordinates(i),  vec4(1,0,0,0));
+}

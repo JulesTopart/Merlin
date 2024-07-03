@@ -244,7 +244,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 			solver->execute(1);
 		}
 	)
-	elapsedTime += ts;
+	elapsedTime += 0.0016;
 
 }
 

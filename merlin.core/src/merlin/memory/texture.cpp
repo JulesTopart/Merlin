@@ -23,8 +23,6 @@ namespace Merlin {
 		glActiveTexture(GL_TEXTURE0 + m_unit);
 		// bind the texture to the appropriate target
 		glBindTexture(m_Target, m_TextureID);
-
-
 	}
 
 	void TextureBase::bind(GLuint unit) {
@@ -39,14 +37,14 @@ namespace Merlin {
 		// Activate the appropriate texture unit (offsetting from Texture0 using the m_unit)
 		glActiveTexture(GL_TEXTURE0 + m_unit);
 		// bind the texture to the appropriate target
-		glBindImageTexture(m_unit, m_TextureID,0, GL_FALSE, 0, GL_READ_WRITE, m_internalFormat);
+		glBindImageTexture(m_unit, m_TextureID,0, m_class == TextureClass::TEXTURE3D, 0, GL_READ_WRITE, m_internalFormat);
 	}
 
 	void TextureBase::bindImage(GLuint unit) {
 		// Activate the appropriate texture unit (offsetting from Texture0 using the m_unit)
 		glActiveTexture(GL_TEXTURE0 + unit);
 		// bind the texture to the appropriate target
-		glBindImageTexture(m_unit, m_TextureID, 0, GL_FALSE, 0, GL_READ_WRITE, m_internalFormat);
+		glBindImageTexture(m_unit, m_TextureID, 0, m_class == TextureClass::TEXTURE3D, 0, GL_READ_WRITE, m_internalFormat);
 	}
 
 	void TextureBase::unbind() {
@@ -365,15 +363,15 @@ namespace Merlin {
 		switch (channels) {
 		case 1:
 			m_format = GL_RED;
-			m_internalFormat = (bits == 32) ? GL_R32F : GL_R8;
+			m_internalFormat = (bits == 32) ? GL_R32F : (bits == 16) ? GL_R16F : GL_R8;
 			break;
 		case 3:
 			m_format = GL_RGB;
-			m_internalFormat = (bits == 32) ? GL_RGB32F : GL_RGB8;
+			m_internalFormat = (bits == 32) ? GL_R32F : (bits == 16) ? GL_R16F : GL_R8;
 			break;
 		case 4:
 			m_format = GL_RGBA;
-			m_internalFormat = (bits == 32) ? GL_RGBA32F : GL_RGBA8;
+			m_internalFormat = (bits == 32) ? GL_R32F : (bits == 16) ? GL_R16F : GL_R8;
 			break;
 		}
 
@@ -393,10 +391,10 @@ namespace Merlin {
 	Shared<Texture3D> Texture3D::create(GLuint width, GLuint height, GLuint depth, GLuint channels, GLuint bits) {
 		Shared<Texture3D> tex = createShared<Texture3D>(TextureType::VOLUME);
 		tex->bind();
+		tex->setInterpolationMode();
+		tex->setRepeatMode();
 		tex->reserve(width, height, depth, channels, bits);
-		//tex->setInterpolationMode();
-		//tex->setRepeatMode();
-		
+
 		tex->unbind();
 		return tex;
 	}

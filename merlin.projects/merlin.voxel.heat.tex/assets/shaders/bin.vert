@@ -18,9 +18,9 @@ uniform mat4 projection;
 uniform mat4 model;
 
 uniform int colorCycle = 2;
+uniform ivec3 dim;
 
-uniform uvec3 dim;
-uniform sampler3D temp;
+layout(r32f, binding = 0) uniform image3D voxels_temp_in;
 
 // Function to calculate the 3D coordinates from a 1D index
 ivec3 getCoordinates(uint index) {
@@ -32,13 +32,14 @@ ivec3 getCoordinates(uint index) {
 }
 
 float getTemp(uint i){
-    vec3 pos = xi;
-    ivec3 coord = getCoordinates(i);
-    return texture(temp, getCoordinates(i)).r;
+    return imageLoad(voxels_temp_in, getCoordinates(i)).r;
 }
 
 void main() {
 	int i = gl_InstanceID;
+	if (i >= numVoxels) return;
+	if(ssbo_position[i].w != 1) return;
+
 	vec3 offset = xi;
 	position = vec3(model * vec4(_position + offset, 1.0f));
 	normal = _normal;

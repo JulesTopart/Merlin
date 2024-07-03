@@ -16,7 +16,4 @@ layout(std430) buffer PositionBuffer {
 };
 
 
-layout(r8) uniform image3D voxels_temp_in;
-layout(r8) uniform image3D voxels_temp_out;
-
 #endif// INCLUDE_BUFFERS_HLSL

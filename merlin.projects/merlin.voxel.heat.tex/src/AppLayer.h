@@ -36,6 +36,7 @@ private:
 	Scene scene;
 	Renderer renderer;
 	
+	ComputeShader_Ptr init;
 	StagedComputeShader_Ptr solver;
 	ParticleSystem_Ptr voxels;
 
