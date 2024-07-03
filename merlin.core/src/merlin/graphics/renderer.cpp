@@ -98,7 +98,7 @@ namespace Merlin {
 		shader->use();
 		Texture2D::resetTextureUnits();
 		env.attach(*shader);
-		shader->setVec3("gradientColor", env.gradientColor());
+		shader->setVec3("environment.ambient", env.gradientColor());
 		shader->setMat4("view", glm::mat4(glm::mat3(camera.getViewMatrix()))); //sync model matrix with GPU
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 		env.draw();

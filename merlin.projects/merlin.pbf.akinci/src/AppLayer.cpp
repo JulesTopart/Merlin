@@ -88,11 +88,11 @@ void AppLayer::SyncUniforms() {
 	prefixSum->setUInt("blockSize", settings.blockSize); //block size
 }
 
-
 void AppLayer::InitGraphics() {
 	// init OpenGL stuff
 	renderer.initialize();
-	renderer.setBackgroundColor(0.803, 0.803, 0.803, 1.0);
+	renderer.setBackgroundColor(0.903, 0.903, 0.903, 1.0);
+	renderer.setEnvironmentGradientColor(0.903, 0.903, 0.903);
 	renderer.enableTransparency();
 	renderer.enableSampleShading();
 	//renderer.disableShadows();
@@ -139,31 +139,43 @@ void AppLayer::InitGraphics() {
 	floorMat2->setDiffuse(glm::vec3(0.95));
 	floorMat2->setSpecular(glm::vec3(0.99));
 	floorMat2->setShininess(0.7);
-	floorMat2->loadTexture("assets/textures/bed.png", TextureType::DIFFUSE, true);
+	//floorMat2->loadTexture("assets/textures/bed.png", TextureType::DIFFUSE, true);
 
-	floorSurface->setMaterial(floorMat2);
+	floorSurface->setMaterial("black plastic");
 	scene.add(floorSurface);
 
 	Mesh_Ptr bbox = Primitives::createQuadCube(settings.bb.x, settings.bb.y, settings.bb.z);
 	bbox->enableWireFrameMode();
-	bbox->setMaterial("default");
 	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
-	scene.add(bbox);
+	//scene.add(bbox);
 
-	emitter = Primitives::createCube(50, 180, 50);
+	emitter = Primitives::createCube(50, 80, 70);
 	emitter->enableWireFrameMode();
-	emitter->translate(glm::vec3(-120,0,27));
+	emitter->translate(glm::vec3(-120,0,35));
 
 	slope = Primitives::createCube(50, 90, 2);
 	slope->setMaterial("red plastic");
 	slope->translate(glm::vec3(80, 0, 8));
 	slope->rotate(glm::vec3(0, -20*DEG_TO_RAD, 0));
 
-	geom = ModelLoader::loadMesh("./assets/common/models/bunny.stl");
-	geom->setMaterial("jade");
-	geom->scale(4);
+	Model_Ptr dragon = ModelLoader::loadModel("./assets/models/dragon.obj");
+	
+	geom = dragon->meshes()[0];
+	geom->smoothNormals();
+	geom->rotate(glm::vec3(DEG_TO_RAD * 90, 0, 0));
+	geom->scale(5);
+	geom->setMaterial("pearl");
+	/**/
 
-	scene.add(emitter);
+	/*
+	geom = ModelLoader::loadMesh("./assets/common/models/bunny.stl");
+	geom->smoothNormals();
+	geom->setMaterial("pearl");
+	geom->scale(4);
+	/**/
+
+	//scene.add(emitter);
+	//scene.add(dragon);
 	scene.add(geom);
 	scene.add(slope);
 	scene.add(TransformObject::create("origin", 10));

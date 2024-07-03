@@ -70,10 +70,7 @@ namespace Merlin {
 			m_skybox->autoSetUnit();
 			m_skybox->bind();
 			m_skybox->syncTextureUnit(shader, "environment.skybox_tex");
-
 		}
-		//else shader.setVec3("environment.irradiance", glm::vec3(1.0));
-
 		/*
 		shader.setInt("environment.use_irradiance_tex", m_irradiance != nullptr && shader.supportTexture());
 		if (m_irradiance && shader.supportTexture()) {

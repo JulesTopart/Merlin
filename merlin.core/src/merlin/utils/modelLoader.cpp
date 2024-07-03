@@ -66,23 +66,25 @@ namespace Merlin {
             vector.z = mesh->mVertices[i].z;
             vertex.position = vector;
 
-            vector.x = mesh->mNormals[i].x;
-            vector.y = mesh->mNormals[i].y;
-            vector.z = mesh->mNormals[i].z;
-            vertex.normal = vector;
+            if (mesh->HasNormals()) {
+                vector.x = mesh->mNormals[i].x;
+                vector.y = mesh->mNormals[i].y;
+                vector.z = mesh->mNormals[i].z;
+                vertex.normal = vector;
+            }
 
             // Process vertex tangents
-            vector.x = mesh->mTangents[i].x;
-            vector.y = mesh->mTangents[i].y;
-            vector.z = mesh->mTangents[i].z;
-            vertex.tangent = vector;
-
-            // Process vertex bitangents
-            vector.x = mesh->mBitangents[i].x;
-            vector.y = mesh->mBitangents[i].y;
-            vector.z = mesh->mBitangents[i].z;
-
-            vertex.bitangent = vector;
+            if (mesh->HasTangentsAndBitangents()) {
+                vector.x = mesh->mTangents[i].x;
+                vector.y = mesh->mTangents[i].y;
+                vector.z = mesh->mTangents[i].z;
+                vertex.tangent = vector;
+                // Process vertex bitangents
+                vector.x = mesh->mBitangents[i].x;
+                vector.y = mesh->mBitangents[i].y;
+                vector.z = mesh->mBitangents[i].z;
+                vertex.bitangent = vector;
+            }
 
             if (mesh->mTextureCoords[0]) {
                 glm::vec2 vec;
@@ -132,6 +134,9 @@ namespace Merlin {
         }
 
         Shared<Mesh> newMesh = Mesh::create(mesh->mName.C_Str(), vertices, indices);
+        if (!mesh->HasNormals()) {
+            newMesh->computeNormals();
+        }
         //newMesh->calculateNormals();
         if (material) {
             newMesh->setMaterial(material);
@@ -186,7 +191,7 @@ namespace Merlin {
     Shared<Model> ModelLoader::loadModel(const std::string& file_path) {
 
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(file_path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+        const aiScene* scene = importer.ReadFile(file_path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             std::cerr << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;

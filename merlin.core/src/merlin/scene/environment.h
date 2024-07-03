@@ -10,8 +10,6 @@ namespace Merlin {
 	public:
 		Environment(std::string name, GLuint resolution = 512);
 
-		
-
 		// Setup methods for different textures
 		//void loadHDR(const std::string& path);
 		void detach() const;

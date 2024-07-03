@@ -90,6 +90,15 @@ void ExampleLayer::onAttach(){
 	scene.add(cube);
 	scene.add(model);
 	scene.add(floor);
+
+
+	model = ModelLoader::loadModel("./assets/models/dragon.obj");
+	model->translate(glm::vec3(2, -3, 0));
+	model->rotate(glm::vec3(90 * DEG_TO_RAD, 0, 0));
+	model->scale(0.2);
+	model->meshes()[0]->smoothNormals();
+	model->setMaterial("jade");
+	scene.add(model);
 	//scene.setCamera(camera);
 
 	/*

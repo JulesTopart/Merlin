@@ -35,7 +35,7 @@ namespace Merlin {
 		inline void setShader(Shared<Shader> shader) { m_shader = shader; }
 		inline void setMaterial(Shared<MaterialBase> material) { m_material = material; }
 		inline void setShader(std::string shaderName) { m_shaderName = shaderName; }
-		inline void setMaterial(std::string materialName) { m_materialName = materialName; }
+		inline void setMaterial(std::string materialName) { m_materialName = materialName; m_material = nullptr; }
 
 		inline bool hasIndices() const { return m_indices.size() > 0; }
 		inline bool hasShader() const { return m_shader != nullptr; }
