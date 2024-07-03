@@ -60,7 +60,7 @@ namespace Merlin {
         }
         
         for (unsigned int i = 0; i < 6; i++) {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_internalFormat, width, height, 0, m_format, m_dataType, nullptr);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_internalFormat, m_width, m_height, 0, m_format, m_dataType, nullptr);
         }
     }
 
@@ -92,7 +92,7 @@ namespace Merlin {
         Shared<CubeMap> cm = createShared<CubeMap>(t);
         cm->bind();
         if (t == TextureType::SHADOW || t == TextureType::DEPTH) {
-            cm->reserve(width, height, GL_DEPTH_STENCIL, GL_DEPTH24_STENCIL8, GL_UNSIGNED_INT_24_8);
+            cm->allocate(width, height, GL_DEPTH_STENCIL, GL_DEPTH24_STENCIL8, GL_UNSIGNED_INT_24_8);
             cm->setInterpolationMode(GL_NEAREST, GL_NEAREST);
             cm->setRepeatMode(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         }
