@@ -63,7 +63,7 @@ Contributions are welcome, especially in areas of bug fixing, feature enhancemen
 For support or to report issues, please use the GitHub issue tracker associated with the repository.
 
 ## License
-Merlin is released under DO WHATEVER YOU WANT. Please review the license terms before using or modifying the software.
+Merlin is released under CC BY-NC-SA. Please review the license terms before using or modifying the software.
 
 ---
 
