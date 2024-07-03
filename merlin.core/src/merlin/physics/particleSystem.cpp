@@ -156,7 +156,6 @@ namespace Merlin{
 					shader->detach(*getBuffer(entry));
 				else
 					Console::error("ParticleSystem") << entry << " is not registered as field in the particle system" << Console::endl;
-
 			}
 		}
 		else {

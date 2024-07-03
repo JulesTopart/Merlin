@@ -1,0 +1,22 @@
+//? #version 430
+#ifndef INCLUDE_BUFFERS_GLSL
+#define INCLUDE_BUFFERS_GLSL
+
+//Macro to access buffer
+#define B_X(buffer_index) ssbo_position[buffer_index].xyz
+#define B_BinIndex(buffer_index) ssbo_meta[buffer_index].y
+#define B_ID(buffer_index) ssbo_meta[buffer_index].z
+
+
+//Shortcuts
+#define xi B_X(i)
+
+layout(std430) buffer PositionBuffer {
+	vec4 ssbo_position[];
+};
+
+
+layout(r8) uniform image3D voxels_temp_in;
+layout(r8) uniform image3D voxels_temp_out;
+
+#endif// INCLUDE_BUFFERS_HLSL

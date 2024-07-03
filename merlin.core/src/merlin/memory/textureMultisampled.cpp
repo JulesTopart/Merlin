@@ -6,7 +6,7 @@
 namespace Merlin {
 	TextureMultisampled2D::TextureMultisampled2D(GLuint samples, TextureType t) : TextureBase(GL_TEXTURE_2D_MULTISAMPLE, t, TextureClass::TEXTURE2D_MULTISAMPLED), m_samples(samples){}
 
-	void TextureMultisampled2D::reserve(GLuint width, GLuint height, GLuint channels, GLuint bits) {
+	void TextureMultisampled2D::reserve(GLuint width, GLuint height, GLuint depth, GLuint channels, GLuint bits) {
 		// Update the dimensions of the texture
 		m_width = width;
 		m_height = height;
@@ -33,7 +33,7 @@ namespace Merlin {
 
 	}
 
-	void TextureMultisampled2D::resize(GLsizei width, GLsizei height) {
+	void TextureMultisampled2D::resize(GLuint width, GLuint height, GLuint depth) {
 		// Update the dimensions of the texture
 		m_width = width;
 		m_height = height;

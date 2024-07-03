@@ -1,0 +1,36 @@
+#version 430
+
+#include "common/uniforms.comp"
+#include "common/constants.comp"
+#include "common/buffers.comp"
+#include "common/colors.comp"
+
+layout(location = 0) in vec3 _position;
+layout(location = 1) in vec3 _normal;
+
+out vec3 position;
+out vec3 normal;
+out vec4 color;
+out vec2 texCoord;
+
+uniform mat4 view;
+uniform mat4 projection;
+uniform mat4 model;
+
+uniform int colorCycle = 2;
+
+void main() {
+	int i = gl_InstanceID;
+	vec3 offset = xi;
+	position = vec3(model * vec4(_position + offset, 1.0f));
+	normal = _normal;
+
+	color = vec4(1);
+	if(colorCycle == 1){
+		color.rgb = (normalize(offset)+vec3(1)) / 2.0;
+	}else if(colorCycle == 2){
+		color  = colorMap(float((Ti - 298.15)/298.15), inferno);
+	}
+
+	gl_Position = projection * view * vec4(position, 1.0f);
+}

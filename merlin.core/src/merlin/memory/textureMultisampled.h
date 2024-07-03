@@ -9,8 +9,8 @@ namespace Merlin {
 		TextureMultisampled2D(GLuint samples = 4, TextureType t = TextureType::ALBEDO);
 
 		//Memory
-		void reserve(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8) override;
-		void resize(GLsizei width, GLsizei height) override;
+		void reserve(GLuint width, GLuint height, GLuint depth = 0, GLuint channels = 3, GLuint bits = 8) override;
+		void resize(GLuint width, GLuint height, GLuint depth = 0) override;
 
 		static Shared<TextureMultisampled2D> create(GLuint width, GLuint height, GLuint samples, TextureType = TextureType::ALBEDO);
 	private:

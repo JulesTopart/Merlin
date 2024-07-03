@@ -218,7 +218,7 @@ namespace Merlin {
 	}
 
 
-	void Texture2D::reserve(GLuint width, GLuint height, GLuint channels, GLuint bits){
+	void Texture2D::reserve(GLuint width, GLuint height, GLuint depth, GLuint channels, GLuint bits){
 		ImageData data;
 		data.bits = bits;
 		data.width = width;
@@ -229,7 +229,7 @@ namespace Merlin {
 		loadFromData(data);
 	}
 
-	void Texture2D::reserve(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type) {
+	void Texture2D::allocate(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type) {
 		m_width = width;
 		m_height = height;
 		m_format = format;
@@ -238,7 +238,7 @@ namespace Merlin {
 		glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, width, height, 0, m_format, type, nullptr);
 	}
 
-	void Texture2D::resize(GLsizei width, GLsizei height) {
+	void Texture2D::resize(GLuint width, GLuint height, GLuint depth) {
 		// Update the dimensions of the texture
 		m_width = width;
 		m_height = height;
@@ -284,12 +284,12 @@ namespace Merlin {
 		tex->bind();
 
 		if (t == TextureType::SHADOW || t == TextureType::DEPTH) {
-			tex->reserve(width, height, GL_DEPTH_STENCIL, GL_DEPTH24_STENCIL8, GL_UNSIGNED_INT_24_8);
+			tex->allocate(width, height, GL_DEPTH_STENCIL, GL_DEPTH24_STENCIL8, GL_UNSIGNED_INT_24_8);
 			tex->setInterpolationMode(GL_NEAREST, GL_NEAREST);
 			tex->setRepeatMode(GL_REPEAT, GL_REPEAT);
 		}else {		
 			ChannelsProperty cp = TextureBase::getChannelsProperty(t);
-			tex->reserve(width, height, cp.channels, cp.bits);
+			tex->reserve(width, height,0, cp.channels, cp.bits);
 			tex->setInterpolationMode();
 			tex->setRepeatMode();
 		}
@@ -319,6 +319,84 @@ namespace Merlin {
 		if (data.bytes) {
 			stbi_image_free(data.bytes);
 		}
+		tex->unbind();
+		return tex;
+	}
+
+
+
+
+
+
+	// --- Texture 3D --
+	Texture3D::Texture3D(TextureType t) : TextureBase(GL_TEXTURE_3D, t, TextureClass::TEXTURE3D) {}
+
+	void Texture3D::generateMipmap() const {
+		glGenerateMipmap(GL_TEXTURE_3D);
+	}
+
+	void Texture3D::setInterpolationMode(GLuint settingMin, GLuint settingMag) {
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, settingMin);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, settingMag);
+	}
+
+	void Texture3D::setRepeatMode(GLuint _wrapS, GLuint _wrapT, GLuint _wrapR) {
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, _wrapS);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, _wrapT);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, _wrapR);
+	}
+
+	void Texture3D::setBorderColor4f(float colors[4]) {
+		glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, colors);
+	}
+
+	void Texture3D::setBorderColor4f(float R, float G, float B, float A) {
+		float colors[4] = { R,G,B,A };
+		glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, colors);
+	}
+
+	void Texture3D::reserve(GLuint width, GLuint height, GLuint depth, GLuint channels, GLuint bits) {
+		m_width = width;
+		m_height = height;
+		m_depth = depth;
+		m_dataType = GL_UNSIGNED_BYTE;
+
+		// Determine format and internal format based on channels and bits
+		switch (channels) {
+		case 1:
+			m_format = GL_RED;
+			m_internalFormat = (bits == 32) ? GL_R32F : GL_R8;
+			break;
+		case 3:
+			m_format = GL_RGB;
+			m_internalFormat = (bits == 32) ? GL_RGB32F : GL_RGB8;
+			break;
+		case 4:
+			m_format = GL_RGBA;
+			m_internalFormat = (bits == 32) ? GL_RGBA32F : GL_RGBA8;
+			break;
+		}
+
+		glTexImage3D(GL_TEXTURE_3D, 0, m_internalFormat, m_width, m_height, m_depth, 0, m_format, m_dataType, nullptr);
+	}
+
+	void Texture3D::resize(GLuint width, GLuint height, GLuint depth) {
+		// Update the dimensions of the texture
+		m_width = width;
+		m_height = height;
+		m_depth = depth;
+		m_dataType = GL_UNSIGNED_BYTE;
+
+		glTexImage3D(GL_TEXTURE_3D, 0, m_internalFormat, m_width, m_height, m_depth, 0, m_format, m_dataType, nullptr);
+	}
+
+	Shared<Texture3D> Texture3D::create(GLuint width, GLuint height, GLuint depth, GLuint channels, GLuint bits) {
+		Shared<Texture3D> tex = createShared<Texture3D>(TextureType::VOLUME);
+		tex->bind();
+		tex->reserve(width, height, depth, channels, bits);
+		//tex->setInterpolationMode();
+		//tex->setRepeatMode();
+		
 		tex->unbind();
 		return tex;
 	}

@@ -35,7 +35,7 @@ namespace Merlin {
         glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, colors);
     }
 
-    void CubeMap::reserve(GLuint width, GLuint height, GLuint channels, GLuint bits){
+    void CubeMap::reserve(GLuint width, GLuint height, GLuint depth, GLuint channels, GLuint bits){
         
         m_width = width;
         m_height = height;
@@ -64,7 +64,7 @@ namespace Merlin {
         }
     }
 
-    void CubeMap::reserve(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type) {
+    void CubeMap::allocate(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type) {
 
         m_width = width;
         m_height = height;
@@ -78,7 +78,7 @@ namespace Merlin {
         Console::print() << "t";
     }
 
-    void CubeMap::resize(GLsizei width, GLsizei height) {
+    void CubeMap::resize(GLuint width, GLuint height, GLuint depth) {
         // Update the dimensions of the texture
         m_width = width;
         m_height = height;

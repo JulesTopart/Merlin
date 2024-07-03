@@ -5,7 +5,7 @@
 namespace Merlin {
 
 	enum class TextureType {
-		DIFFUSE, SPECULAR, ALBEDO, NORMAL, DISPLACMENT, REFLECTION, ROUGHNESS, METALNESS, AMBIENT_OCCLUSION, MASK, EMISSION, DEPTH, SHADOW, ENVIRONMENT, DATA, UNKNOWN
+		DIFFUSE, SPECULAR, ALBEDO, NORMAL, DISPLACMENT, REFLECTION, ROUGHNESS, METALNESS, AMBIENT_OCCLUSION, MASK, EMISSION, DEPTH, SHADOW, ENVIRONMENT, VOLUME, DATA, UNKNOWN
 	};
 
 
@@ -44,8 +44,8 @@ namespace Merlin {
 		void syncTextureUnit(const ShaderBase& shader, const std::string uniform);
 
 		//virtual void reserve(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type) = 0;
-		virtual void reserve(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8) = 0;
-		virtual void resize(GLsizei width, GLsizei height) = 0;
+		virtual void reserve(GLuint width, GLuint height, GLuint depth = 0, GLuint channels = 3, GLuint bits = 8) = 0;
+		virtual void resize(GLuint width, GLuint height, GLuint depth = 0) = 0;
 
 		inline const GLenum getFormat() const { return m_format; }
 		inline const GLenum getTarget() const { return m_Target; }
@@ -61,7 +61,7 @@ namespace Merlin {
 		
 
 	protected:
-		GLuint m_width = 0, m_height = 0;
+		GLuint m_width = 0, m_height = 0, m_depth = 0;
 		GLenum m_format, m_internalFormat, m_dataType;
 		TextureType m_type = TextureType::ALBEDO;
 		TextureClass m_class = TextureClass::BLANK;
@@ -90,9 +90,8 @@ namespace Merlin {
 		void generateMipmap() const;
 
 		//Memory
-		void reserve(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type);
-		void reserve(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8) override;
-		void resize(GLsizei width, GLsizei height) override;
+		void reserve(GLuint width, GLuint height, GLuint depth = 0, GLuint channels = 3, GLuint bits = 8) override;
+		void resize(GLuint width, GLuint height, GLuint depth = 0) override;
 		void loadFromData(const ImageData& data);
 		void loadFromFile(const std::string& path);
 
@@ -102,9 +101,37 @@ namespace Merlin {
 
 	
 	private:	
-		
+		void allocate(GLuint width, GLuint height, GLenum format, GLenum internalFormat, GLenum type);
+
 		GLuint m_minFilter, m_magFilter, m_wrapS, m_wrapT;
 	};
 
 	typedef Shared<Texture2D> Texture2D_Ptr;
+
+
+	class Texture3D : public TextureBase {
+	public:
+
+		Texture3D(TextureType t = TextureType::VOLUME);
+
+		//Settings
+		void setInterpolationMode(GLuint minFilter = GL_LINEAR, GLuint magFilter = GL_LINEAR);
+		void setRepeatMode(GLuint _wrapS = GL_CLAMP_TO_EDGE, GLuint _wrapT = GL_CLAMP_TO_EDGE, GLuint _wrapR = GL_CLAMP_TO_EDGE);
+		void setBorderColor4f(float colors[4]);
+		void setBorderColor4f(float R, float G, float B, float A);
+		void generateMipmap() const;
+
+		//Memory
+		void reserve(GLuint width, GLuint height, GLuint depth, GLuint channels = 3, GLuint bits = 8) override;
+		void resize(GLuint width, GLuint height, GLuint depth) override;
+
+		static Shared<Texture3D> create(GLuint width, GLuint height, GLuint depth, GLuint channels = 1, GLuint bits = 8);
+
+
+	private:
+
+		GLuint m_minFilter, m_magFilter, m_wrapS, m_wrapT;
+	};
+
+	typedef Shared<Texture3D> Texture3D_Ptr;
 }
