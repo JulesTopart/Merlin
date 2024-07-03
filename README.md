@@ -1,5 +1,7 @@
 # Merlin
 
+![](doc/images/dragon.jpg)
+
 ## Overview
 Merlin is a GPU computing and rendering engine designed as a sandbox instead of CUDA or OpenCL. While still in development, Merlin offers basic 3D rendering capabilities and a compute shader pipeline. The framework is geared towards facilitating physics experiments, but it's worth noting that it's still evolving and might not yet match the full capabilities of more established tools.
 
@@ -47,6 +49,9 @@ git clone --recurse-submodules https://github.com/yourusername/Merlin.git
 
 ## Example Usage
 The code sample provided gives an insight into the usage of Merlin. It involves creating a camera, loading models, shaders, and managing a simple scene with lighting. It demonstrates the engine's capabilities in handling basic 3D objects and scene management.
+
+![](doc/images/venus.jpg)
+
 
 ## Limitations and Development Status
 Merlin is a work in progress and may not yet be fully optimized or bug-free. Users should be prepared for potential issues and are encouraged to contribute to its development.

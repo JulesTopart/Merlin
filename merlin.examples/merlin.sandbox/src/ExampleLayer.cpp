@@ -15,7 +15,7 @@ ExampleLayer::ExampleLayer(){
 	camera = createShared<Camera>(width, height, Projection::Perspective);
 	camera->setNearPlane(0.1f);
 	camera->setFarPlane(100.0f);
-	camera->setFOV(60); //Use 90.0f as we are using cubemaps
+	camera->setFOV(40); //Use 90.0f as we are using cubemaps
 	camera->setPosition(glm::vec3(0.7, -7, 2.4));
 	camera->setRotation(glm::vec3(0, 0, +90));
 	cameraController = createShared<CameraController3D>(camera);
@@ -91,14 +91,6 @@ void ExampleLayer::onAttach(){
 	scene.add(model);
 	scene.add(floor);
 
-
-	model = ModelLoader::loadModel("./assets/models/dragon.obj");
-	model->translate(glm::vec3(2, -3, 0));
-	model->rotate(glm::vec3(90 * DEG_TO_RAD, 0, 0));
-	model->scale(0.2);
-	model->meshes()[0]->smoothNormals();
-	model->setMaterial("jade");
-	scene.add(model);
 	//scene.setCamera(camera);
 
 	/*
