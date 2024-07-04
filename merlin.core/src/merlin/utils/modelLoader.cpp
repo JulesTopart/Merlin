@@ -2,7 +2,7 @@
 #include "modelLoader.h"
 #include "merlin/core/core.h"
 #include "merlin/scene/model.h"
-#include "merlin/memory/indexBuffer.h"
+#include "merlin/memory/ibo.h"
 #include "merlin/memory/vertex.h"
 
 

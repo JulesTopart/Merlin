@@ -6,7 +6,6 @@
 #include "merlin/scene/environment.h"
 #include "merlin/scene/light.h"
 #include "merlin/scene/transformObject.h"
-#include "merlin/scene/deprecated_particleSystem.h"
 #include "merlin/physics/particleSystem.h"
 #include "camera.h"
 

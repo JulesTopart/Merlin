@@ -374,7 +374,7 @@ namespace Merlin {
 		m_width = width;
 		m_height = height;
 		m_depth = depth;
-		m_dataType = GL_UNSIGNED_BYTE;
+		m_dataType = GL_FLOAT;
 
 		// Determine format and internal format based on channels and bits
 		switch (channels) {
@@ -404,7 +404,7 @@ namespace Merlin {
 		m_width = width;
 		m_height = height;
 		m_depth = depth;
-		m_dataType = GL_UNSIGNED_BYTE;
+		m_dataType = GL_FLOAT;
 
 		glTexImage3D(GL_TEXTURE_3D, 0, m_internalFormat, m_width, m_height, m_depth, 0, m_format, m_dataType, nullptr);
 	}

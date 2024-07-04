@@ -13,10 +13,11 @@ namespace Merlin {
 	void ScreenQuadRenderer::render() {
 		if (!m_shader) return;
 		m_shader->use(); //Activate shader
-		m_vao.bind(); //bind empty geometry
+		glBindVertexArray(m_vao.id());
 		glDisable(GL_DEPTH_TEST);
 		glDrawArrays(GL_TRIANGLES, 0, 6); //draw a screen squad
 		glEnable(GL_DEPTH_TEST);
+		glBindVertexArray(0);
 	}
 
 	void ScreenQuadRenderer::render(const Shared<TextureBase>& tex) {
@@ -28,12 +29,12 @@ namespace Merlin {
 			m_shader->setInt("mode", 1); //Activate shader
 		
 		tex->syncTextureUnit(*m_shader, "screen");
-		m_vao.bind(); //bind empty geometry
+		glBindVertexArray(m_vao.id());
 		
 		glDisable(GL_DEPTH_TEST);
 		glDrawArrays(GL_TRIANGLES, 0, 6); //draw a screen squad
 		tex->unbind(); //Unind Texture
-		m_vao.unbind(); //Unind geometry
+		glBindVertexArray(0);
 		glEnable(GL_DEPTH_TEST);
 	}
 

@@ -83,7 +83,7 @@ namespace Merlin {
 		Texture2D(TextureType t = TextureType::ALBEDO);
 		
 		//Settings
-		void setInterpolationMode(GLuint minFilter = GL_LINEAR, GLuint magFilter = GL_LINEAR);
+		void setInterpolationMode(GLuint minFilter = GL_NEAREST, GLuint magFilter = GL_NEAREST);
 		void setRepeatMode(GLuint _wrapS = GL_CLAMP_TO_EDGE, GLuint _wrapT = GL_CLAMP_TO_EDGE);
 		void setBorderColor4f(float colors[4]);
 		void setBorderColor4f(float R, float G, float B, float A);

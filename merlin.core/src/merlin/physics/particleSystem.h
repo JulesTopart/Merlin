@@ -1,10 +1,10 @@
 #pragma once
 #include "merlin/core/core.h"
 
-#include "merlin/memory/vertexArray.h"
-#include "merlin/memory/shaderStorageBuffer.h"
+#include "merlin/memory/vao.h"
+#include "merlin/memory/ssbo.h"
 #include "merlin/shaders/shader.h"
-#include "merlin/memory/texture.h"
+#include "merlin/textures/texture.h"
 #include "merlin/shaders/computeShader.h"
 #include "merlin/core/timestep.h"
 #include "merlin/graphics/mesh.h"
@@ -25,16 +25,23 @@ namespace Merlin {
 		ParticleSystem(const std::string& name, size_t count);
 		void draw() const; //draw the mesh
 		void setInstancesCount(size_t count);
-		void setActiveInstancesCount(size_t count);
 
-		GenericBufferObject_Ptr getField(const std::string& name) const;
-		GenericBufferObject_Ptr getBuffer(const std::string& name) const;
+		AbstractBufferObject_Ptr getField(const std::string& name) const;
+		AbstractBufferObject_Ptr getBuffer(const std::string& name) const;
 		
-		void addField(GenericBufferObject_Ptr buf);
-		void addBuffer(GenericBufferObject_Ptr buf);
+		void addField(AbstractBufferObject_Ptr buf);
+		void addBuffer(AbstractBufferObject_Ptr buf);
 		bool hasField(const std::string& name) const;
 		bool hasBuffer(const std::string& name) const;
-		void writeField(const std::string& name, void* data);
+
+		void writeField(const std::string& name, GLsizei typesize, void* data);
+		void writeBuffer(const std::string& name, GLsizei typesize, GLsizei elements, void* data);
+
+		template<typename T>
+		void writeField(const std::string& name, std::vector<T> data);
+
+		template<typename T>
+		void writeBuffer(const std::string& name, std::vector<T> data);
 
 		void addProgram(ComputeShader_Ptr program);
 		bool hasProgram(const std::string& name) const;
@@ -84,13 +91,12 @@ namespace Merlin {
 
 		Mesh_Ptr m_geometry = nullptr;
 		size_t m_instancesCount = 1;
-		size_t m_activeInstancesCount = 1;
 		ParticleSystemDisplayMode m_displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
 
 		//Simulation
 		std::map<std::string, ComputeShader_Ptr> m_programs; //Shader to compute the particle position
-		std::map<std::string, GenericBufferObject_Ptr> m_fields; //Buffer to store particles fields
-		std::map<std::string, GenericBufferObject_Ptr> m_buffers; //Buffer to store particles fields
+		std::map<std::string, AbstractBufferObject_Ptr> m_fields; //Buffer to store particles fields
+		std::map<std::string, AbstractBufferObject_Ptr> m_buffers; //Buffer to store particles fields
 		std::map<std::string, std::vector<std::string>> m_links;
 
 		std::string m_currentProgram = "";
@@ -105,7 +111,7 @@ namespace Merlin {
 		}
 		SSBO_Ptr<T> f = SSBO<T>::create(name, m_instancesCount);
 		m_fields[name] = f;
-
+		 
 		if (hasLink(m_currentProgram)) {
 			link(m_currentProgram, f->name());
 		}
@@ -124,4 +130,27 @@ namespace Merlin {
 		}
 	}
 
+	template<typename T>
+	void ParticleSystem::writeField(const std::string& name, std::vector<T> data) {
+		if (hasField(name)) {
+			if (m_fields[name]->elements() != data.size()) {
+				//Console::error("ParticleSystem") << "Field hasn't been allocated" << Console::endl;
+				m_fields[name]->allocateBuffer(data.size() * sizeof(T), data.data(), BufferUsage::StaticDraw);
+			}
+			else m_fields[name]->writeBuffer(data.size() * sizeof(T), data.data());
+		}
+		else Console::error("ParticleSystem") << name << " is not registered in the particle system." << Console::endl;
+	}
+
+	template<typename T>
+	void ParticleSystem::writeBuffer(const std::string& name, std::vector<T> data) {
+		if (hasBuffer(name)) {
+			if (m_buffers[name]->elements() != data.size()) {
+				//Console::error("ParticleSystem") << "Field hasn't been allocated" << Console::endl;
+				m_buffers[name]->allocateBuffer(data.size() * sizeof(T), data.data(), BufferUsage::StaticDraw);
+			}
+			else m_buffers[name]->writeBuffer(data.size() * sizeof(T), data.data());
+		}
+		else Console::error("ParticleSystem") << name << " is not registered in the particle system." << Console::endl;
+	}
 }

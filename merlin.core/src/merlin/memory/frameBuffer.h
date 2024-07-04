@@ -1,8 +1,8 @@
 #pragma once
 #include "merlin/core/core.h"
 
-#include "merlin/memory/texture.h"
-#include "merlin/memory/textureMultisampled.h"
+#include "merlin/textures/texture.h"
+#include "merlin/textures/textureMultisampled.h"
 #include "merlin/memory/renderBuffer.h"
 #include "merlin/graphics/screenQuadRenderer.h"
 

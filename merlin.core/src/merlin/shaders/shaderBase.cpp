@@ -1,6 +1,7 @@
 #include "glpch.h"
 #include "shaderBase.h"
 #include "merlin/core/log.h"
+#include "merlin/memory/bindingPointManager.h"
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -46,20 +47,21 @@ namespace Merlin {
 		glUseProgram(m_programID);
 	}
 
-	void ShaderBase::attach(GenericBufferObject& buf) {
+	void ShaderBase::attach(AbstractBufferObject& buf) {
 		int block_index = glGetProgramResourceIndex(m_programID, GL_SHADER_STORAGE_BLOCK, buf.name().c_str());
 		if (block_index == -1) Console::error("ShaderBase") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
 		else {
-			buf.releaseBindingPoint();
-			buf.setBindingPoint();
-			GLuint bindingPoint = buf.bindingPoint();
+			BindingPointManager& manager = BindingPointManager::instance();
+			auto bindingPoint = manager.allocateBindingPoint(buf.target(), false);
 			buf.bind();
-			Console::trace("ShaderBase") << buf.name() << "( block index " << block_index << ") is now bound to " << name() << " using binding point " << bindingPoint << Console::endl;
-			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint);//Do this explicitly in your shader !
+			buf.setBindingPoint(bindingPoint.get());
+			Console::trace("ShaderBase") << buf.name() << "( block index " << block_index << ") is now bound to " << name() << " using binding point " << bindingPoint.get() << Console::endl;
+			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint.get());//Do this explicitly in your shader !
+			buf.unbind();
 		}
 	}
 
-	void ShaderBase::detach(GenericBufferObject& buf){
+	void ShaderBase::detach(AbstractBufferObject& buf){
 		buf.releaseBindingPoint();
 	}
 

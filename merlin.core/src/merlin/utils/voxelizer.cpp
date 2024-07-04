@@ -1,5 +1,6 @@
 #include "glpch.h"
 #include "voxelizer.h"
+#include "merlin/memory/bindingPointManager.h"
 #include "merlin/shaders/computeShader.h"
 
 namespace Merlin {
@@ -68,10 +69,10 @@ namespace Merlin {
 
 		m_voxelize->dispatch(pWkgCount);
 		m_voxelize->barrier();
+
 		facetBuffer->releaseBindingPoint();
 		voxBuffer->releaseBindingPoint();
 
-		voxBuffer->bind();
 		return voxBuffer->read();
 	}
 

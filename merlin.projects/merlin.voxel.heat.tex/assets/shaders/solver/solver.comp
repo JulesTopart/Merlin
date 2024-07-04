@@ -7,7 +7,7 @@
 #include "../common/colors.comp"
 
 layout (local_size_x = PTHREAD) in;
-void solve(int i, uint simStep);
+void solve(uint i, uint simStep);
 
 uniform uint stage;
 uniform ivec3 dim;
@@ -17,7 +17,7 @@ layout(r32f, binding = 1) uniform image3D voxels_temp_out;
 
 
 void main() {
-	int i = int(gl_GlobalInvocationID.x);
+	uint i = int(gl_GlobalInvocationID.x);
     if (i >= numVoxels) return;
     if(ssbo_position[i].w != 1) return;
 
@@ -25,11 +25,11 @@ void main() {
 }
 
 // Function to calculate the 3D coordinates from a 1D index
-ivec3 getCoordinates(int index) {
-	int vz = index / (dim.x * dim.y);
+ivec3 getCoordinates(uint index) {
+	uint vz = index / (dim.x * dim.y);
 	index -= (vz * dim.x * dim.y);
-	int vy = index / dim.x;
-	int vx = index % dim.x;
+	uint vy = index / dim.x;
+	uint vx = index % dim.x;
     return ivec3(vx, vy, vz);
 }
 
@@ -40,12 +40,11 @@ uint getIndex(uint x, uint y, uint z) {
     return x + y * dim.x + z * dim.y * dim.x;
 }
 
-float getTemp(int i){
+float getTemp(uint i){
     return imageLoad(voxels_temp_in, getCoordinates(i)).r;
 }
 
-float getTemp(int i, ivec3 offset){
-    //vec3 pos = xi;
+float getTemp(uint i, ivec3 offset){
     ivec3 coord = getCoordinates(i) + offset;
     if( coord.x < dim.x &&
         coord.y < dim.y &&
@@ -60,7 +59,7 @@ float getTemp(int i, ivec3 offset){
     return getTemp(i);
 }
 
-void solve(int i, uint simStep) {
+void solve(uint i, uint simStep) {
 
 	if(simStep == 0){
         float alpha = 91; //diffusivity

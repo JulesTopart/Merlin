@@ -1,6 +1,6 @@
 #pragma once
 #include "merlin/core/core.h"
-#include "merlin/memory/texture.h"
+#include "merlin/textures/texture.h"
 
 namespace Merlin {
 

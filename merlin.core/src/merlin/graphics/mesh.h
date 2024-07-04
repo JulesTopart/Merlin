@@ -2,7 +2,7 @@
 #include "merlin/core/core.h"
 #include "merlin/shaders/shader.h"
 #include "merlin/graphics/material.h"
-#include "merlin/memory/vertexArray.h"
+#include "merlin/memory/vao.h"
 #include "merlin/graphics/renderableObject.h"
 
 namespace Merlin {
@@ -14,8 +14,8 @@ namespace Merlin {
 	class Mesh : public RenderableObject {
 	public:
 		Mesh(std::string name);
-		Mesh(std::string name, Shared<VBO<>>, GLuint mode = GL_TRIANGLES);
-		Mesh(std::string name, Shared<VBO<>>, Shared<IBO> = nullptr, GLuint mode = GL_TRIANGLES);
+		Mesh(std::string name, GLsizei count, Shared<VBO<>>, GLuint mode = GL_TRIANGLES);
+		Mesh(std::string name, GLsizei count, Shared<VBO<>>, Shared<IBO> = nullptr, GLuint mode = GL_TRIANGLES);
 		Mesh(std::string name, std::vector<Vertex>& vertices, GLuint mode = GL_TRIANGLES);
 		Mesh(std::string name, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode = GL_TRIANGLES);
 		Mesh(std::string name, VAO_Ptr, GLuint count, GLuint mode = GL_TRIANGLES);

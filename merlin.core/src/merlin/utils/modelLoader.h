@@ -3,7 +3,7 @@
 #include "merlin/scene/model.h"
 #include "merlin/graphics/mesh.h"
 #include "merlin/utils/primitives.h"
-#include "merlin/memory/indexBuffer.h"
+#include "merlin/memory/ibo.h"
 #include "merlin/utils/util.h"
 
 namespace Merlin{

@@ -1,7 +1,7 @@
 #include "glpch.h"
 #include "environment.h"
-#include "merlin/memory/vertexBuffer.h"
-#include "merlin/memory/indexBuffer.h"
+#include "merlin/memory/vbo.h"
+#include "merlin/memory/ibo.h"
 #include "merlin/memory/frameBuffer.h"
 #include "merlin/memory/renderBuffer.h"
 
@@ -41,7 +41,6 @@ namespace Merlin {
 			6, 2, 3
 		};
 
-		m_vao.bind();
 		VBO vbo(vertices);
 		EBO ebo(indices);
 
@@ -49,7 +48,6 @@ namespace Merlin {
 		layout.push<float>(3); // Vertex position
 		m_vao.addBuffer(vbo, layout);
 		m_vao.bindBuffer(ebo);
-		m_vao.unbind();
 	}
 
 
@@ -98,7 +96,7 @@ namespace Merlin {
 
 		m_vao.bind();
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-		//m_vao.unbind();
+		m_vao.unbind();
 
 	}
 	/*

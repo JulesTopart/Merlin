@@ -70,8 +70,8 @@ void AppLayer::setupPhysics() {
 
 	ps = ParticleSystem::create("Particles", position.size());
 
-	SSBO_Ptr<glm::vec4> pos = SSBO<glm::vec4>::create("position_buffer", position.size(),position.data(), BufferUsage::STATIC_DRAW);
-	SSBO_Ptr<glm::vec4> vel = SSBO<glm::vec4>::create("velocity_buffer", velocity.size(), velocity.data(), BufferUsage::STATIC_DRAW);
+	SSBO_Ptr<glm::vec4> pos = SSBO<glm::vec4>::create("position_buffer", position, BufferUsage::StaticDraw);
+	SSBO_Ptr<glm::vec4> vel = SSBO<glm::vec4>::create("velocity_buffer", velocity, BufferUsage::StaticDraw);
 
 	ps->addField(pos);
 	ps->addField(vel);
@@ -84,10 +84,12 @@ void AppLayer::setupPhysics() {
 	ps->link("particle", "position_buffer");
 	ps->link("particle", "velocity_buffer");
 	ps->solveLink(ps->getShader());
+	ps->detach(ps->getShader());
 
 	ps->link("solver", "position_buffer");
 	ps->link("solver", "velocity_buffer");
 	ps->solveLink(solver);
+	ps->detach(solver);
 
 	solver->use();
 	solver->setUInt("numParticles", position.size());
@@ -126,10 +128,14 @@ void AppLayer::onPhysicsUpdate(Timestep ts) {
 void AppLayer::onUpdate(Timestep ts){
 	Layer3D::onUpdate(ts);
 
+	ps->solveLink(ps->getShader());
 	renderer.clear();
 	renderer.renderScene(scene, camera());
+	ps->detach(ps->getShader());
 
+	ps->solveLink(solver);
 	onPhysicsUpdate(0.016);
+	ps->detach(solver);
 }
 
 void AppLayer::onImGuiRender()

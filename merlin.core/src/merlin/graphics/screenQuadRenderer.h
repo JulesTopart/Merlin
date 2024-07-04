@@ -2,8 +2,8 @@
 #include "merlin/core/core.h"
 
 #include "merlin/graphics/rendererBase.h"
-#include "merlin/memory/texture.h"
-#include "merlin/memory/vertexArray.h"
+#include "merlin/textures/texture.h"
+#include "merlin/memory/vao.h"
 
 namespace Merlin {
 	class ScreenQuadRenderer : public RendererBase {

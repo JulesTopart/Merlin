@@ -2,7 +2,7 @@
 #include "merlin/core/core.h"
 #include "merlin/graphics/renderableObject.h"
 #include "merlin/memory/frameBuffer.h"
-#include "merlin/memory/cubeMap.h"
+#include "merlin/textures/cubeMap.h"
 #include "merlin/utils/primitives.h"
 #include "merlin/graphics/mesh.h"
 #include <glm/glm.hpp>

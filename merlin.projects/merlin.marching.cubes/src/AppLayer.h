@@ -33,11 +33,11 @@ private:
 
 	Shader_Ptr mcShader;
 
-	SSBO_Ptr<glm::vec4> buffer_vertices;
-	SSBO_Ptr<glm::vec4> buffer_normals;
+	ImmutableShaderStorageBuffer_Ptr<glm::vec4> buffer_vertices;
+	ImmutableShaderStorageBuffer_Ptr<glm::vec4> buffer_normals;
 
-	SSBO_Ptr<GLint> buffer_triangle_table;
-	SSBO_Ptr<GLint> buffer_configuration_table;
+	ImmutableShaderStorageBuffer_Ptr<GLint> buffer_triangle_table;
+	ImmutableShaderStorageBuffer_Ptr<GLint> buffer_configuration_table;
 
 	Settings settings;
 

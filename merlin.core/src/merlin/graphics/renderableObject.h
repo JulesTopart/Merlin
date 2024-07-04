@@ -1,7 +1,7 @@
 #pragma once
 #include "merlin/core/core.h"
 #include "merlin/scene/camera.h"
-#include "merlin/memory/vertexArray.h"
+#include "merlin/memory/vao.h"
 
 namespace Merlin {
 

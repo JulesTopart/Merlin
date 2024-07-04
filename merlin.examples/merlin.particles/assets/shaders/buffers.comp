@@ -10,11 +10,11 @@
 #define xi B_x(i).xyz
 #define vi B_v(i).xyz
 
-layout(std430) buffer position_buffer {
+layout(std430, binding = 0) buffer position_buffer {
 	vec4 ssbo_position[];
 };
 
-layout(std430) buffer velocity_buffer {
+layout(std430, binding = 1 ) buffer velocity_buffer {
 	vec4 ssbo_velocity[];
 };
 

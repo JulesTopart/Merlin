@@ -277,8 +277,7 @@ namespace Merlin {
 			shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 
 			if (ps.hasField("position")) {
-				GenericBufferObject_Ptr pos = ps.getField("position");
-				pos->bind();
+				AbstractBufferObject_Ptr pos = ps.getField("position");
 				shader->attach(*pos);
 			}
 			

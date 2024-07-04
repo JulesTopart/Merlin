@@ -1,7 +1,7 @@
 #pragma once
 #include "merlin/core/core.h"
-#include "merlin/memory/Texture.h"
-#include "merlin/memory/CubeMap.h"
+#include "merlin/textures/texture.h"
+#include "merlin/textures/cubeMap.h"
 #include "merlin/graphics/renderableObject.h"
 
 namespace Merlin {

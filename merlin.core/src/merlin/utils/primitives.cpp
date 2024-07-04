@@ -1,6 +1,6 @@
 #include "glpch.h"
 #include "merlin/utils/primitives.h"
-#include "merlin/memory/indexBuffer.h"
+#include "merlin/memory/ibo.h"
 
 namespace Merlin {
 

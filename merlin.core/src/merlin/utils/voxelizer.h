@@ -1,6 +1,6 @@
 #pragma once
 #include "merlin/graphics/mesh.h"
-#include "merlin/memory/shaderStorageBuffer.h"
+#include "merlin/memory/ssbo.h"
 #include "merlin/shaders/computeShader.h"
 
 namespace Merlin {

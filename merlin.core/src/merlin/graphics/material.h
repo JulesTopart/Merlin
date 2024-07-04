@@ -1,7 +1,7 @@
 #pragma once
 #include "merlin/core/core.h"
 #include "merlin/graphics/material.h"
-#include "merlin/memory/texture.h"
+#include "merlin/textures/texture.h"
 #include "merlin/shaders/shader.h"
 #include <glm/glm.hpp>
 

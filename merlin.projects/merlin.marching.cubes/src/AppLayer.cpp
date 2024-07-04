@@ -65,8 +65,8 @@ void AppLayer::InitGraphics() {
                                           settings.volume_size.z * 
                                           max_triangles_per_cell * max_vertices_per_triangle;
 
-    buffer_vertices = SSBO<glm::vec4>::create("buffer_vertices", max_number_of_vertices, BufferStorageFlags::DYNAMIC_STORAGE);
-    buffer_normals = SSBO<glm::vec4>::create("buffer_normals", max_number_of_vertices, BufferStorageFlags::DYNAMIC_STORAGE);
+    buffer_vertices = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_vertices", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
+    buffer_normals = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_normals", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
 
 	buffer_triangle_table = SSBO<int>::create("buffer_triangle_table");
 	buffer_configuration_table = SSBO<int>::create("buffer_configuration_table");
@@ -383,8 +383,8 @@ void AppLayer::InitGraphics() {
             0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0
         };
 
-        buffer_triangle_table->writeRaw(sizeof(int) * 256 * 16, triangle_table, BufferStorageFlags::DYNAMIC_STORAGE);
-        buffer_configuration_table->writeRaw(sizeof(int) * 256, edge_table, BufferStorageFlags::DYNAMIC_STORAGE);
+        //buffer_triangle_table->writeRaw(sizeof(int) * 256 * 16, triangle_table, BufferStorageFlags::DYNAMIC_STORAGE);
+        //buffer_configuration_table->writeRaw(sizeof(int) * 256, edge_table, BufferStorageFlags::DYNAMIC_STORAGE);
 	}
 
     buffer_vertices->setBindingPoint(0);

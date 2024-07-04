@@ -166,11 +166,13 @@ void AppLayer::InitPhysics() {
 	ps->addField<glm::uvec4>("cpyMetaBuffer");
 	ps->addField(binBuffer);
 	ps->solveLink(solver);
+	ps->detach(solver);
 
 	bs->setShader(binShader);
 	bs->addProgram(prefixSum);
 	bs->addField(binBuffer);
 	bs->solveLink(prefixSum);
+	bs->detach(prefixSum);
 	
 	ps->link(particleShader->name(), "PositionBuffer");
 	ps->link(particleShader->name(), "PredictedPositionBuffer");
@@ -178,9 +180,11 @@ void AppLayer::InitPhysics() {
 	ps->link(particleShader->name(), "TemperatureBuffer");
 	ps->link(particleShader->name(), "MetaBuffer");
 	ps->solveLink(particleShader);
+	ps->detach(particleShader);
 
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
+	bs->detach(binShader);
 
 	scene.add(ps);
 	scene.add(bs);
@@ -232,11 +236,11 @@ void AppLayer::ResetSimulation() {
 
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
-	ps->writeField("PositionBuffer", cpu_position.data());
-	ps->writeField("PredictedPositionBuffer", cpu_predictedPosition.data());
-	ps->writeField("VelocityBuffer", cpu_velocity.data());
-	ps->writeField("TemperatureBuffer", cpu_temperature.data());
-	ps->writeField("MetaBuffer", cpu_meta.data());
+	ps->writeField("PositionBuffer", sizeof(cpu_position[0]), cpu_position.data());
+	ps->writeField("PredictedPositionBuffer", sizeof(cpu_predictedPosition[0]), cpu_predictedPosition.data());
+	ps->writeField("VelocityBuffer", sizeof(cpu_velocity[0]), cpu_velocity.data());
+	ps->writeField("TemperatureBuffer", sizeof(cpu_temperature[0]), cpu_temperature.data());
+	ps->writeField("MetaBuffer", sizeof(cpu_meta[0]), cpu_meta.data());
 
 }
 
@@ -466,21 +470,6 @@ void AppLayer::onImGuiRender() {
 	}
 
 	if (ImGui::Button("Debug")) {
-		
-		ps->getField("PositionBuffer")->bind();
-		std::vector<glm::vec2> pos = ps->getField("PositionBuffer")->read<glm::vec2>();
-
-		ps->getField("PredictedPositionBuffer")->bind();
-		std::vector<glm::vec2> ppos = ps->getField("PredictedPositionBuffer")->read<glm::vec2>();
-
-		ps->getField("VelocityBuffer")->bind();
-		std::vector<glm::vec2> vel = ps->getField("VelocityBuffer")->read<glm::vec2>();
-
-		ps->getField("TemperatureBuffer")->bind();
-		std::vector<float> temp = ps->getField("TemperatureBuffer")->read<float>();
-
-		ps->getField("MetaBuffer")->bind();
-		std::vector<glm::uvec4> meta = ps->getField("MetaBuffer")->read<glm::uvec4>();
 
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;

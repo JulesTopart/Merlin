@@ -229,9 +229,8 @@ void AppLayer::ResetSimulation() {
 	SyncUniforms();
 
 	Console::info() << "Uploading buffer on device..." << Console::endl;
-	voxels->writeField("PositionBuffer", cpu_position.data());
 
-
+	voxels->writeField("PositionBuffer", cpu_position);
 
 	Console::info() << "Initializing 3D texture..." << Console::endl;
 

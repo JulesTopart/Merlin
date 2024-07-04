@@ -3,14 +3,14 @@
 #include "merlin/core/log.h"
 #include "merlin/core/Application.h"
 
-#include "merlin/memory/texture.h"
-#include "merlin/memory/indexBuffer.h"
-#include "merlin/memory/vertexArray.h"
+#include "merlin/textures/texture.h"
+#include "merlin/memory/ibo.h"
+#include "merlin/memory/vao.h"
 #include "merlin/memory/frameBuffer.h"
 #include "merlin/memory/renderBuffer.h"
 #include "merlin/memory/Uniform.h"
 //#include "merlin/memory/UniformBuffer.h"
-#include "merlin/memory/shaderStorageBuffer.h"
+#include "merlin/memory/ssbo.h"
 
 #include "merlin/graphics/renderer.h"
 #include "merlin/graphics/screenQuadrenderer.h"

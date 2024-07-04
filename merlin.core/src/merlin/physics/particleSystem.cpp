@@ -39,17 +39,12 @@ namespace Merlin{
 		if(m_fields.size() != 0) Console::warn() << "(Performance) Buffers of the particle system are being resized dynamically" << Console::endl;
 		m_instancesCount = count; 
 		for (auto field : m_fields) {
-			field.second->reserve(count);
+			field.second->resizeBuffer(count * field.second->type());
 		}
-		setActiveInstancesCount(m_instancesCount);
 	}
 
-	void ParticleSystem::setActiveInstancesCount(size_t count) {
-		m_activeInstancesCount = count;
-		if (m_activeInstancesCount > m_instancesCount) m_activeInstancesCount = m_instancesCount;
-	}
 
-	GenericBufferObject_Ptr ParticleSystem::getField(const std::string& name) const {
+	AbstractBufferObject_Ptr ParticleSystem::getField(const std::string& name) const {
 		if (hasField(name)) {
 			return m_fields.at(name);
 		}
@@ -59,7 +54,7 @@ namespace Merlin{
 		}
 	}
 
-	GenericBufferObject_Ptr ParticleSystem::getBuffer(const std::string& name) const {
+	AbstractBufferObject_Ptr ParticleSystem::getBuffer(const std::string& name) const {
 		if (hasBuffer(name)) {
 			return m_buffers.at(name);
 		}
@@ -70,7 +65,7 @@ namespace Merlin{
 	}
 
 
-	void ParticleSystem::addField(GenericBufferObject_Ptr field) {
+	void ParticleSystem::addField(AbstractBufferObject_Ptr field) {
 		if (hasField(field->name())) {
 			Console::warn("ParticleSystem") << field->name() << "has been overwritten" << Console::endl;
 		}
@@ -80,7 +75,7 @@ namespace Merlin{
 		}
 	}
 
-	void ParticleSystem::addBuffer(GenericBufferObject_Ptr buf){
+	void ParticleSystem::addBuffer(AbstractBufferObject_Ptr buf){
 		if (hasBuffer(buf->name())) {
 			Console::warn("ParticleSystem") << buf->name() << "has been overwritten" << Console::endl;
 		}
@@ -98,11 +93,23 @@ namespace Merlin{
 		return m_buffers.find(name) != m_buffers.end();
 	}
 
-	void ParticleSystem::writeField(const std::string& name, void* data){
+	void ParticleSystem::writeField(const std::string& name, GLsizei typesize,  void* data){
 		if (hasField(name)) {
-			m_fields[name]->bind();
-			m_fields[name]->writeRaw(m_fields[name]->dataSize() * m_instancesCount, data);
-		}
+			if (m_fields[name]->elements() != m_instancesCount) {
+				//Console::error("ParticleSystem") << "Field hasn't been allocated" << Console::endl;
+				m_fields[name]->allocateBuffer(m_instancesCount * typesize, data, BufferUsage::StaticDraw);
+			} else m_fields[name]->writeBuffer(m_instancesCount * typesize, data);
+		}else Console::error("ParticleSystem") << name << " is not registered in the particle system." << Console::endl;
+	}
+
+	void ParticleSystem::writeBuffer(const std::string& name, GLsizei typesize, GLsizei elements, void* data) {
+		if (hasBuffer(name)) {
+			if (m_buffers[name]->elements() != elements) {
+				//Console::error("ParticleSystem") << "Field hasn't been allocated" << Console::endl;
+				m_buffers[name]->allocateBuffer(elements * typesize, data, BufferUsage::StaticDraw);
+			}
+			else m_buffers[name]->writeBuffer(elements * typesize, data);
+		}else Console::error("ParticleSystem") << name << " is not registered in the particle system." << Console::endl;
 	}
 
 	void ParticleSystem::addProgram(ComputeShader_Ptr program) {
@@ -123,10 +130,9 @@ namespace Merlin{
 	}
 
 	void ParticleSystem::setShader(Shader_Ptr shader) {
-		if (m_shader)
-			m_links.erase(m_shader->name());
 		m_shader = shader;
 		m_currentProgram = m_shader->name();
+		m_links[shader->name()] = std::vector<std::string>();
 	}
 
 	bool ParticleSystem::hasShader() const{
@@ -155,11 +161,11 @@ namespace Merlin{
 				else if (hasBuffer(entry))
 					shader->detach(*getBuffer(entry));
 				else
-					Console::error("ParticleSystem") << entry << " is not registered as field in the particle system" << Console::endl;
+					Console::error("ParticleSystem") << entry << " is not registered as field in the particle system. cannot detach" << Console::endl;
 			}
 		}
 		else {
-			Console::error("ParticleSystem") << shader->name() << " is not registered in the particle system" << Console::endl;
+			Console::error("ParticleSystem") << shader->name() << " is not registered in the particle system. cannot detach" << Console::endl;
 		}
 	}
 
@@ -171,12 +177,12 @@ namespace Merlin{
 				else if(hasBuffer(entry))
 					shader->attach(*getBuffer(entry));
 				else
-					Console::error("ParticleSystem") << entry << " is not registered as field in the particle system" << Console::endl;
+					Console::error("ParticleSystem") << entry << " is not registered as field in the particle system. cannot attach" << Console::endl;
 				
 			}
 		}
 		else {
-			Console::error("ParticleSystem") << shader->name() << " is not registered in the particle system" << Console::endl;
+			Console::error("ParticleSystem") << shader->name() << " is not registered in the particle system. cannot attach" << Console::endl;
 		}
 	}
 

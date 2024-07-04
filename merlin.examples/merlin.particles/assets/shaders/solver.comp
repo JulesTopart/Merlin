@@ -50,6 +50,5 @@ void solve(uint i) {
     vi += acceleration * dt;
     solvePlaneCollision(i, vec3(0,0,1));//floor Z+
     xi += vi * dt;
-
 	return;
 }

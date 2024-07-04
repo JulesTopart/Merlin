@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 
 namespace Merlin {
-	class Merlin::GenericBufferObject;
+	class Merlin::AbstractBufferObject;
 
 
 	enum class ShaderType {
@@ -44,8 +44,8 @@ namespace Merlin {
 		void setMat4(const std::string name, glm::mat4 mat) const;
 		void setIntArray(const std::string name, GLint* values, uint32_t count) const;
 
-		void attach(GenericBufferObject& buf);
-		void detach(GenericBufferObject& buf);
+		void attach(AbstractBufferObject& buf);
+		void detach(AbstractBufferObject& buf);
 
 		inline const GLuint id() const { return m_programID; }
 		inline void setID(GLuint _id_) { m_programID = _id_; };

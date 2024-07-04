@@ -75,7 +75,7 @@ void AppLayer::SyncUniforms() {
 	int gridSizeY = ceil(bb_size.y / (settings.particleRadius * 2.0));
 	int gridSizeZ = ceil(bb_size.z / (settings.particleRadius * 2.0));
 
-	solver->setUVec3("dim", glm::uvec3(gridSizeX, gridSizeY, gridSizeZ));
+	solver->setIVec3("dim", glm::uvec3(gridSizeX, gridSizeY, gridSizeZ));
 	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
 
 	binShader->use();
@@ -229,8 +229,8 @@ void AppLayer::ResetSimulation() {
 
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
-	voxels->writeField("PositionBuffer", cpu_position.data());
-	voxels->writeField("TemperatureBuffer", cpu_temp.data());
+	voxels->writeField("PositionBuffer", cpu_position);
+	voxels->writeField("TemperatureBuffer", cpu_temp);
 }
 
 
