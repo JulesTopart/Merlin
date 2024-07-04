@@ -16,6 +16,7 @@ using namespace Merlin;
 
 void AppLayer::onAttach(){
 	Layer2D::onAttach();
+	Console::setLevel(ConsoleLevel::_TRACE);
 
 	glfwSwapInterval(0);
 
@@ -42,20 +43,32 @@ void AppLayer::onEvent(Event& event){
 
 void AppLayer::onUpdate(Timestep ts){
 	Layer2D::onUpdate(ts);
-	
+
 	PROFILE_END(total_start_time, total_time);
 	PROFILE_BEGIN(total_start_time);
 
+	ps->solveLink(particleShader);
+	bs->solveLink(binShader);
+
 	GPU_PROFILE(render_time,
 		renderer.clear();
-		renderer.renderScene(scene, camera());
+	renderer.renderScene(scene, camera());
 	)
+
+		ps->detach(particleShader);
+	bs->detach(binShader);
+
+	ps->solveLink(solver);
+	bs->solveLink(prefixSum);
 
 	if (!paused) {
 		GPU_PROFILE(solver_total_time,
 			Simulate(0.016);
 		)
 	}
+
+	ps->detach(solver);
+	bs->detach(prefixSum);
 }
 
 
@@ -164,7 +177,7 @@ void AppLayer::InitPhysics() {
 	ps->addField<float>("cpyTemperatureBuffer");
 	ps->addField<glm::uvec4>("MetaBuffer");
 	ps->addField<glm::uvec4>("cpyMetaBuffer");
-	ps->addField(binBuffer);
+	ps->addBuffer(binBuffer);
 	ps->solveLink(solver);
 	ps->detach(solver);
 
@@ -236,11 +249,11 @@ void AppLayer::ResetSimulation() {
 
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
-	ps->writeField("PositionBuffer", sizeof(cpu_position[0]), cpu_position.data());
-	ps->writeField("PredictedPositionBuffer", sizeof(cpu_predictedPosition[0]), cpu_predictedPosition.data());
-	ps->writeField("VelocityBuffer", sizeof(cpu_velocity[0]), cpu_velocity.data());
-	ps->writeField("TemperatureBuffer", sizeof(cpu_temperature[0]), cpu_temperature.data());
-	ps->writeField("MetaBuffer", sizeof(cpu_meta[0]), cpu_meta.data());
+	ps->writeField("PositionBuffer", cpu_position);
+	ps->writeField("PredictedPositionBuffer", cpu_predictedPosition);
+	ps->writeField("VelocityBuffer",  cpu_velocity);
+	ps->writeField("TemperatureBuffer",  cpu_temperature);
+	ps->writeField("MetaBuffer", cpu_meta);
 
 }
 

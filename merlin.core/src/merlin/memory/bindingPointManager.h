@@ -10,41 +10,20 @@
 #include "merlin/memory/bufferObject.h"
 
 namespace Merlin {
-    class BindingPointHandle {
-    public:
-        BindingPointHandle(BufferTarget target, GLuint bindingPoint, bool autoRelease = true);
-        BindingPointHandle(BindingPointHandle&& other) noexcept;
-        BindingPointHandle& operator=(BindingPointHandle&& other) noexcept;
-        ~BindingPointHandle();
-
-        GLuint get() const;
-
-        BindingPointHandle(const BindingPointHandle&) = delete;
-        BindingPointHandle& operator=(const BindingPointHandle&) = delete;
-
-    private:
-        void release();
-
-        static constexpr GLuint INVALID_BINDING_POINT = static_cast<GLuint>(-1);
-
-        BufferTarget target;
-        GLuint bindingPoint;
-        bool autoRelease;
-    };
-
     class BindingPointManager {
-        BindingPointManager();
         SINGLETON(BindingPointManager)
+        BindingPointManager() { initializeAvailableBindingPoints(); }
 
     public:
-        BindingPointHandle allocateBindingPoint(BufferTarget target, bool autoRelease = true);
-        void releaseBindingPoint(BufferTarget target, GLuint bindingPoint);
+        GLuint allocateBindingPoint(BufferTarget bufferTarget);
+        void releaseBindingPoint(BufferTarget bufferTarget, GLuint bindingPoint);
+        const std::vector<GLuint>& getUsedBindingPoints(BufferTarget bufferTarget) const;
 
     private:
         void initializeAvailableBindingPoints();
 
         std::unordered_map<BufferTarget, std::queue<GLuint>> availableBindingPoints;
+        std::unordered_map<BufferTarget, std::vector<GLuint>> usedBindingPoints;
     };
-
 }
 

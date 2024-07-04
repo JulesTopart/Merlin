@@ -3,55 +3,24 @@
 
 namespace Merlin {
 
-    BindingPointHandle::BindingPointHandle(BufferTarget target, GLuint bindingPoint, bool autoRelease)
-        : target(target), bindingPoint(bindingPoint), autoRelease(autoRelease) {}
-
-    BindingPointHandle::BindingPointHandle(BindingPointHandle&& other) noexcept
-        : target(other.target), bindingPoint(other.bindingPoint), autoRelease(other.autoRelease) {
-        other.bindingPoint = INVALID_BINDING_POINT;
-    }
-
-    BindingPointHandle& BindingPointHandle::operator=(BindingPointHandle&& other) noexcept {
-        if (this != &other) {
-            release();
-            target = other.target;
-            bindingPoint = other.bindingPoint;
-            autoRelease = other.autoRelease;
-            other.bindingPoint = INVALID_BINDING_POINT;
-        }
-        return *this;
-    }
-
-    BindingPointHandle::~BindingPointHandle() {
-        release();
-    }
-
-    GLuint BindingPointHandle::get() const {
-        return bindingPoint;
-    }
-
-    void BindingPointHandle::release() {
-        if (bindingPoint != INVALID_BINDING_POINT && autoRelease) {
-            BindingPointManager::instance().releaseBindingPoint(target, bindingPoint);
-        }
-    }
-
-    BindingPointManager::BindingPointManager() {
-        initializeAvailableBindingPoints();
-    }
-
-    BindingPointHandle BindingPointManager::allocateBindingPoint(BufferTarget bufferType, bool autoRelease) {
+    GLuint BindingPointManager::allocateBindingPoint(BufferTarget bufferType) {
         if (availableBindingPoints[bufferType].empty()) {
             Console::error("BindingPointManager") << "No available binding points for the given buffer type" << Console::endl;
             throw std::runtime_error("No available binding points for the given buffer type");
         }
         GLuint bindingPoint = availableBindingPoints[bufferType].front();
         availableBindingPoints[bufferType].pop();
+        usedBindingPoints[bufferType].push_back(bindingPoint);
         Console::trace("BindingPointManager") << bindingPoint << " allocated" << Console::endl;
-        return BindingPointHandle(bufferType, bindingPoint, autoRelease);
+        return bindingPoint;
     }
 
     void BindingPointManager::releaseBindingPoint(BufferTarget bufferType, GLuint bindingPoint) {
+        if (bindingPoint > 16) return;
+
+        auto& points = usedBindingPoints[bufferType];
+        points.erase(std::remove(points.begin(), points.end(), bindingPoint), points.end());
+        // Ensure binding points are added back in the correct order
         std::queue<GLuint> tempQueue;
         tempQueue.push(bindingPoint);
         while (!availableBindingPoints[bufferType].empty()) {
@@ -59,7 +28,12 @@ namespace Merlin {
             availableBindingPoints[bufferType].pop();
         }
         availableBindingPoints[bufferType] = tempQueue;
+
         Console::trace("BindingPointManager") << bindingPoint << " freed" << Console::endl;
+    }
+
+    const std::vector<GLuint>& BindingPointManager::getUsedBindingPoints(BufferTarget bufferType) const {
+        return usedBindingPoints.at(bufferType);
     }
 
     void BindingPointManager::initializeAvailableBindingPoints() {
@@ -80,8 +54,8 @@ namespace Merlin {
         for (int i = 0; i < maxEBOBindings; ++i) {
             availableBindingPoints[BufferTarget::Element_Array_Buffer].push(i);
         }
+        // Add other buffer types if needed
     }
-
 
 
 }

@@ -15,7 +15,7 @@ ExampleLayer::ExampleLayer(){
 	camera = createShared<Camera>(width, height, Projection::Perspective);
 	camera->setNearPlane(0.1f);
 	camera->setFarPlane(100.0f);
-	camera->setFOV(40); //Use 90.0f as we are using cubemaps
+	camera->setFOV(55); //Use 90.0f as we are using cubemaps
 	camera->setPosition(glm::vec3(0.7, -7, 2.4));
 	camera->setRotation(glm::vec3(0, 0, +90));
 	cameraController = createShared<CameraController3D>(camera);

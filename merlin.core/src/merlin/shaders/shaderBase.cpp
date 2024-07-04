@@ -52,11 +52,11 @@ namespace Merlin {
 		if (block_index == -1) Console::error("ShaderBase") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
 		else {
 			BindingPointManager& manager = BindingPointManager::instance();
-			auto bindingPoint = manager.allocateBindingPoint(buf.target(), false);
+			auto bindingPoint = manager.allocateBindingPoint(buf.target());
 			buf.bind();
-			buf.setBindingPoint(bindingPoint.get());
-			Console::trace("ShaderBase") << buf.name() << "( block index " << block_index << ") is now bound to " << name() << " using binding point " << bindingPoint.get() << Console::endl;
-			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint.get());//Do this explicitly in your shader !
+			buf.setBindingPoint(bindingPoint);
+			Console::trace("ShaderBase") << buf.name() << "( block index " << block_index << ") is now bound to " << name() << " using binding point " << bindingPoint << Console::endl;
+			glShaderStorageBlockBinding(m_programID, block_index, bindingPoint);//Do this explicitly in your shader !
 			buf.unbind();
 		}
 	}
