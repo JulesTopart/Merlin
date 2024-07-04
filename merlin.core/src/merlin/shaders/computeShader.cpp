@@ -84,6 +84,10 @@ namespace Merlin {
 		m_wkgrpLayout = glm::uvec3(x, y, z);
 	}
 
+	void ComputeShader::SetWorkgroupLayout(glm::uvec3 layout) {
+		m_wkgrpLayout = layout;
+	}
+
 
 	void ComputeShader::compile(const std::string& shader_file_path) {
 		m_compiled = true;

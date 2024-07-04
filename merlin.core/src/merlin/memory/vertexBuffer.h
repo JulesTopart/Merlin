@@ -8,17 +8,39 @@ namespace Merlin {
     template<class T = Vertex>
 	class VertexBuffer : public BufferObject<T>{
 	public:
+       
+        VertexBuffer(GLuint size);
         VertexBuffer(std::vector<T>& vertices);
+        VertexBuffer(std::string name, GLuint size);
+        VertexBuffer(std::string name, std::vector<T>& vertices);
 	};
+
+    template<class T>
+    inline VertexBuffer<T>::VertexBuffer(GLuint size) : BufferObject<T>(BufferType::VERTEX_BUFFER, BufferTarget::ARRAY_BUFFER, size, BufferUsage::STATIC_DRAW) {
+        Console::trace("VertexBuffer") << "VertexBuffer " << this->id() << " allocated. " << Console::endl;
+    }
 
     template<class T>
     inline VertexBuffer<T>::VertexBuffer(std::vector<T>& vertices) : BufferObject<T>(BufferType::VERTEX_BUFFER, BufferTarget::ARRAY_BUFFER, vertices, BufferUsage::STATIC_DRAW) {
         Console::trace("VertexBuffer") << "VertexBuffer " << this->id() << " allocated. " << Console::endl;
     }
 
+    template<class T>
+    inline VertexBuffer<T>::VertexBuffer(std::string name, std::vector<T>& vertices) : BufferObject<T>(BufferType::VERTEX_BUFFER, BufferTarget::ARRAY_BUFFER, name, vertices, BufferUsage::STATIC_DRAW) {
+        Console::trace("VertexBuffer") << "VertexBuffer " << this->id() << " allocated. " << Console::endl;
+    }
+
+    template<class T>
+    inline VertexBuffer<T>::VertexBuffer(std::string name, GLuint size) : BufferObject<T>(BufferType::VERTEX_BUFFER, BufferTarget::ARRAY_BUFFER, name, size, BufferUsage::STATIC_DRAW) {
+        Console::trace("VertexBuffer") << "VertexBuffer " << this->id() << " allocated. " << Console::endl;
+    }
+
     template<class T = Vertex>
     using VBO = VertexBuffer<T>;//Shorter alias
 
+    template<class T = Vertex>
+    using VBO_Ptr = Shared<VertexBuffer<T>>;//Shorter alias
+    
     struct VertexBufferElement {
         unsigned int type;
         unsigned int count;

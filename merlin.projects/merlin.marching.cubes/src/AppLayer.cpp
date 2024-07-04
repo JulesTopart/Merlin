@@ -6,13 +6,6 @@
 
 using namespace Merlin;
 
-#define PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
-#define GPU_PROFILE(VAR, CODE) double start_ ## VAR ## _time = glfwGetTime(); CODE glFinish(); VAR = (glfwGetTime() - start_ ## VAR ## _time)*1000.0;
-
-#define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
-#define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
-
-
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
 	camera().setNearPlane(0.5);
@@ -23,9 +16,6 @@ void AppLayer::onAttach() {
 	glfwSwapInterval(0);
 
 	InitGraphics();
-	InitPhysics();
-
-	ResetSimulation();
 }
 
 void AppLayer::onDetach() {}
@@ -37,57 +27,25 @@ void AppLayer::onEvent(Event& event) {
 void AppLayer::onUpdate(Timestep ts) {
 	Layer3D::onUpdate(ts);
 
-	PROFILE_END(total_start_time, total_time);
-	PROFILE_BEGIN(total_start_time);
+	renderer.clear();
 
-	ps->solveLink(particleShader);
-	bs->solveLink(binShader);
 
-	GPU_PROFILE(render_time,
-		renderer.clear();
-		renderer.renderScene(scene, camera());
-	)
+    noise->use();
+    noise->setFloat("u_time", glfwGetTime());
+    noise->setInt("u_mode_index", 4); //"FBM Noise", "SDF Sphere", "SDF Box", "SDF Torus", "SDF Metaballs"
+    noise->setFloat("u_twist", 0.0);
+    noise->setFloat("u_bend", 0.0);
 
-	ps->detach(particleShader);
-	bs->detach(binShader);
+    noise->dispatch();
+    noise->barrier();
 
-	ps->solveLink(solver);
-	bs->solveLink(prefixSum);
+    marchingCubes->use();
+    marchingCubes->setFloat("u_isolevel", 0.5); //-1, 1
+    marchingCubes->dispatch();
+    marchingCubes->barrier();
 
-	if (!paused) {
-		GPU_PROFILE(solver_total_time,
-			Simulate(0.016);
-		)
-	}
-
-	ps->detach(solver);
-	bs->detach(prefixSum);
-
+	renderer.renderScene(scene, camera());
 }
-
-
-
-void AppLayer::SyncUniforms() {
-
-	solver->use();
-
-	//settings.timestep.sync(*solver);
-	settings.particleMass.sync(*solver);
-	settings.restDensity.sync(*solver);
-	solver->setUInt("numParticles", numParticles);
-	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
-	solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.01);
-	solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.01);
-
-	particleShader->use();
-	particleShader->setUInt("numParticles", numParticles);
-	settings.restDensity.sync(*particleShader);
-
-	prefixSum->use();
-	prefixSum->setUInt("dataSize", settings.bThread); //data size
-	prefixSum->setUInt("blockSize", settings.blockSize); //block size
-}
-
 
 void AppLayer::InitGraphics() {
 	// init OpenGL stuff
@@ -95,593 +53,392 @@ void AppLayer::InitGraphics() {
 	renderer.setBackgroundColor(0.803, 0.803, 0.803, 1.0);
 	renderer.enableTransparency();
 	renderer.enableSampleShading();
-	//renderer.disableShadows();
 	renderer.disableFaceCulling();
-	//renderer.applyGlobalTransform(glm::scale(glm::mat4(1), glm::vec3(0.001)));
 
-	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
-	particleShader->noEnvironment();
-	particleShader->noMaterial();
-	particleShader->noTexture();
-	particleShader->noLights();
-	particleShader->noShadows();
-	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
+	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 4,16);
+	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 4,16);
 
-	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
-	binShader->noEnvironment();
-	binShader->noMaterial();
-	binShader->noTexture();
-	binShader->noLights();
-	binShader->noShadows();
+	const size_t max_triangles_per_cell = 5;
+	const size_t max_vertices_per_triangle = 3;
+	const size_t max_number_of_vertices = settings.volume_size.x * 
+                                          settings.volume_size.y * 
+                                          settings.volume_size.z * 
+                                          max_triangles_per_cell * max_vertices_per_triangle;
 
-	particleShader->use();
-	particleShader->setInt("colorCycle", 4);
-	binShader->use();
-	binShader->setInt("colorCycle", 4);
+    buffer_vertices = SSBO<glm::vec4>::create("buffer_vertices", max_number_of_vertices, BufferStorageFlags::DYNAMIC_STORAGE);
+    buffer_normals = SSBO<glm::vec4>::create("buffer_normals", max_number_of_vertices, BufferStorageFlags::DYNAMIC_STORAGE);
 
-	renderer.addShader(particleShader);
-	renderer.addShader(binShader);
-
-	Shared<Mesh> floor = ModelLoader::loadMesh("./assets/models/bed.stl");
-	floor->translate(glm::vec3(0.75, -0.25, -0.1));
-	floor->scale(glm::vec3(1.025, 1.025, 1.0));
-	floor->setMaterial("chrome");
-	scene.add(floor);
-
-	//modelShader->Use();
-	//modelShader->setVec3("lightPos", glm::vec3(0.0, 10.0, 10));
-
-	Shared<Mesh> floorSurface = Primitives::createRectangle(316, 216);
-	floorSurface->translate(glm::vec3(0.75, -0.25, 0));
-
-	Shared<PhongMaterial> floorMat2 = createShared<PhongMaterial>("floorMat2");
-	floorMat2->setAmbient(glm::vec3(0.02));
-	floorMat2->setDiffuse(glm::vec3(0.95));
-	floorMat2->setSpecular(glm::vec3(0.99));
-	floorMat2->setShininess(0.7);
-	floorMat2->loadTexture("assets/textures/bed.png", TextureType::DIFFUSE, true);
-
-	floorSurface->setMaterial(floorMat2);
-	scene.add(floorSurface);
-
-	Mesh_Ptr bbox = Primitives::createQuadCube(settings.bb.x, settings.bb.y, settings.bb.z);
-	bbox->enableWireFrameMode();
-	bbox->setMaterial("default");
-	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
-	scene.add(bbox);
-
-	emitter = Primitives::createCube(50, 50, 70);
-	emitter->enableWireFrameMode();
-	emitter->translate(glm::vec3(-120,0,35));
-	/*
-	slope = Primitives::createCube(50, 90, 2);
-	slope->setMaterial("red plastic");
-	slope->translate(glm::vec3(80, 0, 8));
-	slope->rotate(glm::vec3(0, -20*DEG_TO_RAD, 0));
-
-	geom = ModelLoader::loadMesh("./assets/common/models/bunny.stl");
-	geom->setMaterial("jade");
-	geom->scale(4);*/
-
-	scene.add(emitter);
-	//scene.add(geom);
-	//scene.add(slope);
-	scene.add(TransformObject::create("origin", 10));
-
-}
-
-void AppLayer::InitPhysics() {
-	//Compute Shaders
-	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6);
-	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
-
-	//create particle system
-	ps = ParticleSystem::create("ParticleSystem", settings.pThread);
-	ps->setShader(particleShader);
-	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
-
-	Shared<Mesh> binInstance = Primitives::createQuadCube(settings.bWidth, false);
-	binInstance->rename("bin");
-	bs = ParticleSystem::create("BinSystem", settings.bThread);
-	bs->setDisplayMode(ParticleSystemDisplayMode::MESH);
-	bs->setMesh(binInstance);
-	bs->enableWireFrameMode();
-
-	solver->SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
-
-	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
-	SSBO_Ptr<Bin> binBuffer = SSBO<Bin>::create("BinBuffer", settings.bThread);
-
-	//attach Buffers
-	ps->setShader(particleShader);
-	ps->addProgram(solver);
-	ps->addField<glm::vec4>("PositionBuffer");
-	ps->addField<glm::vec4>("cpyPositionBuffer");
-	ps->addField<glm::vec4>("PredictedPositionBuffer");
-	ps->addField<glm::vec4>("cpyPredictedPositionBuffer");
-	ps->addField<glm::vec4>("VelocityBuffer");
-	ps->addField<glm::vec4>("cpyVelocityBuffer");
-	ps->addField<float>("DensityBuffer");
-	ps->addField<float>("cpyDensityBuffer");
-	ps->addField<float>("LambdaBuffer");
-	ps->addField<float>("cpyLambdaBuffer");
-	ps->addField<glm::uvec4>("MetaBuffer");
-	ps->addField<glm::uvec4>("cpyMetaBuffer");
-	ps->addBuffer(binBuffer);
-	ps->solveLink(solver);
-
-	bs->setShader(binShader);
-	bs->addProgram(prefixSum);
-	bs->addField(binBuffer);
-	bs->solveLink(prefixSum);
-
-	ps->link(particleShader->name(), "PositionBuffer");
-	ps->link(particleShader->name(), "PredictedPositionBuffer");
-	ps->link(particleShader->name(), "VelocityBuffer");
-	ps->link(particleShader->name(), "DensityBuffer");
-	ps->link(particleShader->name(), "LambdaBuffer");
-	ps->link(particleShader->name(), "MetaBuffer");
-	ps->solveLink(particleShader);
-
-	bs->link(binShader->name(), binBuffer->name());
-	bs->solveLink(binShader);
-
-	scene.add(ps);
-	scene.add(bs);
-	bs->hide();
-}
-
-
-void AppLayer::ResetSimulation() {
-	elapsedTime = 0;
-	Console::info() << "Generating particles..." << Console::endl;
-
-	float spacing = settings.particleRadius * 2.0;
-	auto cpu_position = std::vector<glm::vec4>();
-	auto cpu_predictedPosition = std::vector<glm::vec4>();
-	auto cpu_velocity = std::vector<glm::vec4>();
-	auto cpu_density = std::vector<float>();
-	auto cpu_lambda = std::vector<float>();
-	auto cpu_meta = std::vector<glm::uvec4>();
-
-	numParticles = 0;
-
-	{
-		emitter->computeBoundingBox();
-		emitter->voxelize(spacing*1.2);
-		BoundingBox aabb = emitter->getBoundingBox();
-		glm::vec3 bb_size = aabb.max - aabb.min;
-		int gridSizeX = ceil(bb_size.x / spacing / 1.2);
-		int gridSizeY = ceil(bb_size.y / spacing / 1.2);
-		int gridSizeZ = ceil(bb_size.z / spacing / 1.2);
-
-		for (int i = 0; i < gridSizeX * gridSizeY * gridSizeZ; i++) {
-			if (emitter->getVoxels()[i] != 0) {
-
-				int index = i;
-				int vz = index / (gridSizeX * gridSizeY);
-				index -= (vz * gridSizeX * gridSizeY);
-				int vy = index / gridSizeX;
-				int vx = index % gridSizeX;
-
-				float x = aabb.min.x + (vx + 0.5) * spacing * 1.2;
-				float y = aabb.min.y + (vy + 0.5) * spacing * 1.2;
-				float z = aabb.min.z + (vz + 0.5) * spacing * 1.2;
-
-				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_velocity.push_back(glm::vec4(0));
-				cpu_density.push_back(0.0);
-				cpu_lambda.push_back(0.0);
-				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
-				numParticles++;
-			}
-		}
-	}/**/
-
-	/*
-	{
-		geom->computeBoundingBox();
-		geom->voxelize(spacing);
-		BoundingBox aabb = geom->getBoundingBox();
-		glm::vec3 bb_size = aabb.max - aabb.min;
-		int gridSizeX = ceil(bb_size.x / spacing);
-		int gridSizeY = ceil(bb_size.y / spacing);
-		int gridSizeZ = ceil(bb_size.z / spacing);
-
-		for (int i = 0; i < gridSizeX * gridSizeY * gridSizeZ; i++) {
-			if (geom->getVoxels()[i] != 0) {
-
-				int index = i;
-				int vz = index / (gridSizeX * gridSizeY);
-				index -= (vz * gridSizeX * gridSizeY);
-				int vy = index / gridSizeX;
-				int vx = index % gridSizeX;
-
-				float x = aabb.min.x + (vx + 0.5) * spacing;
-				float y = aabb.min.y + (vy + 0.5) * spacing;
-				float z = aabb.min.z + (vz + 0.5) * spacing;
-
-				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_velocity.push_back(glm::vec4(0));
-				cpu_density.push_back(0.0);
-				cpu_lambda.push_back(0.0);
-				cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-				numParticles++;
-			}
-		}
-	}/**/
-
-	/*
-	{
-		slope->computeBoundingBox();
-		slope->voxelize(spacing);
-		BoundingBox aabb = slope->getBoundingBox();
-		glm::vec3 bb_size = aabb.max - aabb.min;
-		int gridSizeX = ceil(bb_size.x / spacing);
-		int gridSizeY = ceil(bb_size.y / spacing);
-		int gridSizeZ = ceil(bb_size.z / spacing);
-
-		for (int i = 0; i < gridSizeX * gridSizeY * gridSizeZ; i++) {
-			if (slope->getVoxels()[i] != 0) {
-
-				int index = i;
-				int vz = index / (gridSizeX * gridSizeY);
-				index -= (vz * gridSizeX * gridSizeY);
-				int vy = index / gridSizeX;
-				int vx = index % gridSizeX;
-
-				float x = aabb.min.x + (vx + 0.5) * spacing;
-				float y = aabb.min.y + (vy + 0.5) * spacing;
-				float z = aabb.min.z + (vz + 0.5) * spacing;
-
-				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_velocity.push_back(glm::vec4(0));
-				cpu_density.push_back(0.0);
-				cpu_lambda.push_back(0.0);
-				cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-				numParticles++;
-			}
-		}
-	}/**/
-
-
-
-	int realParticles = numParticles;
-
-	std::vector<glm::vec4> boundaryPos;
-	float halfSpacing = spacing / 2.0;
-
-	for (int yi = 0; yi <= (settings.bb.y - spacing) / spacing; yi++) {
-		for (int zi = 0; zi <= (settings.bb.z - spacing) / spacing; zi++) {
-
-			float x = -settings.bb.x / 2 + halfSpacing;
-			float y = (yi * spacing) - (settings.bb.y / 2.0) + halfSpacing;
-			float z = -(zi * spacing) + settings.bb.z - halfSpacing;
-
-			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
-
-			x = settings.bb.x / 2 - halfSpacing;
-			y = (yi * spacing) - (settings.bb.y / 2.0) + halfSpacing;
-			z = -(zi * spacing) + settings.bb.z - halfSpacing;
-
-			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
-		}
-	}
-
-	for (int xi = 0; xi <= (settings.bb.x - spacing) / spacing; xi++) {
-		for (int yi = 0; yi <= (settings.bb.y - spacing) / spacing; yi++) {
-
-			float x = -(xi * spacing) + (settings.bb.x / 2.0) - halfSpacing;
-			float y = (yi * spacing) - (settings.bb.y / 2.0) + halfSpacing;
-			float z = halfSpacing;
-
-			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
-
-			x = -(xi * spacing) + (settings.bb.x / 2.0) - halfSpacing;
-			y = (yi * spacing) - (settings.bb.y / 2.0) + halfSpacing;
-			z = settings.bb.z - halfSpacing;
-
-			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
-		}
-	}
-
-	for (int xi = 0; xi <= (settings.bb.x - spacing) / spacing; xi++) {
-		for (int zi = 0; zi <= (settings.bb.z - spacing) / spacing; zi++) {
-
-			float x = -(xi * spacing) + (settings.bb.x / 2.0) - halfSpacing;
-			float y = -settings.bb.y / 2 + halfSpacing;
-			float z = -(zi * spacing) + settings.bb.z - halfSpacing;
-
-			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
-
-			x = -(xi * spacing) + (settings.bb.x / 2.0) - halfSpacing;
-			y = settings.bb.y / 2 - halfSpacing;
-			z = -(zi * spacing) + settings.bb.z - halfSpacing;
-
-			boundaryPos.push_back(glm::vec4(x, y, z, 0.0));
-		}
-	}
-
-	for (int i = 0; i < boundaryPos.size(); i++) {
-		cpu_position.push_back(glm::vec4(boundaryPos[i].x, boundaryPos[i].y, boundaryPos[i].z, 0.0));
-		cpu_predictedPosition.push_back(glm::vec4(boundaryPos[i].x, boundaryPos[i].y, boundaryPos[i].z, 0.0));
-		cpu_velocity.push_back(glm::vec4(0));
-		cpu_density.push_back(0.0);
-		cpu_lambda.push_back(0.0);
-		cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-		numParticles++;
-	}
-
-	numBoundaryParticles = numParticles - realParticles;
-
-
-
-	Console::info() << "Uploading buffer on device..." << Console::endl;
-
-	settings.pThread = numParticles;
-	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	settings.blockSize = floor(log2f(settings.bThread));
-	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
-	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
-
-	solver->SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
-
-	ps->setInstancesCount(settings.pThread);
-	bs->setInstancesCount(settings.bThread);
-
-	SyncUniforms();
-	Console::info() << "Uploading buffer on device..." << Console::endl;
-	ps->writeField("PositionBuffer", cpu_position.data());
-	ps->writeField("PredictedPositionBuffer", cpu_predictedPosition.data());
-	ps->writeField("VelocityBuffer", cpu_velocity.data());
-	ps->writeField("DensityBuffer", cpu_density.data());
-	ps->writeField("LambdaBuffer", cpu_lambda.data());
-	ps->writeField("MetaBuffer", cpu_meta.data());
-
+	buffer_triangle_table = SSBO<int>::create("buffer_triangle_table");
+	buffer_configuration_table = SSBO<int>::create("buffer_configuration_table");
 	
-}
+    VertexBufferLayout layout;
+    layout.push<float>(4);
 
+    VAO_Ptr vao = createShared<VAO>();
+    {
+        glEnableVertexArrayAttrib(vao->id(), 0);
+        glEnableVertexArrayAttrib(vao->id(), 1);
 
-void AppLayer::NeigborSearch() {
-	prefixSum->use();
-	prefixSum->setUInt("dataSize", settings.bThread); //data size
-	prefixSum->setUInt("blockSize", settings.blockSize); //block size
+        glVertexArrayVertexBuffer(vao->id(), 0, buffer_vertices->id(), 0, sizeof(glm::vec4));
+        glVertexArrayVertexBuffer(vao->id(), 1, buffer_normals->id(), 0, sizeof(glm::vec4));
 
-	prefixSum->use();
-	prefixSum->execute(4);// clear bins
+        glVertexArrayAttribFormat(vao->id(), 0, 4, GL_FLOAT, false, 0);
+        glVertexArrayAttribFormat(vao->id(), 1, 4, GL_FLOAT, false, 0);
 
-	solver->use();
-	solver->execute(0); //Place particles in bins
+        glVertexArrayAttribBinding(vao->id(), 0, 0);
+        glVertexArrayAttribBinding(vao->id(), 1, 1);
+    }
 
-	prefixSum->use();
-	prefixSum->execute(0);// local prefix sum
+	{
+        static const int triangle_table[256][16] = {
+            {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 8, 3, 9, 8, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 2, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 8, 3, 1, 2, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {9, 2, 10, 0, 2, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {2, 8, 3, 2, 10, 8, 10, 9, 8, -1, -1, -1, -1, -1, -1, -1},
+            {3, 11, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 11, 2, 8, 11, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 9, 0, 2, 3, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 11, 2, 1, 9, 11, 9, 8, 11, -1, -1, -1, -1, -1, -1, -1},
+            {3, 10, 1, 11, 10, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 10, 1, 0, 8, 10, 8, 11, 10, -1, -1, -1, -1, -1, -1, -1},
+            {3, 9, 0, 3, 11, 9, 11, 10, 9, -1, -1, -1, -1, -1, -1, -1},
+            {9, 8, 10, 10, 8, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {4, 7, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {4, 3, 0, 7, 3, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 1, 9, 8, 4, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {4, 1, 9, 4, 7, 1, 7, 3, 1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 2, 10, 8, 4, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {3, 4, 7, 3, 0, 4, 1, 2, 10, -1, -1, -1, -1, -1, -1, -1},
+            {9, 2, 10, 9, 0, 2, 8, 4, 7, -1, -1, -1, -1, -1, -1, -1},
+            {2, 10, 9, 2, 9, 7, 2, 7, 3, 7, 9, 4, -1, -1, -1, -1},
+            {8, 4, 7, 3, 11, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {11, 4, 7, 11, 2, 4, 2, 0, 4, -1, -1, -1, -1, -1, -1, -1},
+            {9, 0, 1, 8, 4, 7, 2, 3, 11, -1, -1, -1, -1, -1, -1, -1},
+            {4, 7, 11, 9, 4, 11, 9, 11, 2, 9, 2, 1, -1, -1, -1, -1},
+            {3, 10, 1, 3, 11, 10, 7, 8, 4, -1, -1, -1, -1, -1, -1, -1},
+            {1, 11, 10, 1, 4, 11, 1, 0, 4, 7, 11, 4, -1, -1, -1, -1},
+            {4, 7, 8, 9, 0, 11, 9, 11, 10, 11, 0, 3, -1, -1, -1, -1},
+            {4, 7, 11, 4, 11, 9, 9, 11, 10, -1, -1, -1, -1, -1, -1, -1},
+            {9, 5, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {9, 5, 4, 0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 5, 4, 1, 5, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {8, 5, 4, 8, 3, 5, 3, 1, 5, -1, -1, -1, -1, -1, -1, -1},
+            {1, 2, 10, 9, 5, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {3, 0, 8, 1, 2, 10, 4, 9, 5, -1, -1, -1, -1, -1, -1, -1},
+            {5, 2, 10, 5, 4, 2, 4, 0, 2, -1, -1, -1, -1, -1, -1, -1},
+            {2, 10, 5, 3, 2, 5, 3, 5, 4, 3, 4, 8, -1, -1, -1, -1},
+            {9, 5, 4, 2, 3, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 11, 2, 0, 8, 11, 4, 9, 5, -1, -1, -1, -1, -1, -1, -1},
+            {0, 5, 4, 0, 1, 5, 2, 3, 11, -1, -1, -1, -1, -1, -1, -1},
+            {2, 1, 5, 2, 5, 8, 2, 8, 11, 4, 8, 5, -1, -1, -1, -1},
+            {10, 3, 11, 10, 1, 3, 9, 5, 4, -1, -1, -1, -1, -1, -1, -1},
+            {4, 9, 5, 0, 8, 1, 8, 10, 1, 8, 11, 10, -1, -1, -1, -1},
+            {5, 4, 0, 5, 0, 11, 5, 11, 10, 11, 0, 3, -1, -1, -1, -1},
+            {5, 4, 8, 5, 8, 10, 10, 8, 11, -1, -1, -1, -1, -1, -1, -1},
+            {9, 7, 8, 5, 7, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {9, 3, 0, 9, 5, 3, 5, 7, 3, -1, -1, -1, -1, -1, -1, -1},
+            {0, 7, 8, 0, 1, 7, 1, 5, 7, -1, -1, -1, -1, -1, -1, -1},
+            {1, 5, 3, 3, 5, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {9, 7, 8, 9, 5, 7, 10, 1, 2, -1, -1, -1, -1, -1, -1, -1},
+            {10, 1, 2, 9, 5, 0, 5, 3, 0, 5, 7, 3, -1, -1, -1, -1},
+            {8, 0, 2, 8, 2, 5, 8, 5, 7, 10, 5, 2, -1, -1, -1, -1},
+            {2, 10, 5, 2, 5, 3, 3, 5, 7, -1, -1, -1, -1, -1, -1, -1},
+            {7, 9, 5, 7, 8, 9, 3, 11, 2, -1, -1, -1, -1, -1, -1, -1},
+            {9, 5, 7, 9, 7, 2, 9, 2, 0, 2, 7, 11, -1, -1, -1, -1},
+            {2, 3, 11, 0, 1, 8, 1, 7, 8, 1, 5, 7, -1, -1, -1, -1},
+            {11, 2, 1, 11, 1, 7, 7, 1, 5, -1, -1, -1, -1, -1, -1, -1},
+            {9, 5, 8, 8, 5, 7, 10, 1, 3, 10, 3, 11, -1, -1, -1, -1},
+            {5, 7, 0, 5, 0, 9, 7, 11, 0, 1, 0, 10, 11, 10, 0, -1},
+            {11, 10, 0, 11, 0, 3, 10, 5, 0, 8, 0, 7, 5, 7, 0, -1},
+            {11, 10, 5, 7, 11, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {10, 6, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 8, 3, 5, 10, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {9, 0, 1, 5, 10, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 8, 3, 1, 9, 8, 5, 10, 6, -1, -1, -1, -1, -1, -1, -1},
+            {1, 6, 5, 2, 6, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 6, 5, 1, 2, 6, 3, 0, 8, -1, -1, -1, -1, -1, -1, -1},
+            {9, 6, 5, 9, 0, 6, 0, 2, 6, -1, -1, -1, -1, -1, -1, -1},
+            {5, 9, 8, 5, 8, 2, 5, 2, 6, 3, 2, 8, -1, -1, -1, -1},
+            {2, 3, 11, 10, 6, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {11, 0, 8, 11, 2, 0, 10, 6, 5, -1, -1, -1, -1, -1, -1, -1},
+            {0, 1, 9, 2, 3, 11, 5, 10, 6, -1, -1, -1, -1, -1, -1, -1},
+            {5, 10, 6, 1, 9, 2, 9, 11, 2, 9, 8, 11, -1, -1, -1, -1},
+            {6, 3, 11, 6, 5, 3, 5, 1, 3, -1, -1, -1, -1, -1, -1, -1},
+            {0, 8, 11, 0, 11, 5, 0, 5, 1, 5, 11, 6, -1, -1, -1, -1},
+            {3, 11, 6, 0, 3, 6, 0, 6, 5, 0, 5, 9, -1, -1, -1, -1},
+            {6, 5, 9, 6, 9, 11, 11, 9, 8, -1, -1, -1, -1, -1, -1, -1},
+            {5, 10, 6, 4, 7, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {4, 3, 0, 4, 7, 3, 6, 5, 10, -1, -1, -1, -1, -1, -1, -1},
+            {1, 9, 0, 5, 10, 6, 8, 4, 7, -1, -1, -1, -1, -1, -1, -1},
+            {10, 6, 5, 1, 9, 7, 1, 7, 3, 7, 9, 4, -1, -1, -1, -1},
+            {6, 1, 2, 6, 5, 1, 4, 7, 8, -1, -1, -1, -1, -1, -1, -1},
+            {1, 2, 5, 5, 2, 6, 3, 0, 4, 3, 4, 7, -1, -1, -1, -1},
+            {8, 4, 7, 9, 0, 5, 0, 6, 5, 0, 2, 6, -1, -1, -1, -1},
+            {7, 3, 9, 7, 9, 4, 3, 2, 9, 5, 9, 6, 2, 6, 9, -1},
+            {3, 11, 2, 7, 8, 4, 10, 6, 5, -1, -1, -1, -1, -1, -1, -1},
+            {5, 10, 6, 4, 7, 2, 4, 2, 0, 2, 7, 11, -1, -1, -1, -1},
+            {0, 1, 9, 4, 7, 8, 2, 3, 11, 5, 10, 6, -1, -1, -1, -1},
+            {9, 2, 1, 9, 11, 2, 9, 4, 11, 7, 11, 4, 5, 10, 6, -1},
+            {8, 4, 7, 3, 11, 5, 3, 5, 1, 5, 11, 6, -1, -1, -1, -1},
+            {5, 1, 11, 5, 11, 6, 1, 0, 11, 7, 11, 4, 0, 4, 11, -1},
+            {0, 5, 9, 0, 6, 5, 0, 3, 6, 11, 6, 3, 8, 4, 7, -1},
+            {6, 5, 9, 6, 9, 11, 4, 7, 9, 7, 11, 9, -1, -1, -1, -1},
+            {10, 4, 9, 6, 4, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {4, 10, 6, 4, 9, 10, 0, 8, 3, -1, -1, -1, -1, -1, -1, -1},
+            {10, 0, 1, 10, 6, 0, 6, 4, 0, -1, -1, -1, -1, -1, -1, -1},
+            {8, 3, 1, 8, 1, 6, 8, 6, 4, 6, 1, 10, -1, -1, -1, -1},
+            {1, 4, 9, 1, 2, 4, 2, 6, 4, -1, -1, -1, -1, -1, -1, -1},
+            {3, 0, 8, 1, 2, 9, 2, 4, 9, 2, 6, 4, -1, -1, -1, -1},
+            {0, 2, 4, 4, 2, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {8, 3, 2, 8, 2, 4, 4, 2, 6, -1, -1, -1, -1, -1, -1, -1},
+            {10, 4, 9, 10, 6, 4, 11, 2, 3, -1, -1, -1, -1, -1, -1, -1},
+            {0, 8, 2, 2, 8, 11, 4, 9, 10, 4, 10, 6, -1, -1, -1, -1},
+            {3, 11, 2, 0, 1, 6, 0, 6, 4, 6, 1, 10, -1, -1, -1, -1},
+            {6, 4, 1, 6, 1, 10, 4, 8, 1, 2, 1, 11, 8, 11, 1, -1},
+            {9, 6, 4, 9, 3, 6, 9, 1, 3, 11, 6, 3, -1, -1, -1, -1},
+            {8, 11, 1, 8, 1, 0, 11, 6, 1, 9, 1, 4, 6, 4, 1, -1},
+            {3, 11, 6, 3, 6, 0, 0, 6, 4, -1, -1, -1, -1, -1, -1, -1},
+            {6, 4, 8, 11, 6, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {7, 10, 6, 7, 8, 10, 8, 9, 10, -1, -1, -1, -1, -1, -1, -1},
+            {0, 7, 3, 0, 10, 7, 0, 9, 10, 6, 7, 10, -1, -1, -1, -1},
+            {10, 6, 7, 1, 10, 7, 1, 7, 8, 1, 8, 0, -1, -1, -1, -1},
+            {10, 6, 7, 10, 7, 1, 1, 7, 3, -1, -1, -1, -1, -1, -1, -1},
+            {1, 2, 6, 1, 6, 8, 1, 8, 9, 8, 6, 7, -1, -1, -1, -1},
+            {2, 6, 9, 2, 9, 1, 6, 7, 9, 0, 9, 3, 7, 3, 9, -1},
+            {7, 8, 0, 7, 0, 6, 6, 0, 2, -1, -1, -1, -1, -1, -1, -1},
+            {7, 3, 2, 6, 7, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {2, 3, 11, 10, 6, 8, 10, 8, 9, 8, 6, 7, -1, -1, -1, -1},
+            {2, 0, 7, 2, 7, 11, 0, 9, 7, 6, 7, 10, 9, 10, 7, -1},
+            {1, 8, 0, 1, 7, 8, 1, 10, 7, 6, 7, 10, 2, 3, 11, -1},
+            {11, 2, 1, 11, 1, 7, 10, 6, 1, 6, 7, 1, -1, -1, -1, -1},
+            {8, 9, 6, 8, 6, 7, 9, 1, 6, 11, 6, 3, 1, 3, 6, -1},
+            {0, 9, 1, 11, 6, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {7, 8, 0, 7, 0, 6, 3, 11, 0, 11, 6, 0, -1, -1, -1, -1},
+            {7, 11, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {7, 6, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {3, 0, 8, 11, 7, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 1, 9, 11, 7, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {8, 1, 9, 8, 3, 1, 11, 7, 6, -1, -1, -1, -1, -1, -1, -1},
+            {10, 1, 2, 6, 11, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 2, 10, 3, 0, 8, 6, 11, 7, -1, -1, -1, -1, -1, -1, -1},
+            {2, 9, 0, 2, 10, 9, 6, 11, 7, -1, -1, -1, -1, -1, -1, -1},
+            {6, 11, 7, 2, 10, 3, 10, 8, 3, 10, 9, 8, -1, -1, -1, -1},
+            {7, 2, 3, 6, 2, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {7, 0, 8, 7, 6, 0, 6, 2, 0, -1, -1, -1, -1, -1, -1, -1},
+            {2, 7, 6, 2, 3, 7, 0, 1, 9, -1, -1, -1, -1, -1, -1, -1},
+            {1, 6, 2, 1, 8, 6, 1, 9, 8, 8, 7, 6, -1, -1, -1, -1},
+            {10, 7, 6, 10, 1, 7, 1, 3, 7, -1, -1, -1, -1, -1, -1, -1},
+            {10, 7, 6, 1, 7, 10, 1, 8, 7, 1, 0, 8, -1, -1, -1, -1},
+            {0, 3, 7, 0, 7, 10, 0, 10, 9, 6, 10, 7, -1, -1, -1, -1},
+            {7, 6, 10, 7, 10, 8, 8, 10, 9, -1, -1, -1, -1, -1, -1, -1},
+            {6, 8, 4, 11, 8, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {3, 6, 11, 3, 0, 6, 0, 4, 6, -1, -1, -1, -1, -1, -1, -1},
+            {8, 6, 11, 8, 4, 6, 9, 0, 1, -1, -1, -1, -1, -1, -1, -1},
+            {9, 4, 6, 9, 6, 3, 9, 3, 1, 11, 3, 6, -1, -1, -1, -1},
+            {6, 8, 4, 6, 11, 8, 2, 10, 1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 2, 10, 3, 0, 11, 0, 6, 11, 0, 4, 6, -1, -1, -1, -1},
+            {4, 11, 8, 4, 6, 11, 0, 2, 9, 2, 10, 9, -1, -1, -1, -1},
+            {10, 9, 3, 10, 3, 2, 9, 4, 3, 11, 3, 6, 4, 6, 3, -1},
+            {8, 2, 3, 8, 4, 2, 4, 6, 2, -1, -1, -1, -1, -1, -1, -1},
+            {0, 4, 2, 4, 6, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 9, 0, 2, 3, 4, 2, 4, 6, 4, 3, 8, -1, -1, -1, -1},
+            {1, 9, 4, 1, 4, 2, 2, 4, 6, -1, -1, -1, -1, -1, -1, -1},
+            {8, 1, 3, 8, 6, 1, 8, 4, 6, 6, 10, 1, -1, -1, -1, -1},
+            {10, 1, 0, 10, 0, 6, 6, 0, 4, -1, -1, -1, -1, -1, -1, -1},
+            {4, 6, 3, 4, 3, 8, 6, 10, 3, 0, 3, 9, 10, 9, 3, -1},
+            {10, 9, 4, 6, 10, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {4, 9, 5, 7, 6, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 8, 3, 4, 9, 5, 11, 7, 6, -1, -1, -1, -1, -1, -1, -1},
+            {5, 0, 1, 5, 4, 0, 7, 6, 11, -1, -1, -1, -1, -1, -1, -1},
+            {11, 7, 6, 8, 3, 4, 3, 5, 4, 3, 1, 5, -1, -1, -1, -1},
+            {9, 5, 4, 10, 1, 2, 7, 6, 11, -1, -1, -1, -1, -1, -1, -1},
+            {6, 11, 7, 1, 2, 10, 0, 8, 3, 4, 9, 5, -1, -1, -1, -1},
+            {7, 6, 11, 5, 4, 10, 4, 2, 10, 4, 0, 2, -1, -1, -1, -1},
+            {3, 4, 8, 3, 5, 4, 3, 2, 5, 10, 5, 2, 11, 7, 6, -1},
+            {7, 2, 3, 7, 6, 2, 5, 4, 9, -1, -1, -1, -1, -1, -1, -1},
+            {9, 5, 4, 0, 8, 6, 0, 6, 2, 6, 8, 7, -1, -1, -1, -1},
+            {3, 6, 2, 3, 7, 6, 1, 5, 0, 5, 4, 0, -1, -1, -1, -1},
+            {6, 2, 8, 6, 8, 7, 2, 1, 8, 4, 8, 5, 1, 5, 8, -1},
+            {9, 5, 4, 10, 1, 6, 1, 7, 6, 1, 3, 7, -1, -1, -1, -1},
+            {1, 6, 10, 1, 7, 6, 1, 0, 7, 8, 7, 0, 9, 5, 4, -1},
+            {4, 0, 10, 4, 10, 5, 0, 3, 10, 6, 10, 7, 3, 7, 10, -1},
+            {7, 6, 10, 7, 10, 8, 5, 4, 10, 4, 8, 10, -1, -1, -1, -1},
+            {6, 9, 5, 6, 11, 9, 11, 8, 9, -1, -1, -1, -1, -1, -1, -1},
+            {3, 6, 11, 0, 6, 3, 0, 5, 6, 0, 9, 5, -1, -1, -1, -1},
+            {0, 11, 8, 0, 5, 11, 0, 1, 5, 5, 6, 11, -1, -1, -1, -1},
+            {6, 11, 3, 6, 3, 5, 5, 3, 1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 2, 10, 9, 5, 11, 9, 11, 8, 11, 5, 6, -1, -1, -1, -1},
+            {0, 11, 3, 0, 6, 11, 0, 9, 6, 5, 6, 9, 1, 2, 10, -1},
+            {11, 8, 5, 11, 5, 6, 8, 0, 5, 10, 5, 2, 0, 2, 5, -1},
+            {6, 11, 3, 6, 3, 5, 2, 10, 3, 10, 5, 3, -1, -1, -1, -1},
+            {5, 8, 9, 5, 2, 8, 5, 6, 2, 3, 8, 2, -1, -1, -1, -1},
+            {9, 5, 6, 9, 6, 0, 0, 6, 2, -1, -1, -1, -1, -1, -1, -1},
+            {1, 5, 8, 1, 8, 0, 5, 6, 8, 3, 8, 2, 6, 2, 8, -1},
+            {1, 5, 6, 2, 1, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 3, 6, 1, 6, 10, 3, 8, 6, 5, 6, 9, 8, 9, 6, -1},
+            {10, 1, 0, 10, 0, 6, 9, 5, 0, 5, 6, 0, -1, -1, -1, -1},
+            {0, 3, 8, 5, 6, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {10, 5, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {11, 5, 10, 7, 5, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {11, 5, 10, 11, 7, 5, 8, 3, 0, -1, -1, -1, -1, -1, -1, -1},
+            {5, 11, 7, 5, 10, 11, 1, 9, 0, -1, -1, -1, -1, -1, -1, -1},
+            {10, 7, 5, 10, 11, 7, 9, 8, 1, 8, 3, 1, -1, -1, -1, -1},
+            {11, 1, 2, 11, 7, 1, 7, 5, 1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 8, 3, 1, 2, 7, 1, 7, 5, 7, 2, 11, -1, -1, -1, -1},
+            {9, 7, 5, 9, 2, 7, 9, 0, 2, 2, 11, 7, -1, -1, -1, -1},
+            {7, 5, 2, 7, 2, 11, 5, 9, 2, 3, 2, 8, 9, 8, 2, -1},
+            {2, 5, 10, 2, 3, 5, 3, 7, 5, -1, -1, -1, -1, -1, -1, -1},
+            {8, 2, 0, 8, 5, 2, 8, 7, 5, 10, 2, 5, -1, -1, -1, -1},
+            {9, 0, 1, 5, 10, 3, 5, 3, 7, 3, 10, 2, -1, -1, -1, -1},
+            {9, 8, 2, 9, 2, 1, 8, 7, 2, 10, 2, 5, 7, 5, 2, -1},
+            {1, 3, 5, 3, 7, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 8, 7, 0, 7, 1, 1, 7, 5, -1, -1, -1, -1, -1, -1, -1},
+            {9, 0, 3, 9, 3, 5, 5, 3, 7, -1, -1, -1, -1, -1, -1, -1},
+            {9, 8, 7, 5, 9, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {5, 8, 4, 5, 10, 8, 10, 11, 8, -1, -1, -1, -1, -1, -1, -1},
+            {5, 0, 4, 5, 11, 0, 5, 10, 11, 11, 3, 0, -1, -1, -1, -1},
+            {0, 1, 9, 8, 4, 10, 8, 10, 11, 10, 4, 5, -1, -1, -1, -1},
+            {10, 11, 4, 10, 4, 5, 11, 3, 4, 9, 4, 1, 3, 1, 4, -1},
+            {2, 5, 1, 2, 8, 5, 2, 11, 8, 4, 5, 8, -1, -1, -1, -1},
+            {0, 4, 11, 0, 11, 3, 4, 5, 11, 2, 11, 1, 5, 1, 11, -1},
+            {0, 2, 5, 0, 5, 9, 2, 11, 5, 4, 5, 8, 11, 8, 5, -1},
+            {9, 4, 5, 2, 11, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {2, 5, 10, 3, 5, 2, 3, 4, 5, 3, 8, 4, -1, -1, -1, -1},
+            {5, 10, 2, 5, 2, 4, 4, 2, 0, -1, -1, -1, -1, -1, -1, -1},
+            {3, 10, 2, 3, 5, 10, 3, 8, 5, 4, 5, 8, 0, 1, 9, -1},
+            {5, 10, 2, 5, 2, 4, 1, 9, 2, 9, 4, 2, -1, -1, -1, -1},
+            {8, 4, 5, 8, 5, 3, 3, 5, 1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 4, 5, 1, 0, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {8, 4, 5, 8, 5, 3, 9, 0, 5, 0, 3, 5, -1, -1, -1, -1},
+            {9, 4, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {4, 11, 7, 4, 9, 11, 9, 10, 11, -1, -1, -1, -1, -1, -1, -1},
+            {0, 8, 3, 4, 9, 7, 9, 11, 7, 9, 10, 11, -1, -1, -1, -1},
+            {1, 10, 11, 1, 11, 4, 1, 4, 0, 7, 4, 11, -1, -1, -1, -1},
+            {3, 1, 4, 3, 4, 8, 1, 10, 4, 7, 4, 11, 10, 11, 4, -1},
+            {4, 11, 7, 9, 11, 4, 9, 2, 11, 9, 1, 2, -1, -1, -1, -1},
+            {9, 7, 4, 9, 11, 7, 9, 1, 11, 2, 11, 1, 0, 8, 3, -1},
+            {11, 7, 4, 11, 4, 2, 2, 4, 0, -1, -1, -1, -1, -1, -1, -1},
+            {11, 7, 4, 11, 4, 2, 8, 3, 4, 3, 2, 4, -1, -1, -1, -1},
+            {2, 9, 10, 2, 7, 9, 2, 3, 7, 7, 4, 9, -1, -1, -1, -1},
+            {9, 10, 7, 9, 7, 4, 10, 2, 7, 8, 7, 0, 2, 0, 7, -1},
+            {3, 7, 10, 3, 10, 2, 7, 4, 10, 1, 10, 0, 4, 0, 10, -1},
+            {1, 10, 2, 8, 7, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {4, 9, 1, 4, 1, 7, 7, 1, 3, -1, -1, -1, -1, -1, -1, -1},
+            {4, 9, 1, 4, 1, 7, 0, 8, 1, 8, 7, 1, -1, -1, -1, -1},
+            {4, 0, 3, 7, 4, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {4, 8, 7, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {9, 10, 8, 10, 11, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {3, 0, 9, 3, 9, 11, 11, 9, 10, -1, -1, -1, -1, -1, -1, -1},
+            {0, 1, 10, 0, 10, 8, 8, 10, 11, -1, -1, -1, -1, -1, -1, -1},
+            {3, 1, 10, 11, 3, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 2, 11, 1, 11, 9, 9, 11, 8, -1, -1, -1, -1, -1, -1, -1},
+            {3, 0, 9, 3, 9, 11, 1, 2, 9, 2, 11, 9, -1, -1, -1, -1},
+            {0, 2, 11, 8, 0, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {3, 2, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {2, 3, 8, 2, 8, 10, 10, 8, 9, -1, -1, -1, -1, -1, -1, -1},
+            {9, 10, 2, 0, 9, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {2, 3, 8, 2, 8, 10, 0, 1, 8, 1, 10, 8, -1, -1, -1, -1},
+            {1, 10, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {1, 3, 8, 9, 1, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 9, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+            {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
+        };
+        static const int edge_table[256] = {
+            0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
+            0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
+            0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
+            0x99c, 0x895, 0xb9f, 0xa96, 0xd9a, 0xc93, 0xf99, 0xe90,
+            0x230, 0x339, 0x33 , 0x13a, 0x636, 0x73f, 0x435, 0x53c,
+            0xa3c, 0xb35, 0x83f, 0x936, 0xe3a, 0xf33, 0xc39, 0xd30,
+            0x3a0, 0x2a9, 0x1a3, 0xaa , 0x7a6, 0x6af, 0x5a5, 0x4ac,
+            0xbac, 0xaa5, 0x9af, 0x8a6, 0xfaa, 0xea3, 0xda9, 0xca0,
+            0x460, 0x569, 0x663, 0x76a, 0x66 , 0x16f, 0x265, 0x36c,
+            0xc6c, 0xd65, 0xe6f, 0xf66, 0x86a, 0x963, 0xa69, 0xb60,
+            0x5f0, 0x4f9, 0x7f3, 0x6fa, 0x1f6, 0xff , 0x3f5, 0x2fc,
+            0xdfc, 0xcf5, 0xfff, 0xef6, 0x9fa, 0x8f3, 0xbf9, 0xaf0,
+            0x650, 0x759, 0x453, 0x55a, 0x256, 0x35f, 0x55 , 0x15c,
+            0xe5c, 0xf55, 0xc5f, 0xd56, 0xa5a, 0xb53, 0x859, 0x950,
+            0x7c0, 0x6c9, 0x5c3, 0x4ca, 0x3c6, 0x2cf, 0x1c5, 0xcc ,
+            0xfcc, 0xec5, 0xdcf, 0xcc6, 0xbca, 0xac3, 0x9c9, 0x8c0,
+            0x8c0, 0x9c9, 0xac3, 0xbca, 0xcc6, 0xdcf, 0xec5, 0xfcc,
+            0xcc , 0x1c5, 0x2cf, 0x3c6, 0x4ca, 0x5c3, 0x6c9, 0x7c0,
+            0x950, 0x859, 0xb53, 0xa5a, 0xd56, 0xc5f, 0xf55, 0xe5c,
+            0x15c, 0x55 , 0x35f, 0x256, 0x55a, 0x453, 0x759, 0x650,
+            0xaf0, 0xbf9, 0x8f3, 0x9fa, 0xef6, 0xfff, 0xcf5, 0xdfc,
+            0x2fc, 0x3f5, 0xff , 0x1f6, 0x6fa, 0x7f3, 0x4f9, 0x5f0,
+            0xb60, 0xa69, 0x963, 0x86a, 0xf66, 0xe6f, 0xd65, 0xc6c,
+            0x36c, 0x265, 0x16f, 0x66 , 0x76a, 0x663, 0x569, 0x460,
+            0xca0, 0xda9, 0xea3, 0xfaa, 0x8a6, 0x9af, 0xaa5, 0xbac,
+            0x4ac, 0x5a5, 0x6af, 0x7a6, 0xaa , 0x1a3, 0x2a9, 0x3a0,
+            0xd30, 0xc39, 0xf33, 0xe3a, 0x936, 0x83f, 0xb35, 0xa3c,
+            0x53c, 0x435, 0x73f, 0x636, 0x13a, 0x33 , 0x339, 0x230,
+            0xe90, 0xf99, 0xc93, 0xd9a, 0xa96, 0xb9f, 0x895, 0x99c,
+            0x69c, 0x795, 0x49f, 0x596, 0x29a, 0x393, 0x99 , 0x190,
+            0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c,
+            0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0
+        };
 
-	//Binary tree on rightmost element of blocks
-	GLuint steps = settings.blockSize;
-	UniformObject<GLuint> space("space");
-	space.value = 1;
-
-	for (GLuint step = 0; step < steps; step++) {
-		// Calls the parallel operation
-
-		space.sync(*prefixSum);
-		prefixSum->execute(1);
-		prefixSum->execute(2);
-
-		space.value *= 2;
+        buffer_triangle_table->writeRaw(sizeof(int) * 256 * 16, triangle_table, BufferStorageFlags::DYNAMIC_STORAGE);
+        buffer_configuration_table->writeRaw(sizeof(int) * 256, edge_table, BufferStorageFlags::DYNAMIC_STORAGE);
 	}
-	prefixSum->execute(3);
 
-	solver->use();
-	solver->execute(1); //Sort
+    buffer_vertices->setBindingPoint(0);
+    buffer_normals->setBindingPoint(1);
+    buffer_triangle_table->setBindingPoint(2);
+    buffer_configuration_table->setBindingPoint(3);
+
+    volume->bindImage();
+
+    noise = ComputeShader::create("noise", "assets/shaders/noise.comp");
+    marchingCubes = ComputeShader::create("mc", "assets/shaders/mc.comp");
+    mcShader = Shader::create("mcShader", "assets/shaders/mc.vert", "assets/shaders/mc.frag");
+    mcShader->noTexture();
+    mcShader->noLights();
+    mcShader->noEnvironment();
+    mcShader->noShadows();
+    mcShader->noMaterial();
+
+    noise->SetWorkgroupLayout(settings.pWkgCount);
+    marchingCubes->SetWorkgroupLayout(settings.pWkgCount);
+
+    Shared<Mesh> mcMesh = createShared<Mesh>("mc", vao, max_number_of_vertices);
+    mcMesh->setShader(mcShader);
+    scene.add(mcMesh);
+    scene.add(TransformObject::create("origin", 10));
 }
 
-void AppLayer::Simulate(Merlin::Timestep ts) {
-	solver->use();
 
-	GPU_PROFILE(nns_time,
-		NeigborSearch();
-	)
-	
-	GPU_PROFILE(solver_substep_time,
-		for (int i = 0; i < settings.solver_substep; i++) {
-			if (integrate) solver->execute(2);
 
-			if (integrate) {
-				GPU_PROFILE(jacobi_time,
-					for (int j = 0; j < settings.solver_iteration; j++) {
-						solver->execute(3);
-						solver->execute(4);
-					}
-				)
-					solver->execute(5);
-
-			}
-		}
-	)
-		elapsedTime += settings.solver_substep * settings.timestep.value();
-
-}
 
 void AppLayer::onImGuiRender() {
 	//ImGui::ShowDemoWindow();
 	ImGui::DockSpaceOverViewport((ImGuiViewport*)0, ImGuiDockNodeFlags_PassthruCentralNode);
 	ImGui::Begin("Infos");
 
-
-	ImGui::LabelText(std::to_string(numParticles).c_str(), "particles");
-	ImGui::LabelText(std::to_string(settings.bThread).c_str(), "bins");
-	ImGui::LabelText(std::to_string(elapsedTime).c_str(), "s");
-
 	ImGui::LabelText("FPS", std::to_string(fps()).c_str());
 
-	if (paused) {
-		if (ImGui::ArrowButton("Run simulation", 1)) {
-			paused = !paused;
-		}
-	}
-	else {
-		if (ImGui::SmallButton("Pause simulation")) {
-			paused = !paused;
-		}
-	}
-
-
-	static bool transparency = true;
-	if (ImGui::Checkbox("Particle transparency", &transparency)) {
-		if (transparency) ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
-		else ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
-	}
-
-	static bool showbed = true;
-	if (ImGui::Checkbox("Show build plate", &showbed)) {
-		auto bedRef = scene.getChild("bed");
-		if (bedRef) {
-			if (showbed) scene.getChild("bed")->show();
-			else scene.getChild("bed")->hide();
-		}
-	}
-
-	ImGui::Checkbox("Integrate", &integrate);
-
-	if (ImGui::SmallButton("Reset simulation")) {
-		ResetSimulation();
-	}
-
-	static bool Pstate = true;
-	if (ImGui::Checkbox("Show Particles", &Pstate)) {
-		if (Pstate) ps->show();
-		else ps->hide();
-	}
-
-	static bool Bstate = false;
-	if (ImGui::Checkbox("Show Bins", &Bstate)) {
-		if (Bstate) bs->show();
-		else bs->hide();
-	}
-
-	static bool BBstate = false;
-	if (ImGui::Checkbox("Show Boundaries", &BBstate)) {
-		particleShader->use();
-		particleShader->setInt("showBoundary", BBstate);
-	}
-
-
-	ImGui::DragInt("Solver substep", &settings.solver_substep, 1, 1, 200);
-	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 200);
-
-	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
-		camera().setPosition(model_matrix_translation);
-	}
-
-	if (ImGui::InputFloat("Time step", &settings.timestep.value(), 0.0, 0.02f)) {
-		solver->use();
-		solver->setFloat("dt", settings.timestep.value());
-	}
-
-
-
-	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.1, 2.0)) {
-		solver->use();
-		settings.particleMass.sync(*solver);
-	}
-	if (ImGui::SliderFloat("Rest density", &settings.restDensity.value(), 0.0, 2.0)) {
-		solver->use();
-		settings.restDensity.sync(*solver);
-		particleShader->use();
-		settings.restDensity.sync(*particleShader);
-	}
-	if (ImGui::SliderFloat("Pressure multiplier", &settings.artificialPressureMultiplier.value(), 0.0, 10.0)) {
-		solver->use();
-		solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.001);
-	}
-	if (ImGui::SliderFloat("Viscosity", &settings.artificialViscosityMultiplier.value(), 0.0, 200.0)) {
-		solver->use();
-		solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value()*0.001);
-	}
-
-
-	static int colorMode = 4;
-	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Velocity", "Mass", "Neighbors" };
-	if (ImGui::ListBox("Colored field", &colorMode, options, 7)) {
-		particleShader->use();
-		particleShader->setInt("colorCycle", colorMode);
-		binShader->use();
-		binShader->setInt("colorCycle", colorMode);
-	}
-
-	static int particleTest = 50;
-	static int binTest = 1459;
-	if (colorMode == 6) {
-		if (ImGui::DragInt("Particle to test", &particleTest)) {
-			particleShader->use();
-			particleShader->setUInt("particleTest", particleTest);
-			binShader->use();
-			binShader->setUInt("particleTest", particleTest);
-		}
-
-		ImGui::LabelText("Bin selector", "");
-
-		bool changed = false;
-
-		ImGui::LabelText("Current Bin", std::to_string(binTest).c_str());
-
-		if (ImGui::SmallButton("X+")) { binTest++; changed = true; }
-		if (ImGui::SmallButton("X-")) { binTest--; changed = true; }
-		if (ImGui::SmallButton("Y+")) { binTest += (settings.bb.x / settings.bWidth); changed = true; }
-		if (ImGui::SmallButton("Y-")) { binTest -= (settings.bb.x / settings.bWidth); changed = true; }
-		if (ImGui::SmallButton("Z+")) { binTest += int(settings.bb.y / settings.bWidth) * int(settings.bb.x / settings.bWidth); changed = true; }
-		if (ImGui::SmallButton("Z-")) { binTest -= int(settings.bb.y / settings.bWidth) * int(settings.bb.x / settings.bWidth); changed = true; }
-
-		if (changed) {
-			binShader->use();
-			binShader->setUInt("binTest", binTest);
-		}
-	}
-
 	ImGui::End();
 
-	ImGui::Begin("Performance");
-	ImGui::Text("Nearest Neighbor Search %.1f ms", nns_time);
-	ImGui::Text("Substep solver %.1f ms", solver_substep_time - nns_time);
-	ImGui::Text("Jacobi iteration %.1f ms", jacobi_time);
-	ImGui::Text("Total physics time %.1f ms", solver_total_time);
-	ImGui::Text("Render time %.1f ms", render_time);
-	ImGui::Text("Total frame time %.1f ms", total_time);
-	ImGui::End();
 
-	ImGui::Begin("Compute Shader");
-	ImGui::LabelText("Solver", "");
-	static int stepSolver = 0;
-	ImGui::SliderInt("Solver Step", &stepSolver, 0.0, 5.0f);
-	if (ImGui::Button("Execute Solver")) {
-		solver->use();
-		solver->execute(stepSolver);
-	}
+    static bool first_frame = true;
+    static int debug_layer = 0;
 
-	ImGui::LabelText("PrefixSum", "");
-	static int stepPrefix = 0;
-	ImGui::LabelText("Solver", "");
-	ImGui::SliderInt("PrefixSum Step", &stepPrefix, 0.0, 3.0f);
-	if (ImGui::Button("Execute PrefixSum Step")) {
-		prefixSum->use();
-		prefixSum->execute(stepPrefix);
-	}
+    ImGui::Begin("Debug");
+    if (ImGui::SliderInt("Layer", (int*)&debug_layer, 0, settings.volume_size.z - 1) || first_frame)
+    {
+        // Copy one layer of the 3D volume texture into the "debug" 2D texture for display
+        glCopyImageSubData(volume->id(), GL_TEXTURE_3D, 0, 0, 0, debug_layer,
+            texture_debug->id(), GL_TEXTURE_2D, 0, 0, 0, 0,
+            settings.volume_size.x, settings.volume_size.y, 1);
 
-	if (ImGui::Button("Step Simulation")) {
-		GPU_PROFILE(solver_total_time,
-			Simulate(0.016);
-		)
-	}
+        first_frame = false;
+    }
+    ImGui::Image((void*)(intptr_t)texture_debug->id(), ImVec2(settings.volume_size.x, settings.volume_size.y), ImVec2(1, 1), ImVec2(0, 0));
+    ImGui::End();
 
-	if (ImGui::Button("Debug")) {
-		throw("DEBUG");
-		Console::info() << "DEBUG" << Console::endl;
-	}
-	ImGui::End();
 }

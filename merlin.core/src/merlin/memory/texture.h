@@ -98,6 +98,7 @@ namespace Merlin {
 		static Shared<Texture2D> create(GLuint width, GLuint height, TextureType = TextureType::ALBEDO);
 		static Shared<Texture2D> create(const ImageData& data, TextureType = TextureType::ALBEDO);
 		static Shared<Texture2D> create(const std::string& path, TextureType = TextureType::ALBEDO, bool flipped = false);
+		static Shared<Texture2D> create(GLuint width, GLuint height, GLuint channels = 3, GLuint bits = 8, TextureType type = TextureType::ALBEDO);
 
 	
 	private:	

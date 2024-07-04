@@ -26,14 +26,39 @@ namespace std {
 namespace Merlin {
 	Mesh::Mesh(std::string name) : RenderableObject(name) {
 		m_drawMode = GL_POINTS;
-
 		m_vertices.push_back({ glm::vec3(0,0,0) });
+		m_elementCount = 1;
 
-		m_vao.bind();
+		m_vao = createShared<VAO>();
+		m_vao->bind();
 		VBO vbo(m_vertices);
-		m_vao.addBuffer(vbo, Vertex::getLayout());
-		m_vao.unbind();
+		m_vao->addBuffer(vbo, Vertex::getLayout());
+		m_vao->unbind();
 		Console::trace("Mesh") << "Loaded " << m_vertices.size() << " vertices." << Console::endl;
+	}
+
+	Mesh::Mesh(std::string name, Shared<VBO<>> vbo, GLuint mode){
+		m_drawMode = mode;
+
+		m_elementCount = vbo->size() / vbo->dataSize();
+
+		//create VAO, VBO
+		m_vao = createShared<VAO>();
+		m_vao->bind();
+		m_vao->addBuffer(*vbo, Vertex::getLayout());
+		m_vao->unbind();
+	}
+
+	Mesh::Mesh(std::string name, Shared<VBO<>> vbo, Shared<IBO> ebo, GLuint mode) {
+		m_drawMode = mode;
+
+		m_elementCount = ebo->size() / ebo->dataSize();
+		//create VAO, VBO
+		m_vao = createShared<VAO>();
+		m_vao->bind();
+		m_vao->addBuffer(*vbo, Vertex::getLayout());
+		m_vao->bindBuffer(*ebo);
+		m_vao->unbind();
 	}
 
 	Mesh::Mesh(std::string name, std::vector<Vertex>& vertices, GLuint mode) : RenderableObject(name) {
@@ -41,11 +66,14 @@ namespace Merlin {
 		//Move vertices data
 		m_vertices = vertices;
 
+		m_elementCount = m_vertices.size();
+
 		//create VAO, VBO
-		m_vao.bind();
+		m_vao = createShared<VAO>();
+		m_vao->bind();
 		VBO vbo(m_vertices);
-		m_vao.addBuffer(vbo, Vertex::getLayout());
-		m_vao.unbind();
+		m_vao->addBuffer(vbo, Vertex::getLayout());
+		m_vao->unbind();
 		Console::info("Mesh") << "Loaded " << vertices.size() << " vertices." << Console::endl;
 	}
 
@@ -55,14 +83,23 @@ namespace Merlin {
 		m_vertices = vertices;
 		m_indices = indices;
 
+		m_elementCount = m_indices.size();
+
 		//create VAO, VBO
-		m_vao.bind();
+		m_vao = createShared<VAO>();
+		m_vao->bind();
 		VBO vbo(m_vertices);
 		EBO ebo(m_indices);
-		m_vao.addBuffer(vbo, Vertex::getLayout());
-		m_vao.bindBuffer(ebo);
-		m_vao.unbind();
+		m_vao->addBuffer(vbo, Vertex::getLayout());
+		m_vao->bindBuffer(ebo);
+		m_vao->unbind();
 		Console::info("Mesh") << "Loaded " << vertices.size() << " vertices." << Console::endl;
+	}
+
+	Mesh::Mesh(std::string name, VAO_Ptr vao, GLuint count, GLuint mode) : RenderableObject(name) {
+		m_drawMode = mode;
+		m_vao = vao;
+		m_elementCount = count;
 	}
 
 	Shared<Mesh> Mesh::create(std::string name) {
@@ -79,25 +116,25 @@ namespace Merlin {
 
 
 	void Mesh::bind() {
-		m_vao.bind();
+		m_vao->bind();
 	}
 
 	void Mesh::unbind() {
-		m_vao.unbind();
+		m_vao->unbind();
 	}
 
 	void Mesh::draw() const {
-		m_vao.bind();
-		if (m_indices.size() > 0) glDrawElements(m_drawMode, m_indices.size(), GL_UNSIGNED_INT, 0); //draw elements using EBO
-		else glDrawArrays(m_drawMode, 0, m_vertices.size()); //draw
-		m_vao.unbind();
+		m_vao->bind();
+		if (m_indices.size() > 0) glDrawElements(m_drawMode, m_elementCount, GL_UNSIGNED_INT, 0); //draw elements using EBO
+		else glDrawArrays(m_drawMode, 0, m_elementCount); //draw
+		m_vao->unbind();
 	}
 
 	void Mesh::drawInstanced(GLsizeiptr instances) const {
-		m_vao.bind();
-		if (m_indices.size() > 0) glDrawElementsInstanced(m_drawMode, m_indices.size(), GL_UNSIGNED_INT, nullptr, instances); //draw elements using EBO
-		else glDrawArraysInstanced(m_drawMode, 0, m_vertices.size(), instances); //draw
-		m_vao.unbind();
+		m_vao->bind();
+		if (m_indices.size() > 0) glDrawElementsInstanced(m_drawMode, m_elementCount, GL_UNSIGNED_INT, nullptr, instances); //draw elements using EBO
+		else glDrawArraysInstanced(m_drawMode, 0, m_elementCount, instances); //draw
+		m_vao->unbind();
 	}
 
 
@@ -206,9 +243,9 @@ namespace Merlin {
 		//Update VAO, VBO
 		VBO vbo(m_vertices);
 		EBO ebo(m_indices);
-		m_vao.bindBuffer(ebo);
-		m_vao.addBuffer(vbo, Vertex::getLayout());
-		m_vao.unbind();
+		m_vao->bindBuffer(ebo);
+		m_vao->addBuffer(vbo, Vertex::getLayout());
+		m_vao->unbind();
 	}
 
 	void Mesh::calculateIndices(){
@@ -232,12 +269,12 @@ namespace Merlin {
 
 	void Mesh::updateVAO() {
 		//Update VAO, VBO
-		m_vao.bind();
+		m_vao->bind();
 		VBO vbo(m_vertices);
 		EBO ebo(m_indices);
-		m_vao.bindBuffer(ebo);
-		m_vao.addBuffer(vbo, Vertex::getLayout());
-		m_vao.unbind();
+		m_vao->bindBuffer(ebo);
+		m_vao->addBuffer(vbo, Vertex::getLayout());
+		m_vao->unbind();
 	}
 
 

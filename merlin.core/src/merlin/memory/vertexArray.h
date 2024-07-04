@@ -2,11 +2,12 @@
 #include "merlin/core/core.h"
 #include "merlin/memory/indexBuffer.h"
 #include "merlin/memory/vertexBuffer.h"
+#include "merlin/memory/shaderStorageBuffer.h"
 #include <vector>
 
 namespace Merlin {
 
-    class VertexArray : GLObject<> {
+    class VertexArray : public GLObject<> {
     public:
         VertexArray();
         
@@ -27,6 +28,7 @@ namespace Merlin {
     };
 
     using VAO = VertexArray;
+    using VAO_Ptr = Shared<VertexArray>;
 
     template<class T>
     void VertexArray::bindBuffer(VertexBuffer<T>& vb, const VertexBufferLayout& layout) {
@@ -50,4 +52,6 @@ namespace Merlin {
         bindBuffer<T>(vb, layout);
 
     }
+
+
 }

@@ -14,8 +14,11 @@ namespace Merlin {
 	class Mesh : public RenderableObject {
 	public:
 		Mesh(std::string name);
+		Mesh(std::string name, Shared<VBO<>>, GLuint mode = GL_TRIANGLES);
+		Mesh(std::string name, Shared<VBO<>>, Shared<IBO> = nullptr, GLuint mode = GL_TRIANGLES);
 		Mesh(std::string name, std::vector<Vertex>& vertices, GLuint mode = GL_TRIANGLES);
 		Mesh(std::string name, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode = GL_TRIANGLES);
+		Mesh(std::string name, VAO_Ptr, GLuint count, GLuint mode = GL_TRIANGLES);
 
 		void bind();
 		void unbind();
@@ -58,13 +61,15 @@ namespace Merlin {
 		static Shared<Mesh> create(std::string name, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode = GL_TRIANGLES);
 
 	private:
-		VAO m_vao;
+		VAO_Ptr m_vao;
 		GLuint m_drawMode;
+
+		GLuint m_elementCount = 0;
 		std::vector<Vertex> m_vertices;
 		std::vector<GLuint> m_indices;
 		std::vector<int> m_voxels;
 
-		BoundingBox m_bbox;
+		BoundingBox m_bbox = { glm::vec3(), glm::vec3() };
 
 		std::string m_materialName = "default";
 		std::string m_shaderName = "default";

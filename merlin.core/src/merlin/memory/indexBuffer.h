@@ -12,5 +12,6 @@ namespace Merlin {
 	};
 
 	typedef IndexBuffer EBO;
+	typedef IndexBuffer IBO;
 	typedef std::vector<GLuint> Indices;
 }
