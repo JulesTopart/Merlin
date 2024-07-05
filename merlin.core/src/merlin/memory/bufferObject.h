@@ -59,13 +59,13 @@ namespace Merlin {
         inline void bindAs(GLenum target) const { glBindBuffer(static_cast<GLenum>(target), id()); }
         inline void unbind() const { glBindBuffer(static_cast<GLenum>(m_target), 0); }
 
-        void allocateBuffer(GLsizei size, const void* data, BufferUsage usage);
-        void allocateImmutableBuffer(GLsizei size, const void* data, BufferStorageFlags flags);
+        void allocateBuffer(GLsizeiptr size, const void* data, BufferUsage usage);
+        void allocateImmutableBuffer(GLsizeiptr size, const void* data, BufferStorageFlags flags);
 
-        void writeBuffer(GLsizei size, const void* data);
-        void readBuffer(GLsizei size, void* data) const;
+        void writeBuffer(GLsizeiptr size, const void* data);
+        void readBuffer(GLsizeiptr size, void* data) const;
 
-        void resizeBuffer(GLsizei size);
+        void resizeBuffer(GLsizeiptr size);
         void clearBuffer() const;
 
         inline BufferUsage usage() const { return m_usage; }
@@ -76,12 +76,12 @@ namespace Merlin {
         void setBindingPoint(GLuint point);
         void releaseBindingPoint();
 
-        inline GLuint size() const { return m_size; }
+        inline GLsizeiptr size() const { return m_size; }
         inline GLuint type() const { return m_type; }
-        inline GLuint elements() const { return m_elements; }
+        inline GLsizeiptr elements() const { return m_elements; }
 
         inline void setType(GLuint typeSize) { m_type = typeSize; }
-        inline void setElements(GLuint elements) { m_elements = elements; }
+        inline void setElements(GLsizeiptr elements) { m_elements = elements; }
 
     protected:
         BufferUsage m_usage;
@@ -93,8 +93,8 @@ namespace Merlin {
         bool m_isAllocated = false;
 
     private:
-        GLuint m_size = 0;      //buffer size in bytes
-        GLuint m_elements = 0;  //nb of element size in buffer
+        GLsizeiptr m_size = 0;      //buffer size in bytes
+        GLsizeiptr m_elements = 0;  //nb of element size in buffer
         GLuint m_type = 1;  //size of elements in bytes
 
         void checkMutable() const;
@@ -109,12 +109,12 @@ namespace Merlin {
     public:
         BufferObject(BufferTarget target);
 
-        void allocate(GLsizei size, BufferUsage usage);
-        void allocate(GLsizei size, T* data, BufferUsage usage);
+        void allocate(GLsizeiptr size, BufferUsage usage);
+        void allocate(GLsizeiptr size, T* data, BufferUsage usage);
         void allocate(std::vector<T> data, BufferUsage usage);
 
         void write(const std::vector<T>& data);
-        void write(const T* data, GLsizei size);
+        void write(const T* data, GLsizeiptr size);
         void clear();
 
         void read(std::vector<T>& data) const;
@@ -127,8 +127,8 @@ namespace Merlin {
     public:
         ImmutableBufferObject(BufferTarget target);
 
-        void allocate(GLsizei size, BufferStorageFlags flags);
-        void allocate(GLsizei size, T* data, BufferStorageFlags flags);
+        void allocate(GLsizeiptr size, BufferStorageFlags flags);
+        void allocate(GLsizeiptr size, T* data, BufferStorageFlags flags);
         void allocate(std::vector<T> data, BufferStorageFlags flags);
         void clear();
 

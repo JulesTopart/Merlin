@@ -20,8 +20,10 @@ namespace Merlin {
 		enableFaceCulling();
 		m_defaultEnvironment = createShared<Environment>("defaultEnvironment", 16);
 		m_defaultAmbient = createShared<AmbientLight>("defaultAmbientLight");
-		m_defaultAmbient->setAmbient(glm::vec3(0.8));
-		m_defaultDirLight = createShared<DirectionalLight>("defaultDirLight", glm::vec3(1,0.6,-1));
+		m_defaultAmbient->setAmbient(glm::vec3(0.2));
+		m_defaultDirLight = createShared<DirectionalLight>("defaultDirLight", glm::vec3(1,-0.6,-1)* glm::vec3(3));
+		m_defaultDirLight2 = createShared<DirectionalLight>("defaultDirLight2", glm::vec3(-0.5,0.6,-1)*glm::vec3(3));
+		m_defaultDirLight3 = createShared<DirectionalLight>("defaultDirLight3", glm::vec3(-1.0,-0.6,-0.6)* glm::vec3(3));
 	}
 
 	void Renderer::pushMatrix() {
@@ -57,6 +59,8 @@ namespace Merlin {
 		if (m_activeLights.size() == 0) {
 			m_activeLights.push_back(m_defaultAmbient);
 			m_activeLights.push_back(m_defaultDirLight);
+			m_activeLights.push_back(m_defaultDirLight2);
+			m_activeLights.push_back(m_defaultDirLight3);
 		}
 
 		if (use_shadows) {
@@ -199,6 +203,10 @@ namespace Merlin {
 		if (shader->supportLights()) shader->setInt("numLights", m_activeLights.size());
 
 		if (shader->supportMaterial()) shader->setInt("use_vertex_color", mesh.useVertexColors());
+
+		if (mesh.name() == "mc") 
+			shader->setFloat("alphaBlend", 0.5);
+		else shader->setFloat("alphaBlend", 1.0);
 
 		mesh.draw();
 		mat->detach();

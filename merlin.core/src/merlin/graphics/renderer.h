@@ -59,6 +59,8 @@ namespace Merlin {
 
 		Shared<AmbientLight> m_defaultAmbient;
 		Shared<DirectionalLight> m_defaultDirLight;
+		Shared<DirectionalLight> m_defaultDirLight2;
+		Shared<DirectionalLight> m_defaultDirLight3;
 
 		void pushMatrix();
 		void popMatrix();

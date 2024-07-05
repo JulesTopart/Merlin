@@ -50,6 +50,13 @@ namespace Merlin {
         return usedBindingPoints.at(bufferType);
     }
 
+    void BindingPointManager::resetBindings(){
+        availableBindingPoints.clear();
+        initializeAvailableBindingPoints();
+        usedBindingPoints.clear();
+        bufferToBindingPoint.clear();
+    }
+
     void BindingPointManager::initializeAvailableBindingPoints() {
         const int maxSSBOBindings = 16; // Typically 16
         const int maxUBOBindings = 16; // Typically 16

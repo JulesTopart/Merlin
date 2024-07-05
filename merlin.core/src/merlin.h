@@ -17,6 +17,7 @@
 
 #include "merlin/scene/cameraController.h"
 
+#include "merlin/memory/bindingPointManager.h"
 #include "merlin/shaders/computeShader.h"
 #include "merlin/physics/particleSystem.h"
 

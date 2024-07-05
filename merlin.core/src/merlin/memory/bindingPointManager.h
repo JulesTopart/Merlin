@@ -14,10 +14,12 @@ namespace Merlin {
         SINGLETON(BindingPointManager)
         BindingPointManager() { initializeAvailableBindingPoints(); }
 
+
     public:
         GLuint allocateBindingPoint(BufferTarget bufferTarget, GLuint bufferID);
         void releaseBindingPoint(BufferTarget bufferTarget, GLuint bindingPoint);
         const std::vector<GLuint>& getUsedBindingPoints(BufferTarget bufferTarget) const;
+        void resetBindings();
 
     private:
         void initializeAvailableBindingPoints();

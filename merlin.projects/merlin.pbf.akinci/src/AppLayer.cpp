@@ -118,7 +118,7 @@ void AppLayer::InitGraphics() {
 	// init OpenGL stuff
 	renderer.initialize();
 	renderer.setBackgroundColor(0.903, 0.903, 0.903, 1.0);
-	renderer.setEnvironmentGradientColor(0.903, 0.903, 0.903);
+	renderer.setEnvironmentGradientColor(0.903, 0.803, 0.703);
 	renderer.enableTransparency();
 	renderer.enableSampleShading();
 	//renderer.disableShadows();
@@ -190,7 +190,8 @@ void AppLayer::InitGraphics() {
 	geom->smoothNormals();
 	geom->rotate(glm::vec3(DEG_TO_RAD * 90, 0, 0));
 	geom->scale(5);
-	geom->setMaterial("pearl");
+	//geom->setMaterial("pearl");
+	geom->setMaterial("yellow rubber");
 	/**/
 
 	/*
@@ -276,7 +277,7 @@ void AppLayer::InitPhysics() {
 	ps->link(isoGen->name(), binBuffer->name());
 	ps->solveLink(isoGen);
 	ps->detach(isoGen);
-
+	Console::info() << "Test :" << Console::endl;
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
 	bs->detach(binShader);
@@ -290,7 +291,15 @@ void AppLayer::InitPhysics() {
 	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 1, 32);
 	volume->setUnit(0);
 	isosurface = IsoSurface::create("isosurface", volume);
-	isosurface->mesh()->setMaterial("red plastic");
+	
+
+	Shared<PhongMaterial> water = createShared<PhongMaterial>("floorMat2");
+	water->setAmbient(glm::vec3(0.204, 0.725, 0.98));
+	water->setDiffuse(glm::vec3(0.737, 0.914, 1));
+	water->setSpecular(glm::vec3(0.91, 0.969, 1));
+	water->setShininess(0.8);
+	isosurface->mesh()->setMaterial(water);
+
 	//isosurface->mesh()->translate(settings.bb * glm::vec3(0, 0, 0.5));
 	isosurface->mesh()->scale(settings.bb * glm::vec3(1.0));
 	scene.add(isosurface);
@@ -301,11 +310,7 @@ void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
 	Console::info() << "Generating particles..." << Console::endl;
 
-	ps->detach(solver);
-	bs->detach(prefixSum);
-	ps->detach(particleShader);
-	bs->detach(binShader);
-	
+	BindingPointManager::instance().resetBindings();
 
 	float spacing = settings.particleRadius * 2.0;
 	auto cpu_position = std::vector<glm::vec4>();

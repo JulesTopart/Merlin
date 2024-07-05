@@ -22,32 +22,32 @@ namespace Merlin {
         glUnmapNamedBuffer(id());
     }
 
-    inline void AbstractBufferObject::allocateBuffer(GLsizei size, const void* data, BufferUsage usage) {
+    inline void AbstractBufferObject::allocateBuffer(GLsizeiptr size, const void* data, BufferUsage usage) {
         m_isMutable = true;
         m_size = size;
         m_usage = usage;
         glNamedBufferData(id(), size, data, static_cast<GLenum>(usage));
     }
 
-    inline void AbstractBufferObject::allocateImmutableBuffer(GLsizei size, const void* data, BufferStorageFlags flags) {
+    inline void AbstractBufferObject::allocateImmutableBuffer(GLsizeiptr size, const void* data, BufferStorageFlags flags) {
         m_isMutable = false;
         m_size = size;
         m_flags = flags;
         glNamedBufferStorage(id(), size, data, static_cast<GLbitfield>(flags));
     }
 
-    inline void AbstractBufferObject::resizeBuffer(GLsizei size) {
+    inline void AbstractBufferObject::resizeBuffer(GLsizeiptr size) {
         checkMutable();
         m_size = size;
         glNamedBufferData(id(), size, nullptr, static_cast<GLenum>(m_usage));
     }
 
-    inline void AbstractBufferObject::writeBuffer(GLsizei size, const void* data) {
+    inline void AbstractBufferObject::writeBuffer(GLsizeiptr size, const void* data) {
         checkMutable();
         glNamedBufferSubData(id(), 0, size, data);
     }
 
-    inline void AbstractBufferObject::readBuffer(GLsizei size, void* data) const {
+    inline void AbstractBufferObject::readBuffer(GLsizeiptr size, void* data) const {
         glGetNamedBufferSubData(id(), 0, size, data);
     }
 
@@ -71,14 +71,14 @@ namespace Merlin {
     inline BufferObject<T>::BufferObject(BufferTarget target) : AbstractBufferObject(target) {}
 
     template <typename T>
-    inline void BufferObject<T>::allocate(GLsizei size, BufferUsage usage) {
+    inline void BufferObject<T>::allocate(GLsizeiptr size, BufferUsage usage) {
         allocateBuffer(size * sizeof(T), nullptr, usage);
         setElements(size);
         setType(sizeof(T));
     }
 
     template <typename T>
-    inline void BufferObject<T>::allocate(GLsizei size, T* data, BufferUsage usage) {
+    inline void BufferObject<T>::allocate(GLsizeiptr size, T* data, BufferUsage usage) {
         allocateBuffer(size * sizeof(T), data, usage);
         setElements(size);
         setType(sizeof(T));
@@ -97,7 +97,7 @@ namespace Merlin {
     }
 
     template <typename T>
-    inline void BufferObject<T>::write(const T* data, GLsizei size) {
+    inline void BufferObject<T>::write(const T* data, GLsizeiptr size) {
         writeBuffer(size * sizeof(T), data);
     }
 
@@ -125,12 +125,12 @@ namespace Merlin {
     inline ImmutableBufferObject<T>::ImmutableBufferObject(BufferTarget target) : AbstractBufferObject(target) {}
 
     template <typename T>
-    inline void ImmutableBufferObject<T>::allocate(GLsizei size, BufferStorageFlags flags) {
+    inline void ImmutableBufferObject<T>::allocate(GLsizeiptr size, BufferStorageFlags flags) {
         allocateImmutableBuffer(size * sizeof(T), nullptr, flags);
     }
 
     template <typename T>
-    inline void ImmutableBufferObject<T>::allocate(GLsizei size, T* data, BufferStorageFlags flags) {
+    inline void ImmutableBufferObject<T>::allocate(GLsizeiptr size, T* data, BufferStorageFlags flags) {
         allocateImmutableBuffer(size * sizeof(T), data, flags);
     }
 

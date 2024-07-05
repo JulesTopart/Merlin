@@ -10,14 +10,14 @@ namespace Merlin {
     template<class T = Vertex>
     class VertexBuffer : public ImmutableBufferObject<T> {
     public:
-        VertexBuffer(GLuint size);
+        VertexBuffer(GLsizeiptr size);
         VertexBuffer(const std::vector<T>& vertices);
-        VertexBuffer(const std::string& name, GLuint size);
+        VertexBuffer(const std::string& name, GLsizeiptr size);
         VertexBuffer(const std::string& name, const std::vector<T>& vertices);
     };
 
     template<class T>
-    inline VertexBuffer<T>::VertexBuffer(GLuint size) : ImmutableBufferObject<T>(BufferTarget::Array_Buffer) {
+    inline VertexBuffer<T>::VertexBuffer(GLsizeiptr size) : ImmutableBufferObject<T>(BufferTarget::Array_Buffer) {
         this->allocate(size, BufferStorageFlags::DynamicStorage);
         Console::trace("VertexBuffer") << "VertexBuffer " << this->id() << " allocated. " << Console::endl;
     }
@@ -29,7 +29,7 @@ namespace Merlin {
     }
 
     template<class T>
-    inline VertexBuffer<T>::VertexBuffer(const std::string& name, GLuint size) : ImmutableBufferObject<T>(BufferTarget::Array_Buffer) {
+    inline VertexBuffer<T>::VertexBuffer(const std::string& name, GLsizeiptr size) : ImmutableBufferObject<T>(BufferTarget::Array_Buffer) {
         this->allocate(size, BufferStorageFlags::DynamicStorage);
         this->rename(name);
         Console::trace("VertexBuffer") << "VertexBuffer " << name << " " << this->id() << " allocated. " << Console::endl;
