@@ -102,10 +102,14 @@ namespace Merlin {
     public:
         ImmutableShaderStorageBuffer();
         ImmutableShaderStorageBuffer(const std::string& name, GLsizeiptr count, BufferStorageFlags flag);
+        ImmutableShaderStorageBuffer(const std::string& name, GLsizeiptr count, T* data, BufferStorageFlags flag);
+        ImmutableShaderStorageBuffer(const std::string& name, std::vector<T> data, BufferStorageFlags flag);
 
         virtual ~ImmutableShaderStorageBuffer();
 
         static std::shared_ptr<ImmutableShaderStorageBuffer<T>> create(const std::string& name, GLsizeiptr count, BufferStorageFlags flag);
+        static std::shared_ptr<ImmutableShaderStorageBuffer<T>> create(const std::string& name, GLsizeiptr count, T* data, BufferStorageFlags flag);
+        static std::shared_ptr<ImmutableShaderStorageBuffer<T>> create(const std::string& name, std::vector<T> data, BufferStorageFlags flag);
     };
 
     template<class T>
@@ -116,14 +120,29 @@ namespace Merlin {
 
     // Implementation of ImmutableShaderStorageBuffer
     template <class T>
-    inline ImmutableShaderStorageBuffer<T>::ImmutableShaderStorageBuffer() : ImmutableBufferObject<T>(BufferTarget::ShaderStorageBuffer) {}
+    inline ImmutableShaderStorageBuffer<T>::ImmutableShaderStorageBuffer() : ImmutableBufferObject<T>(BufferTarget::Shader_Storage_Buffer) {}
 
     template <class T>
     inline ImmutableShaderStorageBuffer<T>::ImmutableShaderStorageBuffer(const std::string& name, GLsizeiptr count, BufferStorageFlags flag)
-        : ImmutableBufferObject<T>(BufferTarget::ShaderStorageBuffer) {
-        this->allocateImmutable(count, flag);
+        : ImmutableBufferObject<T>(BufferTarget::Shader_Storage_Buffer) {
+        this->allocate(count, flag);
         this->rename(name);
     }
+
+    template <class T>
+    inline ImmutableShaderStorageBuffer<T>::ImmutableShaderStorageBuffer(const std::string& name, GLsizeiptr count, T* data, BufferStorageFlags flag)
+        : ImmutableBufferObject<T>(BufferTarget::Shader_Storage_Buffer) {
+        this->allocate(count, data, flag);
+        this->rename(name);
+    }
+
+    template <class T>
+    inline ImmutableShaderStorageBuffer<T>::ImmutableShaderStorageBuffer(const std::string& name, std::vector<T> data, BufferStorageFlags flag)
+        : ImmutableBufferObject<T>(BufferTarget::Shader_Storage_Buffer) {
+        this->allocate(data, flag);
+        this->rename(name);
+    }
+
 
     template <class T>
     inline ImmutableShaderStorageBuffer<T>::~ImmutableShaderStorageBuffer() {}
@@ -131,6 +150,16 @@ namespace Merlin {
     template <class T>
     inline std::shared_ptr<ImmutableShaderStorageBuffer<T>> ImmutableShaderStorageBuffer<T>::create(const std::string& name, GLsizeiptr count, BufferStorageFlags flag) {
         return std::make_shared<ImmutableShaderStorageBuffer>(name, count, flag);
+    }
+
+    template <class T>
+    inline std::shared_ptr<ImmutableShaderStorageBuffer<T>> ImmutableShaderStorageBuffer<T>::create(const std::string& name, GLsizeiptr count, T* data, BufferStorageFlags flag) {
+        return std::make_shared<ImmutableShaderStorageBuffer>(name, count, data, flag);
+    }
+
+    template <class T>
+    inline std::shared_ptr<ImmutableShaderStorageBuffer<T>> ImmutableShaderStorageBuffer<T>::create(const std::string& name, std::vector<T> data, BufferStorageFlags flag) {
+        return std::make_shared<ImmutableShaderStorageBuffer>(name, data, flag);
     }
 
 } // namespace Merlin

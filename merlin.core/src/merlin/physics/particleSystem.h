@@ -93,6 +93,7 @@ namespace Merlin {
 		size_t m_instancesCount = 1;
 		ParticleSystemDisplayMode m_displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
 
+
 		//Simulation
 		std::map<std::string, ComputeShader_Ptr> m_programs; //Shader to compute the particle position
 		std::map<std::string, AbstractBufferObject_Ptr> m_fields; //Buffer to store particles fields

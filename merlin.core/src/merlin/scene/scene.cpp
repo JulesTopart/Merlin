@@ -26,6 +26,10 @@ namespace Merlin {
 		m_currentNode->addChild(mdl);
 	}
 
+	void Scene::add(Shared<IsoSurface> iso) {
+		m_currentNode->addChild(iso);
+	}
+
 	void Scene::add(Shared<Mesh> mesh) {
 		m_currentNode->addChild(mesh);
 	}

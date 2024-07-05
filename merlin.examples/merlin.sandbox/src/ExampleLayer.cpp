@@ -4,6 +4,7 @@ using namespace Merlin;
 
 #include <iostream>
 #include <iomanip>
+#include <GLFW/glfw3.h>
 
 const float radius = 3;
 
@@ -114,6 +115,18 @@ void ExampleLayer::onAttach(){
 	*/
 
 	scene.add(TransformObject::create("origin", 2));
+
+
+	noise = ComputeShader::create("noise", "assets/noise.comp");
+	glm::ivec3 pWkgSize = glm::ivec3(8, 8, 8); //Number of thread per workgroup
+	glm::ivec3 pWkgCount = (volume_size + pWkgSize - glm::ivec3(1)) / pWkgSize; //Total number of workgroup needed
+	noise->SetWorkgroupLayout(pWkgCount);
+
+	texture_debug = Texture2D::create(volume_size.x, volume_size.y, 4, 16);
+	volume = Texture3D::create(volume_size.x, volume_size.y, volume_size.z, 4, 16);
+
+	isosurface = IsoSurface::create("isosurface", volume);
+	scene.add(isosurface);
 }
 
 
@@ -134,6 +147,19 @@ void ExampleLayer::onUpdate(Timestep ts){
 	float x = light->position().x;
 	float y = light->position().y;
 	light->translate(glm::vec3(cos(t)* radius - x, sin(t)* radius - y, 0.0));
+
+
+	volume->bindImage();
+	noise->use();
+	noise->setFloat("u_time", glfwGetTime());
+	noise->setInt("u_mode_index", 4); //"FBM Noise", "SDF Sphere", "SDF Box", "SDF Torus", "SDF Metaballs"
+	noise->setFloat("u_twist", 0.0);
+	noise->setFloat("u_bend", 0.0);
+
+	noise->dispatch();
+	noise->barrier();
+
+	isosurface->compute();
 
 	renderer.clear();
 	renderer.renderScene(scene, *camera);

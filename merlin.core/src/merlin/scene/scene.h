@@ -7,6 +7,7 @@
 #include "merlin/scene/light.h"
 #include "merlin/scene/transformObject.h"
 #include "merlin/physics/particleSystem.h"
+#include "merlin/physics/isoSurface.h"
 #include "camera.h"
 
 namespace Merlin {
@@ -22,6 +23,7 @@ namespace Merlin {
 		void add(Shared<Mesh>);
 		void add(Shared<Model>);
 		void add(Shared<ParticleSystem>);
+		void add(Shared<IsoSurface>);
 		//void add(Shared<deprecated_GenericParticleSystem>);
 		void add(Shared<Light>);
 		void add(Shared<TransformObject> t);

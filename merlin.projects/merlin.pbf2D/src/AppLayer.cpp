@@ -472,25 +472,6 @@ void AppLayer::onImGuiRender() {
 	}
 
 	if (ImGui::Button("Debug")) {
-
-		ps->getField("PositionBuffer")->bind();
-		std::vector<glm::vec2> pos = ps->getField("PositionBuffer")->read<glm::vec2>();
-
-		ps->getField("PredictedPositionBuffer")->bind();
-		std::vector<glm::vec2> ppos = ps->getField("PredictedPositionBuffer")->read<glm::vec2>();
-
-		ps->getField("VelocityBuffer")->bind();
-		std::vector<glm::vec2> vel = ps->getField("VelocityBuffer")->read<glm::vec2>();
-
-		ps->getField("DensityBuffer")->bind();
-		std::vector<float> dens = ps->getField("DensityBuffer")->read<float>();
-
-		ps->getField("LambdaBuffer")->bind();
-		std::vector<float> lam = ps->getField("LambdaBuffer")->read<float>();
-
-		ps->getField("MetaBuffer")->bind();
-		std::vector<glm::uvec4> meta = ps->getField("MetaBuffer")->read<glm::uvec4>();
-
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;
 	}

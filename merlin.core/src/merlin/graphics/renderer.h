@@ -3,6 +3,7 @@
 #include "merlin/scene/scene.h"
 #include "merlin/scene/camera.h"
 #include "merlin/physics/particleSystem.h"
+#include "merlin/physics/isoSurface.h"
 #include "merlin/memory/frameBuffer.h"
 #include <stack>
 
@@ -55,7 +56,7 @@ namespace Merlin {
 		bool use_shadows = true;
 		bool use_environment = true;
 		bool display_lights = false;
-		
+
 		Shared<AmbientLight> m_defaultAmbient;
 		Shared<DirectionalLight> m_defaultDirLight;
 

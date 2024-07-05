@@ -40,7 +40,7 @@ void AppLayer::onUpdate(Timestep ts) {
     noise->barrier();
 
     marchingCubes->use();
-    marchingCubes->setFloat("u_isolevel", 0.5); //-1, 1
+    marchingCubes->setFloat("u_isolevel", 0.1); //-1, 1
     marchingCubes->dispatch();
     marchingCubes->barrier();
 
@@ -67,9 +67,6 @@ void AppLayer::InitGraphics() {
 
     buffer_vertices = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_vertices", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
     buffer_normals = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_normals", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
-
-	buffer_triangle_table = SSBO<int>::create("buffer_triangle_table");
-	buffer_configuration_table = SSBO<int>::create("buffer_configuration_table");
 	
     VertexBufferLayout layout;
     layout.push<float>(4);
@@ -90,7 +87,7 @@ void AppLayer::InitGraphics() {
     }
 
 	{
-        static const int triangle_table[256][16] = {
+        static int triangle_table[256][16] = {
             {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
             {0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
             {0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -348,7 +345,7 @@ void AppLayer::InitGraphics() {
             {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
             {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
         };
-        static const int edge_table[256] = {
+        static int edge_table[256] = {
             0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
             0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
             0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -383,8 +380,8 @@ void AppLayer::InitGraphics() {
             0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0
         };
 
-        //buffer_triangle_table->writeRaw(sizeof(int) * 256 * 16, triangle_table, BufferStorageFlags::DYNAMIC_STORAGE);
-        //buffer_configuration_table->writeRaw(sizeof(int) * 256, edge_table, BufferStorageFlags::DYNAMIC_STORAGE);
+        buffer_triangle_table = ImmutableShaderStorageBuffer<int>::create("buffer_triangle_table", 256 * 16, (int*)triangle_table, BufferStorageFlags::DynamicStorage);
+        buffer_configuration_table = ImmutableShaderStorageBuffer<int>::create("buffer_configuration_table", 256, (int*)edge_table, BufferStorageFlags::DynamicStorage);
 	}
 
     buffer_vertices->setBindingPoint(0);
@@ -408,6 +405,7 @@ void AppLayer::InitGraphics() {
 
     Shared<Mesh> mcMesh = createShared<Mesh>("mc", vao, max_number_of_vertices);
     mcMesh->setShader(mcShader);
+    mcMesh->scale(4);
     scene.add(mcMesh);
     scene.add(TransformObject::create("origin", 10));
 }

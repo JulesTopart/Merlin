@@ -59,6 +59,9 @@ namespace Merlin {
 
 		static void resetTextureUnits();
 		
+		inline GLuint witdh() { return m_width; }
+		inline GLuint height() { return m_height; }
+		inline GLuint depth() { return m_depth; }
 
 	protected:
 		GLuint m_width = 0, m_height = 0, m_depth = 0;

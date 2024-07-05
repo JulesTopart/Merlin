@@ -26,18 +26,17 @@ public:
 
 private:
 
-	Texture2D_Ptr texture_debug;
-	Texture3D_Ptr volume;
 	ComputeShader_Ptr noise;
 	ComputeShader_Ptr marchingCubes;
-
+	Texture2D_Ptr texture_debug;
+	Texture3D_Ptr volume;
 	Shader_Ptr mcShader;
 
-	ImmutableShaderStorageBuffer_Ptr<glm::vec4> buffer_vertices;
-	ImmutableShaderStorageBuffer_Ptr<glm::vec4> buffer_normals;
+	ImmutableSSBO_Ptr<glm::vec4> buffer_vertices;
+	ImmutableSSBO_Ptr<glm::vec4> buffer_normals;
 
-	ImmutableShaderStorageBuffer_Ptr<GLint> buffer_triangle_table;
-	ImmutableShaderStorageBuffer_Ptr<GLint> buffer_configuration_table;
+	ImmutableSSBO_Ptr<GLint> buffer_triangle_table;
+	ImmutableSSBO_Ptr<GLint> buffer_configuration_table;
 
 	Settings settings;
 

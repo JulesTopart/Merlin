@@ -338,7 +338,7 @@ namespace Merlin {
 			}
 		}
 	}
-	
+
 	void Renderer::renderTransformObject(const TransformObject& obj, const Camera& camera) {
 		if (debug)Console::info() << "Rendering TransformObject" << Console::endl;
 		render(obj.getXAxisMesh(), camera);
@@ -359,6 +359,9 @@ namespace Merlin {
 		}//The object is a model
 		else if (const auto ps = std::dynamic_pointer_cast<ParticleSystem>(object)) {
 			renderParticleSystem(*ps, camera);
+		}
+		else if (const auto iso = std::dynamic_pointer_cast<IsoSurface>(object)) {
+			render(iso->mesh(), camera);
 		}
 		else if (const auto li = std::dynamic_pointer_cast<Light>(object)) {
 			if(display_lights) renderLight(*li, camera);
