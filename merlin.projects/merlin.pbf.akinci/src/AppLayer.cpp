@@ -75,7 +75,7 @@ void AppLayer::onUpdate(Timestep ts) {
 		isoGen->barrier(GL_ALL_BARRIER_BITS);
 		ps->detach(isoGen);
 
-		isosurface->setIsoLevel(0.5);
+		isosurface->setIsoLevel(0.1);
 		isosurface->compute();
 		
 	}
@@ -273,6 +273,7 @@ void AppLayer::InitPhysics() {
 	ps->link(isoGen->name(), "DensityBuffer");
 	ps->link(isoGen->name(), "LambdaBuffer");
 	ps->link(isoGen->name(), "MetaBuffer");
+	ps->link(isoGen->name(), binBuffer->name());
 	ps->solveLink(isoGen);
 	ps->detach(isoGen);
 
@@ -289,9 +290,9 @@ void AppLayer::InitPhysics() {
 	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 1, 32);
 	volume->setUnit(0);
 	isosurface = IsoSurface::create("isosurface", volume);
-	isosurface->mesh()->setMaterial("gold");
-	isosurface->mesh()->translate(settings.bb * glm::vec3(0, 0, 0.5));
-	isosurface->mesh()->scale(settings.bb * glm::vec3(0.5));
+	isosurface->mesh()->setMaterial("red plastic");
+	//isosurface->mesh()->translate(settings.bb * glm::vec3(0, 0, 0.5));
+	isosurface->mesh()->scale(settings.bb * glm::vec3(1.0));
 	scene.add(isosurface);
 }
 

@@ -27,7 +27,7 @@ void main()
 	OVERNNS
 		float dist = length(position - Xj);
 		if(dist >= H || dist < 1e-6) continue;
-		density += Mj * poly6(dist);
+		if(B_Phase(j) == FLUID) density += Mj * poly6(dist);
 	OVERNNS_END
 
 	imageStore(u_output, pixel_coords, vec4(density,0,0,0));

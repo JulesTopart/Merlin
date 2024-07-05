@@ -207,7 +207,15 @@ void main()
 
     // The 3D coordinates of this compute shader thread
     ivec3 cell_index = ivec3(gl_GlobalInvocationID.xyz);
-
+	if (cell_index.x < 0 ||
+            cell_index.y < 0 ||
+            cell_index.z < 0 ||
+            cell_index.x > (dims.x) ||
+            cell_index.y > (dims.y) ||
+            cell_index.z > (dims.z))
+        {
+            return;
+        }
     // Perform marching cubes
     march(cell_index);
 }
