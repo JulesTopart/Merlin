@@ -37,6 +37,7 @@ private:
 	Renderer renderer;
 	
 	StagedComputeShader_Ptr solver;
+	ComputeShader_Ptr isoGen;
 	StagedComputeShader_Ptr prefixSum;
 
 	ParticleSystem_Ptr ps;
@@ -45,6 +46,10 @@ private:
 	Mesh_Ptr emitter;
 	Mesh_Ptr geom;
 	Mesh_Ptr slope;
+
+	IsoSurface_Ptr isosurface;
+	Texture3D_Ptr volume;
+	Texture2D_Ptr texture_debug;
 
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;

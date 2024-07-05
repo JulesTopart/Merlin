@@ -89,6 +89,5 @@ void SolveFluid(uint i, uint simStep) {
 		xi = Xi;
 		return;
 	}
-
 }
 

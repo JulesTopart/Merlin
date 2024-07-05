@@ -146,8 +146,7 @@ void ExampleLayer::onUpdate(Timestep ts){
 	float y = light->position().y;
 	light->translate(glm::vec3(cos(t)* radius - x, sin(t)* radius - y, 0.0));
 
-
-	volume->bindImage();
+	volume->bindImage(0);
 	noise->use();
 	noise->setFloat("u_time", glfwGetTime());
 	noise->setInt("u_mode_index", 4); //"FBM Noise", "SDF Sphere", "SDF Box", "SDF Torus", "SDF Metaballs"

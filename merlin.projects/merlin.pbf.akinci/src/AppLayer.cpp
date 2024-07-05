@@ -16,8 +16,6 @@ using namespace Merlin;
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
 
-	Console::setLevel(ConsoleLevel::_TRACE);
-
 	camera().setNearPlane(0.5);
 	camera().setFarPlane(2000.0);
 	camera().translate(glm::vec3(0, -500, 100));
@@ -54,17 +52,38 @@ void AppLayer::onUpdate(Timestep ts) {
 	ps->detach(particleShader);
 	bs->detach(binShader);
 
-	ps->solveLink(solver);
-	bs->solveLink(prefixSum);
+
 
 	if (!paused) {
+		ps->solveLink(solver);
+		bs->solveLink(prefixSum);
+
 		GPU_PROFILE(solver_total_time,
 			Simulate(0.016);
 		)
+
+		ps->detach(solver);
+		bs->detach(prefixSum);
+
+
+
+
+		ps->solveLink(isoGen);
+		volume->bindImage(0);
+		isoGen->use();
+		isoGen->dispatch();
+		isoGen->barrier(GL_ALL_BARRIER_BITS);
+		ps->detach(isoGen);
+
+		isosurface->setIsoLevel(0.5);
+		isosurface->compute();
+		
 	}
 
-	ps->detach(solver);
-	bs->detach(prefixSum);
+
+
+
+	
 
 }
 
@@ -89,6 +108,10 @@ void AppLayer::SyncUniforms() {
 	prefixSum->use();
 	prefixSum->setUInt("dataSize", settings.bThread); //data size
 	prefixSum->setUInt("blockSize", settings.blockSize); //block size
+
+	isoGen->use();
+	isoGen->setUInt("numParticles", numParticles);
+	settings.particleMass.sync(*isoGen);
 }
 
 void AppLayer::InitGraphics() {
@@ -189,6 +212,7 @@ void AppLayer::InitPhysics() {
 	//Compute Shaders
 	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6);
 	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
+	isoGen = ComputeShader::create("isoGen", "assets/shaders/solver/isoGen.comp");
 
 	//create particle system
 	ps = ParticleSystem::create("ParticleSystem", settings.pThread);
@@ -204,6 +228,7 @@ void AppLayer::InitPhysics() {
 
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
+	isoGen->SetWorkgroupLayout(settings.iWkgCount);
 
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
 	SSBO_Ptr<Bin> binBuffer = SSBO<Bin>::create("BinBuffer", settings.bThread);
@@ -242,6 +267,15 @@ void AppLayer::InitPhysics() {
 	ps->solveLink(particleShader);
 	ps->detach(particleShader);
 
+	ps->link(isoGen->name(), "PositionBuffer");
+	ps->link(isoGen->name(), "PredictedPositionBuffer");
+	ps->link(isoGen->name(), "VelocityBuffer");
+	ps->link(isoGen->name(), "DensityBuffer");
+	ps->link(isoGen->name(), "LambdaBuffer");
+	ps->link(isoGen->name(), "MetaBuffer");
+	ps->solveLink(isoGen);
+	ps->detach(isoGen);
+
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
 	bs->detach(binShader);
@@ -249,12 +283,28 @@ void AppLayer::InitPhysics() {
 	scene.add(ps);
 	scene.add(bs);
 	bs->hide();
+
+	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 1, 32);
+
+	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 1, 32);
+	volume->setUnit(0);
+	isosurface = IsoSurface::create("isosurface", volume);
+	isosurface->mesh()->setMaterial("gold");
+	isosurface->mesh()->translate(settings.bb * glm::vec3(0, 0, 0.5));
+	isosurface->mesh()->scale(settings.bb * glm::vec3(0.5));
+	scene.add(isosurface);
 }
 
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
 	Console::info() << "Generating particles..." << Console::endl;
+
+	ps->detach(solver);
+	bs->detach(prefixSum);
+	ps->detach(particleShader);
+	bs->detach(binShader);
+	
 
 	float spacing = settings.particleRadius * 2.0;
 	auto cpu_position = std::vector<glm::vec4>();
@@ -518,12 +568,13 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 						solver->execute(4);
 					}
 				)
-					solver->execute(5);
+				solver->execute(5);
 
 			}
 		}
 	)
-		elapsedTime += settings.solver_substep * settings.timestep.value();
+
+	elapsedTime += settings.solver_substep * settings.timestep.value();
 
 }
 
@@ -697,6 +748,22 @@ void AppLayer::onImGuiRender() {
 			Simulate(0.016);
 		)
 	}
+
+	static bool first_frame = true;
+	static int debug_layer = 0;
+
+	ImGui::Begin("Debug");
+	if (ImGui::SliderInt("Layer", (int*)&debug_layer, 0, settings.volume_size.z - 1) || first_frame)
+	{
+		// Copy one layer of the 3D volume texture into the "debug" 2D texture for display
+		glCopyImageSubData(volume->id(), GL_TEXTURE_3D, 0, 0, 0, debug_layer,
+			texture_debug->id(), GL_TEXTURE_2D, 0, 0, 0, 0,
+			settings.volume_size.x, settings.volume_size.y, 1);
+
+		first_frame = false;
+	}
+	ImGui::Image((void*)(intptr_t)texture_debug->id(), ImVec2(settings.volume_size.x, settings.volume_size.y), ImVec2(1, 1), ImVec2(0, 0));
+	ImGui::End();
 
 	if (ImGui::Button("Debug")) {
 		throw("DEBUG");

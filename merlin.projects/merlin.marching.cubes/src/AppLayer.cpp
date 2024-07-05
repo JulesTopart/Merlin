@@ -55,8 +55,8 @@ void AppLayer::InitGraphics() {
 	renderer.enableSampleShading();
 	renderer.disableFaceCulling();
 
-	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 4,16);
-	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 4,16);
+	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 1,32);
+	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 1,32);
 
 	const size_t max_triangles_per_cell = 5;
 	const size_t max_vertices_per_triangle = 3;

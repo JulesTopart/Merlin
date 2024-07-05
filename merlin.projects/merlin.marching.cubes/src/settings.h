@@ -10,7 +10,7 @@ struct Bin {
 };
 
 struct Settings {
-	glm::ivec3 volume_size = glm::ivec3(128, 128, 128);
+	glm::ivec3 volume_size = glm::ivec3(16, 16, 16);
 
 	//calulated
 	glm::ivec3 pWkgSize = glm::ivec3(8, 8, 8); //Number of thread per workgroup

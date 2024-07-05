@@ -13,6 +13,7 @@ namespace Merlin {
 
     IsoSurface::IsoSurface(const std::string& name, Texture3D_Ptr volume) {
         m_volume = volume;
+        volume_size = glm::ivec3(m_volume->width(), m_volume->height(), m_volume->depth());
 
         allocateBuffers();
         loadDefaultShaders();
@@ -28,11 +29,10 @@ namespace Merlin {
 
     void IsoSurface::compute() {
         buffer_vertices->setBindingPoint(0);
-        //buffer_normals->setBindingPoint(1);
         buffer_triangle_table->setBindingPoint(1);
         buffer_configuration_table->setBindingPoint(2);
 
-        m_volume->bindImage();
+        m_volume->bindImage(0);
 
         if (!marchingCubes) marchingCubes = default_marchingCubes;
         marchingCubes->use();
@@ -356,7 +356,9 @@ namespace Merlin {
         //update mesh
         const size_t max_triangles_per_cell = 5;
         const size_t max_vertices_per_triangle = 3;
-        max_number_of_vertices = volume_size.x *
+
+        max_number_of_vertices = 
+            volume_size.x *
             volume_size.y *
             volume_size.z *
             max_triangles_per_cell * max_vertices_per_triangle;
@@ -366,6 +368,11 @@ namespace Merlin {
 
         VertexBufferLayout layout;
         layout.push<float>(4);
+
+        buffer_vertices->setBindingPoint(0);
+        buffer_triangle_table->setBindingPoint(1);
+        buffer_configuration_table->setBindingPoint(2);
+
         VAO_Ptr vao = createShared<VAO>();
         {
             glEnableVertexArrayAttrib(vao->id(), 0);

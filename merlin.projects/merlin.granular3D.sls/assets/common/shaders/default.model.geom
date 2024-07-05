@@ -21,8 +21,8 @@ out GS_out {
 } vout;
 
 vec3 GetNormal() {
-    vec3 a = vec3(gl_in[0].gl_Position) - vec3(gl_in[1].gl_Position);
-    vec3 b = vec3(gl_in[2].gl_Position) - vec3(gl_in[1].gl_Position);
+    vec3 a = vec3(gl_in[1].gl_Position) - vec3(gl_in[0].gl_Position);
+    vec3 b = vec3(gl_in[2].gl_Position) - vec3(gl_in[0].gl_Position);
     return normalize(cross(a, b));
 }
 
@@ -35,7 +35,7 @@ void main() {
 
         // Correctly propagate vertex shader data
         vout.position = vin[i].position;
-        vout.normal = use_flat_shading ? flat_normal.xzy : vin[i].normal;
+        vout.normal = use_flat_shading ? flat_normal: vin[i].normal;
         vout.color = vin[i].color;
         vout.texcoord = vin[i].texcoord;
         vout.viewPos = vin[i].viewPos;

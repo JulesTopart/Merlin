@@ -63,7 +63,6 @@ void main(){
             bins[getIndexOf(bid,i)].csum = 0;
             bins[getIndexOf(bid,i)].count = 0;
             bins[getIndexOf(bid,i)].index = 0;
-
         }
 
     break;
