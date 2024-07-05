@@ -52,7 +52,7 @@ namespace Merlin {
 		if (block_index == -1) Console::error("ShaderBase") << "Block " << buf.name() << " not found in shader '" << m_name << "'. Did you bind it properly ?" << Console::endl;
 		else {
 			BindingPointManager& manager = BindingPointManager::instance();
-			auto bindingPoint = manager.allocateBindingPoint(buf.target());
+			auto bindingPoint = manager.allocateBindingPoint(buf.target(), buf.id());
 			buf.bind();
 			buf.setBindingPoint(bindingPoint);
 			Console::trace("ShaderBase") << buf.name() << "( block index " << block_index << ") is now bound to " << name() << " using binding point " << bindingPoint << Console::endl;

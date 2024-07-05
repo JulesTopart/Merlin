@@ -135,8 +135,8 @@ namespace Merlin {
 		if (Input::isMouseButtonPressed(MRL_MOUSE_BUTTON_RIGHT)) { //Mouse dragged
 			_deltaMousePos = _lastMousePos - newMousePos;
 
-			_dU.x = 3.0 * _ZoomLevel * _CameraSpeed * _deltaMousePos.x / _Camera->width();
-			_dU.y = 3.0 * _ZoomLevel * _CameraSpeed * _deltaMousePos.y / _Camera->height();
+			_dU.y = 3.0 * _ZoomLevel * _CameraSpeed * _deltaMousePos.x / _Camera->width();
+			_dU.x = -3.0 * _ZoomLevel * _CameraSpeed * _deltaMousePos.y / _Camera->height();
 		}
 
 		_lastMousePos = newMousePos;

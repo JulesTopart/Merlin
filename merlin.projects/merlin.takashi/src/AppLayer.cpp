@@ -495,10 +495,10 @@ void AppLayer::ResetSimulation() {
 
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
-	ps->writeField("PositionBuffer", cpu_position.data());
-	ps->writeField("PredictedPositionBuffer", cpu_position.data());
-	ps->writeField("TemperatureBuffer", cpu_temp.data());
-	ps->writeField("MetaBuffer", cpu_meta.data());
+	ps->writeField("PositionBuffer", cpu_position);
+	ps->writeField("PredictedPositionBuffer", cpu_position);
+	ps->writeField("TemperatureBuffer", cpu_temp);
+	ps->writeField("MetaBuffer", cpu_meta);
 }
 
 

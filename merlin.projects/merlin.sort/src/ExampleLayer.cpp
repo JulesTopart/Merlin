@@ -166,21 +166,18 @@ double ExampleLayer::bench_gpu(int wkSize, int n){
 	countingCount->setUInt("blocks", blocks);
 	countingCount->SetWorkgroupLayout(wgCount);
 
-	inDataBuffer.bind();
 	inDataBuffer.rename("inDataBuffer");
 	inDataBuffer.write(unsorted);
 
-	outDataBuffer.bind();
 	outDataBuffer.rename("outDataBuffer");
 	outDataBuffer.write(unsorted);
 
-	prefixSumBuffer.bind();
 	prefixSumBuffer.rename("prefixSumBuffer");
-	prefixSumBuffer.reserve(data.size());
+	prefixSumBuffer.allocate(data.size(), BufferUsage::StaticDraw);
 
 	compactSumBuffer.bind();
 	compactSumBuffer.rename("compactSumBuffer");
-	compactSumBuffer.reserve(blocks);
+	compactSumBuffer.allocate(blocks, BufferUsage::StaticDraw);
 
 	inDataBuffer.setBindingPoint(0);
 	outDataBuffer.setBindingPoint(1);

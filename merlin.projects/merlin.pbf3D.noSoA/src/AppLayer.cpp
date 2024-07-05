@@ -268,7 +268,7 @@ void AppLayer::ResetSimulation() {
 
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
-	ps->writeField("ParticleBuffer", cpu_particles.data());
+	ps->writeField("ParticleBuffer", cpu_particles);
 	
 }
 

@@ -15,7 +15,7 @@ namespace Merlin {
         BindingPointManager() { initializeAvailableBindingPoints(); }
 
     public:
-        GLuint allocateBindingPoint(BufferTarget bufferTarget);
+        GLuint allocateBindingPoint(BufferTarget bufferTarget, GLuint bufferID);
         void releaseBindingPoint(BufferTarget bufferTarget, GLuint bindingPoint);
         const std::vector<GLuint>& getUsedBindingPoints(BufferTarget bufferTarget) const;
 
@@ -24,6 +24,8 @@ namespace Merlin {
 
         std::unordered_map<BufferTarget, std::queue<GLuint>> availableBindingPoints;
         std::unordered_map<BufferTarget, std::vector<GLuint>> usedBindingPoints;
+        std::unordered_map<GLuint, GLuint> bufferToBindingPoint; // Maps buffer ID to binding point
+
     };
 }
 

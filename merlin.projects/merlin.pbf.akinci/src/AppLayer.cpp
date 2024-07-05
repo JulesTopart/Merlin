@@ -15,6 +15,9 @@ using namespace Merlin;
 
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
+
+	Console::setLevel(ConsoleLevel::_TRACE);
+
 	camera().setNearPlane(0.5);
 	camera().setFarPlane(2000.0);
 	camera().translate(glm::vec3(0, -500, 100));

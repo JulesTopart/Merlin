@@ -223,8 +223,8 @@ void AppLayer::ResetSimulation() {
 
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
-	voxels->writeField("PositionBuffer", cpu_position.data());
-	voxels->writeField("TemperatureBuffer", cpu_temp.data());
+	voxels->writeField("PositionBuffer", cpu_position);
+	voxels->writeField("TemperatureBuffer", cpu_temp);
 }
 
 void AppLayer::Simulate(Merlin::Timestep ts) {

@@ -34,16 +34,28 @@ void AppLayer::onUpdate(Timestep ts) {
 	PROFILE_END(total_start_time, total_time);
 	PROFILE_BEGIN(total_start_time);
 
+	ps->solveLink(particleShader);
+	bs->solveLink(binShader);
+
 	GPU_PROFILE(render_time,
 		renderer.clear();
-	renderer.renderScene(scene, camera());
+		renderer.renderScene(scene, camera());
 	)
+
+	ps->detach(particleShader);
+	bs->detach(binShader);
+
+	ps->solveLink(solver);
+	bs->solveLink(prefixSum);
 
 	if (!paused) {
 		GPU_PROFILE(solver_total_time,
 			Simulate(0.016);
 		)
 	}
+
+	ps->detach(solver);
+	bs->detach(prefixSum);
 }
 
 
@@ -206,11 +218,13 @@ void AppLayer::InitPhysics() {
 	ps->addField<glm::uvec4>("cpyMetaBuffer");
 	ps->addBuffer(binBuffer);
 	ps->solveLink(solver);
+	ps->detach(solver);
 
 	bs->setShader(binShader);
 	bs->addProgram(prefixSum);
 	bs->addField(binBuffer);
 	bs->solveLink(prefixSum);
+	bs->detach(prefixSum);
 
 	ps->link(particleShader->name(), "PositionBuffer");
 	ps->link(particleShader->name(), "PredictedPositionBuffer");
@@ -218,9 +232,11 @@ void AppLayer::InitPhysics() {
 	ps->link(particleShader->name(), "TemperatureBuffer");
 	ps->link(particleShader->name(), "MetaBuffer");
 	ps->solveLink(particleShader);
+	ps->detach(particleShader);
 
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
+	bs->detach(binShader);
 
 	scene.add(ps);
 	scene.add(bs);
@@ -423,11 +439,11 @@ void AppLayer::ResetSimulation() {
 
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
-	ps->writeField("PositionBuffer", cpu_position.data());
-	ps->writeField("PredictedPositionBuffer", cpu_predictedPosition.data());
-	ps->writeField("VelocityBuffer", cpu_velocity.data());
-	ps->writeField("TemperatureBuffer", cpu_temperature.data());
-	ps->writeField("MetaBuffer", cpu_meta.data());
+	ps->writeField("PositionBuffer", cpu_position);
+	ps->writeField("PredictedPositionBuffer", cpu_predictedPosition);
+	ps->writeField("VelocityBuffer", cpu_velocity);
+	ps->writeField("TemperatureBuffer", cpu_temperature);
+	ps->writeField("MetaBuffer", cpu_meta);
 }
 
 
