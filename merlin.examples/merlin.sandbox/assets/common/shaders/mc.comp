@@ -4,24 +4,19 @@ layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 
 uniform float u_isolevel;
 
-layout (rgba16f, binding = 0) readonly uniform image3D u_volume;
+layout (r32f, binding = 0) readonly uniform image3D u_volume;
 
 layout(std140, binding = 0) writeonly buffer u_buffer_vertices
 {
     vec4 output_vertices[];
 };
 
-layout(std140, binding = 1) writeonly buffer u_buffer_normals
-{
-    vec4 output_normals[];
-};
-
-layout(std430, binding = 2) readonly buffer u_buffer_triangle_table 
+layout(std430, binding = 1) readonly buffer u_buffer_triangle_table 
 {
     int triangle_table[];
 };
 
-layout(std430, binding = 3) readonly buffer u_buffer_configuration_table 
+layout(std430, binding = 2) readonly buffer u_buffer_configuration_table 
 {
     int configuration_table[];
 };
@@ -46,7 +41,6 @@ const ivec3 neighbors[8] =
 struct Vertex 
 {
 	vec3 position;
-	vec3 normal;
 };
 
 Vertex find_vertex(float isolevel, in ivec2 edge, float value_1, float value_2)
@@ -55,31 +49,27 @@ Vertex find_vertex(float isolevel, in ivec2 edge, float value_1, float value_2)
 	vec3 p1 = neighbors[edge.x];
 	vec3 p2 = neighbors[edge.y];
 
-	// The normals are stored in the YZW / GBA channels of the volume texture
-	vec3 n1 = imageLoad(u_volume, ivec3(p1)).gba;
-	vec3 n2 = imageLoad(u_volume, ivec3(p2)).gba;
 
 	const float eps = 0.00001;
 
 	if (abs(isolevel - value_1) < eps) 
 	{
-		return Vertex(p1, n1);
+		return Vertex(p1);
 	}
 	if (abs(isolevel - value_2) < eps) 
 	{
-		return Vertex(p2, n2);
+		return Vertex(p2);
 	}
 	if (abs(value_1 - value_2) < eps) 
 	{
-		return Vertex(p1, n1);
+		return Vertex(p1);
 	}
 
 	const float mu = (isolevel - value_1) / (value_2 - value_1);
 
 	vec3 p = p1 + mu * (p2 - p1);
-	vec3 n = n1 + mu * (n2 - n1);
 
-	return Vertex(p, normalize(n));
+	return Vertex(p);
 }
 
 const ivec2 edge_table[12] = 
@@ -175,25 +165,21 @@ void march(in ivec3 cell_index)
 		{
 			Vertex vertex;
 			vec3 position;
-			vec3 normal;
 
 			vertex = vertex_list[triangle_table[triangle_start_memory + (3 * i + 0)]];
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
 			output_vertices[cell_start_memory +  3 * i + 0] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 0] = vec4(vertex.normal, 1.0);
 
 			vertex = vertex_list[triangle_table[triangle_start_memory + (3 * i + 1)]];
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
 			output_vertices[cell_start_memory +  3 * i + 1] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 1] = vec4(vertex.normal, 1.0);
 
 			vertex = vertex_list[triangle_table[triangle_start_memory + (3 * i + 2)]];
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
 			output_vertices[cell_start_memory +  3 * i + 2] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 2] = vec4(vertex.normal, 1.0);
 		}
 		else
 		{

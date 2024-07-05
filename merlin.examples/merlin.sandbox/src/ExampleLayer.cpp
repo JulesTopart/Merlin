@@ -8,7 +8,6 @@ using namespace Merlin;
 
 const float radius = 3;
 
-
 ExampleLayer::ExampleLayer(){
 	Window* w = &Application::get().getWindow();
 	int height = w->getHeight();
@@ -116,16 +115,15 @@ void ExampleLayer::onAttach(){
 
 	scene.add(TransformObject::create("origin", 2));
 
-
 	noise = ComputeShader::create("noise", "assets/noise.comp");
 	glm::ivec3 pWkgSize = glm::ivec3(8, 8, 8); //Number of thread per workgroup
 	glm::ivec3 pWkgCount = (volume_size + pWkgSize - glm::ivec3(1)) / pWkgSize; //Total number of workgroup needed
 	noise->SetWorkgroupLayout(pWkgCount);
 
-	texture_debug = Texture2D::create(volume_size.x, volume_size.y, 4, 16);
-	volume = Texture3D::create(volume_size.x, volume_size.y, volume_size.z, 4, 16);
+	volume = Texture3D::create(volume_size.x, volume_size.y, volume_size.z, 1, 32);
 
 	isosurface = IsoSurface::create("isosurface", volume);
+	isosurface->mesh()->setMaterial("gold");
 	scene.add(isosurface);
 }
 
@@ -159,6 +157,7 @@ void ExampleLayer::onUpdate(Timestep ts){
 	noise->dispatch();
 	noise->barrier();
 
+	isosurface->setIsoLevel(0.1);
 	isosurface->compute();
 
 	renderer.clear();

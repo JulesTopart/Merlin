@@ -77,6 +77,8 @@ namespace Merlin {
 		Shared<MaterialBase> m_material = nullptr;
 		Shared<Shader> m_shader = nullptr;
 
+		
+
 		bool debugnormal = true;
 	};
 

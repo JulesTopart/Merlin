@@ -9,7 +9,7 @@
 #define SPOT_LIGHT 3
 
 
-in Vertex{
+in GS_out{
 	vec3 position;
 	vec3 normal;
 	vec3 color;
@@ -78,8 +78,9 @@ uniform Light lights[MAX_LIGHTS];
 uniform int numLights;
 
 uniform bool useShadows = false;
-uniform mat4 model;
 uniform vec3 viewPos;
+uniform mat4 model;
+uniform bool use_vertex_color = false;
 
 // array of offset direction for sampling
 vec3 gridSamplingDisk[20] = vec3[]
@@ -270,7 +271,7 @@ void main() {
         finalColor += calculateLight(lights[i], N, vin.position, viewDir, ambientColor, diffuseColor, specularColor);
     }
     float gamma = 0.7;
-    FragColor.rgb = pow(finalColor.rgb * vin.color.rgb, vec3(1.0/gamma));
+    FragColor.rgb = pow(finalColor.rgb * (use_vertex_color ? vin.color.rgb : vec3(1.0)), vec3(1.0/gamma));
     //FragColor.rgb = N* 0.9 + FragColor.rgb * 0.1;
     //FragColor.rgb = normalize(vin.tangentBasis * (-lights[0].direction));
     //FragColor.rgb = normalize(vin.position);

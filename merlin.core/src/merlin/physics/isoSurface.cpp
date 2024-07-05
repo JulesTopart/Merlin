@@ -1,5 +1,6 @@
 #include "glpch.h"
 #include "isoSurface.h"
+#include "merlin/graphics/ressourceManager.h"
 
 namespace Merlin {
 	IsoSurface::IsoSurface(const std::string& name, glm::ivec3 volumeSize) {
@@ -27,9 +28,9 @@ namespace Merlin {
 
     void IsoSurface::compute() {
         buffer_vertices->setBindingPoint(0);
-        buffer_normals->setBindingPoint(1);
-        buffer_triangle_table->setBindingPoint(2);
-        buffer_configuration_table->setBindingPoint(3);
+        //buffer_normals->setBindingPoint(1);
+        buffer_triangle_table->setBindingPoint(1);
+        buffer_configuration_table->setBindingPoint(2);
 
         m_volume->bindImage();
 
@@ -361,26 +362,28 @@ namespace Merlin {
             max_triangles_per_cell * max_vertices_per_triangle;
 
         buffer_vertices = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_vertices", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
-        buffer_normals = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_normals", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
+        //buffer_normals = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_normals", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
 
         VertexBufferLayout layout;
         layout.push<float>(4);
         VAO_Ptr vao = createShared<VAO>();
         {
             glEnableVertexArrayAttrib(vao->id(), 0);
-            glEnableVertexArrayAttrib(vao->id(), 1);
+            //glEnableVertexArrayAttrib(vao->id(), 1);
 
             glVertexArrayVertexBuffer(vao->id(), 0, buffer_vertices->id(), 0, sizeof(glm::vec4));
-            glVertexArrayVertexBuffer(vao->id(), 1, buffer_normals->id(), 0, sizeof(glm::vec4));
+            //glVertexArrayVertexBuffer(vao->id(), 1, buffer_normals->id(), 0, sizeof(glm::vec4));
 
             glVertexArrayAttribFormat(vao->id(), 0, 4, GL_FLOAT, false, 0);
-            glVertexArrayAttribFormat(vao->id(), 1, 4, GL_FLOAT, false, 0);
+            //glVertexArrayAttribFormat(vao->id(), 1, 4, GL_FLOAT, false, 0);
 
             glVertexArrayAttribBinding(vao->id(), 0, 0);
-            glVertexArrayAttribBinding(vao->id(), 1, 1);
+            //glVertexArrayAttribBinding(vao->id(), 1, 1);
         }
 
         m_mesh = createShared<Mesh>("mc", vao, max_number_of_vertices);
+        m_mesh->useVertexColors(false);
+        m_mesh->useFlatShading(true);
     }
 
     void IsoSurface::loadDefaultShaders() {
@@ -390,18 +393,12 @@ namespace Merlin {
             glm::ivec3 pWkgCount = (volume_size + pWkgSize - glm::ivec3(1)) / pWkgSize; //Total number of workgroup needed
             default_marchingCubes->SetWorkgroupLayout(pWkgCount);
         }
-
+        
+        /*
         if (!default_isosurface) {
-            default_isosurface = Shader::create("isosurface", "assets/common/shaders/isosurface.vert", "assets/common/shaders/isosurface.frag");
-
-            default_isosurface->noTexture();
-            default_isosurface->noLights();
-            default_isosurface->noEnvironment();
-            default_isosurface->noShadows();
-            default_isosurface->noMaterial();
-
+            //default_isosurface = ShaderLibrary::instance().get("isosurface");
             m_mesh->setShader(default_isosurface);
-        }
+        }*/
         
     }
 

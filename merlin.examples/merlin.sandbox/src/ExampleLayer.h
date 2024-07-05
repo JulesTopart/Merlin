@@ -20,7 +20,6 @@ private:
 	Shared<CameraController> cameraController;
 
 	glm::ivec3 volume_size = glm::ivec3(128,128,128);
-	Texture2D_Ptr texture_debug;
 	Texture3D_Ptr volume;
 	ComputeShader_Ptr noise;
 	IsoSurface_Ptr isosurface;

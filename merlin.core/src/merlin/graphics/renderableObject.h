@@ -62,6 +62,13 @@ namespace Merlin {
 		virtual void enableWireFrameMode();
 		virtual void disableWireFrameMode();
 
+		inline const bool useVertexColors() const { return use_vertex_color; }
+		inline void useVertexColors(bool value) { use_vertex_color = value; }
+		inline const bool useFlatShading() const { return use_flat_shading; }
+		inline const bool useSmoothShading() const { return !use_flat_shading; }
+		inline void useFlatShading(bool value) { use_flat_shading = value; }
+		inline void useSmoothShading(bool value) { use_flat_shading = !value; }
+
 		std::list<Shared<RenderableObject>>& children();
 		Shared<RenderableObject> getChild(std::string name);
 		RenderableObject* parent();
@@ -70,6 +77,9 @@ namespace Merlin {
 		static int nextID;
 		bool m_castShadow = true;
 		int m_ID;
+
+		bool use_vertex_color = false;
+		bool use_flat_shading = false;
 
 		bool m_wireframe = false;
 		bool m_hidden = false;

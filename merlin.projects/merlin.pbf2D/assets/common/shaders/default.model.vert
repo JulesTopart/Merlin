@@ -11,7 +11,7 @@ layout (location = 5) in vec3 _bitangent;
 
 #define MAX_LIGHTS 10
 
-out Vertex{
+out VS_out{
 	vec3 position;
 	vec3 normal;
 	vec3 color;
