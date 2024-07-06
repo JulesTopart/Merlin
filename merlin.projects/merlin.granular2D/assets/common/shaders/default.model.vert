@@ -25,6 +25,7 @@ uniform mat4 projection;
 uniform mat4 model;
 uniform vec3 viewPos;
 
+
 void main() {
 	vout.position = vec3(model * vec4(_position, 1.0f));
 	vout.color = _color;

@@ -50,7 +50,7 @@ Vertex find_vertex(float isolevel, in ivec2 edge, float value_1, float value_2)
 	vec3 p2 = neighbors[edge.y];
 
 
-	const float eps = 0.00001;
+	const float eps = 0.0001;
 
 	if (abs(isolevel - value_1) < eps) 
 	{

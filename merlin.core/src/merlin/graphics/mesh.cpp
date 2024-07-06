@@ -154,8 +154,8 @@ namespace Merlin {
 		updateVAO();
 	}
 
-	void Mesh::voxelize(float size) {
-		m_voxels = Voxelizer::voxelize(*this, size);
+	void Mesh::voxelize(float size, bool only_surface) {
+		m_voxels = Voxelizer::voxelize(*this, size, only_surface);
 	}
 
 	void Mesh::computeBoundingBox() {

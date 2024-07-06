@@ -20,13 +20,10 @@ namespace Merlin {
 		Mesh(std::string name, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, GLuint mode = GL_TRIANGLES);
 		Mesh(std::string name, VAO_Ptr, GLuint count, GLuint mode = GL_TRIANGLES);
 
-		void bind();
-		void unbind();
-
 		void draw() const;
 		void drawInstanced(GLsizeiptr instanced) const;
 
-		void voxelize(float size);
+		void voxelize(float size, bool only_surface = false);
 		void computeBoundingBox();
 		void computeNormals();
 		void smoothNormals();

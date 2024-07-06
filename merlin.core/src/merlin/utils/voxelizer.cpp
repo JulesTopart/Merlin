@@ -5,7 +5,7 @@
 
 namespace Merlin {
 
-	std::vector<int> Voxelizer::voxelize(Mesh& mesh, float vox_size) {
+	std::vector<int> Voxelizer::voxelize(Mesh& mesh, float vox_size, bool only_surface) {
 
 		Vertices vertices = mesh.getVertices();
 		Indices indices = mesh.getIndices();
@@ -63,6 +63,7 @@ namespace Merlin {
 		m_voxelize->setFloat("voxelSize", vox_size);
 		m_voxelize->setUInt("facetCount", facets.size());
 		m_voxelize->setUInt("voxelCount", voxThread);
+		m_voxelize->setInt("use_only_surface", only_surface);
 
 		GLuint pWkgSize = 64;
 		GLuint pWkgCount = (voxThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed

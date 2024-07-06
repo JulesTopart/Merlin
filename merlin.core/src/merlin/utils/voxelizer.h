@@ -7,7 +7,7 @@ namespace Merlin {
 	class Voxelizer {
 	public:
 		//static SSBO_Ptr<glm::vec4> voxelize_sparse(Mesh& mesh, float vox_size);
-		static std::vector<int> voxelize(Mesh& mesh, float vox_size);
+		static std::vector<int> voxelize(Mesh& mesh, float vox_size, bool only_surface = false);
 
 	private :
 
