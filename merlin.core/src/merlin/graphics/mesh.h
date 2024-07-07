@@ -8,7 +8,7 @@
 namespace Merlin {
 
 	struct BoundingBox {
-		glm::vec3 min, max;
+		glm::vec3 min, max, centroid;
 	};
 
 	class Mesh : public RenderableObject {

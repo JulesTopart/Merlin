@@ -1,0 +1,83 @@
+#pragma once
+#include "settings.h"
+
+using namespace Merlin;
+
+#define UNUSED 0
+#define SOLID 1
+#define FLUID 2
+#define GAS 3
+#define GRANULAR 4
+#define BOUNDARY 5
+
+class AppLayer : public Merlin::Layer3D {
+public:
+	AppLayer(){}
+
+	void onAttach() override;
+	void onDetach() override;
+	void onEvent(Merlin::Event& event) override;
+	void onUpdate(Merlin::Timestep ts) override;
+	void onImGuiRender() override;
+
+	void InitGraphics();
+	void InitPhysics();
+	void ResetSimulation();
+
+	void SyncUniforms();
+
+	void NeigborSearch();
+	void Simulate(Merlin::Timestep ts);
+
+private:
+
+	// --- Graphics ---
+
+	Scene scene;
+	Renderer renderer;
+	
+	StagedComputeShader_Ptr solver;
+	ComputeShader_Ptr isoGen;
+	StagedComputeShader_Ptr prefixSum;
+
+	ParticleSystem_Ptr ps;
+	ParticleSystem_Ptr bs;
+
+	Mesh_Ptr static_emitter;
+	Mesh_Ptr emitter;
+	Mesh_Ptr domain;
+	Mesh_Ptr helix;
+
+	IsoSurface_Ptr isosurface;
+	Texture3D_Ptr volume;
+	Texture2D_Ptr texture_debug;
+
+	Shader_Ptr particleShader;
+	Shader_Ptr binShader;
+
+	// --- Simulation--- 
+	Settings settings;
+	GLuint numParticles = 0;
+	GLuint numActiveParticles = 0;
+	GLuint numConstraint = 0;
+	GLuint numBoundaryParticles = 0;
+	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
+
+	double nns_time = 0;
+	double jacobi_time = 0;
+	double solver_substep_time = 0;
+	double solver_total_time = 0;
+	double render_time = 0; double render_start_time = 0;
+	double total_time = 0; double total_start_time = 0;
+
+	float elapsedTime = 0;
+	bool paused = true;
+	bool integrate = true; 
+	bool use_isosurface = false;
+
+	float rot_speed = 2;
+	float sim_speed = 1;
+	float camera_speed = 1;
+	bool mousePressed = false;
+
+};

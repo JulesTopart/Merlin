@@ -181,6 +181,8 @@ namespace Merlin {
 			if (vec.y < m_bbox.min.y) m_bbox.min.y = vec.y;
 			if (vec.z < m_bbox.min.z) m_bbox.min.z = vec.z;
 		}
+
+		m_bbox.centroid = m_bbox.min + (m_bbox.max - m_bbox.min)*glm::vec3(0.5);
 		Console::info("Mesh") << "Bounding box is " << m_bbox.max - m_bbox.min << " starting at " << m_bbox.min << " and ending at " << m_bbox.max << Console::endl;
 	}
 
