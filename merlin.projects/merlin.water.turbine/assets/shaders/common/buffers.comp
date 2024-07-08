@@ -35,44 +35,44 @@
 layout(std430) buffer PositionBuffer {
 	vec4 ssbo_position[];
 };
-layout(std430) buffer cpyPositionBuffer {
-	vec4 ssbo_cpy_position[];
-};
 
 layout(std430) buffer PredictedPositionBuffer {
 	vec4 ssbo_pposition[];
-};
-layout(std430) buffer cpyPredictedPositionBuffer {
-	vec4 ssbo_cpy_pposition[];
 };
 
 layout(std430) buffer VelocityBuffer {
 	vec4 ssbo_velocity[];
 };
-layout(std430) buffer cpyVelocityBuffer {
-	vec4 ssbo_cpy_velocity[];
-};
 
 layout(std430) buffer DensityBuffer {
 	float ssbo_density[];
 };
-layout(std430) buffer cpyDensityBuffer {
-	float ssbo_cpy_density[];
-};
 
 layout(std430) buffer LambdaBuffer {
 	float ssbo_lambda[];
-};
-layout(std430) buffer cpyLambdaBuffer {
-	float ssbo_cpy_lambda[];
 };
 
 layout(std430) buffer MetaBuffer {
 	uvec4 ssbo_meta[]; //phase, binindex, id , sortedID
 };
 
-layout(std430) buffer cpyMetaBuffer {
-	uvec4 ssbo_cpy_meta[]; //phase, binindex, id , sortedID
+struct CopyContent{
+	vec4 position;
+	vec4 pposition;
+	vec4 velocity;
+	float density;
+	float lambda;
+	float _padding;
+	float _padding1;
+	uvec4 meta;
+};
+
+layout(std430) buffer CopyBuffer {
+	CopyContent ssbo_copy[]; //phase, binindex, id , sortedID
+};
+
+layout(std430) buffer EmitterPositionBuffer {
+	vec4 ssbo_emitter_position[];
 };
 
 #endif// INCLUDE_BUFFERS_HLSL

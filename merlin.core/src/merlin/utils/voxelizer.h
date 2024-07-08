@@ -7,11 +7,13 @@ namespace Merlin {
 	class Voxelizer {
 	public:
 		//static SSBO_Ptr<glm::vec4> voxelize_sparse(Mesh& mesh, float vox_size);
-		static std::vector<int> voxelize(Mesh& mesh, float vox_size, bool only_surface = false);
+		static std::vector<int> voxelize(Mesh& mesh, float vox_size);
+		static std::vector<int> voxelizeSurface(Mesh& mesh, float vox_size, float thickness);
 
 	private :
-
+		static std::vector<int> voxelize(Mesh& mesh, float vox_size, float thickness);
 		inline static ComputeShader_Ptr m_voxelize = nullptr;
+
 
 		struct Facet {
 			alignas(16) glm::vec4 v0;

@@ -12,6 +12,16 @@ using namespace Merlin;
 #define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
+struct CopyContent {
+	glm::vec4 position;
+	glm::vec4 pposition;
+	glm::vec4 velocity;
+	float density;
+	float lambda;
+	float _padding;
+	float _padding2;
+	glm::uvec4 meta;
+};
 
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
@@ -66,7 +76,7 @@ void AppLayer::onUpdate(Timestep ts) {
 		bs->detach(prefixSum);
 
 
-
+		/*
 		if (use_isosurface) {
 			ps->solveLink(isoGen);
 			volume->bindImage(0);
@@ -77,7 +87,7 @@ void AppLayer::onUpdate(Timestep ts) {
 
 			isosurface->setIsoLevel(0.1);
 			isosurface->compute();
-		}
+		}*/
 	}
 
 
@@ -151,11 +161,18 @@ void AppLayer::InitGraphics() {
 	Mesh_Ptr bbox = Primitives::createQuadCube(settings.bb.x, settings.bb.y, settings.bb.z);
 	bbox->enableWireFrameMode();
 	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
-	scene.add(bbox);
+	//scene.add(bbox);
 
-	emitter = Primitives::createCube(1, 1, 1);
+	emitter = Primitives::createCube(80, 50, 30);
 	emitter->enableWireFrameMode();
-	emitter->translate(glm::vec3(-130,0, 150));
+	emitter->translate(glm::vec3(-205,0, 115));
+	
+
+	static_emitter = Primitives::createCube(2, 50, 30);
+	static_emitter->enableWireFrameMode();
+	static_emitter->applyMeshTransform();
+	static_emitter->translate(glm::vec3(-240, 0, 115));
+	scene.add(static_emitter);
 
 	helix = ModelLoader::loadMesh("./assets/models/HELIX.stl");
 	helix->computeNormals();
@@ -163,39 +180,45 @@ void AppLayer::InitGraphics() {
 	helix->translate(glm::vec3(0, 0, 0));
 	helix->rotate(glm::vec3(0, 0, 180 * DEG_TO_RAD));
 	helix->rotate(glm::vec3(90 * DEG_TO_RAD,0,0));
-	
 	helix->scale(0.05);
-	helix->setMaterial("cyan plastic");
+	//helix->translate(glm::vec3(90 * DEG_TO_RAD,0,0));
+	helix->applyMeshTransform();
+	helix->centerMeshOrigin();
+
+	helix->setMaterial("white plastic");
 	//helix->rotate(glm::vec3(0, -20*DEG_TO_RAD, 0));
 
 	domain = ModelLoader::loadMesh("./assets/models/DOMAIN.stl");
 	domain->computeNormals();
-	domain->smoothNormals();
-	domain->translate(glm::vec3(0, 0, 0));
+	//domain->smoothNormals();
 	domain->rotate(glm::vec3(0, 0, 180 * DEG_TO_RAD));
 	domain->rotate(glm::vec3(90 * DEG_TO_RAD, 0, 0));
+
 	
 	domain->scale(0.05);
 	domain->setMaterial("white plastic");
 
+	float angle = 30;
 	//scene.add(emitter);
 	scene.add(domain);
 	scene.add(helix);
 	helix->computeBoundingBox();
+
+
 	TransformObject_Ptr origin = TransformObject::create("origin", 30);
-	origin->translate(glm::vec3(helix->getBoundingBox().centroid));
 	scene.add(origin);
+
 
 }
 
 void AppLayer::InitPhysics() {
 	//Compute Shaders
-	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6);
+	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 7);
 	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 	isoGen = ComputeShader::create("isoGen", "assets/shaders/solver/isoGen.comp");
 
 	//create particle system
-	ps = ParticleSystem::create("ParticleSystem", settings.pThread);
+	ps = ParticleSystem::create("ParticleSystem", settings.max_pThread);
 	ps->setShader(particleShader);
 	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 
@@ -217,17 +240,13 @@ void AppLayer::InitPhysics() {
 	ps->setShader(particleShader);
 	ps->addProgram(solver);
 	ps->addField<glm::vec4>("PositionBuffer");
-	ps->addField<glm::vec4>("cpyPositionBuffer");
 	ps->addField<glm::vec4>("PredictedPositionBuffer");
-	ps->addField<glm::vec4>("cpyPredictedPositionBuffer");
 	ps->addField<glm::vec4>("VelocityBuffer");
-	ps->addField<glm::vec4>("cpyVelocityBuffer");
 	ps->addField<float>("DensityBuffer");
-	ps->addField<float>("cpyDensityBuffer");
 	ps->addField<float>("LambdaBuffer");
-	ps->addField<float>("cpyLambdaBuffer");
 	ps->addField<glm::uvec4>("MetaBuffer");
-	ps->addField<glm::uvec4>("cpyMetaBuffer");
+	ps->addField<CopyContent>("CopyBuffer");
+	ps->addBuffer<glm::vec4>("EmitterPositionBuffer");
 	ps->addBuffer(binBuffer);
 	ps->solveLink(solver);
 	ps->detach(solver);
@@ -248,7 +267,6 @@ void AppLayer::InitPhysics() {
 	ps->detach(particleShader);
 
 	ps->link(isoGen->name(), "PositionBuffer");
-	ps->link(isoGen->name(), "PredictedPositionBuffer");
 	ps->link(isoGen->name(), "VelocityBuffer");
 	ps->link(isoGen->name(), "DensityBuffer");
 	ps->link(isoGen->name(), "LambdaBuffer");
@@ -265,8 +283,8 @@ void AppLayer::InitPhysics() {
 	scene.add(bs);
 	bs->hide();
 
+	/*
 	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 1, 32);
-
 	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 1, 32);
 	volume->setUnit(0);
 	isosurface = IsoSurface::create("isosurface", volume);
@@ -281,12 +299,13 @@ void AppLayer::InitPhysics() {
 	//isosurface->mesh()->translate(settings.bb * glm::vec3(0, 0, 0.5));
 	isosurface->mesh()->scale(settings.bb * glm::vec3(1.0));
 	isosurface->hide();
-	scene.add(isosurface);
+	scene.add(isosurface);*/
 }
 
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
+	lastSpawTime = 0;
 	Console::info() << "Generating particles..." << Console::endl;
 
 	BindingPointManager::instance().resetBindings();
@@ -299,14 +318,16 @@ void AppLayer::ResetSimulation() {
 	float spacing = settings.particleRadius * 2.1;
 	auto cpu_position = std::vector<glm::vec4>();
 	auto cpu_predictedPosition = std::vector<glm::vec4>();
+	auto cpu_emitterPosition = std::vector<glm::vec4>();
 	auto cpu_velocity = std::vector<glm::vec4>();
 	auto cpu_density = std::vector<float>();
 	auto cpu_lambda = std::vector<float>();
 	auto cpu_meta = std::vector<glm::uvec4>();
 
 	numParticles = 0;
+	numEmitter = 0;
 
-	/**/
+	/*
 	{
 		emitter->computeBoundingBox();
 		emitter->voxelize(spacing);
@@ -340,11 +361,41 @@ void AppLayer::ResetSimulation() {
 		}
 	}/**/
 
+	/**/
+	{
+		static_emitter->computeBoundingBox();
+		static_emitter->voxelize(spacing);
+		BoundingBox aabb = static_emitter->getBoundingBox();
+		glm::vec3 bb_size = aabb.max - aabb.min;
+		int gridSizeX = ceil(bb_size.x / spacing);
+		int gridSizeY = ceil(bb_size.y / spacing);
+		int gridSizeZ = ceil(bb_size.z / spacing);
+
+		for (int i = 0; i < gridSizeX * gridSizeY * gridSizeZ; i++) {
+			if (static_emitter->getVoxels()[i] != 0) {
+
+				int index = i;
+				int vz = index / (gridSizeX * gridSizeY);
+				index -= (vz * gridSizeX * gridSizeY);
+				int vy = index / gridSizeX;
+				int vx = index % gridSizeX;
+
+				float x = aabb.min.x + (vx + 0.5) * spacing;
+				float y = aabb.min.y + (vy + 0.5) * spacing;
+				float z = aabb.min.z + (vz + 0.5) * spacing;
+
+				cpu_emitterPosition.push_back(glm::vec4(x, y, z, 0.0));
+				//cpu_meta.push_back(glm::uvec4(FLUID_EMITTER, numEmitter, numEmitter, 0.0));
+				numEmitter++;
+			}
+		}
+	}/**/
+
 	spacing = settings.particleRadius*2.0;
 	/**/
 	{
 		domain->computeBoundingBox();
-		domain->voxelize(spacing, true);
+		domain->voxelizeSurface(spacing, spacing*1.2);
 		BoundingBox aabb = domain->getBoundingBox();
 		glm::vec3 bb_size = aabb.max - aabb.min;
 		int gridSizeX = ceil(bb_size.x / spacing);
@@ -377,7 +428,7 @@ void AppLayer::ResetSimulation() {
 
 	{
 		helix->computeBoundingBox();
-		helix->voxelize(spacing, true);
+		helix->voxelizeSurface(spacing, spacing);
 		BoundingBox aabb = helix->getBoundingBox();
 		glm::vec3 bb_size = aabb.max - aabb.min;
 		int gridSizeX = ceil(bb_size.x / spacing);
@@ -408,11 +459,15 @@ void AppLayer::ResetSimulation() {
 		}
 	}
 
+	while (cpu_position.size() < settings.max_pThread) {
+		cpu_position.push_back(glm::vec4(0, 0, 0, 0.0));
+		cpu_predictedPosition.push_back(glm::vec4(0, 0, 0, 0.0));
+		cpu_velocity.push_back(glm::vec4(0));
+		cpu_density.push_back(0.0);
+		cpu_lambda.push_back(0.0);
+		cpu_meta.push_back(glm::uvec4(FLUID_EMITTER, numParticles, numParticles, 0.0));
+	}
 
-
-	int realParticles = numParticles;
-
-	numBoundaryParticles = numParticles - realParticles;
 
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 
@@ -425,7 +480,7 @@ void AppLayer::ResetSimulation() {
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
-	ps->setInstancesCount(settings.pThread);
+	ps->setInstancesCount(settings.max_pThread);
 	bs->setInstancesCount(settings.bThread);
 
 	SyncUniforms();
@@ -436,9 +491,35 @@ void AppLayer::ResetSimulation() {
 	ps->writeField("DensityBuffer", cpu_density);
 	ps->writeField("LambdaBuffer", cpu_lambda);
 	ps->writeField("MetaBuffer", cpu_meta);
+	ps->writeBuffer("EmitterPositionBuffer", cpu_emitterPosition);
 
-	
+	Console::success() << "Simulation ready" << Console::endl;
 }
+
+
+void AppLayer::SpawnParticle() {
+	settings.pThread = numParticles + numEmitter;
+	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
+	solver->SetWorkgroupLayout(settings.pWkgCount);
+
+	solver->use();
+	solver->setUInt("numEmitter", numEmitter);
+	solver->setUInt("numParticles", numParticles);
+
+	solver->execute(6);
+	
+	numParticles += numEmitter;
+	solver->setUInt("numEmitter", 0);
+	solver->setUInt("numParticles", numParticles);
+
+	particleShader->use();
+	particleShader->setUInt("numParticles", numParticles);
+
+	isoGen->use();
+	isoGen->setUInt("numParticles", numParticles);
+}
+
+
 
 
 void AppLayer::NeigborSearch() {
@@ -476,7 +557,14 @@ void AppLayer::NeigborSearch() {
 }
 
 void AppLayer::Simulate(Merlin::Timestep ts) {
+	elapsedTime += settings.timestep.value();
+
 	solver->use();
+
+	if (elapsedTime - lastSpawTime > 0.05) {
+		SpawnParticle();
+		lastSpawTime = elapsedTime;
+	}
 
 	GPU_PROFILE(nns_time,
 		NeigborSearch();
@@ -502,23 +590,11 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 		}
 	)
 
-	glm::mat4 helix_transform = helix->transform();
-	glm::vec4 helix_centroid = glm::vec4(helix->getBoundingBox().centroid,1.0);
-
-	glm::vec4 rotAxis = glm::vec4(1, 0, 0, 0);
-	glm::mat4 rotAxis_transform = glm::mat4(1);
-	rotAxis_transform = glm::rotate(rotAxis_transform, float(30 * DEG_TO_RAD), glm::vec3(0, 1, 0));
-	rotAxis = rotAxis * rotAxis_transform;
-
-	//helix->translate(-helix_transform * helix_centroid);
-	helix_transform = glm::translate(helix_transform, -glm::vec3(helix_centroid));
-	helix_transform = glm::rotate(helix_transform, float(- rot_speed * settings.timestep.value()), glm::vec3(rotAxis));
-	helix_transform = glm::translate(helix_transform, glm::vec3(helix_centroid));
-	helix->setTransform(helix_transform);
-	//helix->translate(helix_transform * helix_centroid);
-
-
-	elapsedTime += settings.timestep.value();
+	helix->translate(glm::vec3(0, 0, -1));
+	helix->rotate(glm::vec3(0, 30 * DEG_TO_RAD,0));
+	helix->rotate(glm::vec3(rot_speed * settings.timestep.value(), 0, 0));
+	helix->rotate(glm::vec3(0,-30 * DEG_TO_RAD,0));
+	helix->translate(glm::vec3(0, 0, 1));
 
 }
 
@@ -551,11 +627,11 @@ void AppLayer::onImGuiRender() {
 		if (transparency) ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 		else ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 	}
-
+	/*
 	if (ImGui::Checkbox("Use IsoSurface", &use_isosurface)) {
 		if (use_isosurface) isosurface->show();
 		else isosurface->hide();
-	}
+	}*/
 
 	static bool showdomain = false;
 	if (ImGui::Checkbox("Show domain", &showdomain)) {
@@ -717,7 +793,7 @@ void AppLayer::onImGuiRender() {
 	static bool first_frame = true;
 	static int debug_layer = 0;
 
-	ImGui::Begin("Debug");
+	/*ImGui::Begin("Debug");
 	if (ImGui::SliderInt("Layer", (int*)&debug_layer, 0, settings.volume_size.z - 1) || first_frame)
 	{
 		// Copy one layer of the 3D volume texture into the "debug" 2D texture for display
@@ -728,7 +804,7 @@ void AppLayer::onImGuiRender() {
 		first_frame = false;
 	}
 	ImGui::Image((void*)(intptr_t)texture_debug->id(), ImVec2(settings.volume_size.x, settings.volume_size.y), ImVec2(1, 1), ImVec2(0, 0));
-	ImGui::End();
+	ImGui::End();*/
 
 	if (ImGui::Button("Debug")) {
 		throw("DEBUG");

@@ -95,7 +95,7 @@ namespace Merlin{
 
 	void ParticleSystem::writeField(const std::string& name, GLsizei typesize,  void* data){
 		if (hasField(name)) {
-			if (m_fields[name]->elements() != m_instancesCount) {
+			if (m_fields[name]->elements() < m_instancesCount) {
 				//Console::error("ParticleSystem") << "Field hasn't been allocated" << Console::endl;
 				m_fields[name]->allocateBuffer(m_instancesCount * typesize, data, BufferUsage::StaticDraw);
 			} else m_fields[name]->writeBuffer(m_instancesCount * typesize, data);
@@ -104,7 +104,7 @@ namespace Merlin{
 
 	void ParticleSystem::writeBuffer(const std::string& name, GLsizei typesize, GLsizei elements, void* data) {
 		if (hasBuffer(name)) {
-			if (m_buffers[name]->elements() != elements) {
+			if (m_buffers[name]->elements() < elements) {
 				//Console::error("ParticleSystem") << "Field hasn't been allocated" << Console::endl;
 				m_buffers[name]->allocateBuffer(elements * typesize, data, BufferUsage::StaticDraw);
 			}

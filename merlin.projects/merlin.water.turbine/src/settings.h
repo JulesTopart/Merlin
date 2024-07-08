@@ -10,13 +10,13 @@ struct Bin {
 };
 
 struct Settings {
-	const float particleRadius = 0.8;
+	const float particleRadius = 0.5;
 	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius;
 	const float volumeWidth = smoothingRadius*0.75;
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(500, 80, 180);
+	glm::vec3 bb = glm::vec3(490, 80, 180);//update this in the shader as well
 
 
 	// Physics Parameters
@@ -30,7 +30,8 @@ struct Settings {
 	float stiffness = 0.0;
 
 	//GPU Threading settings
-	GLuint pThread = 3000000; //Max Number of particles (thread) (10 milion)
+	GLuint max_pThread = 3000000; //Max Number of particles (thread) (10 milion)
+	GLuint pThread = 1;
 
 	//Solver settings
 	int solver_substep = 3;

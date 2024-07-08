@@ -6,7 +6,7 @@ using namespace Merlin;
 #define UNUSED 0
 #define SOLID 1
 #define FLUID 2
-#define GAS 3
+#define FLUID_EMITTER 3
 #define GRANULAR 4
 #define BOUNDARY 5
 
@@ -23,6 +23,7 @@ public:
 	void InitGraphics();
 	void InitPhysics();
 	void ResetSimulation();
+	void SpawnParticle();
 
 	void SyncUniforms();
 
@@ -48,9 +49,11 @@ private:
 	Mesh_Ptr domain;
 	Mesh_Ptr helix;
 
+	/*
 	IsoSurface_Ptr isosurface;
 	Texture3D_Ptr volume;
 	Texture2D_Ptr texture_debug;
+	*/
 
 	Shader_Ptr particleShader;
 	Shader_Ptr binShader;
@@ -58,9 +61,8 @@ private:
 	// --- Simulation--- 
 	Settings settings;
 	GLuint numParticles = 0;
-	GLuint numActiveParticles = 0;
-	GLuint numConstraint = 0;
-	GLuint numBoundaryParticles = 0;
+	GLuint numEmitter = 0;
+
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 
 	double nns_time = 0;
@@ -71,6 +73,7 @@ private:
 	double total_time = 0; double total_start_time = 0;
 
 	float elapsedTime = 0;
+	float lastSpawTime = 0;
 	bool paused = true;
 	bool integrate = true; 
 	bool use_isosurface = false;

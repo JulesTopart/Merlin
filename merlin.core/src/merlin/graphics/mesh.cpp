@@ -154,37 +154,29 @@ namespace Merlin {
 		updateVAO();
 	}
 
-	void Mesh::voxelize(float size, bool only_surface) {
-		m_voxels = Voxelizer::voxelize(*this, size, only_surface);
+	void Mesh::voxelize(float size) {
+		m_voxels = Voxelizer::voxelize(*this, size);
+	}
+
+	void Mesh::voxelizeSurface(float size, float thickness){
+		m_voxels = Voxelizer::voxelizeSurface(*this, size, thickness);
 	}
 
 	void Mesh::computeBoundingBox() {
-
-		m_bbox.max.x = -INFINITY;
-		m_bbox.min.x = INFINITY;
-		m_bbox.max.y = -INFINITY;
-		m_bbox.min.y = INFINITY;
-		m_bbox.max.z = -INFINITY;
-		m_bbox.min.z = INFINITY;
-
 		glm::mat4 modelMat = globalTransform();
-
-		for (Vertex& v : m_vertices) {
-
-			glm::vec4 vec = modelMat * glm::vec4(v.position, 1);
-
-			if (vec.x > m_bbox.max.x) m_bbox.max.x = vec.x;
-			if (vec.y > m_bbox.max.y) m_bbox.max.y = vec.y;
-			if (vec.z > m_bbox.max.z) m_bbox.max.z = vec.z;
-	
-			if (vec.x < m_bbox.min.x) m_bbox.min.x = vec.x;
-			if (vec.y < m_bbox.min.y) m_bbox.min.y = vec.y;
-			if (vec.z < m_bbox.min.z) m_bbox.min.z = vec.z;
+		glm::vec3 min(FLT_MAX), max(-FLT_MAX);
+		for (const auto& vertex : m_vertices) {
+			glm::vec4 vec = modelMat * glm::vec4(vertex.position, 1);
+			min = glm::min(min, glm::vec3(vec));
+			max = glm::max(max, glm::vec3(vec));
 		}
+		m_bbox.min = min;
+		m_bbox.max = max;
 
-		m_bbox.centroid = m_bbox.min + (m_bbox.max - m_bbox.min)*glm::vec3(0.5);
+		m_bbox.centroid = (min + max) / 2.0f;
 		Console::info("Mesh") << "Bounding box is " << m_bbox.max - m_bbox.min << " starting at " << m_bbox.min << " and ending at " << m_bbox.max << Console::endl;
 	}
+
 
 	void Mesh::computeNormals(){
 		// Initialize all normals to zero
@@ -256,7 +248,6 @@ namespace Merlin {
 
 
 	void Mesh::removeUnusedVertices() {
-
 		Console::info("Mesh") << "Removing unused vertices.." << Console::endl;
 		int i = 0;
 		Vertices newVertices;
@@ -266,6 +257,25 @@ namespace Merlin {
 		for (size_t i = 0; i < m_indices.size(); i++) {
 			newVertices.push_back(m_vertices[i]);
 		}
+	}
+
+	void Mesh::applyMeshTransform(){
+		for (auto& vertex : m_vertices) {
+			vertex.position = transform() * glm::vec4(vertex.position,1.0);
+			vertex.normal = transform() * glm::vec4(vertex.normal,0.0);
+		}
+		updateVAO();
+		setTransform(glm::mat4(1));
+	}
+
+	void Mesh::centerMeshOrigin(){
+		computeBoundingBox();
+		for (auto& vertex : m_vertices) {
+			vertex.position -= m_bbox.centroid;
+		}
+		updateVAO();
+		setTransform(glm::mat4(1));
+		translate(m_bbox.centroid);
 	}
 
 	

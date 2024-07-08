@@ -12,7 +12,9 @@ uniform float artificialPressureMultiplier = 0.0001;
 uniform float artificialViscosityMultiplier = 0.0001;
 
 uniform float stiffness = 5000000.0;
+
 uniform uint numParticles = 0;
-uniform bool stabilizationPass = false;
+uniform uint numEmitter = 0;
+uniform uint maxParticles = 0;
 
 #endif

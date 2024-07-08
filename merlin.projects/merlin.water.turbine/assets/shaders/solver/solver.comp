@@ -16,12 +16,9 @@ void NNS(uint i, uint simStep);
 uniform uint stage;
 uniform vec4 sourcePos;
 
-
-
-
 const vec3 uRotationAxis = vec3(-cos(radians(30)), 0, sin(radians(30))); // Rotation axis for the animation
 uniform float uRotationSpeed = 2; // Rotation angle in radians for the animation
-const vec3 uCenter = vec3(60, 0, 70); // Center of rotation
+const vec3 uCenter = vec3(-80.3, 0, 86.6); // Center of rotation
 
 mat4 rotationMatrix(vec3 axis, float angle)
 {
@@ -37,14 +34,29 @@ mat4 rotationMatrix(vec3 axis, float angle)
     );
 }
 
+void spawnParticle(uint i){
+	uint emmiterID = i - numParticles;
+	xi = Xi = ssbo_emitter_position[emmiterID].xyz;
+	Rhoi = restDensity;
+	Vi = vec3(0,0,0);
 
+	ssbo_meta[i] = uvec4(FLUID, getBinIndex(xi), i, i); //phase, binindex, id , sortedID
+}
 
 // XPBD_Main
 void main() {
 	uint i = gl_GlobalInvocationID.x;
-	if (i >= numParticles) return;
+	if (i >= numParticles + numEmitter) return;
+	if (i >= numParticles) {
+		if(stage != 6) return;
+		spawnParticle(i);
+	}
+
 	NNS(i, stage);
-	if(B_Phase(i) < BOUNDARY)	SolveFluid(i, stage);
+	if(B_Phase(i) == FLUID)	SolveFluid(i, stage);
+	else if(B_Phase(i) == FLUID_EMITTER){
+
+	}
 	else if(B_Phase(i) >= BOUNDARY){
 		if(stage != 2) return;
 
@@ -72,23 +84,23 @@ void NNS(uint i, uint simStep){
 	if(simStep == 0){ //Bin sorting
 		uint bin = B_BinIndex(i) = getBinIndex(Xi);
 		atomicAdd(bins[bin].count, 1);
-		ssbo_cpy_position[i] = ssbo_position[i];
-		ssbo_cpy_pposition[i] = ssbo_pposition[i];
-		ssbo_cpy_velocity[i] = ssbo_velocity[i];
-		ssbo_cpy_density[i] = ssbo_density[i];
-		ssbo_cpy_lambda[i] = ssbo_lambda[i];
-		ssbo_cpy_meta[i] = ssbo_meta[i];
-
+		ssbo_copy[i].position = ssbo_position[i];
+		ssbo_copy[i].pposition = ssbo_pposition[i];
+		ssbo_copy[i].velocity = ssbo_velocity[i];
+		ssbo_copy[i].density = ssbo_density[i];
+		ssbo_copy[i].lambda = ssbo_lambda[i];
+		ssbo_copy[i].meta = ssbo_meta[i];
 		return;
-	}else if(simStep == 1){//Sort particle indices
-		uint newID = atomicAdd(bins[ssbo_cpy_meta[i].y].index, -1) -1;
 
-		ssbo_position[newID]  = ssbo_cpy_position[i];
-		ssbo_pposition[newID] = ssbo_cpy_pposition[i];
-		ssbo_velocity[newID]  = ssbo_cpy_velocity[i];
-		ssbo_density[newID]   = ssbo_cpy_density[i];
-		ssbo_lambda[newID]    = ssbo_cpy_lambda[i];
-		ssbo_meta[newID]      = ssbo_cpy_meta[i];
+	}else if(simStep == 1){//Sort particle indices
+		uint newID = atomicAdd(bins[ssbo_copy[i].meta.y].index, -1) -1;
+
+		ssbo_position[newID]  = ssbo_copy[i].position;
+		ssbo_pposition[newID] = ssbo_copy[i].pposition;
+		ssbo_velocity[newID]  = ssbo_copy[i].velocity;
+		ssbo_density[newID]   = ssbo_copy[i].density;
+		ssbo_lambda[newID]    = ssbo_copy[i].lambda;
+		ssbo_meta[newID]      = ssbo_copy[i].meta;
 		ssbo_meta[ssbo_meta[newID].z].z = newID;
 		return;
 	}

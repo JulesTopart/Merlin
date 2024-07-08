@@ -10,7 +10,7 @@ struct Bin {
 };
 
 struct Settings {
-	const float particleRadius = 0.3;
+	const float particleRadius = 0.4;//you need to change constant in the shader as well
 	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius;
 	const float volumeWidth = smoothingRadius*0.75;

@@ -156,6 +156,7 @@ void AppLayer::InitGraphics() {
 	emitter = Primitives::createCube(40, 60, 40);
 	emitter->enableWireFrameMode();
 	emitter->translate(glm::vec3(-130,0, 150));
+	//emitter->translate(glm::vec3(130,0, 35)); For pumping scnerario
 
 	helix = ModelLoader::loadMesh("./assets/models/HELIX.stl");
 	helix->rotate(glm::vec3(0, 0, 180 * DEG_TO_RAD));
@@ -349,7 +350,7 @@ void AppLayer::ResetSimulation() {
 	/**/
 	{
 		domain->computeBoundingBox();
-		domain->voxelize(spacing, true);
+		domain->voxelizeSurface(spacing, spacing*2.0);
 		BoundingBox aabb = domain->getBoundingBox();
 		glm::vec3 bb_size = aabb.max - aabb.min;
 		int gridSizeX = ceil(bb_size.x / spacing);
@@ -382,7 +383,7 @@ void AppLayer::ResetSimulation() {
 
 	{
 		helix->computeBoundingBox();
-		helix->voxelize(spacing, true);
+		helix->voxelizeSurface(spacing, spacing*2.0);
 		BoundingBox aabb = helix->getBoundingBox();
 		glm::vec3 bb_size = aabb.max - aabb.min;
 		int gridSizeX = ceil(bb_size.x / spacing);

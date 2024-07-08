@@ -5,7 +5,15 @@
 
 namespace Merlin {
 
-	std::vector<int> Voxelizer::voxelize(Mesh& mesh, float vox_size, bool only_surface) {
+	std::vector<int> Voxelizer::voxelize(Mesh& mesh, float vox_size) {
+		return voxelize(mesh, vox_size, 0);
+	}
+
+	std::vector<int> Voxelizer::voxelizeSurface(Mesh& mesh, float vox_size, float thickness) {
+		return voxelize(mesh, vox_size, thickness);
+	}
+
+	std::vector<int> Voxelizer::voxelize(Mesh& mesh, float vox_size, float thickness) {
 
 		Vertices vertices = mesh.getVertices();
 		Indices indices = mesh.getIndices();
@@ -46,6 +54,7 @@ namespace Merlin {
 		mesh.computeBoundingBox();
 		BoundingBox bb = mesh.getBoundingBox();
 		glm::vec3 bb_size = bb.max - bb.min;
+		bb_size += glm::vec3(vox_size*2.0);
 
 		GLuint voxThread = ceil(bb_size.x / vox_size) * ceil(bb_size.y / vox_size) * ceil(bb_size.z / vox_size); //Total number of bin (thread)
 		SSBO_Ptr<GLint> voxBuffer = SSBO<GLint>::create("voxel_buffer", voxThread); //full grid
@@ -63,7 +72,7 @@ namespace Merlin {
 		m_voxelize->setFloat("voxelSize", vox_size);
 		m_voxelize->setUInt("facetCount", facets.size());
 		m_voxelize->setUInt("voxelCount", voxThread);
-		m_voxelize->setInt("use_only_surface", only_surface);
+		m_voxelize->setFloat("surface_thickness", thickness);
 
 		GLuint pWkgSize = 64;
 		GLuint pWkgCount = (voxThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
@@ -76,5 +85,7 @@ namespace Merlin {
 
 		return voxBuffer->read();
 	}
+
+
 
 }

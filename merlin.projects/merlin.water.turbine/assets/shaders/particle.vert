@@ -44,7 +44,7 @@ void main() {
 	}else if(colorCycle == 1){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 2){ 
-		color = colorMap(map(Rhoi*1000,1000* restDensity, 1200 * restDensity), blue);
+		color = colorMap(map(Rhoi*1000, 950 * restDensity, 1000.1 * restDensity), blue);
 	}else if(colorCycle == 3){ 
 		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 4){ 

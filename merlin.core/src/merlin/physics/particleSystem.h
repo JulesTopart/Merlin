@@ -75,7 +75,7 @@ namespace Merlin {
 		void addField(const std::string& name);
 
 		template<typename T>
-		void addBuffer(const std::string& name, GLsizei size);
+		void addBuffer(const std::string& name, GLsizei size = 0);
 
 		static Shared<ParticleSystem> create(const std::string&, size_t count);
 
@@ -134,7 +134,7 @@ namespace Merlin {
 	template<typename T>
 	void ParticleSystem::writeField(const std::string& name, std::vector<T> data) {
 		if (hasField(name)) {
-			if (m_fields[name]->elements() != data.size()) {
+			if (m_fields[name]->elements() < data.size()) {
 				//Console::error("ParticleSystem") << "Field hasn't been allocated" << Console::endl;
 				m_fields[name]->allocateBuffer(data.size() * sizeof(T), data.data(), BufferUsage::StaticDraw);
 			}
@@ -146,7 +146,7 @@ namespace Merlin {
 	template<typename T>
 	void ParticleSystem::writeBuffer(const std::string& name, std::vector<T> data) {
 		if (hasBuffer(name)) {
-			if (m_buffers[name]->elements() != data.size()) {
+			if (m_buffers[name]->elements() < data.size()) {
 				//Console::error("ParticleSystem") << "Field hasn't been allocated" << Console::endl;
 				m_buffers[name]->allocateBuffer(data.size() * sizeof(T), data.data(), BufferUsage::StaticDraw);
 			}

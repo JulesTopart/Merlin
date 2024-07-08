@@ -23,7 +23,7 @@ const vec3 halfdomain = domain/2.0;
 const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
 const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);
 
-const float particleRadius = 0.3;//mm
+const float particleRadius = 0.4;//mm
 const float smoothingRadius = 4.0 * particleRadius; //mm
 const float binSize = smoothingRadius;
 const uvec3 binMax = uvec3(domain / binSize);

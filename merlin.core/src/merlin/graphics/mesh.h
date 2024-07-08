@@ -23,12 +23,16 @@ namespace Merlin {
 		void draw() const;
 		void drawInstanced(GLsizeiptr instanced) const;
 
-		void voxelize(float size, bool only_surface = false);
+		void voxelize(float size);
+		void voxelizeSurface(float size, float thickness);
+
 		void computeBoundingBox();
 		void computeNormals();
 		void smoothNormals();
 		void calculateIndices();
 		void removeUnusedVertices();
+		void applyMeshTransform();
+		void centerMeshOrigin();
 		void updateVAO();
 
 		inline void setDrawMode(GLuint mode) { m_drawMode = mode; }

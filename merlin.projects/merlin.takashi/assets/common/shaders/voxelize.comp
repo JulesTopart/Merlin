@@ -15,7 +15,7 @@ uniform vec4 aabbMax;
 uniform float voxelSize;
 uniform uint facetCount = 0;
 uniform uint voxelCount = 0;
-uniform bool use_only_surface = false;
+uniform float surface_thickness = 0.0;
 uniform mat4 modelMatrix; // Model transformation matrix
 
 #define INTERSECT_EPSILON 1e-4
@@ -74,8 +74,8 @@ int raytrace(inout vec3 ro, vec3 rd){
         vec3 b = vec3(modelMatrix * f[1]);
         vec3 c = vec3(modelMatrix * f[2]);
         
-        if(use_only_surface){
-            if(udTriangle(ro, a, b, c) < voxelSize)
+        if(surface_thickness > 0){
+            if(udTriangle(ro, a, b, c) < surface_thickness)
                 hit++ ;
         }else{
             if(IntersectTriangle( ro, rd, a, b, c))
@@ -109,7 +109,7 @@ void main(){
 
      int hit = raytrace(ro, rd);
 
-    if(use_only_surface){
+    if(surface_thickness > 0){
         if(hit == 0) voxelArray[index] = 0;
         else voxelArray[index] = 1;
     }else{
