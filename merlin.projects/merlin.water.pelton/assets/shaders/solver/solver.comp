@@ -38,7 +38,9 @@ void spawnParticle(uint i){
 	uint emmiterID = i - numParticles;
 	xi = Xi = ssbo_emitter_position[emmiterID].xyz;
 	Rhoi = restDensity;
-	Vi = vec3(100,0,0);
+	Vi = vec3(1000,0,-800);
+	Xi+=Vi*dt;
+
 
 	ssbo_meta[i] = uvec4(FLUID, getBinIndex(xi), i, i); //phase, binindex, id , sortedID
 }

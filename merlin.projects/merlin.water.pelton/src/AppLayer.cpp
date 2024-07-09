@@ -163,25 +163,23 @@ void AppLayer::InitGraphics() {
 	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
 	//scene.add(bbox);
 
-	static_emitter = Primitives::createCube(2, 10, 10);
+	static_emitter = Primitives::createCylinder(5, 2, 10);
 	static_emitter->enableWireFrameMode();
+	static_emitter->rotate(glm::vec3(0, 120 * DEG_TO_RAD, 0));
 	static_emitter->applyMeshTransform();
-	static_emitter->translate(glm::vec3(-50, 0, 50));
+	static_emitter->translate(glm::vec3(-60, 0, 70));
 	scene.add(static_emitter);
 
 	pelton = ModelLoader::loadMesh("./assets/models/PELTON.stl");
 	pelton->computeNormals();
-	pelton->smoothNormals();
-	pelton->translate(glm::vec3(0, 0, 50));
-	pelton->rotate(glm::vec3(0, 0, 180 * DEG_TO_RAD));
-	pelton->rotate(glm::vec3(90 * DEG_TO_RAD,0,0));
-	pelton->scale(0.05);
-	//helix->translate(glm::vec3(90 * DEG_TO_RAD,0,0));
-	pelton->applyMeshTransform();
+	pelton->useFlatShading(true);
 	pelton->centerMeshOrigin();
-
+	pelton->setPosition(glm::vec3(0));
+	pelton->rotate(glm::vec3(90 * DEG_TO_RAD, 0, 0));
+	pelton->scale(0.05);
+	pelton->applyMeshTransform();
 	pelton->setMaterial("white plastic");
-	//helix->rotate(glm::vec3(0, -20*DEG_TO_RAD, 0));
+	pelton->translate(glm::vec3(0, 0, 50));
 
 
 	float angle = 30;
@@ -190,7 +188,7 @@ void AppLayer::InitGraphics() {
 
 
 	TransformObject_Ptr origin = TransformObject::create("origin", 30);
-	scene.add(origin);
+	//scene.add(origin);
 
 
 }
@@ -299,7 +297,7 @@ void AppLayer::ResetSimulation() {
 	ps->detach(particleShader);
 	bs->detach(binShader);
 	
-	float spacing = settings.particleRadius * 2.1;
+	float spacing = settings.particleRadius * 3.0;
 	auto cpu_position = std::vector<glm::vec4>();
 	auto cpu_predictedPosition = std::vector<glm::vec4>();
 	auto cpu_emitterPosition = std::vector<glm::vec4>();
@@ -430,8 +428,10 @@ void AppLayer::ResetSimulation() {
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
+	
 	ps->setInstancesCount(settings.max_pThread);
 	bs->setInstancesCount(settings.bThread);
+	ps->setActiveInstancesCount(settings.pThread);
 
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
@@ -452,9 +452,12 @@ void AppLayer::SpawnParticle() {
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 
-	solver->use();
-	solver->setUInt("numEmitter", numEmitter);
-	solver->setUInt("numParticles", numParticles);
+	if (settings.pThread > 115000 && rot_speed < 50) rot_speed += ((50-rot_speed)/ 50)*0.3;
+
+
+	ps->setActiveInstancesCount(settings.pThread);
+
+
 
 	solver->execute(6);
 	
@@ -467,6 +470,11 @@ void AppLayer::SpawnParticle() {
 
 	isoGen->use();
 	isoGen->setUInt("numParticles", numParticles);
+
+	solver->use();
+	solver->setUInt("numEmitter", numEmitter);
+	solver->setUInt("numParticles", numParticles);
+	solver->setFloat("uRotationSpeed", rot_speed);
 }
 
 
@@ -511,11 +519,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->use();
 
-	if (elapsedTime - lastSpawTime > 0.01) {
-		SpawnParticle();
-		lastSpawTime = elapsedTime;
-	}
-
+	static double time = 0;
 	GPU_PROFILE(nns_time,
 		NeigborSearch();
 	)
@@ -523,8 +527,15 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
 			if (integrate) {
-				solver->execute(2);
+				time += settings.timestep.value() / settings.solver_substep;
+				if (time - lastSpawTime > 0.0018) {
+					SpawnParticle();
+					lastSpawTime = time;
+				}
 
+
+				solver->execute(2);
+				pelton->rotate(glm::vec3(0, -rot_speed * settings.timestep.value()/ settings.solver_substep, 0));
 
 			}
 			if (integrate) {
@@ -541,7 +552,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	)
 
 
-	pelton->rotate(glm::vec3(0,rot_speed * settings.timestep.value(), 0));
+	
 
 
 }

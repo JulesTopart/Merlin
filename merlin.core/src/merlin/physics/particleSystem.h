@@ -25,6 +25,7 @@ namespace Merlin {
 		ParticleSystem(const std::string& name, size_t count);
 		void draw() const; //draw the mesh
 		void setInstancesCount(size_t count);
+		void setActiveInstancesCount(size_t count);
 
 		AbstractBufferObject_Ptr getField(const std::string& name) const;
 		AbstractBufferObject_Ptr getBuffer(const std::string& name) const;
@@ -91,6 +92,7 @@ namespace Merlin {
 
 		Mesh_Ptr m_geometry = nullptr;
 		size_t m_instancesCount = 1;
+		size_t m_active_instancesCount = 1; //for rendering
 		ParticleSystemDisplayMode m_displayMode = ParticleSystemDisplayMode::POINT_SPRITE;
 
 

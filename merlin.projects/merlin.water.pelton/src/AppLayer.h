@@ -71,12 +71,12 @@ private:
 	double total_time = 0; double total_start_time = 0;
 
 	float elapsedTime = 0;
-	float lastSpawTime = 0;
+	double lastSpawTime = 0;
 	bool paused = true;
 	bool integrate = true; 
 	bool use_isosurface = false;
 
-	float rot_speed = 2;
+	float rot_speed = 0;
 	float sim_speed = 1;
 	float camera_speed = 1;
 	bool mousePressed = false;

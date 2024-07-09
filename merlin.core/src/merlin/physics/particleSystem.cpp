@@ -17,17 +17,17 @@ namespace Merlin{
 		
 		switch (m_displayMode) {
 		case ParticleSystemDisplayMode::MESH:
-			if(m_geometry) m_geometry->drawInstanced(m_instancesCount);
+			if(m_geometry) m_geometry->drawInstanced(m_active_instancesCount);
 			break;
 		case ParticleSystemDisplayMode::POINT_SPRITE :
 			glEnable(GL_PROGRAM_POINT_SIZE);
-			if (m_geometry) m_geometry->drawInstanced(m_instancesCount);
+			if (m_geometry) m_geometry->drawInstanced(m_active_instancesCount);
 			glDisable(GL_PROGRAM_POINT_SIZE);
 			break;
 		case ParticleSystemDisplayMode::POINT_SPRITE_SHADED:
 			glEnable(GL_PROGRAM_POINT_SIZE);
 			glEnable(0x8861);//Point shading
-			if (m_geometry) m_geometry->drawInstanced(m_instancesCount);
+			if (m_geometry) m_geometry->drawInstanced(m_active_instancesCount);
 			glDisable(GL_PROGRAM_POINT_SIZE);
 			glDisable(0x8861);
 			break;
@@ -37,10 +37,20 @@ namespace Merlin{
 	void ParticleSystem::setInstancesCount(size_t count) {
 		if (count == m_instancesCount) return;
 		if(m_fields.size() != 0) Console::warn() << "(Performance) Buffers of the particle system are being resized dynamically" << Console::endl;
-		m_instancesCount = count; 
+		m_active_instancesCount = m_instancesCount = count;
+		
 		for (auto field : m_fields) {
 			field.second->resizeBuffer(count * field.second->type());
 		}
+	}
+
+	void ParticleSystem::setActiveInstancesCount(size_t count){
+		if (count < m_instancesCount)
+			m_active_instancesCount = count;
+		else {
+			Console::error() << "Active instance count is greater than the total instance count" << Console::endl;
+		}
+		
 	}
 
 

@@ -95,7 +95,7 @@ vec3 computePositionDelta(uint i) {
 		if(B_Phase(j) == FLUID){
 			posDelta += (spikyGradient(Rij) * (B_Lambda(i) + B_Lambda(j) + sCorr)) / rho0;
 		}else if(B_Phase(j) >= BOUNDARY){
-			posDelta += spikyGradient(Rij) * (1.0/Rhoj) * (2.0 * B_Lambda(i) + sCorr)*4.0;
+			posDelta += spikyGradient(Rij) * (1.0/Rhoj) * (2.0 * B_Lambda(i) + sCorr)*10.0;
 		}
 
 	OVERNNS_END
