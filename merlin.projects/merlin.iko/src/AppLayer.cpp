@@ -75,7 +75,7 @@ void AppLayer::onUpdate(Timestep ts) {
 			isoGen->barrier(GL_ALL_BARRIER_BITS);
 			ps->detach(isoGen);
 
-			isosurface->setIsoLevel(0.1);
+			isosurface->setIsoLevel(0.15);
 			isosurface->compute();
 		}
 	}
@@ -251,6 +251,7 @@ void AppLayer::InitPhysics() {
 	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
 	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
 
+	isoGen->SetWorkgroupLayout(settings.iWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 	bs->setInstancesCount(settings.bThread);
 
