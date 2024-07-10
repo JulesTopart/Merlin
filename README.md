@@ -5,6 +5,8 @@
 ## Overview
 Merlin is a GPU computing and rendering engine designed as a sandbox instead of CUDA or OpenCL. While still in development, Merlin offers basic 3D rendering capabilities and a compute shader pipeline. The framework is geared towards facilitating physics experiments, but it's worth noting that it's still evolving and might not yet match the full capabilities of more established tools.
 
+Note: As Merlin is in development, this README aims to provide a balanced view of its current state, highlighting its potential while acknowledging its ongoing development status.
+
 ## Features
 - **GPU Computing**: Utilizes GPU for computations, aiming to offer an alternative to CUDA.
 - **Basic 3D Rendering**: Provides fundamental 3D rendering functionalities.
@@ -65,6 +67,19 @@ For support or to report issues, please use the GitHub issue tracker associated 
 ## License
 Merlin is released under CC BY-NC-SA. Please review the license terms before using or modifying the software.
 
----
+## Credits
 
-Note: As Merlin is in development, this README aims to provide a balanced view of its current state, highlighting its potential while acknowledging its ongoing development status.
+This project is built upon various OpenSource codes and tools.
+
+- Marching cubes algorithm by [Michael Walczyk](https://michaelwalczyk.com/project-marching-cubes.html) inspired by explanation of [Paul Bourke](https://paulbourke.net/geometry/polygonise/).
+- Signed distance function and rendering math by [Inigo Quilez](https://iquilezles.org/articles/distfunctions/)
+- Model loading library : [Assimp](https://github.com/assimp/assimp) Even if Merlin can load models using the internal loader, it will fall back on Assimp for unsupported model formats.
+- Graphical User Interface : [ImGui](https://github.com/ocornut/imgui) This library is used to make the super simple interface that make Merlin alive and interactive.
+- OpenGL development kit : [GLFW](https://www.glfw.org/)
+
+
+# References
+
+- Position based fluids [Position based fluids by Miles Macklin and Matthias Müller](https://dl.acm.org/doi/10.1145/2461912.2461984)
+- Smoothed Particle Hydrodynamics Techniques for the Physics Based Simulation of Fluids and Solids [A course on Smoothed Particle Hydrodynamics (SPH)](https://sph-tutorial.physics-simulation.org/)
+
