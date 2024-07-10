@@ -15,12 +15,20 @@ namespace Merlin {
 		Shader(std::string n,
 			const std::string vpath,
 			const std::string fpath,
-			const std::string gpath = "");
+			const std::string gpath = "", bool compile = true);
 
 		~Shader();
 
 		void destroy() override;
-		void compile(const std::string& vertex_file_path,
+
+		
+		void compile();
+
+		void readFile(const std::string& vertex_file_path,
+			const std::string& fragment_file_path,
+			const std::string& geometry_file_path = "");
+
+		void compileFromFile(const std::string& vertex_file_path,
 			const std::string& fragment_file_path,
 			const std::string& geometry_file_path = "");
 
@@ -28,10 +36,12 @@ namespace Merlin {
 			const std::string& fragment_src,
 			const std::string& geometry_src = "");
 
+
 		static Shared<Shader> create(	const std::string& name,
 										const std::string& vertex_file_path,
 										const std::string& fragment_file_path,
-										const std::string& geometry_file_path = "");
+										const std::string& geometry_file_path = "", bool compile = true);
+
 
 		inline bool supportTexture() const		{ return _supportTexture; }
 		inline bool supportMaterial() const		{ return _supportMaterial; }
@@ -46,8 +56,6 @@ namespace Merlin {
 
 	protected:
 
-		void compileShader(const std::string& name, const std::string& src, GLuint id);
-
 
 		bool _supportLights = true;
 		bool _supportTexture = true;
@@ -59,9 +67,9 @@ namespace Merlin {
 		GLuint fragmentShaderID = 0;
 		GLuint geometryShaderID = 0;
 
-		std::string VertexShaderSrc;
-		std::string FragmentShaderSrc;
-		std::string GeomShaderSrc;
+		std::string VertexShaderSrc = "";
+		std::string FragmentShaderSrc = "";
+		std::string GeomShaderSrc = "";
 	};
 
 	typedef Shared<Shader> Shader_Ptr;

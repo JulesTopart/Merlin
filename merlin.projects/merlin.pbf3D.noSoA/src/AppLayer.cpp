@@ -289,8 +289,8 @@ void AppLayer::NeigborSearch() {
 
 	//Binary tree on rightmost element of blocks
 	GLuint steps = settings.blockSize;
-	UniformObject<GLuint> space("space");
-	space.value = 1;
+	Uniform<GLuint> space("space");
+	space.value() = 1;
 	
 	for (GLuint step = 0; step < steps; step++) {
 		// Calls the parallel operation
@@ -299,7 +299,7 @@ void AppLayer::NeigborSearch() {
 		prefixSum->execute(1);
 		prefixSum->execute(2);
 
-		space.value *= 2;
+		space.value() *= 2;
 	}
 	prefixSum->execute(3);
 

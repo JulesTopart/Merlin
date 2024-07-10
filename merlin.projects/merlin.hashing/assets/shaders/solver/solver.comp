@@ -1,0 +1,140 @@
+#version 430
+
+#pragma once
+#include "../common/uniforms.comp"
+#include "../common/constants.comp"
+#include "../common/buffers.comp"
+#include "../common/nns.comp"
+#include "sph.kernels.comp" 
+#include "constraint.comp" 
+
+
+layout (local_size_x = PTHREAD) in;
+void SolveFluid(uint i, uint simStep);
+void NNS(uint i, uint simStep);
+
+uniform uint stage;
+uniform vec4 sourcePos;
+
+const vec3 uRotationAxis = vec3(0, 1, 0); // Rotation axis for the animation
+uniform float uRotationSpeed = 2; // Rotation angle in radians for the animation
+const vec3 uCenter = vec3(0, 0, 50); // Center of rotation
+
+mat4 rotationMatrix(vec3 axis, float angle)
+{
+    float cosTheta = cos(angle);
+    float sinTheta = sin(angle);
+    float oneMinusCosTheta = 1.0 - cosTheta;
+
+    return mat4(
+        cosTheta + axis.x * axis.x * oneMinusCosTheta, axis.x * axis.y * oneMinusCosTheta - axis.z * sinTheta, axis.x * axis.z * oneMinusCosTheta + axis.y * sinTheta, 0.0,
+        axis.y * axis.x * oneMinusCosTheta + axis.z * sinTheta, cosTheta + axis.y * axis.y * oneMinusCosTheta, axis.y * axis.z * oneMinusCosTheta - axis.x * sinTheta, 0.0,
+        axis.z * axis.x * oneMinusCosTheta - axis.y * sinTheta, axis.z * axis.y * oneMinusCosTheta + axis.x * sinTheta, cosTheta + axis.z * axis.z * oneMinusCosTheta, 0.0,
+        0.0, 0.0, 0.0, 1.0
+    );
+}
+
+void spawnParticle(uint i){
+	uint emmiterID = i - numParticles;
+	xi = Xi = ssbo_emitter_position[emmiterID].xyz;
+	Rhoi = restDensity;
+	Vi = vec3(1000,0,-800);
+	Xi+=Vi*dt;
+
+
+	ssbo_meta[i] = uvec4(FLUID, getBinIndex(xi), i, i); //phase, binindex, id , sortedID
+}
+
+// XPBD_Main
+void main() {
+	uint i = gl_GlobalInvocationID.x;
+	if (i >= numParticles + numEmitter) return;
+	if (i >= numParticles) {
+		if(stage != 6) return;
+		spawnParticle(i);
+	}
+
+	NNS(i, stage);
+	if(B_Phase(i) == FLUID)	SolveFluid(i, stage);
+	else if(B_Phase(i) == FLUID_EMITTER){
+
+	}
+	else if(B_Phase(i) >= BOUNDARY){
+		if(stage != 2) return;
+
+		if(B_Phase(i) == BOUNDARY + 1){
+			vec3 translatedPos  = xi - uCenter;
+			mat4 rotMatrix = rotationMatrix(uRotationAxis, uRotationSpeed*dt);
+			vec3 rotatedPos = (rotMatrix * vec4(translatedPos, 1.0)).xyz;
+			xi = Xi = rotatedPos + uCenter;
+		}
+
+
+
+		float pseudomass = 1; //to avoid dividing by zero in compute delta
+		vec3 position = Xi;
+		OVERNNS
+			if(Dij >= H || Dij < 1e-6) continue;
+			if(B_Phase(j) >= BOUNDARY)
+				pseudomass += poly6(Dij);
+		OVERNNS_END
+		Rhoi = pseudomass;
+	}
+}
+
+void NNS(uint i, uint simStep){
+	if(simStep == 0){ //Bin sorting
+		uint bin = B_BinIndex(i) = getBinIndex(Xi);
+		atomicAdd(bins[bin].count, 1);
+		ssbo_copy[i].position = ssbo_position[i];
+		ssbo_copy[i].pposition = ssbo_pposition[i];
+		ssbo_copy[i].velocity = ssbo_velocity[i];
+		ssbo_copy[i].density = ssbo_density[i];
+		ssbo_copy[i].lambda = ssbo_lambda[i];
+		ssbo_copy[i].meta = ssbo_meta[i];
+		return;
+
+	}else if(simStep == 1){//Sort particle indices
+		uint newID = atomicAdd(bins[ssbo_copy[i].meta.y].index, -1) -1;
+
+		ssbo_position[newID]  = ssbo_copy[i].position;
+		ssbo_pposition[newID] = ssbo_copy[i].pposition;
+		ssbo_velocity[newID]  = ssbo_copy[i].velocity;
+		ssbo_density[newID]   = ssbo_copy[i].density;
+		ssbo_lambda[newID]    = ssbo_copy[i].lambda;
+		ssbo_meta[newID]      = ssbo_copy[i].meta;
+		ssbo_meta[ssbo_meta[newID].z].z = newID;
+		return;
+	}
+}
+
+void SolveFluid(uint i, uint simStep) {
+	if(simStep == 2){
+		vec3 acceleration = vec3(0, 0, -g);
+		Vi += acceleration * dt;
+		Xi = xi + Vi * dt;
+		return;
+	}
+		
+	if(simStep == 3){ //compute lagrange multiplier
+		B_Lambda(i) = computeLambda(i);
+		return;
+	}
+		
+	if(simStep == 4){//correct density error and update position
+		Xi += computePositionDelta(i);
+		Xi += solveFloorCollision(i);
+		//particles[i].pposition = clampToDomain(particles[i].pposition);
+		return;
+	}
+	if(simStep == 5){//apply XSPH velocity correction
+		if(isnan(Xi.x) || isnan(Xi.y) || isnan(Xi.z)) Xi = xi;
+		Vi = (Xi - xi)/dt;
+
+		Vi += computeXPSH(i);
+
+		xi = Xi;
+		return;
+	}
+}
+

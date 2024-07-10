@@ -153,38 +153,279 @@ namespace Merlin {
 		glUniform2iv( getUniformLocation(name.c_str()), count, values);
 	}
 
-	std::string ShaderBase::readSrc(const std::string& filename)
-	{
+	// -----------
+
+	bool ShaderBase::hasConstant(const std::string& name) const{
+		return m_constants.find(name) != m_constants.end();
+	}
+
+	void ShaderBase::setConstUInt(const std::string name, GLuint value) {
+		m_constants[name] = "const uint " + name + " = " + std::to_string(value);
+	}
+
+	void ShaderBase::setConstInt(const std::string name, GLint value) {
+		m_constants[name] = "const int " + name + " = " + std::to_string(value);
+	}
+
+	void ShaderBase::setConstFloat(const std::string name, GLfloat value) {
+		m_constants[name] = "const float " + name + " = " + std::to_string(value);
+	}
+
+	void ShaderBase::setConstDouble(const std::string name, GLdouble value) {
+		m_constants[name] = "const double " + name + " = " + std::to_string(value);
+	}
+
+	void ShaderBase::setConstMat4(const std::string name, glm::mat4 mat) {
+		std::string value = "";
+		
+		for (int i = 0; i < 4; i++)
+			for (int j = 0; j < 4; j++)
+				value += std::to_string(float(mat[i][j])) + ((i + j * 4 < 15) ? "," : "");
+
+		m_constants[name] = "const double " + name + " = " + value;
+	}
+
+
+
+	void ShaderBase::setConstVec4(const std::string name, glm::vec4 vec) {
+		std::string value = "";
+
+		for (int i = 0; i < 4; i++)
+				value += std::to_string(float(vec[i])) + ((i < 3) ? "," : "");
+
+		m_constants[name] = "const vec4 " + name + " = vec4(" + value + ")";
+	}
+
+	void ShaderBase::setConstIVec4(const std::string name, glm::ivec4 vec) {
+		std::string value = "";
+
+		for (int i = 0; i < 4; i++)
+			value += std::to_string(int(vec[i])) + ((i < 3) ? "," : "");
+
+		m_constants[name] = "const ivec4 " + name + " = ivec4(" + value + ")";
+	}
+
+	void ShaderBase::setConstUVec4(const std::string name, glm::uvec4 vec) {
+		std::string value = "";
+
+		for (int i = 0; i < 4; i++)
+			value += std::to_string(GLuint(vec[i])) + ((i < 3) ? "," : "");
+
+		m_constants[name] = "const uvec4 " + name + " = uvec4(" + value + ")";
+	}
+
+	void ShaderBase::setConstVec3(const std::string name, glm::vec3 vec) {
+		std::string value = "";
+
+		for (int i = 0; i < 3; i++)
+			value += std::to_string(float(vec[i])) + ((i < 2) ? "," : "");
+
+		m_constants[name] = "const vec3 " + name + " = vec3(" + value + ")";
+	}
+
+	void ShaderBase::setConstIVec3(const std::string name, glm::ivec3 vec) {
+		std::string value = "";
+
+		for (int i = 0; i < 3; i++)
+			value += std::to_string(int(vec[i])) + ((i < 2) ? "," : "");
+
+		m_constants[name] = "const ivec3 " + name + " = ivec3(" + value + ")";
+	}
+
+	void ShaderBase::setConstUVec3(const std::string name, glm::uvec3 vec) {
+		std::string value = "";
+
+		for (int i = 0; i < 3; i++)
+			value += std::to_string(GLuint(vec[i])) + ((i < 2) ? "," : "");
+
+		m_constants[name] = "const uvec3 " + name + " = uvec3(" + value + ")";
+	}
+
+	void ShaderBase::setConstVec2(const std::string name, glm::vec2 vec)  {
+		std::string value = "";
+
+		for (int i = 0; i < 2; i++)
+			value += std::to_string(float(vec[i])) + ((i < 1) ? "," : "");
+
+		m_constants[name] = "const vec2 " + name + " = vec2(" + value + ")";
+	}
+
+	void ShaderBase::setConstIVec2(const std::string name, glm::ivec2 vec) {
+		std::string value = "";
+
+		for (int i = 0; i < 2; i++)
+			value += std::to_string(float(vec[i])) + ((i < 1) ? "," : "");
+
+		m_constants[name] = "const ivec2 " + name + " = ivec2(" + value + ")";
+	}
+
+	void ShaderBase::setConstUVec2(const std::string name, glm::uvec2 vec) {
+		std::string value = "";
+
+		for (int i = 0; i < 2; i++)
+			value += std::to_string(GLuint(vec[i])) + ((i < 1) ? "," : "");
+
+		m_constants[name] = "const uvec2 " + name + " = uvec2(" + value + ")";
+	}
+
+	void ShaderBase::define(const std::string& name, const std::string& value) {
+		m_defines[name] = value;
+	}
+
+
+
+
+	// -----------
+
+// Function to remove single-line comments (//...)
+	std::string removeSingleLineComments(const std::string& content) {
+		std::regex singleLineCommentRegex(R"(//.*)");
+		return std::regex_replace(content, singleLineCommentRegex, "");
+	}
+
+	// Function to remove multi-line comments (/*...*/)
+	std::string removeMultiLineComments(const std::string& content) {
+		std::string result = content;
+		size_t start_pos = 0;
+		while ((start_pos = result.find("/*", start_pos)) != std::string::npos) {
+			size_t end_pos = result.find("*/", start_pos + 2);
+			if (end_pos != std::string::npos) {
+				end_pos += 2; // Move past the end of the comment
+				result.erase(start_pos, end_pos - start_pos);
+			}
+			else {
+				// If there is no closing */, remove till end of the string
+				result.erase(start_pos);
+				break;
+			}
+		}
+		return result;
+	}
+
+	// Function to read and process the shader file content
+	std::string ShaderBase::readSrc(const std::string& filename) {
 		std::ifstream in(filename, std::ios::binary);
 		if (in) {
-			std::string contents;
+			std::string content;
 			in.seekg(0, std::ios::end);
-			contents.resize(in.tellg());
+			content.resize(in.tellg());
 			in.seekg(0, std::ios::beg);
-			in.read(&contents[0], contents.size());
+			in.read(&content[0], content.size());
 			in.close();
 
 			// Find and replace include statements
-			std::regex includeRegex("#include\\s+\"([^\"]+)\"");
+			std::regex includeRegex(R"(#include\s+\"([^"]+)\")");
 			std::smatch includeMatch;
 
 			std::string path = filename.substr(0, filename.find_last_of('/'));
 
-			while (std::regex_search(contents, includeMatch, includeRegex)) {
+			content = removeSingleLineComments(content);
+			content = removeMultiLineComments(content);
+
+			while (std::regex_search(content, includeMatch, includeRegex)) {
 				std::string includeFile = includeMatch[1].str();
 				std::string absPath = path + "/" + includeFile;
 
 				std::string includeContent = readSrc(absPath); // Recursive call to load included file's content
-				contents = std::regex_replace(contents, includeRegex, includeContent, std::regex_constants::format_first_only);
+				content = std::regex_replace(content, includeRegex, includeContent, std::regex_constants::format_first_only);
 			}
 
-			return contents;
+			return content;
 		}
 		else {
-			LOG_ERROR("ShaderLoader") << "Can't read file " << filename << Console::endl;
-			//throw(errno);
+			std::cerr << "Can't read file " << filename << std::endl;
 			return "error";
 		}
+	}
+
+
+	void ShaderBase::precompileSrc(std::string& src){
+		src = removeSingleLineComments(src);
+		src = removeMultiLineComments(src);
+		src = updateConstants(src);
+		src = updateDefines(src);
+
+		;
+	}
+
+	bool ShaderBase::compileShader(const std::string& name,const std::string& src, GLuint id) {
+		bool result = true;
+		GLint Result = GL_FALSE;
+		int InfoLogLength;
+
+		// Compile Shader
+		const char* SrcPointer = src.c_str();
+		glShaderSource(id, 1, &SrcPointer, NULL);
+		glCompileShader(id);
+
+		// Check Shader
+		glGetShaderiv(id, GL_COMPILE_STATUS, &Result);
+		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &InfoLogLength);
+		if (InfoLogLength > 0) {
+			std::vector<char> ShaderErrorMessage(int(InfoLogLength) + 1);
+			glGetShaderInfoLog(id, InfoLogLength, NULL, &ShaderErrorMessage[0]);
+			LOG_ERROR("Shader") << &ShaderErrorMessage[0] << Console::endl;
+			LOG_ERROR("Shader") << name << " shader compilation failed." << Console::endl;
+			result = false;
+		}
+		else LOG_OK("Shader") << name << " shader compilation sucessful." << Console::endl;
+
+		return result;
+	}
+
+	std::string ShaderBase::updateConstants(const std::string& originalSrc){
+		std::string src = originalSrc;
+		for (const auto& cst : m_constants) {
+			size_t cst_pos = src.find(cst.first);
+
+			if (cst_pos != std::string::npos) { // If the constant exists, replace it
+				size_t line_start = src.rfind('\n', cst_pos);
+				if (line_start == std::string::npos) {
+					line_start = 0; // Start of the file
+				}
+				else {
+					line_start++; // Move to the start of the line
+				}
+				size_t line_end = src.find(';', cst_pos);
+				if (line_end != std::string::npos) {
+					line_end++; // Move past the semicolon
+					src.replace(line_start, line_end - line_start, cst.second + ";");
+				}
+			}
+		}
+		return src;
+	}
+
+	std::string ShaderBase::updateDefines(const std::string& originalSrc){
+		std::string src = originalSrc;
+		for (const auto& cst : m_defines) {
+			size_t cst_pos = src.find(cst.first);
+
+			if (cst_pos != std::string::npos) { // If the constant exists, replace it
+				size_t line_start = src.rfind('\n', cst_pos);
+				if (line_start == std::string::npos) {
+					line_start = 0; // Start of the file
+				}
+				else {
+					line_start++; // Move to the start of the line
+				}
+				size_t line_end = src.find('\n', cst_pos);
+				if (line_end != std::string::npos) {
+					src.replace(line_start, line_end - line_start, "#define " + cst.first + " " + cst.second);
+				}
+				else {
+					size_t pos = src.find("#version");
+					if (pos != std::string::npos) {
+						pos = src.find("\n", pos); // Move to the end of the #version line
+						if (pos != std::string::npos) {
+							++pos; // Move to the start of the next line
+							src.insert(pos, cst.second + "\n");
+						}
+					}
+				}
+			}
+		}
+		return src;
 	}
 
 

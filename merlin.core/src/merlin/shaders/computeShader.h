@@ -7,12 +7,14 @@ namespace Merlin{
 
 	class ComputeShader : public ShaderBase {
 	public:
-		ComputeShader(const std::string& n, const std::string& file_path = "");
-		ComputeShader(const std::string& n, const std::string& file_path, ShaderType type);
+		ComputeShader(const std::string& n, const std::string& file_path = "", bool compile = true, ShaderType type = ShaderType::COMPUTE_SHADER);
 		~ComputeShader();
 
 		void destroy() override;
-		void compile(const std::string& file_path);
+		void compile();
+
+		void readFile(const std::string& file_path);
+		void compileFromFile(const std::string& file_path);
 		void compileFromSrc(const std::string& src);
 		
 		void dispatch(); //execute using the default WorkgroupLayout
@@ -25,7 +27,9 @@ namespace Merlin{
 
 		void printLimits();
 
-		static Shared<ComputeShader> create(const std::string& n, const std::string& file_path) { return createShared<ComputeShader>(n, file_path); };
+		static Shared<ComputeShader> create(const std::string& n, const std::string& file_path, bool compile = true, ShaderType type = ShaderType::COMPUTE_SHADER) {
+			return createShared<ComputeShader>(n, file_path, compile, type); 
+		}
 
 
 	protected:
@@ -36,7 +40,7 @@ namespace Merlin{
 
 	class StagedComputeShader : public ComputeShader {
 	public:
-		StagedComputeShader(const std::string& n, const std::string& file_path, GLuint numberOfStage);
+		StagedComputeShader(const std::string& n, const std::string& file_path, GLuint numberOfStage, bool compile = true);
 
 		void executeAll();
 		void execute(GLuint stage);
@@ -49,7 +53,9 @@ namespace Merlin{
 		inline GLuint getStage() const { return m_stage; }
 		inline GLuint getStageCount() const { return m_stageCount; }
 
-		static Shared<StagedComputeShader> create(const std::string& n, const std::string& file_path, GLuint numberOfStage) { return createShared<StagedComputeShader>(n, file_path, numberOfStage); };
+		static Shared<StagedComputeShader> create(const std::string& n, const std::string& file_path, GLuint numberOfStage, bool compile = true) {
+			return createShared<StagedComputeShader>(n, file_path, numberOfStage, compile);
+		};
 
 	protected:
 		GLuint m_stage = 0;

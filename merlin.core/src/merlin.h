@@ -8,8 +8,6 @@
 #include "merlin/memory/vao.h"
 #include "merlin/memory/frameBuffer.h"
 #include "merlin/memory/renderBuffer.h"
-#include "merlin/memory/Uniform.h"
-//#include "merlin/memory/UniformBuffer.h"
 #include "merlin/memory/ssbo.h"
 
 #include "merlin/graphics/renderer.h"

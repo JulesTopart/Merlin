@@ -22,7 +22,7 @@ namespace Merlin {
 
 	class ParticleSystem : public RenderableObject {
 	public:
-		ParticleSystem(const std::string& name, size_t count);
+		ParticleSystem(const std::string& name, size_t count = 1);
 		void draw() const; //draw the mesh
 		void setInstancesCount(size_t count);
 		void setActiveInstancesCount(size_t count);
@@ -78,7 +78,7 @@ namespace Merlin {
 		template<typename T>
 		void addBuffer(const std::string& name, GLsizei size = 0);
 
-		static Shared<ParticleSystem> create(const std::string&, size_t count);
+		static Shared<ParticleSystem> create(const std::string&, size_t count = 1);
 
 
 

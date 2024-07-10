@@ -23,6 +23,7 @@ public:
 	void InitGraphics();
 	void InitPhysics();
 	void ResetSimulation();
+	void SetConstants(Shared<ShaderBase>);
 
 	void SyncUniforms();
 

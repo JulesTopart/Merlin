@@ -79,15 +79,23 @@ void AppLayer::onUpdate(Timestep ts) {
 			isosurface->compute();
 		}
 	}
-
-
-
-
-	
-
 }
 
 
+
+void AppLayer::SetConstants(Shared<ShaderBase> shader) {
+	shader->setConstVec3("domain", settings.bb);
+	shader->setConstVec3("halfdomain", settings.bb * glm::vec3(0.5));
+	shader->setConstVec3("boundaryMin", -settings.bb * glm::vec3(0.5, 0.5, 0.0));
+	shader->setConstVec3("boundaryMax", settings.bb * glm::vec3(0.5, 0.5, 1.0));
+	shader->setConstFloat("particleRadius", settings.particleRadius);
+	shader->setConstFloat("smoothingRadius", settings.smoothingRadius);
+	shader->setConstFloat("binSize", settings.bWidth);
+	shader->setConstUVec3("binMax", glm::uvec3(settings.bb / glm::vec3(settings.bWidth)));
+	shader->setConstUInt("binCount", settings.bThread);
+	shader->define("PTHREAD", std::to_string(settings.pWkgSize));
+	shader->define("BTHREAD", std::to_string(settings.bWkgSize));
+}
 
 void AppLayer::SyncUniforms() {
 
@@ -115,7 +123,7 @@ void AppLayer::SyncUniforms() {
 }
 
 void AppLayer::InitGraphics() {
-	// init OpenGL stuff
+	// --- Init Renderer ---
 	renderer.initialize();
 	renderer.setBackgroundColor(0.903, 0.903, 0.903, 1.0);
 	renderer.setEnvironmentGradientColor(0.903, 0.903, 0.903);
@@ -125,14 +133,15 @@ void AppLayer::InitGraphics() {
 	renderer.disableFaceCulling();
 	//renderer.applyGlobalTransform(glm::scale(glm::mat4(1), glm::vec3(0.001)));
 
-	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
+
+	// --- Create rendering shaders ---
+	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag", "", false);
 	particleShader->noEnvironment();
 	particleShader->noMaterial();
 	particleShader->noTexture();
 	particleShader->noLights();
 	particleShader->noShadows();
-	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
-
+	
 	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
 	binShader->noEnvironment();
 	binShader->noMaterial();
@@ -140,13 +149,28 @@ void AppLayer::InitGraphics() {
 	binShader->noLights();
 	binShader->noShadows();
 
+	// --- Set shaders constants ---
+	SetConstants(particleShader);
+	SetConstants(binShader);
+
+	// --- Compile shaders ---
+	particleShader->compile();
+	binShader->compile();
+
+	// --- Set uniforms --- 
 	particleShader->use();
+	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
 	particleShader->setInt("colorCycle", 4);
+
 	binShader->use();
 	binShader->setInt("colorCycle", 4);
 
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
+
+
+
+	// --- Create scene ---
 
 	Mesh_Ptr bbox = Primitives::createQuadCube(settings.bb.x, settings.bb.y, settings.bb.z);
 	bbox->enableWireFrameMode();
@@ -196,31 +220,46 @@ void AppLayer::InitGraphics() {
 }
 
 void AppLayer::InitPhysics() {
-	//Compute Shaders
-	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6);
-	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
-	isoGen = ComputeShader::create("isoGen", "assets/shaders/solver/isoGen.comp");
+	//--- Create Compute Shaders ---
+	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6, false);
+	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4, false);
+	isoGen = ComputeShader::create("isoGen", "assets/shaders/solver/isoGen.comp", false);
 
-	//create particle system
-	ps = ParticleSystem::create("ParticleSystem", settings.pThread);
+	//--- Set Compute Shaders constants ---
+	SetConstants(solver);
+	SetConstants(prefixSum);
+	SetConstants(isoGen);
+
+	//--- Compile Compute Shaders ---
+	solver->compile();
+	prefixSum->compile();
+	isoGen->compile();
+
+	//--- Create Particle systems ---
+	ps = ParticleSystem::create("ParticleSystem");
 	ps->setShader(particleShader);
 	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 
 	Shared<Mesh> binInstance = Primitives::createQuadCube(settings.bWidth, false);
 	binInstance->rename("bin");
-	bs = ParticleSystem::create("BinSystem", settings.bThread);
+	bs = ParticleSystem::create("BinSystem");
 	bs->setDisplayMode(ParticleSystemDisplayMode::MESH);
 	bs->setMesh(binInstance);
 	bs->enableWireFrameMode();
 
-	solver->SetWorkgroupLayout(settings.pWkgCount);
+	settings.blockSize = floor(log2f(settings.bThread));
+	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
+	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
+
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
-	isoGen->SetWorkgroupLayout(settings.iWkgCount);
+	bs->setInstancesCount(settings.bThread);
+
+
+	//--- Create Particle systems Fields (Position, temperature ...) ---
 
 	Console::info() << "Bin struct size :" << sizeof(Bin) << Console::endl;
 	SSBO_Ptr<Bin> binBuffer = SSBO<Bin>::create("BinBuffer", settings.bThread);
 
-	//attach Buffers
 	ps->setShader(particleShader);
 	ps->addProgram(solver);
 	ps->addField<glm::vec4>("PositionBuffer");
@@ -244,6 +283,8 @@ void AppLayer::InitPhysics() {
 	bs->addField(binBuffer);
 	bs->solveLink(prefixSum);
 	bs->detach(prefixSum);
+
+	//--- Reference fields in rendering shaders ---
 
 	ps->link(particleShader->name(), "PositionBuffer");
 	ps->link(particleShader->name(), "PredictedPositionBuffer");
@@ -271,6 +312,8 @@ void AppLayer::InitPhysics() {
 	scene.add(ps);
 	scene.add(bs);
 	bs->hide();
+
+	//--- Setup IsoSurface Generation ---
 
 	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 1, 32);
 
@@ -424,15 +467,10 @@ void AppLayer::ResetSimulation() {
 
 	settings.pThread = numParticles;
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	settings.blockSize = floor(log2f(settings.bThread));
-	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
-	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
 
 	solver->SetWorkgroupLayout(settings.pWkgCount);
-	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
-
 	ps->setInstancesCount(settings.pThread);
-	bs->setInstancesCount(settings.bThread);
+
 
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
@@ -443,7 +481,6 @@ void AppLayer::ResetSimulation() {
 	ps->writeField("LambdaBuffer", cpu_lambda);
 	ps->writeField("MetaBuffer", cpu_meta);
 
-	
 }
 
 
@@ -464,7 +501,7 @@ void AppLayer::NeigborSearch() {
 	//Binary tree on rightmost element of blocks
 	GLuint steps = settings.blockSize;
 	UniformObject<GLuint> space("space");
-	space.value = 1;
+	space.value() = 1;
 
 	for (GLuint step = 0; step < steps; step++) {
 		// Calls the parallel operation
@@ -473,7 +510,7 @@ void AppLayer::NeigborSearch() {
 		prefixSum->execute(1);
 		prefixSum->execute(2);
 
-		space.value *= 2;
+		space.value() *= 2;
 	}
 	prefixSum->execute(3);
 

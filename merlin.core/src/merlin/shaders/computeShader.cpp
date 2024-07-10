@@ -12,17 +12,15 @@
 
 namespace Merlin {
 
-	ComputeShader::ComputeShader(const std::string& n, const std::string& cspath) : ShaderBase(n, ShaderType::COMPUTE_SHADER){
+	ComputeShader::ComputeShader(const std::string& n, const std::string& cspath, bool compile, ShaderType type) : ShaderBase(n, type){
 		m_name = n;
 		m_wkgrpLayout = glm::uvec3(1);
-		if (cspath != "") compile(cspath);
+
+		if(cspath != "")
+		if (compile) compileFromFile(cspath);
+		else readFile(cspath);
 	}
 
-	ComputeShader::ComputeShader(const std::string& n, const std::string& cspath, ShaderType type) : ShaderBase(n, type) {
-		m_name = n;
-		m_wkgrpLayout = glm::uvec3(1);
-		if (cspath != "") compile(cspath);
-	}
 
 	ComputeShader::~ComputeShader() {
 		destroy();
@@ -31,6 +29,7 @@ namespace Merlin {
 	void ComputeShader::destroy() {
 		Console::trace("ComputeShader") << "Destructing Shader " << id() << Console::endl;
 	}
+
 
 	void ComputeShader::printLimits() {
 		// query limitations
@@ -88,45 +87,24 @@ namespace Merlin {
 		m_wkgrpLayout = layout;
 	}
 
+	
 
-	void ComputeShader::compile(const std::string& shader_file_path) {
+	void ComputeShader::compile() {
+		if (m_compiled) {
+			Console::error() << "Shader is already compiled" << Console::endl;
+			return;
+		}
+
 		m_compiled = true;
 		m_shaderID = glCreateShader(GL_COMPUTE_SHADER);
 
-		// Read the Vertex ComputeShader code from the file
-		LOG_INFO() << "Importing compute shader source... : " << shader_file_path << Console::endl;
-		m_shaderSrc = readSrc(shader_file_path);
-		compileFromSrc(m_shaderSrc);
+		precompileSrc(m_shaderSrc);
 
-	}
-
-
-	void ComputeShader::compileFromSrc(const std::string& src) {
-		m_compiled = true;
-		m_shaderID = glCreateShader(GL_COMPUTE_SHADER);
-
-		// Read the Vertex ComputeShader code from the file
-		m_shaderSrc = src;
 
 		GLint Result = GL_FALSE;
 		int InfoLogLength;
 
-		// Compile Vertex ComputeShader
-		//LOG << ("Compiling vertex shader...") << Console::endl;
-		const char* ShaderSrcPointer = m_shaderSrc.c_str();
-		glShaderSource(m_shaderID, 1, &ShaderSrcPointer, NULL);
-		glCompileShader(m_shaderID);
-
-		// Check Vertex ComputeShader
-		glGetShaderiv(m_shaderID, GL_COMPILE_STATUS, &Result);
-		glGetShaderiv(m_shaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-		if (InfoLogLength > 0) {
-			std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
-			glGetShaderInfoLog(m_shaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-			Console::error() << &VertexShaderErrorMessage[0];
-			Console::error() << &VertexShaderErrorMessage[0] << Console::endl;
-			m_compiled = false;
-		}
+		m_compiled = compileShader(name(), m_shaderSrc, m_shaderID);
 
 		// Link the program
 		//printf("Linking program\n");
@@ -146,8 +124,29 @@ namespace Merlin {
 		Console::success("ComputeShader") << "shader " << m_name << " compiled succesfully" << Console::endl;
 		glDetachShader(id(), m_shaderID);
 		glDeleteShader(m_shaderID);
-
+		use();
 	}
+
+	void ComputeShader::compileFromFile(const std::string& file_path) {
+		readFile(file_path);
+		compile();
+	}
+
+	void ComputeShader::compileFromSrc(const std::string& src) {
+		m_shaderSrc = src;
+		compile();
+	}
+
+	void ComputeShader::readFile(const std::string& file_path) {
+
+		m_shaderSrc = "";
+
+		// Read vertexFile and fragmentFile and store the strings
+		LOG_INFO() << "Importing Compue shader source... : " << file_path << Console::endl;
+		m_shaderSrc = readSrc(file_path);
+	}
+
+
 
 
 	ComputeShaderLibrary::ComputeShaderLibrary() {
@@ -182,7 +181,7 @@ namespace Merlin {
 	}
 
 
-	StagedComputeShader::StagedComputeShader(const std::string& n, const std::string& file_path, GLuint numberOfStage) : ComputeShader(n, file_path, ShaderType::STAGED_COMPUTE_SHADER) {
+	StagedComputeShader::StagedComputeShader(const std::string& n, const std::string& file_path, GLuint numberOfStage, bool compile) : ComputeShader(n, file_path, compile, ShaderType::STAGED_COMPUTE_SHADER) {
 		m_stage = 0;
 		m_stageCount = numberOfStage;
 	}

@@ -211,8 +211,8 @@ double ExampleLayer::bench_gpu(int wkSize, int n){
 
 	//Binary tree on rightmost element of blocks
 	GLuint steps = blockSize;
-	UniformObject<GLuint> space("space");
-	space.value = 1;
+	Uniform<GLuint> space("space");
+	space.value() = 1;
 
 	for (GLuint step = 0; step < blockSize; step++) {
 		// Calls the parallel operation
@@ -221,7 +221,7 @@ double ExampleLayer::bench_gpu(int wkSize, int n){
 		prefixSum->execute(1);
 		prefixSum->execute(2);
 
-		space.value *= 2;
+		space.value() *= 2;
 	}
 
 	prefixSum->execute(3);

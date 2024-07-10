@@ -17,23 +17,23 @@ namespace Merlin {
 	Shared<Shader> Shader::create(	const std::string& name, 
 									const std::string& vertex_file_path,
 									const std::string& fragment_file_path,
-									const std::string& geometry_file_path) {
+									const std::string& geometry_file_path, bool compile) {
 
-		return createShared<Shader>(name, vertex_file_path, fragment_file_path, geometry_file_path);
+		return createShared<Shader>(name, vertex_file_path, fragment_file_path, geometry_file_path, compile);
 	}
 
 	Shader::Shader() : ShaderBase(ShaderType::GRAPHICS) {}
 	Shader::Shader(std::string n) : ShaderBase(n, ShaderType::GRAPHICS) {}
 
+
 	Shader::Shader(std::string n,
 		const std::string vpath,
 		const std::string fpath,
-		const std::string gpath) : ShaderBase(n, ShaderType::GRAPHICS) {
+		const std::string gpath, bool compile) : ShaderBase(n, ShaderType::GRAPHICS) {
 
-		if (vpath != "" && fpath != "") {
-			compile(vpath, fpath, gpath);
-			if (isCompiled()) use();
-		}
+		if (vpath != "" && fpath != "")
+		if (compile) compileFromFile(vpath, fpath, gpath);
+		else readFile(vpath, fpath, gpath);
 	}
 
 	Shader::~Shader() {
@@ -49,40 +49,24 @@ namespace Merlin {
 			geometryShaderID = 0;
 		}
 	}
-
-
-	void Shader::compileShader(const std::string& name, const std::string& src, GLuint id) {
-
-		GLint Result = GL_FALSE;
-		int InfoLogLength;
-
-		// Compile Shader
-		const char* SrcPointer = src.c_str();
-		glShaderSource(id, 1, &SrcPointer, NULL);
-		glCompileShader(id);
-
-		// Check Shader
-		glGetShaderiv(id, GL_COMPILE_STATUS, &Result);
-		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &InfoLogLength);
-		if (InfoLogLength > 0) {
-			std::vector<char> ShaderErrorMessage(int(InfoLogLength) + 1);
-			glGetShaderInfoLog(id, InfoLogLength, NULL, &ShaderErrorMessage[0]);
-			LOG_ERROR("Shader") << &ShaderErrorMessage[0] << Console::endl;
-			LOG_ERROR("Shader") << name << " shader compilation failed." << Console::endl;
-			m_compiled = false;
-		}
-		else LOG_OK("Shader") << name << " shader compilation sucessful." << Console::endl;
-	}
-
-
-
 	
-	void Shader::compile(const std::string& vertex_file_path,
+	void Shader::compile() {
+		compileFromSrc(VertexShaderSrc, FragmentShaderSrc, GeomShaderSrc);
+	}
+	
+	void Shader::compileFromFile(const std::string& vertex_file_path,
 		const std::string& fragment_file_path,
 		const std::string& geometry_file_path) {
-		m_compiled = true;
 
-		VertexShaderSrc = "";;
+		readFile(vertex_file_path, fragment_file_path, geometry_file_path);
+		compile();
+	}
+
+	void Shader::readFile(const std::string& vertex_file_path,
+		const std::string& fragment_file_path,
+		const std::string& geometry_file_path) {
+
+		VertexShaderSrc = "";
 		FragmentShaderSrc = "";
 		GeomShaderSrc = "";
 
@@ -97,15 +81,12 @@ namespace Merlin {
 			LOG_INFO() << "Importing Geometry shader source... : " << geometry_file_path << Console::endl;
 			GeomShaderSrc = readSrc(geometry_file_path);
 		}
-
-		compileFromSrc(VertexShaderSrc, FragmentShaderSrc, GeomShaderSrc);
-
 	}
 
 
-	void Shader::compileFromSrc(const std::string& VertexShaderSrc,
-								const std::string& FragmentShaderSrc,
-								const std::string& GeomShaderSrc) {
+	void Shader::compileFromSrc(const std::string& vSrc,
+								const std::string& fSrc,
+								const std::string& gSrc) {
 		m_compiled = true;
 
 		LOG_TRACE() << "Creating shaders... : " << Console::endl;
@@ -114,6 +95,13 @@ namespace Merlin {
 		if (GeomShaderSrc != "")
 			geometryShaderID = glCreateShader(GL_GEOMETRY_SHADER);
 
+		VertexShaderSrc = vSrc;
+		FragmentShaderSrc = fSrc;
+		GeomShaderSrc = gSrc;
+
+		precompileSrc(VertexShaderSrc);
+		precompileSrc(FragmentShaderSrc);
+		precompileSrc(GeomShaderSrc);
 
 		// Compile Vertex Shader
 		compileShader("Vertex", VertexShaderSrc, vertexShaderID);
@@ -161,6 +149,7 @@ namespace Merlin {
 		if (GeomShaderSrc != "")
 			glDeleteShader(geometryShaderID);
 
+		use();
 	}
 
 }

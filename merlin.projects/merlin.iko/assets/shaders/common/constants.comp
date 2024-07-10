@@ -2,8 +2,6 @@
 #ifndef INCLUDE_CONSTANTS_GLSL
 #define INCLUDE_CONSTANTS_GLSL
 
-#define BTHREAD 512
-#define PTHREAD 1024
 
 #define UNUSED 0
 #define SOLID 1
@@ -12,20 +10,22 @@
 #define GRANULAR 4
 #define BOUNDARY 5
 
-#define MAXNN 64
 #define EPSILON 1e-6
 #define MAX_DELTA_PI 0.1
 
+#define BTHREAD 1
+#define PTHREAD 1
+#define MAXNN 64
 
 // --- Domain ---
-const vec3 domain = vec3(330, 80, 180);
-const vec3 halfdomain = domain/2.0;
-const vec3 boundaryMin = vec3(-domain.x/2.0 , -domain.y/2.0, 0);
-const vec3 boundaryMax = vec3(domain.x / 2.0, domain.y / 2.0, domain.z);
+const vec3 domain = vec3(0);
+const vec3 halfdomain = vec3(0);
+const vec3 boundaryMin = vec3(0);
+const vec3 boundaryMax = vec3(0);
 
-const float particleRadius = 0.4;//mm
-const float smoothingRadius = 4.0 * particleRadius; //mm
-const float binSize = smoothingRadius;
-const uvec3 binMax = uvec3(domain / binSize);
-const uint binCount = binMax.x * binMax.y * binMax.z;
+const float particleRadius = 0;
+const float smoothingRadius = 0;
+const float binSize = 0;
+const uvec3 binMax = uvec3(0);
+const uint binCount = 0;
 #endif

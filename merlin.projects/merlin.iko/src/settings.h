@@ -16,7 +16,7 @@ struct Settings {
 	const float volumeWidth = smoothingRadius*0.75;
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(330, 80, 180);
+	const glm::vec3 bb = glm::vec3(330, 80, 180);
 
 
 	// Physics Parameters
@@ -43,7 +43,7 @@ struct Settings {
 	
 
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
-	GLuint bThread = int(bb.x / (bWidth)) * int(bb.y / (bWidth)) * int(bb.z / (bWidth)); //Total number of bin (thread)
+	const GLuint bThread = int(bb.x / (bWidth)) * int(bb.y / (bWidth)) * int(bb.z / (bWidth)); //Total number of bin (thread)
 	
 	glm::ivec3 iWkgSize = glm::ivec3(6); //Number of thread per workgroup
 	glm::ivec3 volume_size = glm::ivec3(int(bb.x / (volumeWidth)), int(bb.y / (volumeWidth)), int(bb.z / (volumeWidth)));
