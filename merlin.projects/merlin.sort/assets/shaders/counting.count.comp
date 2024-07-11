@@ -12,4 +12,7 @@ void main(){
     if(gid < dataSize && stage == 1){
         outData[atomicAdd(globalPrefixSum[inData[gid]],-1)-1] = inData[gid];
     }
+    if(gid < dataSize && stage == 2){
+        globalPrefixSum[gid] = 0;
+    }
 }

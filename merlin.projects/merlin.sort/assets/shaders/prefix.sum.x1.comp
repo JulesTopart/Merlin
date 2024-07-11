@@ -3,7 +3,7 @@
 const uint wgSize = 1024; //WorkGroup size
 layout(local_size_x = wgSize) in;
 
-layout(std430) buffer compactSumBuffer {
+layout(std430)coherent buffer compactSumBuffer {
     uint compactPrefixSum[];
 };
 
@@ -29,7 +29,7 @@ uniform uint space;
 
 void main(){
     uint bid = gl_GlobalInvocationID.x; //blockID
-    if(bid > uint(dataSize/blockSize)) return;
+    if(bid > uint(blocks)) return;
 
     switch(stage){
     case 0:

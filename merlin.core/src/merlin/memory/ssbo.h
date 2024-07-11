@@ -22,6 +22,9 @@ namespace Merlin {
 
         virtual ~ShaderStorageBuffer();
 
+
+        void print() const;
+
         static void copy(std::shared_ptr<ShaderStorageBuffer> origin, std::shared_ptr<ShaderStorageBuffer> target, GLsizeiptr size);
         static std::shared_ptr<ShaderStorageBuffer<T>> create(const std::string& name);
         static std::shared_ptr<ShaderStorageBuffer<T>> create(const std::string& name, GLsizeiptr count, BufferUsage usage = BufferUsage::StaticDraw);
@@ -93,6 +96,23 @@ namespace Merlin {
         return std::make_shared<ShaderStorageBuffer>(name, data, usage);
     }
 
+    template<typename T>
+    void ShaderStorageBuffer<T>::print() const{
+        //bind();
+        std::vector<T> cpuBuffer = ShaderStorageBuffer<T>::read();
+
+        Console::info("Buffer") << ShaderStorageBuffer<T>::name() << " = (" << cpuBuffer.size() << ")[";
+        for (GLuint i = 0; i < std::min(int(cpuBuffer.size()), 100); ++i) {
+            Console::print() << cpuBuffer[i] << ", ";
+        }
+        if (cpuBuffer.size() > 100) {
+            Console::print() << "..., ";
+            Console::print() << cpuBuffer[cpuBuffer.size() - 1];
+        }
+        else if (cpuBuffer.empty()) Console::print() << "empty";
+        Console::print() << "]" << Console::endl << Console::endl;
+
+    }
 
 
 

@@ -29,7 +29,7 @@ uniform uint space;
 
 void main(){
     uint bid = gl_GlobalInvocationID.x; //blockID
-    if(bid > uint(dataSize/blockSize)) return;
+    if(bid > uint(blocks)) return;
 
     switch(stage){
     case 0:

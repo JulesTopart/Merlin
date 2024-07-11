@@ -35,7 +35,7 @@ void main(){
     switch(stage){
     case 0:
         
-        //Sequential prefix sum on blocks
+        //Sequential prefix sum on blocks - upsweep
         for (uint i = getIndexOf(bid, 0), k = 0; i < getIndexOf(bid, blockSize) && i < dataSize; i++, k++) { //Load into shared mem
             if (i < dataSize){
                 bins[i].sum = bins[i].count;

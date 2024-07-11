@@ -72,7 +72,7 @@ Shared<StagedComputeShader> getPrefixSumShader(int index) {
 
 void ExampleLayer::onAttach(){
 	enableGLDebugging();
-	Console::setLevel(ConsoleLevel::_TRACE);
+	Console::setLevel(ConsoleLevel::_INFO);
 
 	std::vector<std::string> results;
 
@@ -83,6 +83,12 @@ void ExampleLayer::onAttach(){
 			Console::print() << "Starting new benchmark over " << dataSize << " entry " << ", using " << wk << " thread per workgroup" << Console::endl;
 			//results.push_back( std::to_string(dataSize) + ";" + std::to_string(wk) + ";" + std::to_string(i) + ";" + std::to_string(bench_cpu(dataSize)) + Console::endl);
 			results.push_back( std::to_string(dataSize) + ";" + std::to_string(wk) + ";" + std::to_string(i) + ";" + std::to_string(bench_cpu(dataSize)) + ";" + std::to_string(bench_gpu(wk, dataSize)) + Console::endl);
+			
+			Console::print() << "------------- CSV -------------" << Console::endl;
+			Console::print() << "Nb entry; WkGrpSize; sample; CPU std::sort; GPU counting sort" << Console::endl;
+			for (auto& str : results)
+				Console::print() << str;
+			return;
 		}
 
 	Console::print() << "------------- CSV -------------" << Console::endl;
@@ -103,7 +109,7 @@ void ExampleLayer::onImGuiRender(){}
 double ExampleLayer::bench_cpu(int n) {
 
 	std::vector<GLuint> data;
-
+	
 	Console::info() << "Generating data..." << Console::endl;
 	for (GLuint i = 0; i < n; i++) {
 		data.push_back(i);
@@ -117,9 +123,11 @@ double ExampleLayer::bench_cpu(int n) {
 	std::sort(std::execution::par, unsorted.begin(), unsorted.end());
 	double delta = (double)glfwGetTime() - time;
 	Console::success("Sorting") << "CPU Computation finished in " << delta << "s (" << delta * 1000.0 << " ms)" << Console::endl;
-
+	Console::print() << "----------------------------------------------------------------------------" << Console::endl;
 	//debugVector<GLuint>(unsorted);
+	
 	return delta;
+	return 0;
 }
 
 double ExampleLayer::bench_gpu(int wkSize, int n){
@@ -159,30 +167,26 @@ double ExampleLayer::bench_gpu(int wkSize, int n){
 	prefixSum->setUInt("blocks", blocks);
 	prefixSum->SetWorkgroupLayout(bwgCount);
 
-	countingCount = createShared<StagedComputeShader>("counting.count", "./assets/shaders/counting.count.comp", 2);
+	countingCount = createShared<StagedComputeShader>("counting.count", "./assets/shaders/counting.count.comp", 3);
 	countingCount->use();
 	countingCount->setUInt("dataSize", n);
-	countingCount->setUInt("blockSize", blockSize);
-	countingCount->setUInt("blocks", blocks);
 	countingCount->SetWorkgroupLayout(wgCount);
 
+	inDataBuffer.bind();
 	inDataBuffer.rename("inDataBuffer");
-	inDataBuffer.write(unsorted);
+	inDataBuffer.allocate(unsorted, BufferUsage::StaticDraw);
 
+	outDataBuffer.bind();
 	outDataBuffer.rename("outDataBuffer");
-	outDataBuffer.write(unsorted);
+	outDataBuffer.allocate(unsorted, BufferUsage::StaticDraw);
 
+	prefixSumBuffer.bind();
 	prefixSumBuffer.rename("prefixSumBuffer");
 	prefixSumBuffer.allocate(data.size(), BufferUsage::StaticDraw);
 
 	compactSumBuffer.bind();
 	compactSumBuffer.rename("compactSumBuffer");
 	compactSumBuffer.allocate(blocks, BufferUsage::StaticDraw);
-
-	inDataBuffer.setBindingPoint(0);
-	outDataBuffer.setBindingPoint(1);
-	prefixSumBuffer.setBindingPoint(2);
-	compactSumBuffer.setBindingPoint(3);
 
 	prefixSum->use();
 	prefixSum->attach(compactSumBuffer);
@@ -193,7 +197,7 @@ double ExampleLayer::bench_gpu(int wkSize, int n){
 	countingCount->attach(outDataBuffer);
 	countingCount->attach(prefixSumBuffer);
 
-	//inDataBuffer.print();
+	//prefixSumBuffer.print();
 
 	Console::info("Sorting") << "Starting..." << Console::endl;
 	double time = (double)glfwGetTime();
@@ -201,10 +205,8 @@ double ExampleLayer::bench_gpu(int wkSize, int n){
 	countingCount->use();
 	countingCount->execute(0);
 
-	//prefixSumBuffer.print();
-
-	Console::info() << "Data : " << unsorted.size() << " uint values" << Console::endl;
-	Console::info() << "Parallelizing counting sort over " << blocks << " blocks ( " << blockSize << " values per blocks)" << Console::endl;
+	//Console::info() << "Data : " << unsorted.size() << " uint values" << Console::endl;
+	//Console::info() << "Parallelizing counting sort over " << blocks << " blocks ( " << blockSize << " values per blocks)" << Console::endl;
 
 	prefixSum->use();
 	prefixSum->execute(0);
@@ -233,9 +235,9 @@ double ExampleLayer::bench_gpu(int wkSize, int n){
 	//prefixSumBuffer.print();
 	double delta = (double)glfwGetTime() - time;
 	Console::success("Sorting") << "GPU Computation finished in " << delta << "s (" << delta * 1000.0 << " ms)" << Console::endl;
-	//outDataBuffer.print();
 
 	std::vector<GLuint> buf = outDataBuffer.read();
+	std::vector<GLuint> bufPs = prefixSumBuffer.read();
 	GLuint check = 0;
 	GLuint error = data.size() - buf.size();
 	for (GLuint i : buf) {

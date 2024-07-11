@@ -26,7 +26,9 @@ namespace Merlin {
         m_isMutable = true;
         m_size = size;
         m_usage = usage;
-        glNamedBufferData(id(), size, data, static_cast<GLenum>(usage));
+        glNamedBufferData(id(), size, nullptr, static_cast<GLenum>(usage));
+        clearBuffer();
+        writeBuffer(size, data);
     }
 
     inline void AbstractBufferObject::allocateImmutableBuffer(GLsizeiptr size, const void* data, BufferStorageFlags flags) {
@@ -54,7 +56,8 @@ namespace Merlin {
 
     inline void AbstractBufferObject::clearBuffer() const {
         checkMutable();
-        glClearNamedBufferData(id(), GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, 0);
+        GLubyte val = 0;
+        glClearNamedBufferData(id(), GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &val);
     }
 
     inline void AbstractBufferObject::checkMutable() const {
