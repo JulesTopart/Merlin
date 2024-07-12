@@ -481,6 +481,7 @@ void AppLayer::ResetSimulation() {
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
 	ps->setInstancesCount(settings.max_pThread);
+	ps->setActiveInstancesCount(settings.pThread);
 	bs->setInstancesCount(settings.bThread);
 
 	SyncUniforms();
@@ -807,6 +808,14 @@ void AppLayer::onImGuiRender() {
 	ImGui::End();*/
 
 	if (ImGui::Button("Debug")) {
+
+
+		AbstractBufferObject_Ptr ptr =  ps->getField("PositionBuffer");
+		std::vector<glm::vec4> buf;
+		buf.resize(ptr->elements());
+		ptr->readBuffer(ptr->elements() * sizeof(glm::vec4), buf.data());
+
+
 		throw("DEBUG");
 		Console::info() << "DEBUG" << Console::endl;
 	}

@@ -468,7 +468,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->use();
 	
-	bed->setPosition(bed->position() + glm::vec3(0, 30.0*ts.getSeconds() * std::sin(bedtime),0));
+	bed->setPosition(bed->position() + glm::vec3(0, 10.0*ts.getSeconds() * std::sin(bedtime),0));
 
 	GPU_PROFILE(nns_time,
 		NeigborSearch();
@@ -477,7 +477,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
 			if (integrate) solver->execute(2);
-			solver->setFloat("bedOffset", 30.0 * ts.getSeconds() * std::sin(bedtime) / settings.solver_substep);
+			solver->setFloat("bedOffset", 10.0 * ts.getSeconds() * std::sin(bedtime) / settings.solver_substep);
 			if (integrate) {
 				GPU_PROFILE(jacobi_time,
 					for (int j = 0; j < settings.solver_iteration; j++) {
@@ -667,6 +667,7 @@ void AppLayer::onImGuiRender() {
 
 	if (ImGui::Button("Debug")) {
 		throw("DEBUG");
+
 		Console::info() << "DEBUG" << Console::endl;
 	}
 	ImGui::End();

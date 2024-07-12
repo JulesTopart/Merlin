@@ -120,6 +120,12 @@ void march(in ivec3 cell_index)
 	for (int i = 0; i < 8; ++i)
 	{
 		// Sample the volume texture at this neighbor's coordinates
+		
+		/*
+		for (int j = 0; j < 8; j++) values[i] = imageLoad(u_volume, neighbors[j]).r;
+		values[i] = imageLoad(u_volume, neighbors[i]).r + values[i]/8;
+		*/
+
 		values[i] = imageLoad(u_volume, neighbors[i]).r;
 
 		// Compare the sampled value to the user-specified isolevel
