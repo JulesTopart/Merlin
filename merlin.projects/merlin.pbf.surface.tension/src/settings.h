@@ -10,23 +10,23 @@ struct Bin {
 };
 
 struct Settings {
-	const float particleRadius = 0.5;
+	const float particleRadius = 0.4;
 	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius;
-	const float volumeWidth = smoothingRadius*0.28;
+	const float volumeWidth = smoothingRadius;
 
 
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(300, 85, 80);
+	glm::vec3 bb = glm::vec3(100, 100, 100);
 
 
 	// Physics Parameters
 	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);
 	Uniform<float> restDensity						= Uniform<float>("restDensity", 1.0);
-	Uniform<float> particleMass						= Uniform<float>("particleMass", 3.0*smoothingRadius * 0.28);
-	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 8);
-	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 4.0);
+	Uniform<float> particleMass						= Uniform<float>("particleMass", 0.0); //calculated in ResetSim
+	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 0.01);
+	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 0.2);
 
 	//Elastic solids
 	float stiffness = 0.0;

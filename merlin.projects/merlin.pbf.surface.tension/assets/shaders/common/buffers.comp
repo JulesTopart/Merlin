@@ -1,10 +1,10 @@
 //? #version 430
 #ifndef INCLUDE_BUFFERS_GLSL
 #define INCLUDE_BUFFERS_GLSL
-
 //Macro to access buffer
 #define B_x(buffer_index) ssbo_position[buffer_index].xyz
 #define B_X(buffer_index) ssbo_pposition[buffer_index].xyz
+#define B_p(buffer_index) ssbo_dposition[buffer_index].xyz
 #define B_M(buffer_index) particleMass
 #define B_V(buffer_index) ssbo_velocity[buffer_index].xyz
 #define B_Lambda(buffer_index) ssbo_lambda[buffer_index]
@@ -15,6 +15,7 @@
 #define B_SortedID(buffer_index) ssbo_meta[buffer_index].w
 
 //Shortcuts
+#define pi B_p(i).xyz
 #define xi B_x(i).xyz
 #define xj B_x(j).xyz
 #define Xi B_X(i).xyz
@@ -35,44 +36,46 @@
 layout(std430) buffer PositionBuffer {
 	vec4 ssbo_position[];
 };
-layout(std430) buffer cpyPositionBuffer {
-	vec4 ssbo_cpy_position[];
+
+layout(std430) buffer PositionCorrection {
+	vec4 ssbo_dposition[];
 };
 
 layout(std430) buffer PredictedPositionBuffer {
 	vec4 ssbo_pposition[];
 };
-layout(std430) buffer cpyPredictedPositionBuffer {
-	vec4 ssbo_cpy_pposition[];
-};
 
 layout(std430) buffer VelocityBuffer {
 	vec4 ssbo_velocity[];
-};
-layout(std430) buffer cpyVelocityBuffer {
-	vec4 ssbo_cpy_velocity[];
 };
 
 layout(std430) buffer DensityBuffer {
 	float ssbo_density[];
 };
-layout(std430) buffer cpyDensityBuffer {
-	float ssbo_cpy_density[];
-};
 
 layout(std430) buffer LambdaBuffer {
 	float ssbo_lambda[];
-};
-layout(std430) buffer cpyLambdaBuffer {
-	float ssbo_cpy_lambda[];
 };
 
 layout(std430) buffer MetaBuffer {
 	uvec4 ssbo_meta[]; //phase, binindex, id , sortedID
 };
 
-layout(std430) buffer cpyMetaBuffer {
-	uvec4 ssbo_cpy_meta[]; //phase, binindex, id , sortedID
+struct CopyContent{
+	vec4 position;
+	vec4 dposition;
+	vec4 pposition;
+	vec4 velocity;
+	float density;
+	float lambda;
+	float _padding;
+	float _padding1;
+	uvec4 meta;
 };
+
+layout(std430) buffer CopyBuffer {
+	CopyContent ssbo_copy[]; //phase, binindex, id , sortedID
+};
+
 
 #endif// INCLUDE_BUFFERS_HLSL

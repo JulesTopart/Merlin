@@ -12,6 +12,19 @@ using namespace Merlin;
 #define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
+struct CopyContent {
+	glm::vec4 position;
+	glm::vec4 dposition;
+	glm::vec4 pposition;
+	glm::vec4 velocity;
+	float density;
+	float lambda;
+	float _padding;
+	float _padding2;
+	glm::uvec4 meta;
+};
+
+
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
 	camera().setNearPlane(0.5);
@@ -142,7 +155,7 @@ void AppLayer::InitGraphics() {
 	bbox->enableWireFrameMode();
 	bbox->setMaterial("default");
 	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
-	scene.add(bbox);
+	//scene.add(bbox);
 
 	scene.add(TransformObject::create("origin"));
 
@@ -150,7 +163,7 @@ void AppLayer::InitGraphics() {
 
 void AppLayer::InitPhysics() {
 	//Compute Shaders
-	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6);
+	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 7);
 	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 
 	//create particle system
@@ -175,17 +188,13 @@ void AppLayer::InitPhysics() {
 	ps->setShader(particleShader);
 	ps->addProgram(solver);
 	ps->addField<glm::vec4>("PositionBuffer");
-	ps->addField<glm::vec4>("cpyPositionBuffer");
+	ps->addField<glm::vec4>("PositionCorrection");
 	ps->addField<glm::vec4>("PredictedPositionBuffer");
-	ps->addField<glm::vec4>("cpyPredictedPositionBuffer");
 	ps->addField<glm::vec4>("VelocityBuffer");
-	ps->addField<glm::vec4>("cpyVelocityBuffer");
 	ps->addField<float>("DensityBuffer");
-	ps->addField<float>("cpyDensityBuffer");
 	ps->addField<float>("LambdaBuffer");
-	ps->addField<float>("cpyLambdaBuffer");
 	ps->addField<glm::uvec4>("MetaBuffer");
-	ps->addField<glm::uvec4>("cpyMetaBuffer");
+	ps->addField<CopyContent>("CopyBuffer");
 	ps->addBuffer(binBuffer);
 	ps->solveLink(solver);
 
@@ -195,7 +204,6 @@ void AppLayer::InitPhysics() {
 	bs->solveLink(prefixSum);
 
 	ps->link(particleShader->name(), "PositionBuffer");
-	ps->link(particleShader->name(), "PredictedPositionBuffer");
 	ps->link(particleShader->name(), "VelocityBuffer");
 	ps->link(particleShader->name(), "DensityBuffer");
 	ps->link(particleShader->name(), "LambdaBuffer");
@@ -225,6 +233,11 @@ void AppLayer::ResetSimulation() {
 
 	glm::vec3 cubeSize = glm::vec3(60, 195, 50);
 	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
+
+	float total_volume = cubeSize.x * cubeSize.y * cubeSize.z; //mm3
+	float particle_mass = total_volume / (icubeSize.x * icubeSize.y * icubeSize.z) * 1.0; 
+	
+	settings.particleMass.value() = particle_mass;
 
 	numParticles = 0;
 	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
@@ -284,6 +297,7 @@ void AppLayer::ResetSimulation() {
 	ps->writeField("VelocityBuffer", cpu_velocity);
 	ps->writeField("DensityBuffer", cpu_density);
 	ps->writeField("LambdaBuffer", cpu_lambda);
+	ps->clearField("PositionCorrection");
 	ps->writeField("MetaBuffer", cpu_meta);
 
 }
@@ -340,9 +354,10 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 						for (int j = 0; j < settings.solver_iteration; j++) {
 							solver->execute(3);
 							solver->execute(4);
+							solver->execute(5);
 						}
 					)
-						solver->execute(5);
+					solver->execute(6);
 
 				}
 		}

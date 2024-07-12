@@ -103,6 +103,20 @@ namespace Merlin{
 		return m_buffers.find(name) != m_buffers.end();
 	}
 
+	void ParticleSystem::clearField(const std::string& name) {
+		if (hasField(name)) {
+			m_fields[name]->clearBuffer();
+		}
+		else Console::error("ParticleSystem") << name << " is not registered in the particle system." << Console::endl;
+	}
+
+	void ParticleSystem::clearBuffer(const std::string& name) {
+		if (hasBuffer(name)) {
+			m_buffers[name]->clearBuffer();
+		}
+		else Console::error("ParticleSystem") << name << " is not registered in the particle system." << Console::endl;
+	}
+
 	void ParticleSystem::writeField(const std::string& name, GLsizei typesize,  void* data){
 		if (hasField(name)) {
 			if (m_fields[name]->elements() < m_instancesCount) {

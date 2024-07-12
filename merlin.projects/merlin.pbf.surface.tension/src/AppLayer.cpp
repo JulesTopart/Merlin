@@ -12,6 +12,17 @@ using namespace Merlin;
 #define PROFILE_BEGIN(STARTVAR) STARTVAR = glfwGetTime();
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
+struct CopyContent {
+	glm::vec4 position;
+	glm::vec4 dposition;
+	glm::vec4 pposition;
+	glm::vec4 velocity;
+	float density;
+	float lambda;
+	float _padding;
+	float _padding2;
+	glm::uvec4 meta;
+};
 
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
@@ -98,7 +109,7 @@ void AppLayer::SyncUniforms() {
 	settings.particleMass.sync(*solver);
 	settings.restDensity.sync(*solver);
 	solver->setUInt("numParticles", numParticles);
-	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep)); //Spawn particle after prediction
+	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep));
 	solver->setFloat("artificialViscosityMultiplier", settings.artificialViscosityMultiplier.value() * 0.01);
 	solver->setFloat("artificialPressureMultiplier", settings.artificialPressureMultiplier.value() * 0.01);
 
@@ -154,7 +165,7 @@ void AppLayer::InitGraphics() {
 	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
 	//scene.add(bbox);
 
-	emitter = Primitives::createCube(50, 50, 50);
+	emitter = Primitives::createCube(20, 20, 20);
 	emitter->enableWireFrameMode();
 	emitter->translate(glm::vec3(0,0,50));
 
@@ -164,7 +175,7 @@ void AppLayer::InitGraphics() {
 
 void AppLayer::InitPhysics() {
 	//Compute Shaders
-	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6);
+	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 7);
 	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4);
 	isoGen = ComputeShader::create("isoGen", "assets/shaders/solver/isoGen.comp");
 
@@ -191,17 +202,13 @@ void AppLayer::InitPhysics() {
 	ps->setShader(particleShader);
 	ps->addProgram(solver);
 	ps->addField<glm::vec4>("PositionBuffer");
-	ps->addField<glm::vec4>("cpyPositionBuffer");
+	ps->addField<glm::vec4>("PositionCorrection");
 	ps->addField<glm::vec4>("PredictedPositionBuffer");
-	ps->addField<glm::vec4>("cpyPredictedPositionBuffer");
 	ps->addField<glm::vec4>("VelocityBuffer");
-	ps->addField<glm::vec4>("cpyVelocityBuffer");
 	ps->addField<float>("DensityBuffer");
-	ps->addField<float>("cpyDensityBuffer");
 	ps->addField<float>("LambdaBuffer");
-	ps->addField<float>("cpyLambdaBuffer");
 	ps->addField<glm::uvec4>("MetaBuffer");
-	ps->addField<glm::uvec4>("cpyMetaBuffer");
+	ps->addField<CopyContent>("CopyBuffer");
 	ps->addBuffer(binBuffer);
 	ps->solveLink(solver);
 	ps->detach(solver);
@@ -213,7 +220,6 @@ void AppLayer::InitPhysics() {
 	bs->detach(prefixSum);
 
 	ps->link(particleShader->name(), "PositionBuffer");
-	ps->link(particleShader->name(), "PredictedPositionBuffer");
 	ps->link(particleShader->name(), "VelocityBuffer");
 	ps->link(particleShader->name(), "DensityBuffer");
 	ps->link(particleShader->name(), "LambdaBuffer");
@@ -222,10 +228,7 @@ void AppLayer::InitPhysics() {
 	ps->detach(particleShader);
 
 	ps->link(isoGen->name(), "PositionBuffer");
-	ps->link(isoGen->name(), "PredictedPositionBuffer");
-	ps->link(isoGen->name(), "VelocityBuffer");
 	ps->link(isoGen->name(), "DensityBuffer");
-	ps->link(isoGen->name(), "LambdaBuffer");
 	ps->link(isoGen->name(), "MetaBuffer");
 	ps->link(isoGen->name(), binBuffer->name());
 	ps->solveLink(isoGen);
@@ -268,10 +271,6 @@ void AppLayer::ResetSimulation() {
 
 	float spacing = settings.particleRadius * 2.0;
 	auto cpu_position = std::vector<glm::vec4>();
-	auto cpu_predictedPosition = std::vector<glm::vec4>();
-	auto cpu_velocity = std::vector<glm::vec4>();
-	auto cpu_density = std::vector<float>();
-	auto cpu_lambda = std::vector<float>();
 	auto cpu_meta = std::vector<glm::uvec4>();
 
 	glm::vec3 cubeSize = glm::vec3(60, 195, 50);
@@ -283,9 +282,14 @@ void AppLayer::ResetSimulation() {
 		emitter->voxelize(spacing);
 		BoundingBox aabb = emitter->getBoundingBox();
 		glm::vec3 bb_size = aabb.max - aabb.min;
+		float AABBvolume = bb_size.x * bb_size.y * bb_size.z;
+
 		int gridSizeX = ceil(bb_size.x / spacing);
 		int gridSizeY = ceil(bb_size.y / spacing);
 		int gridSizeZ = ceil(bb_size.z / spacing);
+
+		float voxel_volume = 0.2*AABBvolume / (gridSizeX * gridSizeY * gridSizeZ);
+		settings.particleMass.value() = voxel_volume * 1.0;
 
 		for (int i = 0; i < gridSizeX * gridSizeY * gridSizeZ; i++) {
 			if (emitter->getVoxels()[i] != 0) {
@@ -296,15 +300,15 @@ void AppLayer::ResetSimulation() {
 				int vy = index / gridSizeX;
 				int vx = index % gridSizeX;
 
-				float x = aabb.min.x + (vx + 0.5) * spacing;
-				float y = aabb.min.y + (vy + 0.5) * spacing;
-				float z = aabb.min.z + (vz + 0.5) * spacing;
+				float x = aabb.min.x + (vx + 0.5) * spacing * 0.8;
+				float y = aabb.min.y + (vy + 0.5) * spacing * 0.8;
+				float z = aabb.min.z + (vz + 0.5) * spacing * 0.8;
 
-				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_velocity.push_back(glm::vec4(0));
-				cpu_density.push_back(0.0);
-				cpu_lambda.push_back(0.0);
+				cpu_position.push_back(glm::vec4(x-8.5, y, z, 0.0));
+				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
+				numParticles++;
+
+				cpu_position.push_back(glm::vec4(x+8.5, y, z, 0.0));
 				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
 				numParticles++;
 			}
@@ -312,9 +316,9 @@ void AppLayer::ResetSimulation() {
 	}
 
 
-
+	
 	int realParticles = numParticles;
-
+	
 	std::vector<glm::vec4> boundaryPos;
 	float halfSpacing = spacing / 2.0;
 
@@ -370,13 +374,9 @@ void AppLayer::ResetSimulation() {
 	}
 
 	for (int i = 0; i < boundaryPos.size(); i++) {
-		cpu_position.push_back(glm::vec4(boundaryPos[i].x, boundaryPos[i].y, boundaryPos[i].z, 0.0));
-		cpu_predictedPosition.push_back(glm::vec4(boundaryPos[i].x, boundaryPos[i].y, boundaryPos[i].z, 0.0));
-		cpu_velocity.push_back(glm::vec4(0));
-		cpu_density.push_back(0.0);
-		cpu_lambda.push_back(0.0);
-		cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-		numParticles++;
+		//cpu_position.push_back(glm::vec4(boundaryPos[i].x, boundaryPos[i].y, boundaryPos[i].z, 0.0));
+		//cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
+		//numParticles++;
 	}
 
 	numBoundaryParticles = numParticles - realParticles;
@@ -400,10 +400,11 @@ void AppLayer::ResetSimulation() {
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 	ps->writeField("PositionBuffer", cpu_position);
-	ps->writeField("PredictedPositionBuffer", cpu_predictedPosition);
-	ps->writeField("VelocityBuffer", cpu_velocity);
-	ps->writeField("DensityBuffer", cpu_density);
-	ps->writeField("LambdaBuffer", cpu_lambda);
+	ps->writeField("PredictedPositionBuffer", cpu_position);
+	ps->clearField("VelocityBuffer");
+	ps->clearField("DensityBuffer");
+	ps->clearField("LambdaBuffer");
+	ps->clearField("PositionCorrection");
 	ps->writeField("MetaBuffer", cpu_meta);
 
 	
@@ -450,6 +451,8 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	GPU_PROFILE(nns_time,
 		NeigborSearch();
 	)
+
+	solver->setFloat("dt", settings.timestep.value() / float(settings.solver_substep));
 	
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
@@ -460,9 +463,10 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 					for (int j = 0; j < settings.solver_iteration; j++) {
 						solver->execute(3);
 						solver->execute(4);
+						solver->execute(5);
 					}
 				)
-				solver->execute(5);
+				solver->execute(6);
 
 			}
 		}
@@ -537,6 +541,13 @@ void AppLayer::onImGuiRender() {
 	if (ImGui::Checkbox("Show Boundaries", &BBstate)) {
 		particleShader->use();
 		particleShader->setInt("showBoundary", BBstate);
+	}
+
+	static bool grav = true;
+	if (ImGui::Checkbox("Gravity", &grav)) {
+		solver->use();
+		if (grav) solver->setFloat("g", 9.81*1000.0);
+		else solver->setFloat("g", 0.0);
 	}
 
 
@@ -642,9 +653,15 @@ void AppLayer::onImGuiRender() {
 	}
 
 	if (ImGui::Button("Step Simulation")) {
+		ps->solveLink(solver);
+		bs->solveLink(prefixSum);
+
 		GPU_PROFILE(solver_total_time,
 			Simulate(0.016);
 		)
+
+		ps->detach(solver);
+		bs->detach(prefixSum);
 	}
 
 	static bool first_frame = true;

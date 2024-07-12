@@ -5,9 +5,9 @@
 //Macro to access buffer
 #define B_x(buffer_index) ssbo_position[buffer_index].xyz
 #define B_X(buffer_index) ssbo_pposition[buffer_index].xyz
+#define B_p(buffer_index) ssbo_dposition[buffer_index].xyz
 #define B_M(buffer_index) particleMass
 #define B_V(buffer_index) ssbo_velocity[buffer_index].xyz
-#define B_T(buffer_index) ssbo_temperature[buffer_index].xyz
 #define B_Lambda(buffer_index) ssbo_lambda[buffer_index]
 #define B_Rho(buffer_index) ssbo_density[buffer_index]
 #define B_Phase(buffer_index) ssbo_meta[buffer_index].x
@@ -16,20 +16,20 @@
 #define B_SortedID(buffer_index) ssbo_meta[buffer_index].w
 
 //Shortcuts
+#define pi B_p(i).xyz
 #define xi B_x(i).xyz
 #define xj B_x(j).xyz
 #define Xi B_X(i).xyz
 #define Xj B_X(j).xyz
 #define Vi B_V(i).xyz
 #define Vj B_V(j).xyz
-#define Ti B_T(i).xyz
-#define Tj B_T(j).xyz
 #define Mi particleMass
 #define Mj particleMass
 #define Rhoi B_Rho(i)
 #define Rhoj B_Rho(j)
 
 #define Vij (Vi - Vj)
+#define Vji (Vj - Vi)
 #define Rij (Xi - Xj)
 #define Rji (Xj - Xi)
 #define Dij distance(Xi, Xj)
@@ -37,51 +37,45 @@
 layout(std430) buffer PositionBuffer {
 	vec4 ssbo_position[];
 };
-layout(std430) buffer cpyPositionBuffer {
-	vec4 ssbo_cpy_position[];
+
+layout(std430) buffer PositionCorrection {
+	vec4 ssbo_dposition[];
 };
 
 layout(std430) buffer PredictedPositionBuffer {
 	vec4 ssbo_pposition[];
 };
-layout(std430) buffer cpyPredictedPositionBuffer {
-	vec4 ssbo_cpy_pposition[];
-};
 
 layout(std430) buffer VelocityBuffer {
 	vec4 ssbo_velocity[];
-};
-layout(std430) buffer cpyVelocityBuffer {
-	vec4 ssbo_cpy_velocity[];
 };
 
 layout(std430) buffer DensityBuffer {
 	float ssbo_density[];
 };
-layout(std430) buffer cpyDensityBuffer {
-	float ssbo_cpy_density[];
-};
 
 layout(std430) buffer LambdaBuffer {
 	float ssbo_lambda[];
-};
-layout(std430) buffer cpyLambdaBuffer {
-	float ssbo_cpy_lambda[];
-};
-
-layout(std430) buffer TemperatureBuffer {
-	float ssbo_temperature[];
-};
-layout(std430) buffer cpyTemperatureBuffer {
-	float ssbo_cpy_temperature[];
 };
 
 layout(std430) buffer MetaBuffer {
 	uvec4 ssbo_meta[]; //phase, binindex, id , sortedID
 };
 
-layout(std430) buffer cpyMetaBuffer {
-	uvec4 ssbo_cpy_meta[]; //phase, binindex, id , sortedID
+struct CopyContent{
+	vec4 position;
+	vec4 dposition;
+	vec4 pposition;
+	vec4 velocity;
+	float density;
+	float lambda;
+	float _padding;
+	float _padding1;
+	uvec4 meta;
+};
+
+layout(std430) buffer CopyBuffer {
+	CopyContent ssbo_copy[]; //phase, binindex, id , sortedID
 };
 
 #endif// INCLUDE_BUFFERS_HLSL
