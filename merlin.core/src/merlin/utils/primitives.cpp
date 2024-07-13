@@ -174,7 +174,9 @@ namespace Merlin {
 			}
 		}
 
-		return Mesh::create("Floor", v, GL_TRIANGLES);
+		Mesh_Ptr result = Mesh::create("Floor", v, GL_TRIANGLES);
+		result->useVertexColors();
+		return result;
 	}
 
 	Shared<Mesh> Primitives::createPoint() {

@@ -5,9 +5,9 @@
 //Macro to access buffer
 #define B_x(buffer_index) ssbo_position[buffer_index].xyz
 #define B_X(buffer_index) ssbo_pposition[buffer_index].xyz
-#define B_Rx(buffer_index) ssbo_rposition[buffer_index].xyz
 #define B_M(buffer_index) particleMass
 #define B_V(buffer_index) ssbo_velocity[buffer_index].xyz
+
 #define B_Phase(buffer_index) ssbo_meta[buffer_index].x
 #define B_BinIndex(buffer_index) ssbo_meta[buffer_index].y
 #define B_ID(buffer_index) ssbo_meta[buffer_index].z
@@ -34,36 +34,25 @@
 layout(std430) buffer PositionBuffer {
 	vec4 ssbo_position[];
 };
-layout(std430) buffer cpyPositionBuffer {
-	vec4 ssbo_cpy_position[];
-};
-layout(std430) buffer RestPositionBuffer {
-	vec4 ssbo_rposition[];
-};
-layout(std430) buffer cpyRestPositionBuffer {
-	vec4 ssbo_cpy_rposition[];
-};
 layout(std430) buffer PredictedPositionBuffer {
 	vec4 ssbo_pposition[];
-};
-layout(std430) buffer cpyPredictedPositionBuffer {
-	vec4 ssbo_cpy_pposition[];
 };
 
 layout(std430) buffer VelocityBuffer {
 	vec4 ssbo_velocity[];
 };
-layout(std430) buffer cpyVelocityBuffer {
-	vec4 ssbo_cpy_velocity[];
+
+#define ck ssbo_constraint[k]
+
+struct Constraint{
+	uint a;
+	uint b;
+	float restLength;
+	float lambda;
 };
 
-
-layout(std430) buffer MetaBuffer {
-	uvec4 ssbo_meta[]; //phase, binindex, id , sortedID
-};
-
-layout(std430) buffer cpyMetaBuffer {
-	uvec4 ssbo_cpy_meta[]; //phase, binindex, id , sortedID
+layout(std430) buffer ConstraintBuffer {
+	Constraint ssbo_constraint[];
 };
 
 #endif// INCLUDE_BUFFERS_HLSL

@@ -20,7 +20,7 @@ vec3 solveFloorCollision(uint i){
 		}
 	}
 
-	return (correctedPosition - Xi)*0.8;
+	return (correctedPosition - Xi)*0.4;
 }
 
 
@@ -45,7 +45,7 @@ float computeLambda(uint i) {
     OVERNNS
 		vec3 diff = Rij;
 		float dist = length(diff);
-		if(dist >= H || dist < 1e-6) continue;
+		if(dist >= H || dist < 1e-5) continue;
 
 		vec3 gradCj = -spiky_grad(diff);
 
@@ -69,7 +69,23 @@ float computeLambda(uint i) {
 	OVERNNS_END
 
 	sumGradCj += dot(gradCi, gradCi);
-	sumGradCj = max(sumGradCj, 1e-6);
+	sumGradCj = max(sumGradCj, 1e-5);
+
+	float boundaryDensity = 0.0;
+
+
+	for (int i = 0; i < 3; i++){
+		float dist = distance(position[i], boundaryMin[i]);
+		if (dist < smoothingRadius){
+			boundaryDensity += 0.01*particleMass/dist;
+		}
+		dist = distance(position[i], boundaryMax[i]);
+		if (dist < smoothingRadius)
+		{
+			boundaryDensity += 0.01*particleMass/dist;
+		}
+	}
+	density += boundaryDensity;
 
 	Rhoi = density;
     //float C = max((density / rho0) - 1.0, 0.0);
@@ -113,11 +129,12 @@ vec3 computeXPSH(uint i){
 		float dist = Dij;
 		if(dist < 1e-6 || dist > H) continue;
 		float Wij = poly6(dist);
-		if(B_Phase(j) == FLUID)
-			xsphSum += (Mj/Rhoj) * Vji * Wij;
-		else if(B_Phase(j) == BOUNDARY){
-			xsphSum += (1.0/Rhoj) * Vji * Wij;
-		}
+		if(Rhoj<1e-6) continue;
+		//if(B_Phase(j) == FLUID)
+			xsphSum += Vji * Wij;
+		//else if(B_Phase(j) == BOUNDARY){
+			//xsphSum += (1.0/Rhoj) * Vji * Wij;
+		//}
 	OVERNNS_END
 	return artificialViscosityMultiplier * xsphSum;
 }

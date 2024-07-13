@@ -415,6 +415,8 @@ void AppLayer::NeigborSearch() {
 	prefixSum->use();
 	prefixSum->setUInt("dataSize", settings.bThread); //data size
 	prefixSum->setUInt("blockSize", settings.blockSize); //block size
+	
+	bs->getField("BinBuffer")->clearBuffer();
 
 	prefixSum->use();
 	prefixSum->execute(4);// clear bins

@@ -219,24 +219,43 @@ namespace Merlin {
 		m_vao->addBuffer(vbo, Vertex::getLayout());
 	}
 
-	void Mesh::calculateIndices(){
+	void Mesh::calculateIndices() {
+		Console::info("Mesh") << "Recomputing Mesh indices and removing duplicate vertices.." << Console::endl;
 
-		Console::info("Mesh") << "Recomputing Mesh indices.." << Console::endl;
-		int i = 0;
-		for (Vertex v : m_vertices) {
-			int j = 0;
-			for (Vertex c : m_vertices) {
-				if (v.position == c.position) {
-					m_indices[j] = i;
+		Vertices newVertices;
+		std::vector<GLuint> newIndices(m_vertices.size());
+		int newIndex = 0;
+
+		for (size_t i = 0; i < m_vertices.size(); ++i) {
+			const Vertex& v = m_vertices[i];
+			bool found = false;
+			int foundIndex = -1;
+			for (int j = 0; j < newVertices.size(); ++j) {
+				if (newVertices[j].position == v.position) {
+					found = true;
+					foundIndex = j;
+					break;
 				}
-				j++;
 			}
-			i++;
-			Console::printProgress(float(i) / float(m_indices.size()));
-		}
-		Console::print() << Console::endl;
 
+			if (!found) {
+				newVertices.push_back(v);
+				newIndices[i] = newIndex;
+				++newIndex;
+			}
+			else {
+				newIndices[i] = foundIndex;
+			}
+			Console::printProgress(float(i + 1) / float(m_vertices.size()));
+		}
+
+		m_vertices = std::move(newVertices);
+		m_indices = std::move(newIndices);
+
+		Console::print() << Console::endl;
 	}
+
+
 
 	void Mesh::updateVAO() {
 		//Update VAO, VBO
@@ -249,14 +268,30 @@ namespace Merlin {
 
 	void Mesh::removeUnusedVertices() {
 		Console::info("Mesh") << "Removing unused vertices.." << Console::endl;
-		int i = 0;
-		Vertices newVertices;
 
-		newVertices.reserve(*std::max_element(m_indices.begin(), m_indices.end()));
-
-		for (size_t i = 0; i < m_indices.size(); i++) {
-			newVertices.push_back(m_vertices[i]);
+		std::vector<bool> usedVertices(m_vertices.size(), false);
+		for (GLuint index : m_indices) {
+			usedVertices[index] = true;
 		}
+
+		Vertices newVertices;
+		std::vector<GLuint> vertexMapping(m_vertices.size());
+		GLuint newIndex = 0;
+
+		for (size_t i = 0; i < m_vertices.size(); ++i) {
+			if (usedVertices[i]) {
+				newVertices.push_back(m_vertices[i]);
+				vertexMapping[i] = newIndex++;
+			}
+		}
+
+		for (GLuint& index : m_indices) {
+			index = vertexMapping[index];
+		}
+
+		m_vertices = std::move(newVertices);
+
+		Console::print() << Console::endl;
 	}
 
 	void Mesh::applyMeshTransform(){

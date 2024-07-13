@@ -474,7 +474,6 @@ void AppLayer::SpawnParticle() {
 	solver->use();
 	solver->setUInt("numEmitter", numEmitter);
 	solver->setUInt("numParticles", numParticles);
-	solver->setFloat("uRotationSpeed", rot_speed);
 }
 
 
@@ -636,11 +635,6 @@ void AppLayer::onImGuiRender() {
 		solver->setFloat("dt", settings.timestep.value());
 	}
 	
-
-	if (ImGui::SliderFloat("Rotation speed", &rot_speed, -30, 30.0)) {
-		solver->use();
-		solver->setFloat("uRotationSpeed", rot_speed);
-	}
 
 
 

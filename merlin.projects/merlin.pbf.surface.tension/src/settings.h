@@ -10,8 +10,8 @@ struct Bin {
 };
 
 struct Settings {
-	const float particleRadius = 0.4;
-	const float smoothingRadius = 4 * particleRadius;
+	const float particleRadius = 0.6;
+	const float smoothingRadius = 6 * particleRadius;
 	const float bWidth = smoothingRadius;
 	const float volumeWidth = smoothingRadius;
 

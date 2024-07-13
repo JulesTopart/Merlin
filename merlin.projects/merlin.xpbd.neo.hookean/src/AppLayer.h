@@ -25,8 +25,6 @@ public:
 	void ResetSimulation();
 
 	void SyncUniforms();
-
-	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);
 
 private:
@@ -36,18 +34,17 @@ private:
 	Scene scene;
 	Renderer renderer;
 	
+	StagedComputeShader_Ptr integrator;
 	StagedComputeShader_Ptr solver;
-	StagedComputeShader_Ptr prefixSum;
 
 	ParticleSystem_Ptr ps;
-	ParticleSystem_Ptr bs;
 
 	Shader_Ptr particleShader;
-	Shader_Ptr binShader;
 
 	// --- Simulation--- 
 	Settings settings;
 	GLuint numParticles = 0;
+	GLuint numConstraints = 0;
 
 	Mesh_Ptr object;
 	

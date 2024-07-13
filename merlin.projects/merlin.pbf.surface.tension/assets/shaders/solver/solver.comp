@@ -22,6 +22,8 @@ void main() {
 	if (i >= numParticles) return;
 	NNS(i, stage);
 	if(B_Phase(i) != BOUNDARY)	SolveFluid(i, stage);
+
+	/*
 	else if(B_Phase(i) == BOUNDARY){
 		if(stage != 2) return;
 		float pseudomass = 1e-6; //to avoid dividing by zero in compute delta
@@ -32,7 +34,7 @@ void main() {
 				pseudomass += poly6(Dij);
 		OVERNNS_END
 		Rhoi = pseudomass;
-	}
+	}*/
 }
 
 void NNS(uint i, uint simStep){
