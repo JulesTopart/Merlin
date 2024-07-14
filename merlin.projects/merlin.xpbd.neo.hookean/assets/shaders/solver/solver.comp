@@ -31,7 +31,7 @@ void main() {
 		// Calculate the effective mass matrix
 		float inverseMass = (1.0/Mi) + (1.0/Mj);
 
-		float compliance = 1.0/stiffness; // Compliance of the constraints
+		float compliance = 1.0/80000; // Compliance of the constraints
 		float complianceSc = compliance/(h*h);
 
 		//float deltaLambda = (- C - complianceSc * ck.lambda) / ( inverseMass * length(gradC)  + complianceSc); 
@@ -39,10 +39,8 @@ void main() {
 		ck.lambda += deltaLambda;
 
 		// Calculate and apply the position corrections
-		Xi -= gradC * deltaLambda * Mi;
-		Xj += gradC * deltaLambda * Mj;
-
-
+		Xi -= gradC * deltaLambda * Mi*0.5;
+		Xj += gradC * deltaLambda * Mj*0.5;
 		return;
 	}
 }

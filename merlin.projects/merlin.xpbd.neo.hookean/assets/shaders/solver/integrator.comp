@@ -18,9 +18,52 @@ void main() {
 		Vi += vec3(0, 0, -g) * h; //v <- v + f f_ext /m
 		Xi += Vi * h; // x <- x + hv
 		if(Xi.z < 0) Xi.z = 0;
+
+		for(int k = 0; k < numConstraints; k++){
+			if(i == ck.a) ck.lambda = 0;
+		}
+
 		return;
 	}
+	 
 	if(stage == 1){
+		int n = 0;
+		vec3 corr = vec3(0);
+		for(int k = 0; k < numConstraints; k++){
+			if(i == ck.a || i == ck.b){
+				uint j = 0;
+				if(i == ck.a ) j = ck.b;
+				if(i == ck.b ) j = ck.a;
+				if(i == j) continue;
+
+				float C = (Dij) - ck.restLength;
+				// Calculate the gradient of the constraint function
+				vec3 gradC = normalize(Rij);
+				if (Dij == 0.0f) {
+					gradC = vec3(0.0f); // Handle zero-length vector case
+				} 
+
+				// Calculate the effective mass matrix
+				float inverseMass = (1.0/Mi) + (1.0/Mj);
+
+				float compliance = 1.0/800000000; // Compliance of the constraints
+				float complianceSc = compliance/(h*h);
+
+				//float deltaLambda = (- C - complianceSc * ck.lambda) / ( inverseMass * length(gradC)  + complianceSc); 
+				float deltaLambda = (- C - complianceSc * ck.lambda) / ( inverseMass + complianceSc); 
+				ck.lambda += deltaLambda;
+
+				// Calculate and apply the position corrections
+				corr +=  gradC * deltaLambda * Mi * 0.5;
+				n++;
+			}
+		}
+		corr /= (n > 1) ? float(n) : 1.0;
+		Xi+=corr;
+		return;
+	}
+
+	if(stage == 2){
 		if(isnan(Xi.x) || isnan(Xi.y) || isnan(Xi.z)) Xi = xi;
 		Vi = (Xi - xi)/h;
 		return;

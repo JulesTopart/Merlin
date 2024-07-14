@@ -68,11 +68,13 @@ void AppLayer::onUpdate(Timestep ts) {
 void AppLayer::SyncUniforms() {
 
 	solver->use();
-	settings.particleMass.sync(*solver);
+	
 	solver->setUInt("numConstraints", numConstraints);
 
 	integrator->use();
+	settings.particleMass.sync(*integrator);
 	integrator->setUInt("numParticles", numParticles);
+	integrator->setUInt("numConstraints", numConstraints);
 
 }
 
@@ -144,15 +146,15 @@ void AppLayer::InitPhysics() {
 	ps->addField<glm::vec4>("PositionBuffer");
 	ps->addField<glm::vec4>("PredictedPositionBuffer");
 	ps->addField<glm::vec4>("VelocityBuffer");
-
+	ps->addBuffer<Constraint>("ConstraintBuffer", settings.cThread);
 	ps->solveLink(integrator);//test binding points
 	ps->detach(integrator);//test binding points
 
-	ps->addProgram(solver);
-	ps->addBuffer<Constraint>("ConstraintBuffer", settings.cThread );
+	//ps->addProgram(solver);
+	//ps->addBuffer<Constraint>("ConstraintBuffer", settings.cThread);
 
-	ps->solveLink(solver);//test binding points
-	ps->detach(solver);//test binding points
+	//ps->solveLink(solver);//test binding points
+	//ps->detach(solver);//test binding points
 
 
 	ps->link(particleShader->name(), "PositionBuffer");
@@ -209,13 +211,13 @@ void AppLayer::ResetSimulation() {
 		}
 	}*/
 
-	/*
+	/**/
 	Mesh_Ptr cube = Primitives::createCube(10);
 	cube->calculateIndices();
 	cube->removeUnusedVertices();
-	*/
+	/**/
 
-	Mesh_Ptr cube = Primitives::createSphere(10);
+	//Mesh_Ptr cube = Primitives::createSphere(10);
 
 	Indices ids = cube->getIndices();
 	Vertices vrts = cube->getVertices();
@@ -226,30 +228,28 @@ void AppLayer::ResetSimulation() {
 		numParticles++;
 	}
 
-	int index = 0;
-	int prevID = 0;
-	for (auto& i : ids) {
-		index++;
-
-		if (index == 2) {
+	int ia = 0;
+	int ib = 0;
+	for (auto& va : vrts) {
+		for (auto& vb : vrts) {
+			if (ia == ib) continue;
 			numConstraints++;
-			index = 0;
 
-			glm::vec4 va = glm::vec4(vrts[prevID].position,1);
-			glm::vec4 vb = glm::vec4(vrts[i].position, 1);
+			glm::vec4 va = glm::vec4(vrts[ia].position, 1);
+			glm::vec4 vb = glm::vec4(vrts[ib].position, 1);
 
 			Constraint c;
-			c.a = prevID;
-			c.b = i;
+			c.a = ia;
+			c.b = ib;
 			c.lambda = 0;
 			c.restLength = glm::distance(va, vb);
 			cpu_constraints.push_back(c);
+			ib++;
 		}
-		else {
-			prevID = i;
-		}
-		
+		ib = 0;
+		ia++;
 	}
+
 
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 
@@ -280,6 +280,29 @@ void AppLayer::ResetSimulation() {
 
 
 void AppLayer::Simulate(Merlin::Timestep ts) {
+
+	ps->solveLink(integrator);
+	integrator->use();
+
+	float h = ts / float(settings.solver_substep);
+
+	integrator->setFloat("h", h);
+
+
+	for (int i = 0; i < settings.solver_substep; i++) {
+		integrator->execute(0); //predict position and clear lambda
+
+		for (int j = 0; j < settings.solver_iteration; j++) {
+			integrator->execute(1); //project constraints
+		}
+
+		integrator->execute(2);
+		
+	}
+	ps->detach(integrator);
+
+	/* //constraint centric
+
 	//ps->clearBuffer("ConstraintBuffer");
 	float h = ts / float(settings.solver_substep);
 	for (int i = 0; i < settings.solver_substep; i++) {
@@ -305,10 +328,12 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 		ps->solveLink(integrator);
 		integrator->use();
-		integrator->execute(1);
+		integrator->execute(2);
 		ps->detach(integrator);
 	}
 
+
+	/**/
 
 	
 	elapsedTime += settings.timestep.value();
