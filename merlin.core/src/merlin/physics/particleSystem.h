@@ -10,6 +10,7 @@
 #include "merlin/graphics/mesh.h"
 
 #include "glm/gtc/random.hpp"
+#include <set>
 
 namespace Merlin {
 
@@ -103,7 +104,7 @@ namespace Merlin {
 		std::map<std::string, ComputeShader_Ptr> m_programs; //Shader to compute the particle position
 		std::map<std::string, AbstractBufferObject_Ptr> m_fields; //Buffer to store particles fields
 		std::map<std::string, AbstractBufferObject_Ptr> m_buffers; //Buffer to store particles fields
-		std::map<std::string, std::vector<std::string>> m_links;
+		std::map<std::string, std::set<std::string>> m_links;
 
 		std::string m_currentProgram = "";
 	};

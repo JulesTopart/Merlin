@@ -20,14 +20,13 @@ in GS_out{
 
 out vec4 FragColor;
 
-uniform float alphaBlend = 1.0;
-
 //Materials data
 struct Material{
     vec3 ambient_color;
     vec3 diffuse_color;
     vec3 specular_color;
     float shininess;
+    float alpha;
 
 	bool use_diffuse_tex;
 	bool use_normal_tex;
@@ -275,6 +274,6 @@ void main() {
     //FragColor.rgb = N* 0.9 + FragColor.rgb * 0.1;
     //FragColor.rgb = normalize(vin.tangentBasis * (-lights[0].direction));
     //FragColor.rgb = N;
-    FragColor.a = alphaBlend;
+    FragColor.a = material.alpha;
 
 }

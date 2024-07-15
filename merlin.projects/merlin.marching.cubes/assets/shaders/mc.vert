@@ -6,7 +6,7 @@ layout(location = 1) in vec4 _normal;
 out VS_OUT
 {
 	vec3 position;
-	flat vec3 normal; // Draw with flat shading
+	vec3 normal; // Draw with flat shading
 } vs_out;
 
 uniform mat4 view;

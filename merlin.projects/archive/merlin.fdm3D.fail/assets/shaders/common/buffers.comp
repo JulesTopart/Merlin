@@ -1,0 +1,92 @@
+//? #version 430
+#ifndef INCLUDE_BUFFERS_GLSL
+#define INCLUDE_BUFFERS_GLSL
+
+//Macro to access buffer
+#define B_x(buffer_index) ssbo_position[buffer_index].xyz
+#define B_Rx(buffer_index) ssbo_rposition[buffer_index].xyz
+#define B_X(buffer_index) ssbo_pposition[buffer_index].xyz
+#define B_M(buffer_index) particleMass
+#define B_V(buffer_index) ssbo_velocity[buffer_index].xyz
+#define B_T(buffer_index) ssbo_temperature[buffer_index].xyz
+#define B_Lambda(buffer_index) ssbo_lambda[buffer_index]
+#define B_Rho(buffer_index) ssbo_density[buffer_index]
+#define B_Phase(buffer_index) ssbo_meta[buffer_index].x
+#define B_BinIndex(buffer_index) ssbo_meta[buffer_index].y
+#define B_ID(buffer_index) ssbo_meta[buffer_index].z
+#define B_SortedID(buffer_index) ssbo_meta[buffer_index].w
+
+//Shortcuts
+#define xi B_x(i)
+#define xj B_x(j)
+#define Rxi B_Rx(i)
+#define Rxj B_Rx(j)
+#define Xi B_X(i)
+#define Xj B_X(j)
+#define Vi B_V(i)
+#define Vj B_V(j)
+#define Ti B_T(i)
+#define Tj B_T(j)
+#define Mi particleMass
+#define Mj particleMass
+#define Rhoi B_Rho(i)
+#define Rhoj B_Rho(j)
+
+#define Vij (Vi - Vj)
+#define Vji (Vj - Vi)
+#define Rij (Xi - Xj)
+#define Rji (Xj - Xi)
+#define Dij distance(Xi, Xj)
+
+layout(std430) buffer PositionBuffer {
+	vec4 ssbo_position[];
+};
+
+layout(std430) buffer RestPositionBuffer {
+	vec4 ssbo_rposition[];
+};
+
+layout(std430) buffer PredictedPositionBuffer {
+	vec4 ssbo_pposition[];
+};
+
+layout(std430) buffer VelocityBuffer {
+	vec4 ssbo_velocity[];
+};
+
+layout(std430) buffer DensityBuffer {
+	float ssbo_density[];
+};
+
+layout(std430) buffer LambdaBuffer {
+	float ssbo_lambda[];
+};
+
+layout(std430) buffer TemperatureBuffer {
+	float ssbo_temperature[];
+};
+
+layout(std430) buffer MetaBuffer {
+	uvec4 ssbo_meta[]; //phase, binindex, id , sortedID
+};
+
+
+struct CopyContent{
+	vec4 position;
+	vec4 rposition;
+	vec4 pposition;
+	vec4 velocity;
+	float density;
+	float lambda;
+	float temperature;
+	float _padding;
+	uvec4 meta;
+};
+
+layout(std430) buffer CopyBuffer {
+	CopyContent ssbo_copy[]; //phase, binindex, id , sortedID
+};
+
+
+
+#endif// INCLUDE_BUFFERS_HLSL

@@ -49,7 +49,7 @@ namespace Merlin {
 		Texture3D_Ptr m_volume;
 
 		ImmutableSSBO_Ptr<glm::vec4> buffer_vertices;
-		//ImmutableSSBO_Ptr<glm::vec4> buffer_normals;
+		ImmutableSSBO_Ptr<glm::vec4> buffer_normals;
 
 		inline static ImmutableSSBO_Ptr<GLint> buffer_triangle_table;
 		inline static ImmutableSSBO_Ptr<GLint> buffer_configuration_table;

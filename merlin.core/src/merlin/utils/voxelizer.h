@@ -10,6 +10,8 @@ namespace Merlin {
 		static std::vector<int> voxelize(Mesh& mesh, float vox_size);
 		static std::vector<int> voxelizeSurface(Mesh& mesh, float vox_size, float thickness);
 
+		static std::vector<glm::vec3> getVoxelposition(const std::vector<int>& voxels, const BoundingBox&, float spacing);
+
 	private :
 		static std::vector<int> voxelize(Mesh& mesh, float vox_size, float thickness);
 		inline static ComputeShader_Ptr m_voxelize = nullptr;

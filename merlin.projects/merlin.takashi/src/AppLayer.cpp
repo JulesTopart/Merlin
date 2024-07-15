@@ -13,14 +13,14 @@ using namespace Merlin;
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
 struct CopyContent {
-	glm::vec4 position;
-	glm::vec4 rposition;
-	glm::vec4 pposition;
-	glm::vec4 velocity;
+	glm::vec4 x;
+	glm::vec4 p;
+	glm::vec4 dp;
+	glm::vec4 v;
 	float density;
 	float lambda;
+	float scorr;
 	float temperature;
-	float _padding;
 	glm::uvec4 meta;
 };
 
@@ -113,19 +113,11 @@ void AppLayer::InitGraphics() {
 	//renderer.applyGlobalTransform(glm::scale(glm::mat4(1), glm::vec3(0.001)));
 
 	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
-	particleShader->noEnvironment();
-	particleShader->noMaterial();
-	particleShader->noTexture();
-	particleShader->noLights();
-	particleShader->noShadows();
+
 	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
 
 	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
-	binShader->noEnvironment();
-	binShader->noMaterial();
-	binShader->noTexture();
-	binShader->noLights();
-	binShader->noShadows();
+
 
 	particleShader->use();
 	particleShader->setInt("colorCycle", 4);
@@ -135,57 +127,14 @@ void AppLayer::InitGraphics() {
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
 
-	Shared<Model> floor = ModelLoader::loadModel("./assets/models/bed.stl");
-	floor->translate(glm::vec3(0.75, -0.25, -0.1));
-	floor->scale(glm::vec3(1.025, 1.025, 1.0));
-	floor->setMaterial("chrome");
-	scene.add(floor);
+	scene.add(Primitives::createFloor(20, 10));
 
-	//modelShader->Use();
-	//modelShader->setVec3("lightPos", glm::vec3(0.0, 10.0, 10));
+	static_emitter = Primitives::createCylinder(5, 2, 10);
+	static_emitter->translate(glm::vec3(0, 0, 30));
+	//scene.add(static_emitter);
 
-	Shared<Model> floorSurface = Model::create("floorSurface", Primitives::createRectangle(316, 216));
-	floorSurface->translate(glm::vec3(0.75, -0.25, 0));
-
-	Shared<PhongMaterial> floorMat2 = createShared<PhongMaterial>("floorMat2");
-	floorMat2->setAmbient(glm::vec3(0.02));
-	floorMat2->setDiffuse(glm::vec3(0.95));
-	floorMat2->setSpecular(glm::vec3(0.99));
-	floorMat2->setShininess(0.7);
-	floorMat2->loadTexture("assets/textures/bed.png", TextureType::DIFFUSE);
-
-	floorSurface->setMaterial(floorMat2);
-	scene.add(floorSurface);
-
-	Model_Ptr bbox = Model::create("bbox", Primitives::createQuadCube(settings.bb.x, settings.bb.y, settings.bb.z));
-	bbox->enableWireFrameMode();
-	bbox->setMaterial("default");
-	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
-	scene.add(bbox);
-
-	//geom = ModelLoader::loadModel("./assets/common/models/bunny.stl")->meshes()[0];
-	nozzle = ModelLoader::loadModel("./assets/models/nozzle.stl")->meshes()[0];
-	nozzle->setMaterial("gold");
-	nozzle->translate(glm::vec3(0, 0, 100));
-	nozzle->rotate(glm::vec3(180*DEG_TO_RAD, 0, 0));
-	nozzle->scale(2);
-	
-	scene.add(nozzle);
-
-	emitter = Primitives::createCylinder(2.6*2.0, 80, 10);
-	emitter->translate(glm::vec3(0, 0, 30));
-	emitter->setMaterial("red plastic");
-	scene.add(emitter);
-
-	emitter->computeBoundingBox();
-	BoundingBox bb = emitter->getBoundingBox();
-
-	glm::vec3 c_size = bb.max - bb.min;
-	auto b_box = Primitives::createCube(c_size.x, c_size.y, c_size.z);
-	b_box->enableWireFrameMode();
-	c_size *= 0.5;
-	b_box->translate(bb.min + c_size);
-	scene.add(b_box);
+	fluid = Primitives::createSphere(10, 20);
+	fluid->translate(glm::vec3(0, 0, 30));
 
 	scene.add(TransformObject::create("origin"));
 }
@@ -267,217 +216,32 @@ void AppLayer::ResetSimulation() {
 	auto cpu_temp = std::vector<float>();
 	auto cpu_meta = std::vector<glm::uvec4>();
 
-	glm::vec3 cubeSize = glm::vec3(60, 195, 30);
-	glm::ivec3 icubeSize = glm::vec3(cubeSize.x / spacing, cubeSize.y / spacing, cubeSize.z / spacing);
 	numParticles = 0;
 
-	{
-		emitter->computeBoundingBox();
-		emitter->voxelize(spacing);
-		BoundingBox aabb = emitter->getBoundingBox();
-		glm::vec3 bb_size = aabb.max - aabb.min;
-		int gridSizeX = ceil(bb_size.x / spacing);
-		int gridSizeY = ceil(bb_size.y / spacing);
-		int gridSizeZ = ceil(bb_size.z / spacing);
+	
+	fluid->computeBoundingBox();
+	fluid->voxelize(spacing);
+	std::vector<glm::vec3> positions = Voxelizer::getVoxelposition(fluid->getVoxels(), fluid->getBoundingBox(), spacing);
 
-
-
-		for (int i = 0; i < gridSizeX * gridSizeY * gridSizeZ; i++) {
-			if (emitter->getVoxels()[i] != 0) {
-
-				int index = i;
-				int vz = index / (gridSizeX * gridSizeY);
-				index -= (vz * gridSizeX * gridSizeY);
-				int vy = index / gridSizeX;
-				int vx = index % gridSizeX;
-
-				float x = aabb.min.x + (vx + 0.5) * spacing;
-				float y = aabb.min.y + (vy + 0.5) * spacing;
-				float z = aabb.min.z + (vz + 0.5) * spacing;
-
-				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_temp.push_back(298.15); //ambient
-				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
-				numParticles++;
-			}
-		}
-	}
-
-
-
-	{
-		nozzle->computeBoundingBox();
-		nozzle->voxelize(spacing);
-		BoundingBox aabb = nozzle->getBoundingBox();
-		glm::vec3 bb_size = aabb.max - aabb.min;
-		int gridSizeX = ceil(bb_size.x / spacing);
-		int gridSizeY = ceil(bb_size.y / spacing);
-		int gridSizeZ = ceil(bb_size.z / spacing);
-		for (int i = 0; i < gridSizeX * gridSizeY * gridSizeZ; i++) {
-			if (nozzle->getVoxels()[i] != 0) {
-
-				int index = i;
-				int vz = index / (gridSizeX * gridSizeY);
-				index -= (vz * gridSizeX * gridSizeY);
-				int vy = index / gridSizeX;
-				int vx = index % gridSizeX;
-
-				float x = aabb.min.x + (vx + 0.5) * spacing;
-				float y = aabb.min.y + (vy + 0.5) * spacing;
-				float z = aabb.min.z + (vz + 0.5) * spacing;
-
-				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_temp.push_back(298.15); //ambient
-				cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-				numParticles++;
-			}
-		}
-	}
-
-
-
-
-	/**/
-	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
-		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
-			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
-				float x = ((xi + 1) * spacing) - (settings.bb.x / 2.0);
-				float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
-				float z = ((zi + 1) * spacing);
-
-				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_temp.push_back(298.15); //ambient
-				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
-				numParticles++;
-			}
-		}
-	}/**/
-	/*
-	for (int xi = 0; xi <= cubeSize.x / spacing; xi++) {
-		for (int yi = 0; yi <= cubeSize.y / spacing; yi++) {
-			for (int zi = 0; zi <= cubeSize.z / spacing; zi++) {
-				float x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
-				float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
-				float z = ((zi + 1) * spacing);
-
-				cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_predictedPosition.push_back(glm::vec4(x, y, z, 0.0));
-				cpu_velocity.push_back(glm::vec4(0));
-				cpu_density.push_back(0.0);
-				cpu_lambda.push_back(0.0);
-				cpu_temp.push_back(298.15); //ambient
-				cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
-				numParticles++;
-			}
-		}
-	}
-	/**/
-
-	/*
-	for (int n = 0; n < 100000; n += 50) {
-		std::vector<glm::vec4> disk = generateParticlesInDisk(50, 10);
-		for (int i = 0; i < disk.size(); i++) {
-			cpu_position.push_back(disk[i] + glm::vec4(0, 0, cubeSize.z*2, 0));
-			cpu_predictedPosition.push_back(disk[i] + glm::vec4(0, 0, cubeSize.z*2, 0));
-			cpu_velocity.push_back(glm::vec4(0));
-			cpu_density.push_back(0.0);
-			cpu_lambda.push_back(0.0);
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
-			numParticles++;
-		}
-	}*/
-
-	/*
-	std::vector<glm::vec4> sphere = generateParticlesInSphere(500, 10);
-	for (int i = 0; i < sphere.size(); i++) {
-		cpu_position.push_back(sphere[i] + glm::vec4(0, 0, cubeSize.z * 2, 0));
-		cpu_predictedPosition.push_back(sphere[i] + glm::vec4(0, 0, cubeSize.z * 2, 0));
-		cpu_velocity.push_back(glm::vec4(0));
-		cpu_density.push_back(0.0);
-		cpu_lambda.push_back(0.0);
+	for (int i = 0; i < positions.size(); i++) {
+		cpu_position.push_back(glm::vec4(positions[i],0));
 		cpu_temp.push_back(298.15); //ambient
 		cpu_meta.push_back(glm::uvec4(FLUID, numParticles, numParticles, 0.0));
 		numParticles++;
-	}*/
-
-
-	int realParticles = numParticles;
-
-	for (int yi = 0; yi <= settings.bb.y / spacing; yi++) {
-		for (int zi = 0; zi <= settings.bb.z / spacing; zi++) {
-
-			float x = -settings.bb.x / 2;
-			float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
-			float z = -((zi + 1) * spacing) + (settings.bb.z);
-
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
-
-			x = settings.bb.x / 2;
-			y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
-			z = -((zi + 1) * spacing) + (settings.bb.z);
-
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
-
-		}
 	}
+	
+	/*
+	static_emitter->computeBoundingBox();
+	static_emitter->voxelize(spacing);
+	positions = Voxelizer::getVoxelposition(static_emitter->getVoxels(), static_emitter->getBoundingBox(), spacing);
 
-
-	for (int xi = 0; xi <= settings.bb.x / spacing; xi++) {
-		for (int yi = 0; yi <= settings.bb.y / spacing; yi++) {
-
-			float x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
-			float y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
-			float z = 0;
-
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
-
-			x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
-			y = ((yi + 1) * spacing) - (settings.bb.y / 2.0);
-			z = settings.bb.z;
-
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
-
-		}
+	for (int i = 0; i < positions.size(); i++) {
+		cpu_position.push_back(glm::vec4(positions[i], 0));
+		cpu_temp.push_back(298.15); //ambient
+		cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
+		numParticles++;
 	}
-
-	for (int xi = 0; xi <= settings.bb.x / spacing; xi++) {
-		for (int zi = 0; zi <= settings.bb.z / spacing; zi++) {
-
-			float x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
-			float y = -settings.bb.y / 2;;
-			float z = -((zi + 1) * spacing) + (settings.bb.z);
-
-
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
-
-			x = -((xi + 1) * spacing) + (settings.bb.x / 2.0);
-			y = settings.bb.y / 2;
-			z = -((zi + 1) * spacing) + (settings.bb.z);
-
-			cpu_position.push_back(glm::vec4(x, y, z, 0.0));
-			cpu_temp.push_back(298.15); //ambient
-			cpu_meta.push_back(glm::uvec4(BOUNDARY, numParticles, numParticles, 0.0));
-			numParticles++;
-
-		}
-	}
-
+	/**/
 
 
 	Console::info() << "Uploading buffer on device..." << Console::endl;
@@ -500,6 +264,12 @@ void AppLayer::ResetSimulation() {
 	ps->writeField("PredictedPositionBuffer", cpu_position);
 	ps->writeField("TemperatureBuffer", cpu_temp);
 	ps->writeField("MetaBuffer", cpu_meta);
+
+	ps->clearField("VelocityBuffer");
+	ps->clearField("DensityBuffer");
+	ps->clearField("LambdaBuffer");
+	ps->clearField("RestPositionBuffer");
+
 }
 
 

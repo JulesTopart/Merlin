@@ -55,8 +55,8 @@ void AppLayer::InitGraphics() {
 	renderer.enableSampleShading();
 	renderer.disableFaceCulling();
 
-	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 1,32);
-	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 1,32);
+	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 4,16);
+	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 4,16);
 
 	const size_t max_triangles_per_cell = 5;
 	const size_t max_vertices_per_triangle = 3;
@@ -394,18 +394,13 @@ void AppLayer::InitGraphics() {
     noise = ComputeShader::create("noise", "assets/shaders/noise.comp");
     marchingCubes = ComputeShader::create("mc", "assets/shaders/mc.comp");
     mcShader = Shader::create("mcShader", "assets/shaders/mc.vert", "assets/shaders/mc.frag");
-    mcShader->noTexture();
-    mcShader->noLights();
-    mcShader->noEnvironment();
-    mcShader->noShadows();
-    mcShader->noMaterial();
 
     noise->SetWorkgroupLayout(settings.pWkgCount);
     marchingCubes->SetWorkgroupLayout(settings.pWkgCount);
 
     Shared<Mesh> mcMesh = createShared<Mesh>("mc", vao, max_number_of_vertices);
     mcMesh->setShader(mcShader);
-    mcMesh->scale(4);
+    mcMesh->scale(10);
     scene.add(mcMesh);
     scene.add(TransformObject::create("origin", 10));
 }

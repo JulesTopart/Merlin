@@ -10,21 +10,19 @@ namespace Merlin {
 	}
 
 	void ShaderLibrary::LoadDefaultShaders() {
-		add(Shader::create("default.phong", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag", "assets/common/shaders/default.model.geom"));
-		add(Shader::create("instanced.phong", "assets/common/shaders/instanced.model.vert", "assets/common/shaders/default.model.frag"));
+		add(PhongShader::create("default.phong", "assets/common/shaders/default.model.vert", "assets/common/shaders/default.model.frag", "assets/common/shaders/default.model.geom"));
+		add(PhongShader::create("instanced.phong", "assets/common/shaders/instanced.model.vert", "assets/common/shaders/default.model.frag"));
 		add(Shader::create("instanced.sprite", "assets/common/shaders/instanced.sprite.vert", "assets/common/shaders/instanced.sprite.frag"));
 		add(Shader::create("shadow.depth", "assets/common/shaders/shadow.depth.vert", "assets/common/shaders/shadow.depth.frag"));
 		add(Shader::create("shadow.omni", "assets/common/shaders/shadow.omni.vert", "assets/common/shaders/shadow.omni.frag", "assets/common/shaders/shadow.omni.geom"));
 		add(Shader::create("default.light", "assets/common/shaders/default.light.vert", "assets/common/shaders/default.light.frag"));
-		add(Shader::create("default.pbr", "assets/common/shaders/pbr.model.vert", "assets/common/shaders/pbr.model.frag"));
+		//add(Shader::create("default.pbr", "assets/common/shaders/pbr.model.vert", "assets/common/shaders/pbr.model.frag"));
 		add(Shader::create("default.skybox", "assets/common/shaders/default.skybox.vert", "assets/common/shaders/default.skybox.frag"));
 		add(Shader::create("screen.space", "assets/common/shaders/screen.space.vert", "assets/common/shaders/screen.space.frag"));
 		add(Shader::create("panorama_to_cubemap", "assets/common/shaders/fullscreen.vert", "assets/common/shaders/panorama_to_cubemap.frag"));
 		//add(Shader::create("isosurface", "assets/common/shaders/isosurface.vert", "assets/common/shaders/isosurface.frag", "assets/common/shaders/isosurface.geom"));
 
 		Shared<Shader> sh = Shader::create("debug.normals", "assets/common/shaders/debug.normals.vert", "assets/common/shaders/debug.normals.frag", "assets/common/shaders/debug.normals.geom");
-		sh->noMaterial();
-		sh->noTexture();
 		add(sh);
 
 	}

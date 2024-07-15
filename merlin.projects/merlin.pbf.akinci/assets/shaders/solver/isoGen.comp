@@ -9,7 +9,29 @@
 
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 
-layout (r32f, binding = 0) writeonly uniform image3D u_output;
+layout (rgba16f, binding = 0) writeonly uniform image3D u_output;
+
+
+float map(in vec3 position){
+	float density = 0;
+
+	OVERNNS
+		float dist = length(position - Xj);
+		if(dist >= H || dist < 1e-6) continue;
+		if(B_Phase(j) == FLUID) density += Mj * poly6(dist);
+	OVERNNS_END
+	return density;
+}
+
+vec3 calculate_normal(in vec3 p)
+{
+    const vec3 e = vec3(0.001, 0.0, 0.0);
+    vec3 n = vec3(map(p + e.xyy) - map(p - e.xyy),  // Gradient x
+                  map(p + e.yxy) - map(p - e.yxy),  // Gradient y
+                  map(p + e.yyx) - map(p - e.yyx)); // Gradient z
+
+    return normalize(n);
+}
 
 void main()
 {
@@ -19,18 +41,11 @@ void main()
 
 	vec3 uvw = pixel_coords / vec3(dims);
     uvw = uvw * 2.0 - 1.0;
-    
-
-	float density = 0;
+   
 	vec3 position = uvw * domain;
+	vec3 norm = calculate_normal(uvw);
 
-	OVERNNS
-		float dist = length(position - Xj);
-		if(dist >= H || dist < 1e-6) continue;
-		if(B_Phase(j) == FLUID) density += Mj * poly6(dist);
-	OVERNNS_END
-
-	imageStore(u_output, pixel_coords, vec4(density,0,0,0));
+	imageStore(u_output, pixel_coords,  vec4(map(position), norm.x, norm.y, norm.z));
 	return;
 	
 

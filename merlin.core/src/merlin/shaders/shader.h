@@ -48,20 +48,22 @@ namespace Merlin {
 		inline bool supportLights() const		{ return _supportLights; }
 		inline bool supportShadows() const		{ return _supportShadows; }
 		inline bool supportEnvironment() const	{ return _supportEnvironment; }
-		inline void noMaterial()	{ _supportMaterial = false; }
-		inline void noTexture()	{ _supportTexture = false; }
-		inline void noLights()	{ _supportLights = false; }
-		inline void noShadows()	{ _supportShadows = false; }
-		inline void noEnvironment()	{ _supportEnvironment = false; }
+
+		inline void supportTexture(bool state) { _supportTexture = state; }
+		inline void supportMaterial(bool state) { _supportMaterial = state; }
+		inline void supportLights(bool state) { _supportLights = state; }
+		inline void supportShadows(bool state) { _supportShadows = state; }
+		inline void supportEnvironment(bool state) { _supportEnvironment = state; }
+
 
 	protected:
 
 
-		bool _supportLights = true;
-		bool _supportTexture = true;
-		bool _supportShadows = true;
-		bool _supportMaterial = true;
-		bool _supportEnvironment = true;
+		bool _supportLights = false;
+		bool _supportTexture = false;
+		bool _supportShadows = false;
+		bool _supportMaterial = false;
+		bool _supportEnvironment = false;
 
 		GLuint vertexShaderID = 0;
 		GLuint fragmentShaderID = 0;

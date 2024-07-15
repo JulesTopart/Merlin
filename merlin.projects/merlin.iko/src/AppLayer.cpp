@@ -136,18 +136,9 @@ void AppLayer::InitGraphics() {
 
 	// --- Create rendering shaders ---
 	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag", "", false);
-	particleShader->noEnvironment();
-	particleShader->noMaterial();
-	particleShader->noTexture();
-	particleShader->noLights();
-	particleShader->noShadows();
 	
 	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
-	binShader->noEnvironment();
-	binShader->noMaterial();
-	binShader->noTexture();
-	binShader->noLights();
-	binShader->noShadows();
+
 
 	// --- Set shaders constants ---
 	SetConstants(particleShader);

@@ -364,28 +364,26 @@ namespace Merlin {
             max_triangles_per_cell * max_vertices_per_triangle;
 
         buffer_vertices = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_vertices", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
-        //buffer_normals = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_normals", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
-
-        VertexBufferLayout layout;
-        layout.push<float>(4);
+        buffer_normals = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_normals", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
 
         buffer_vertices->setBindingPoint(0);
-        buffer_triangle_table->setBindingPoint(1);
-        buffer_configuration_table->setBindingPoint(2);
+        buffer_normals->setBindingPoint(1);
+        buffer_triangle_table->setBindingPoint(2);
+        buffer_configuration_table->setBindingPoint(3);
 
         VAO_Ptr vao = createShared<VAO>();
         {
             glEnableVertexArrayAttrib(vao->id(), 0);
-            //glEnableVertexArrayAttrib(vao->id(), 1);
+            glEnableVertexArrayAttrib(vao->id(), 1);
 
             glVertexArrayVertexBuffer(vao->id(), 0, buffer_vertices->id(), 0, sizeof(glm::vec4));
-            //glVertexArrayVertexBuffer(vao->id(), 1, buffer_normals->id(), 0, sizeof(glm::vec4));
+            glVertexArrayVertexBuffer(vao->id(), 1, buffer_normals->id(), 0, sizeof(glm::vec4));
 
             glVertexArrayAttribFormat(vao->id(), 0, 4, GL_FLOAT, false, 0);
-            //glVertexArrayAttribFormat(vao->id(), 1, 4, GL_FLOAT, false, 0);
+            glVertexArrayAttribFormat(vao->id(), 1, 4, GL_FLOAT, false, 0);
 
             glVertexArrayAttribBinding(vao->id(), 0, 0);
-            //glVertexArrayAttribBinding(vao->id(), 1, 1);
+            glVertexArrayAttribBinding(vao->id(), 1, 1);
         }
 
         m_mesh = createShared<Mesh>("mc", vao, max_number_of_vertices);

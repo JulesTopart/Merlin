@@ -126,19 +126,11 @@ void AppLayer::InitGraphics() {
 	//renderer.applyGlobalTransform(glm::scale(glm::mat4(1), glm::vec3(0.001)));
 
 	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
-	particleShader->noEnvironment();
-	particleShader->noMaterial();
-	particleShader->noTexture();
-	particleShader->noLights();
-	particleShader->noShadows();
+
 	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
 
 	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
-	binShader->noEnvironment();
-	binShader->noMaterial();
-	binShader->noTexture();
-	binShader->noLights();
-	binShader->noShadows();
+
 
 	particleShader->use();
 	particleShader->setInt("colorCycle", 4);
@@ -286,18 +278,19 @@ void AppLayer::InitPhysics() {
 	scene.add(bs);
 	bs->hide();
 
-	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 1, 32);
+	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 4, 16);
 
-	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 1, 32);
+	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 4, 16);
 	volume->setUnit(0);
 	isosurface = IsoSurface::create("isosurface", volume);
 	
 
-	Shared<PhongMaterial> water = createShared<PhongMaterial>("floorMat2");
+	Shared<PhongMaterial> water = createShared<PhongMaterial>("water");
 	water->setAmbient(glm::vec3(0.204, 0.725, 0.98));
 	water->setDiffuse(glm::vec3(0.737, 0.914, 1));
 	water->setSpecular(glm::vec3(0.91, 0.969, 1));
 	water->setShininess(0.8);
+	water->setAlphaBlending(0.4);
 	isosurface->mesh()->setMaterial(water);
 
 	//isosurface->mesh()->translate(settings.bb * glm::vec3(0, 0, 0.5));

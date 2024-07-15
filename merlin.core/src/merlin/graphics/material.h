@@ -3,6 +3,7 @@
 #include "merlin/graphics/material.h"
 #include "merlin/textures/texture.h"
 #include "merlin/shaders/shader.h"
+#include "merlin/shaders/phongShader.h"
 #include <glm/glm.hpp>
 
 #include <map>
@@ -40,14 +41,16 @@ namespace Merlin {
         glm::vec3 m_diffuse_color;
         glm::vec3 m_specular_color;
         float m_shininess;
+        float m_alpha;
 
     public:
-        PhongMaterial(std::string name) : MaterialBase(name, MaterialType::PHONG), m_ambient_color(0.2f, 0.2f, 0.2f), m_diffuse_color(1.0f, 1.0f, 1.0f), m_specular_color(1.0f, 1.0f, 1.0f), m_shininess(0.2) {}
+        PhongMaterial(std::string name) : MaterialBase(name, MaterialType::PHONG), m_ambient_color(0.2f, 0.2f, 0.2f), m_diffuse_color(1.0f, 1.0f, 1.0f), m_specular_color(1.0f, 1.0f, 1.0f), m_shininess(0.2), m_alpha(1.0){}
 
         inline void setAmbient(const glm::vec3& ambient) { m_ambient_color = ambient; };
         inline void setDiffuse(const glm::vec3& diffuse) { m_diffuse_color = diffuse; };
         inline void setSpecular(const glm::vec3& specular) { m_specular_color = specular; };
         inline void setShininess(const float& shininess) { m_shininess = shininess; };
+        inline void setAlphaBlending(const float& alpha) { m_alpha = alpha; };
 
         void loadTexture(const std::string& path, TextureType t = TextureType::DIFFUSE, bool flipped = false);
 

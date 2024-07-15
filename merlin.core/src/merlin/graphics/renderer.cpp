@@ -204,10 +204,6 @@ namespace Merlin {
 
 		if (shader->supportMaterial()) shader->setInt("use_vertex_color", mesh.useVertexColors());
 
-		if (mesh.name() == "mc") 
-			shader->setFloat("alphaBlend", 0.5);
-		else shader->setFloat("alphaBlend", 1.0);
-
 		mesh.draw();
 		mat->detach();
 

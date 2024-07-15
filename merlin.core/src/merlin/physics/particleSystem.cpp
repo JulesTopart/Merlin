@@ -9,7 +9,7 @@ namespace Merlin{
 		return std::make_shared<ParticleSystem>(name, count);
 	}
 
-	ParticleSystem::ParticleSystem(const std::string& name, size_t count) : RenderableObject(name), m_instancesCount(count) {
+	ParticleSystem::ParticleSystem(const std::string& name, size_t count) : RenderableObject(name), m_instancesCount(count), m_active_instancesCount(count) {
 		m_geometry = Merlin::Primitives::createPoint();
 	}
 
@@ -140,7 +140,7 @@ namespace Merlin{
 		if (hasProgram(program->name())) {
 			Console::warn("ParticleSystem") << program->name() << "has been overwritten" << Console::endl;
 		}
-		m_links[program->name()] = std::vector<std::string>();
+		m_links[program->name()] = std::set<std::string>();
 		m_programs[program->name()] = program;
 		m_currentProgram = program->name();
 
@@ -156,7 +156,7 @@ namespace Merlin{
 	void ParticleSystem::setShader(Shader_Ptr shader) {
 		m_shader = shader;
 		m_currentProgram = m_shader->name();
-		m_links[shader->name()] = std::vector<std::string>();
+		m_links[shader->name()] = std::set<std::string>();
 	}
 
 	bool ParticleSystem::hasShader() const{
@@ -168,9 +168,9 @@ namespace Merlin{
 
 	void ParticleSystem::link(const std::string& shader, const std::string& field) {
 		if (!hasLink(shader)) {
-			m_links[shader] = std::vector<std::string>();
+			m_links[shader] = std::set<std::string>();
 		}
-		m_links[shader].push_back(field);
+		m_links[shader].insert(field);
 	}
 
 	bool ParticleSystem::hasLink(const std::string& shader) const{

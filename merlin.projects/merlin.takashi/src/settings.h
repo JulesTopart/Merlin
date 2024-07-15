@@ -16,12 +16,13 @@ struct Settings {
 
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(300, 200, 100);
+	glm::vec3 bb = glm::vec3(200, 200, 100);
 
 	// Physics Parameters
 	Uniform<float> timestep							= Uniform<float>("dt", 0.0016);
 	Uniform<float> restDensity						= Uniform<float>("restDensity", 1.0);
-	Uniform<float> particleMass						= Uniform<float>("particleMass", 8.0*smoothingRadius * 0.28);
+	Uniform<float> particleMass						= Uniform<float>("particleMass", 2.0*smoothingRadius * 0.28);
+
 	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("artificialViscosityMultiplier", 0.5);
 	Uniform<float> artificialPressureMultiplier		= Uniform<float>("artificialPressureMultiplier", 2.0);
 

@@ -90,11 +90,6 @@ void AppLayer::InitGraphics() {
 	//renderer.applyGlobalTransform(glm::scale(glm::mat4(1), glm::vec3(0.001)));
 
 	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
-	particleShader->noEnvironment();
-	particleShader->noMaterial();
-	particleShader->noTexture();
-	particleShader->noLights();
-	particleShader->noShadows();
 	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
 
 

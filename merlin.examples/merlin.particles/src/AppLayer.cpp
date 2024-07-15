@@ -65,7 +65,6 @@ void AppLayer::setupPhysics() {
 		for (float x = -24.5 * 0.5; x < 25 * 0.5; x += 0.25*0.5) {
 			position.push_back(glm::vec4(x, y, (0.5*(x + y) + 25.0)/20.0, 0));
 			velocity.push_back(glm::vec4(0));
-
 	}
 
 	ps = ParticleSystem::create("Particles", position.size());
@@ -73,23 +72,21 @@ void AppLayer::setupPhysics() {
 	SSBO_Ptr<glm::vec4> pos = SSBO<glm::vec4>::create("position_buffer", position, BufferUsage::StaticDraw);
 	SSBO_Ptr<glm::vec4> vel = SSBO<glm::vec4>::create("velocity_buffer", velocity, BufferUsage::StaticDraw);
 
-	ps->addField(pos);
-	ps->addField(vel);
 
 	solver = ComputeShader::create("solver", "assets/shaders/solver.comp");
-	ps->addProgram(solver);
-	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 	ps->setShader(Shader::create("particle", "./assets/shaders/particle.vert", "./assets/shaders/particle.frag"));
-
+	
+	ps->addProgram(solver);
+	ps->addField(pos);
+	ps->addField(vel);
+	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
+	
+	
 	ps->link("particle", "position_buffer");
 	ps->link("particle", "velocity_buffer");
-	ps->solveLink(ps->getShader());
-	ps->detach(ps->getShader());
 
 	ps->link("solver", "position_buffer");
 	ps->link("solver", "velocity_buffer");
-	ps->solveLink(solver);
-	ps->detach(solver);
 
 	solver->use();
 	solver->setUInt("numParticles", position.size());
@@ -99,6 +96,7 @@ void AppLayer::setupPhysics() {
 
 void AppLayer::onAttach(){
 	Layer3D::onAttach();
+
 	renderer.initialize();
 	renderer.enableSampleShading();
 	renderer.disableFaceCulling();

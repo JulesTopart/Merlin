@@ -1,12 +1,10 @@
 #version 430
 
-#include "./common/colors.comp"
-
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 
 uniform float u_isolevel;
 
-layout (r32f, binding = 0) readonly uniform image3D u_volume;
+layout (rgba16f, binding = 0) readonly uniform image3D u_volume;
 
 layout(std140, binding = 0) writeonly buffer u_buffer_vertices
 {

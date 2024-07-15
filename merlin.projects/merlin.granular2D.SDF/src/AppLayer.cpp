@@ -108,19 +108,11 @@ void AppLayer::InitGraphics() {
 	renderer.disableEnvironment();
 
 	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag");
-	particleShader->noEnvironment();
-	particleShader->noMaterial();
-	particleShader->noTexture();
-	particleShader->noLights();
-	particleShader->noShadows();
+
 	particleShader->setVec3("lightPos", glm::vec3(0, -200, 1000));
 
 	binShader = Shader::create("bins", "assets/shaders/bin.vert", "assets/shaders/bin.frag");
-	binShader->noEnvironment();
-	binShader->noMaterial();
-	binShader->noTexture();
-	binShader->noLights();
-	binShader->noShadows();
+
 
 	particleShader->use();
 	particleShader->setInt("colorCycle", 3);

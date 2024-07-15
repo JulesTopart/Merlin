@@ -13,6 +13,36 @@ namespace Merlin {
 		return voxelize(mesh, vox_size, thickness);
 	}
 
+	std::vector<glm::vec3> Voxelizer::getVoxelposition(const std::vector<int>& voxels, const BoundingBox& aabb, float spacing){
+		std::vector<glm::vec3> voxel_positions;
+
+		glm::vec3 bb_size = aabb.max - aabb.min;
+		int gridSizeX = ceil(bb_size.x / spacing);
+		int gridSizeY = ceil(bb_size.y / spacing);
+		int gridSizeZ = ceil(bb_size.z / spacing);
+
+
+
+		for (int i = 0; i < gridSizeX * gridSizeY * gridSizeZ; i++) {
+			if (voxels[i] != 0) {
+
+				int index = i;
+				int vz = index / (gridSizeX * gridSizeY);
+				index -= (vz * gridSizeX * gridSizeY);
+				int vy = index / gridSizeX;
+				int vx = index % gridSizeX;
+
+				float x = aabb.min.x + (vx + 0.5) * spacing;
+				float y = aabb.min.y + (vy + 0.5) * spacing;
+				float z = aabb.min.z + (vz + 0.5) * spacing;
+
+				voxel_positions.push_back(glm::vec4(x, y, z, 0.0));
+			}
+		}
+		
+		return voxel_positions;
+	}
+
 	std::vector<int> Voxelizer::voxelize(Mesh& mesh, float vox_size, float thickness) {
 
 		Vertices vertices = mesh.getVertices();

@@ -175,7 +175,7 @@ namespace Merlin {
 		}
 
 		Mesh_Ptr result = Mesh::create("Floor", v, GL_TRIANGLES);
-		result->useVertexColors();
+		result->useVertexColors(true);
 		return result;
 	}
 

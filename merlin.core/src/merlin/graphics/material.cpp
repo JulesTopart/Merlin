@@ -91,6 +91,7 @@ namespace Merlin {
 		}
 
 		shader.setFloat("material.shininess", m_shininess*128);
+		shader.setFloat("material.alpha", m_alpha);
 	}
 
 	void PhongMaterial::detach() const{

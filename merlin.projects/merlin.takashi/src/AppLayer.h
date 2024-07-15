@@ -48,9 +48,10 @@ private:
 	// --- Simulation--- 
 	Settings settings;
 	GLuint numParticles = 0;
+	GLuint numConstraints = 0;
 
-	Mesh_Ptr emitter;
-	Mesh_Ptr nozzle;
+	Mesh_Ptr fluid;
+	Mesh_Ptr static_emitter;
 	
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 
