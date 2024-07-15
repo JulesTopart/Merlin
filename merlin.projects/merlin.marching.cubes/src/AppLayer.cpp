@@ -71,6 +71,7 @@ void AppLayer::InitGraphics() {
     VertexBufferLayout layout;
     layout.push<float>(4);
 
+
     VAO_Ptr vao = createShared<VAO>();
     {
         glEnableVertexArrayAttrib(vao->id(), 0);
@@ -399,7 +400,7 @@ void AppLayer::InitGraphics() {
     marchingCubes->SetWorkgroupLayout(settings.pWkgCount);
 
     Shared<Mesh> mcMesh = createShared<Mesh>("mc", vao, max_number_of_vertices);
-    mcMesh->setShader(mcShader);
+    //mcMesh->setShader(mcShader);
     mcMesh->scale(10);
     scene.add(mcMesh);
     scene.add(TransformObject::create("origin", 10));

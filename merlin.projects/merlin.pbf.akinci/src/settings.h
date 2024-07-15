@@ -10,10 +10,10 @@ struct Bin {
 };
 
 struct Settings {
-	const float particleRadius = 0.5;
+	const float particleRadius = 0.8;
 	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius;
-	const float volumeWidth = smoothingRadius*0.28;
+	const float volumeWidth = smoothingRadius*0.15;
 
 
 
@@ -48,7 +48,7 @@ struct Settings {
 	GLuint bThread = int(bb.x / (bWidth)) * int(bb.y / (bWidth)) * int(bb.z / (bWidth)); //Total number of bin (thread)
 	
 	glm::ivec3 iWkgSize = glm::ivec3(8); //Number of thread per workgroup
-	glm::ivec3 volume_size = glm::ivec3(int(bb.x / (volumeWidth)), int(bb.y / (volumeWidth)), int(bb.z / (volumeWidth)));
+	glm::ivec3 volume_size = glm::ivec3(int(bb.x / (volumeWidth)), int(bb.y / (volumeWidth)), int((bb.z*0.5) / (volumeWidth)));
 	glm::ivec3 iWkgCount = (volume_size + iWkgSize - glm::ivec3(1)) / iWkgSize; //Total number of workgroup needed
 
 

@@ -175,7 +175,6 @@ void march(in ivec3 cell_index)
 		{
 			Vertex vertex;
 			vec3 position;
-			vec3 normal;
 
 			vertex = vertex_list[triangle_table[triangle_start_memory + (3 * i + 0)]];
 			position = vertex.position * inv_volume_size;

@@ -181,19 +181,19 @@ void march(in ivec3 cell_index)
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
 			output_vertices[cell_start_memory +  3 * i + 0] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 0] = vec4(vertex.normal, 1.0);
+			output_normals[cell_start_memory +  3 * i + 0] = vec4(vertex.normal, 0.0);
 
 			vertex = vertex_list[triangle_table[triangle_start_memory + (3 * i + 1)]];
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
 			output_vertices[cell_start_memory +  3 * i + 1] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 1] = vec4(vertex.normal, 1.0);
+			output_normals[cell_start_memory +  3 * i + 1] = vec4(vertex.normal, 0.0);
 
 			vertex = vertex_list[triangle_table[triangle_start_memory + (3 * i + 2)]];
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
 			output_vertices[cell_start_memory +  3 * i + 2] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 2] = vec4(vertex.normal, 1.0);
+			output_normals[cell_start_memory +  3 * i + 2] = vec4(vertex.normal, 0.0);
 		}
 		else
 		{
@@ -221,15 +221,7 @@ void main()
 
     // The 3D coordinates of this compute shader thread
     ivec3 cell_index = ivec3(gl_GlobalInvocationID.xyz);
-	if (cell_index.x < 0 ||
-            cell_index.y < 0 ||
-            cell_index.z < 0 ||
-            cell_index.x > (dims.x) ||
-            cell_index.y > (dims.y) ||
-            cell_index.z > (dims.z))
-        {
-            return;
-        }
+
     // Perform marching cubes
     march(cell_index);
 }

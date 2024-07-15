@@ -494,6 +494,7 @@ void AppLayer::SpawnParticle() {
 	settings.pThread = numParticles + numEmitter;
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
 	solver->SetWorkgroupLayout(settings.pWkgCount);
+	ps->setActiveInstancesCount(settings.pThread);
 
 	solver->use();
 	solver->setUInt("numEmitter", numEmitter);

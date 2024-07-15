@@ -4,8 +4,8 @@
 
 //Macro to access buffer
 #define B_x(buffer_index) ssbo_position[buffer_index].xyz
-#define B_Rx(buffer_index) ssbo_rposition[buffer_index].xyz
 #define B_X(buffer_index) ssbo_pposition[buffer_index].xyz
+#define B_corr(buffer_index) ssbo_pcorr[buffer_index].xyz
 #define B_M(buffer_index) particleMass
 #define B_V(buffer_index) ssbo_velocity[buffer_index].xyz
 #define B_T(buffer_index) ssbo_temperature[buffer_index].xyz
@@ -42,8 +42,8 @@ layout(std430) buffer PositionBuffer {
 	vec4 ssbo_position[];
 };
 
-layout(std430) buffer RestPositionBuffer {
-	vec4 ssbo_rposition[];
+layout(std430) buffer CorrectionBuffer {
+	vec4 ssbo_pcorr[];
 };
 
 layout(std430) buffer PredictedPositionBuffer {
@@ -70,10 +70,9 @@ layout(std430) buffer MetaBuffer {
 	uvec4 ssbo_meta[]; //phase, binindex, id , sortedID
 };
 
-
 struct CopyContent{
 	vec4 position;
-	vec4 rposition;
+	vec4 pcorr;
 	vec4 pposition;
 	vec4 velocity;
 	float density;
@@ -87,6 +86,23 @@ layout(std430) buffer CopyBuffer {
 	CopyContent ssbo_copy[]; //phase, binindex, id , sortedID
 };
 
+layout(std430) buffer EmitterPositionBuffer {
+	vec4 ssbo_emitter_position[];
+};
 
+#define ci ssbo_constraint[i]
+#define ck ssbo_constraint[k]
+#define B_c(l) ssbo_constraint[l]
+
+struct Constraint{
+	uint a[32];
+	uint b[32];
+	float restLength[32];
+	uint count;
+};
+
+layout(std430) buffer ConstraintBuffer {
+	Constraint ssbo_constraint[];
+};
 
 #endif// INCLUDE_BUFFERS_HLSL

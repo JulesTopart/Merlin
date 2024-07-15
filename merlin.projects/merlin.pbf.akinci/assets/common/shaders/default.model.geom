@@ -35,7 +35,7 @@ void main() {
 
         // Correctly propagate vertex shader data
         vout.position = vin[i].position;
-        vout.normal = use_flat_shading ? flat_normal: vin[i].normal;
+        vout.normal = use_flat_shading ? flat_normal : vin[i].normal;
         vout.color = vin[i].color;
         vout.texcoord = vin[i].texcoord;
         vout.viewPos = vin[i].viewPos;

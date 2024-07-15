@@ -67,8 +67,6 @@ void main() {
 			xi = Xi = rotatedPos + uCenter;
 		}
 
-
-
 		float pseudomass = 1; //to avoid dividing by zero in compute delta
 		vec3 position = Xi;
 		OVERNNS

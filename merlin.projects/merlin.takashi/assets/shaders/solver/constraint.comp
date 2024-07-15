@@ -8,6 +8,8 @@
 //?#include "../common/nns.comp"
 //?#include "sph.kernels.comp" 
 
+#define USE_ONLY_POSITIVE_PRESSURE
+
 vec3 solveFloorCollision(uint i){
 	vec3 correctedPosition = Xi;
 	for (int i = 0; i < 3; i++){
@@ -23,80 +25,7 @@ vec3 solveFloorCollision(uint i){
 	return (correctedPosition - Xi)*0.8;
 }
 
-
-vec3 clampToDomain(vec3 position){
-	position.x = max(position.x, boundaryMin.x + particleRadius);
-	position.x = min(position.x, boundaryMax.x - particleRadius);
-	position.y = max(position.y, boundaryMin.y + particleRadius);
-	position.y = min(position.y, boundaryMax.y - particleRadius);
-	position.z = max(position.z, boundaryMin.z + particleRadius);
-	position.z = min(position.z, boundaryMax.z - particleRadius);
-	return position;
-}
-
-
-float computeLambda(uint i) {
-    float rho0 = restDensity;
-    float sumGradCj = 0;
-    vec3 gradCi = vec3(0);
-    float density = 0.0;
-    vec3 position = Xi;
-
-    OVERNNS
-		vec3 diff = Rij;
-		float dist = length(diff);
-		if(dist >= H || dist < 1e-6) continue;
-
-		vec3 gradCj = -spiky_grad(diff);
-
-		if(B_Phase(j) == FLUID){
-			gradCi += Mj * gradCj;
-		}else if (B_Phase(j) == BOUNDARY){
-			gradCi += (1.0/Rhoj) * gradCj;
-		}
-
-		
-		if(i != j){
-			if(B_Phase(j) == FLUID){
-				sumGradCj += dot(gradCj, gradCj);
-				density += Mj * poly6(dist);
-			}else if (B_Phase(j) == BOUNDARY){
-				density += (rho0/Rhoj) * poly6(dist);
-				vec3 gradCk = (1.0/Rhoj) * gradCj;
-				sumGradCj += dot(gradCk, gradCk);
-			}
-		}
-	OVERNNS_END
-
-	sumGradCj += dot(gradCi, gradCi);
-	sumGradCj = max(sumGradCj, 1e-6);
-
-	Rhoi = max(density, rho0);
-    float C = max((density / rho0) - 1.0, 0.0);
-    return - ((1.0/Mi) * C) / (sumGradCj/pow(rho0, 2));
-}
-
-
-//Compute position deltas w neigbor
-vec3 computePositionDelta(uint i) {
-	vec3 posDelta = vec3(0.0f);
-	float rho0 = restDensity;
-	float sCorr = 0.0;
-	if(Rhoi -  restDensity < 0) return posDelta;
-	vec3 position = Xi;
-
-	float sCorrBase = artificialPressureMultiplier * H2;
-	float sCorrDenom = poly6(vec3(1) * 0.2*H);
-
-	OVERNNS
-		sCorr = -sCorrBase * pow(poly6(Dij) / sCorrDenom, 4);
-
-		if(B_Phase(j) == FLUID) posDelta += spikyGradient(Rij) * (1.0/rho0) * (B_Lambda(i) + B_Lambda(j) + sCorr);
-		else if(B_Phase(j) == BOUNDARY) posDelta += spikyGradient(Rij) * (1.0/Rhoj) * (2.0 * B_Lambda(i) + sCorr);
-
-	OVERNNS_END
-	return posDelta;
-}
+vec3 computePositionDelta(uint i);
 
 
 vec3 computeXPSH(uint i){
@@ -118,70 +47,151 @@ vec3 computeXPSH(uint i){
 	return artificialViscosityMultiplier * xsphSum;
 }
  
-vec3 computeViscosityCorrection(uint i){
-	vec3 posDelta = vec3(0.0f);
-	float sCorr = 0.0;
-	vec3 position = xi;
+ void controlConstraint(uint i){
+	float alpha = 0.2;
+	float beta = 1.000;
 
-	OVERNNS
-		if(j == i) continue;
-		if(Dij > 2*H) continue;//if the predicted position are far enough break constraint
 
-		if(B_Phase(j) == FLUID){
-			float dij = length(xi - xj);
-			if(dij > H) continue; //if the stable position are close enough
-			float C = dij - Dij;
-			if(C < 0){
-				dij += 0.25*dij;
+	ssbo_pcorr[i] = vec4(0);
 
-				//if(dij - Dij - dij*0.1 > 0) continue;
-				posDelta += (Dij - dij) * normalize(Rij);
+	for(int k = 0; k < ci.count && k < 32; k++){
+		uint j = ci.b[k];
+		vec3 pi = B_X(ci.a[k]);
+		vec3 pj = B_X(ci.b[k]);
+
+		float pij = distance(pi, pj);
+
+		if(pij >= H){ //remove constraint
+			for(int l = k; l < ci.count - 1 && l < 32; l++){
+				B_c(l) = B_c(l+1);
+			}
+			ci.count -= 1;
+		}else{
+			float Cvisc = ci.restLength[k] - pij;
+
+			if(Cvisc < 0){//not satisfy eq12
+				vec3 corr = 0.5*(pij-ci.restLength[k])*normalize(Rij);
+				ssbo_pcorr[i].xyz -= corr;
+				//ssbo_pcorr[j].xyz += corr;
 			}
 
-			
+			float Dvisc = Cvisc - alpha * ci.restLength[k];
+			if(Dvisc < 0){//not satisfy eq12
+				ci.restLength[k] += beta * ci.restLength[k];
+			}
 		}
+	}
 
+
+
+	vec3 position = xi;
+	OVERNNS
+		if(j == i) continue;
+		float dist = Dij;
+		if(dist < 1e-6 || dist > H) continue;
+
+		if(B_Phase(j) == FLUID || B_Phase(i) == FLUID){
+			bool exist = false;
+			for(int k = 0; k < ci.count && k < 32; k++){
+				if(ci.a[k] == i && ci.b[k] == j || ci.b[k] == i && ci.a[k] == j) exist = true;
+			}
+
+			if(!exist){
+				uint k = ci.count++;//Create new constraint
+				if(k >= 32){
+					ci.count = 31;
+					continue;
+				}
+
+				ci.a[k] = i;
+				ci.b[k] = j;
+				ci.restLength[k] = Dij;
+			}
+
+		}
 	OVERNNS_END
-	posDelta *= 0.001;
-
-	return posDelta;
 }
 
-vec3 solveDistanceConstraint(uint i){
-	int n = 0;
-	vec3 deltaPosition = vec3(0);
+float computeLambda(uint i) {
+    float rho0 = restDensity;
+    float sumGradCj = 0;
+    vec3 gradCi = vec3(0);
+    float density = 0.0;
+    vec3 position = Xi;
+
+    OVERNNS
+		vec3 diff = Rij;
+		float dist = length(diff);
+		if(dist >= H || dist < 1e-6) continue;
+
+		vec3 gradCj = -spiky_grad(diff);
+
+		if(B_Phase(j) == FLUID){
+			gradCi += Mj * gradCj;
+		}else if (B_Phase(j) >= BOUNDARY){
+			if(Rhoj > 1e-6)
+				gradCi += (1.0/Rhoj) * gradCj;
+		}
+
+		
+		if(i != j){
+			if(B_Phase(j) == FLUID){
+				sumGradCj += dot(gradCj, gradCj);
+				density += Mj * poly6(dist);
+			}else if (B_Phase(j) >= BOUNDARY){
+				if(Rhoj > 1e-6){
+					density += (rho0/Rhoj) * poly6(dist);
+					vec3 gradCk = (1.0/Rhoj) * gradCj;
+					sumGradCj += dot(gradCk, gradCk);
+				}
+			}
+		}
+	OVERNNS_END
+
+	sumGradCj += dot(gradCi, gradCi);
+	sumGradCj = max(sumGradCj, 1e-6);
+
+	#ifdef USE_ONLY_POSITIVE_PRESSURE
+		Rhoi = max(density, rho0);
+		float C = max((density / rho0) - 1.0, 0.0);
+	#else
+		Rhoi = density;
+		float C = (density / rho0) - 1.0;
+	#endif
+
+
+    return - ((1.0/Mi) * C) / (sumGradCj/pow(rho0, 2));
+}
+
+
+//Compute position deltas w neigbor
+vec3 computePositionDelta(uint i) {
+	vec3 posDelta = vec3(0.0f);
+	float rho0 = restDensity;
+	float sCorr = 0.0;
+	
+
+	#ifdef USE_ONLY_POSITIVE_PRESSURE
+		if(Rhoi -  restDensity < 0) return posDelta;
+	#endif
 
 	vec3 position = Xi;
 	OVERNNS
-		float l0 = distance(Rxi, Rxj);
-		if(i == j) continue;
-		if(l0 >= 4*particleRadius || Dij < 1e-6) continue; //Ignore particle that are too far
-
-		float l = Dij; // Calculate the current length
-		
-		float C = l - l0; // Calculate the constraint violation
-
-		//if(abs(C) < 1e-06) continue;
-		// Calculate the gradient of the constraint function
-		vec3 gradC = normalize(Rij);
-
-		// Calculate the effective mass matrix
-		float inverseMass = (1.0/Mi) + (1.0/Mj);
-
-		float compliance = 1.0/stiffness; // Compliance of the constraints
-		float complianceSc = compliance/(dt*dt);
-		//float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
-		float deltaLambda = -C / ( inverseMass + complianceSc); 
-
-		// Calculate and apply the position corrections
-		deltaPosition += gradC * deltaLambda * Mi;
-		n++;
-		//particles[i].lambda += deltaLambda;
+		if(j == i) continue;
+		float dist = Dij;
+		if(dist > H || dist <= 1e-6) continue;
+		sCorr = -artificialPressureMultiplier * H2 * pow(poly6(dist) / poly6(normalize(vec3(1)) * 0.2*H), 4);
+		if(B_Phase(j) == FLUID){
+			posDelta += (spikyGradient(Rij) * (B_Lambda(i) + B_Lambda(j) + sCorr)) / rho0;
+		}else if(B_Phase(j) >= BOUNDARY){
+			posDelta += spikyGradient(Rij) * (1.0/Rhoj) * (2.0 * B_Lambda(i) + sCorr)*4.0;
+		}
 
 	OVERNNS_END
 
-	if(n > 1) return deltaPosition/float(n);
-	else return deltaPosition;
+	//posDelta = clamp(posDelta, -MAX_DELTA_PI, MAX_DELTA_PI);
+	return posDelta;
 }
+ 
 
 #endif

@@ -380,19 +380,19 @@ namespace Merlin {
 		switch (channels) {
 		case 1:
 			m_format = GL_RED;
-			m_internalFormat = (bits == 32) ? GL_R32F : (bits == 16) ? GL_R16F : GL_R8;
+			m_internalFormat = (bits == 32) ? GL_R32F : ((bits == 16) ? GL_R16F : GL_R8);
 			break;
 		case 2:
 			m_format = GL_RG;
-			m_internalFormat = (bits == 32) ? GL_RG32F : (bits == 16) ? GL_RG16F : GL_RG8;
+			m_internalFormat = (bits == 32) ? GL_RG32F : ((bits == 16) ? GL_RG16F : GL_RG8);
 			break; 
 		case 3:
 			m_format = GL_RGB;
-			m_internalFormat = (bits == 32) ? GL_RGB32F : (bits == 16) ? GL_RGB16F : GL_RGB8;
+			m_internalFormat = (bits == 32) ? GL_RGB32F : ((bits == 16) ? GL_RGB16F : GL_RGB8);
 			break;
 		case 4:
 			m_format = GL_RGBA;
-			m_internalFormat = (bits == 32) ? GL_RGBA32F : (bits == 16) ? GL_RGBA16F : GL_RGBA8;
+			m_internalFormat = (bits == 32) ? GL_RGBA32F : ((bits == 16) ? GL_RGBA16F : GL_RGBA8);
 			break;
 		}
 

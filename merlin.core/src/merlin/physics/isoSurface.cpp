@@ -4,7 +4,7 @@
 
 namespace Merlin {
 	IsoSurface::IsoSurface(const std::string& name, glm::ivec3 volumeSize) {
-        m_volume = Texture3D::create(volume_size.x, volume_size.y, volume_size.z, 4, 16);
+        m_volume = Texture3D::create(volume_size.x, volume_size.y, volume_size.z, 4, 32);
 
         allocateBuffers();
         loadDefaultShaders();
@@ -29,8 +29,9 @@ namespace Merlin {
 
     void IsoSurface::compute() {
         buffer_vertices->setBindingPoint(0);
-        buffer_triangle_table->setBindingPoint(1);
-        buffer_configuration_table->setBindingPoint(2);
+        buffer_normals->setBindingPoint(1);
+        buffer_triangle_table->setBindingPoint(2);
+        buffer_configuration_table->setBindingPoint(3);
 
         m_volume->bindImage(0);
 
@@ -366,11 +367,6 @@ namespace Merlin {
         buffer_vertices = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_vertices", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
         buffer_normals = ImmutableShaderStorageBuffer<glm::vec4>::create("buffer_normals", max_number_of_vertices, BufferStorageFlags::DynamicStorage);
 
-        buffer_vertices->setBindingPoint(0);
-        buffer_normals->setBindingPoint(1);
-        buffer_triangle_table->setBindingPoint(2);
-        buffer_configuration_table->setBindingPoint(3);
-
         VAO_Ptr vao = createShared<VAO>();
         {
             glEnableVertexArrayAttrib(vao->id(), 0);
@@ -387,8 +383,8 @@ namespace Merlin {
         }
 
         m_mesh = createShared<Mesh>("mc", vao, max_number_of_vertices);
-        m_mesh->useVertexColors(false);
-        m_mesh->useFlatShading(true);
+        //m_mesh->useVertexColors(false);
+        //m_mesh->useFlatShading(true);
     }
 
     void IsoSurface::loadDefaultShaders() {

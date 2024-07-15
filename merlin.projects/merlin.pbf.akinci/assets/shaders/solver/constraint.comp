@@ -8,6 +8,8 @@
 //?#include "../common/nns.comp"
 //?#include "sph.kernels.comp" 
 
+#define USE_ONLY_POSITIVE_PRESSURE
+
 vec3 solveFloorCollision(uint i){
 	vec3 correctedPosition = Xi;
 	for (int i = 0; i < 3; i++){
@@ -71,8 +73,14 @@ float computeLambda(uint i) {
 	sumGradCj += dot(gradCi, gradCi);
 	sumGradCj = max(sumGradCj, 1e-6);
 
-	Rhoi = max(density, rho0);
-    float C = max((density / rho0) - 1.0, 0.0);
+	#ifndef USE_ONLY_POSITIVE_PRESSURE
+		Rhoi = max(density, rho0);
+		float C = max((density / rho0) - 1.0, 0.0);
+	#else
+		Rhoi = density;
+		float C = (density / rho0) - 1.0;
+	#endif
+
     return - ((1.0/Mi) * C) / (sumGradCj/pow(rho0, 2));
 }
 
@@ -82,7 +90,12 @@ vec3 computePositionDelta(uint i) {
 	vec3 posDelta = vec3(0.0f);
 	float rho0 = restDensity;
 	float sCorr = 0.0;
-	if(Rhoi -  restDensity < 0) return posDelta;
+
+	#ifndef USE_ONLY_POSITIVE_PRESSURE
+		if(Rhoi -  restDensity < 0) return posDelta;
+	#endif
+
+	
 	vec3 position = Xi;
 	OVERNNS
 		if(j == i) continue;

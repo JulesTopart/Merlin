@@ -6,7 +6,7 @@ using namespace Merlin;
 #define UNUSED 0
 #define SOLID 1
 #define FLUID 2
-#define GAS 3
+#define FLUID_EMITTER 3
 #define GRANULAR 4
 #define BOUNDARY 5
 
@@ -29,6 +29,8 @@ public:
 	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);
 
+	void SpawnParticle();
+
 private:
 
 	// --- Graphics ---
@@ -49,8 +51,10 @@ private:
 	Settings settings;
 	GLuint numParticles = 0;
 	GLuint numConstraints = 0;
+	GLuint numEmitter = 0;
 
 	Mesh_Ptr fluid;
+	Mesh_Ptr floor;
 	Mesh_Ptr static_emitter;
 	
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
@@ -62,6 +66,7 @@ private:
 	double render_time = 0; double render_start_time = 0;
 	double total_time = 0; double total_start_time = 0;
 
+	float lastSpawTime = 0;
 	float elapsedTime = 0;
 	bool paused = true;
 	bool integrate = true;

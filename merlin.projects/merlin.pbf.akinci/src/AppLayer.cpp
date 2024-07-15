@@ -15,7 +15,6 @@ using namespace Merlin;
 
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
-
 	camera().setNearPlane(0.5);
 	camera().setFarPlane(2000.0);
 	camera().translate(glm::vec3(0, -500, 100));
@@ -160,7 +159,7 @@ void AppLayer::InitGraphics() {
 	//floorMat2->loadTexture("assets/textures/bed.png", TextureType::DIFFUSE, true);
 
 	floorSurface->setMaterial("black plastic");
-	scene.add(floorSurface);
+	
 
 	Mesh_Ptr bbox = Primitives::createQuadCube(settings.bb.x, settings.bb.y, settings.bb.z);
 	bbox->enableWireFrameMode();
@@ -197,6 +196,7 @@ void AppLayer::InitGraphics() {
 	//scene.add(dragon);
 	scene.add(geom);
 	scene.add(slope);
+	scene.add(floorSurface);
 	scene.add(TransformObject::create("origin", 10));
 
 }
@@ -242,12 +242,14 @@ void AppLayer::InitPhysics() {
 	ps->addField<glm::uvec4>("MetaBuffer");
 	ps->addField<glm::uvec4>("cpyMetaBuffer");
 	ps->addBuffer(binBuffer);
+
 	ps->solveLink(solver);
 	ps->detach(solver);
 
 	bs->setShader(binShader);
 	bs->addProgram(prefixSum);
 	bs->addField(binBuffer);
+
 	bs->solveLink(prefixSum);
 	bs->detach(prefixSum);
 
@@ -257,26 +259,27 @@ void AppLayer::InitPhysics() {
 	ps->link(particleShader->name(), "DensityBuffer");
 	ps->link(particleShader->name(), "LambdaBuffer");
 	ps->link(particleShader->name(), "MetaBuffer");
+
 	ps->solveLink(particleShader);
 	ps->detach(particleShader);
 
 	ps->link(isoGen->name(), "PositionBuffer");
-	ps->link(isoGen->name(), "PredictedPositionBuffer");
-	ps->link(isoGen->name(), "VelocityBuffer");
+	/*ps->link(isoGen->name(), "PredictedPositionBuffer");
+	ps->link(isoGen->name(), "VelocityBuffer");*/
 	ps->link(isoGen->name(), "DensityBuffer");
-	ps->link(isoGen->name(), "LambdaBuffer");
+	//ps->link(isoGen->name(), "LambdaBuffer");
 	ps->link(isoGen->name(), "MetaBuffer");
 	ps->link(isoGen->name(), binBuffer->name());
+
 	ps->solveLink(isoGen);
 	ps->detach(isoGen);
+
+
 	Console::info() << "Test :" << Console::endl;
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
 	bs->detach(binShader);
 
-	scene.add(ps);
-	scene.add(bs);
-	bs->hide();
 
 	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 4, 16);
 
@@ -290,11 +293,18 @@ void AppLayer::InitPhysics() {
 	water->setDiffuse(glm::vec3(0.737, 0.914, 1));
 	water->setSpecular(glm::vec3(0.91, 0.969, 1));
 	water->setShininess(0.8);
-	water->setAlphaBlending(0.4);
+	water->setAlphaBlending(0.5);
 	isosurface->mesh()->setMaterial(water);
 
 	//isosurface->mesh()->translate(settings.bb * glm::vec3(0, 0, 0.5));
-	isosurface->mesh()->scale(settings.bb * glm::vec3(1.0));
+	isosurface->mesh()->scale(settings.bb * glm::vec3(1.0,1.0,0.5));
+	
+
+	scene.add(ps);
+	scene.add(bs);
+	bs->hide();
+
+
 	scene.add(isosurface);
 }
 
