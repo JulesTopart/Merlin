@@ -170,9 +170,17 @@ namespace Merlin {
 			min = glm::min(min, glm::vec3(vec));
 			max = glm::max(max, glm::vec3(vec));
 		}
+
+
+		glm::vec3 bbsize = max - min;
+
+		if (bbsize.x * bbsize.y * bbsize.z == 0) {
+			min -= glm::vec3(0.5);
+			max += glm::vec3(0.5);
+		}
+
 		m_bbox.min = min;
 		m_bbox.max = max;
-
 		m_bbox.centroid = (min + max) / 2.0f;
 		Console::info("Mesh") << "Bounding box is " << m_bbox.max - m_bbox.min << " starting at " << m_bbox.min << " and ending at " << m_bbox.max << Console::endl;
 	}

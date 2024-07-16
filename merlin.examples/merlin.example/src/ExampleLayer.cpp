@@ -25,6 +25,7 @@ void ExampleLayer::onAttach(){
 	bunny->setMaterial("pearl");
 	bunny->scale(0.2);
 	bunny->translate(glm::vec3(0,0,-0.5));
+	//bunny->setShader("debug.normals");
 	scene.add(bunny);
 
 	/**/

@@ -116,13 +116,13 @@ namespace Merlin {
 					float py = y + squareVerts[i][1] * groundTileSize;
 					groundVerts[3 * q] = px;
 					groundVerts[3 * q + 1] = py;
-					float col = 0.4;
+					float col = 0.0;
 
 					if((xi + yi) % 2 == 1){
 						col = 0.9;
 						float pr = sqrt(px * px + py * py);
 						float d = std::max(0.0, 1.2 - pr / r);
-						col = col * d;
+						col = col * d*2;
 						for(int j(0); j < 3; j++)
 							groundColors[3 * q + j] = col;
 						

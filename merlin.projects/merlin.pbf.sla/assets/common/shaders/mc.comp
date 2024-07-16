@@ -43,11 +43,11 @@ const ivec3 neighbors[8] =
 	cell_index + ivec3( -1, 1, 0 )
 };
 
-struct Vertex {
+struct Vertex 
+{
 	vec3 position;
 	vec3 normal;
 };
-
 
 Vertex find_vertex(float isolevel, in ivec2 edge, float value_1, float value_2)
 {
@@ -181,19 +181,19 @@ void march(in ivec3 cell_index)
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
 			output_vertices[cell_start_memory +  3 * i + 0] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 0] = vec4(vertex.normal, 0.0);
+			output_normals[cell_start_memory +  3 * i + 0] = vec4(vertex.normal, 1.0);
 
 			vertex = vertex_list[triangle_table[triangle_start_memory + (3 * i + 1)]];
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
 			output_vertices[cell_start_memory +  3 * i + 1] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 1] = vec4(vertex.normal, 0.0);
+			output_normals[cell_start_memory +  3 * i + 1] = vec4(vertex.normal, 1.0);
 
 			vertex = vertex_list[triangle_table[triangle_start_memory + (3 * i + 2)]];
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
 			output_vertices[cell_start_memory +  3 * i + 2] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 2] = vec4(vertex.normal, 0.0);
+			output_normals[cell_start_memory +  3 * i + 2] = vec4(vertex.normal, 1.0);
 		}
 		else
 		{

@@ -108,10 +108,23 @@ namespace Merlin {
 
 		void sync(ShaderBase& shader);
 
+		void operator=(T data);
+		T& operator()();
+
 	private:
 		T m_data;
 		std::string m_name;
 	};
+
+	template<typename T>
+	inline void Uniform<T>::operator=(T data) {
+		m_data = data;
+	}
+
+	template<typename T>
+	inline T& Uniform<T>::operator()() {
+		return m_data;
+	}
 
 	template<>
 	inline void Uniform<int>::sync(ShaderBase& shader) {

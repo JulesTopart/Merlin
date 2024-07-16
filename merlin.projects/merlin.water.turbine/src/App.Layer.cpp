@@ -153,7 +153,7 @@ void AppLayer::InitGraphics() {
 	Mesh_Ptr bbox = Primitives::createQuadCube(settings.bb.x, settings.bb.y, settings.bb.z);
 	bbox->enableWireFrameMode();
 	bbox->translate(glm::vec3(0, 0, settings.bb.z / 2.0));
-	//scene.add(bbox);
+	scene.add(bbox);
 
 	emitter = Primitives::createCube(80, 50, 30);
 	emitter->enableWireFrameMode();
