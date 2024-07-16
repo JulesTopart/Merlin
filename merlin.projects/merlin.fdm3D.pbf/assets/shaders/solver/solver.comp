@@ -9,6 +9,8 @@
 #include "sph.kernels.comp"
 #include "boundary.comp"
 #include "pbf.comp"
+#include "pbd.comp"
+#include "heat.comp"
 
 layout (local_size_x = PTHREAD) in;
 
@@ -31,6 +33,7 @@ void spawnParticle(uint i){
 		b_xi.xyz = b_pi.xyz = (u_emitterTransform * vec4(ssbo_emitter_positions[emmiterID].xyz,1.0)).xyz;
 		b_rho_i = u_rho0;
 		b_vi = vec4(0);
+		b_Ti = 275.15 + 230;
 
 		ssbo_meta[i] = uvec4(FLUID, getBinIndex(b_xi.xyz), i, i); //phase, binindex, id , sortedID
 	}
@@ -79,24 +82,38 @@ void exec(uint index, uint kernel){
 			sortBuffers(index);
 			break;
 		case 2:
+			if(phase(index) == FLUID && ssbo_temperature[index] < 275+80) phase(index) = SOLID;
+			else if(phase(index) == SOLID && ssbo_temperature[index] > 275+90) phase(index) = FLUID;
 
 			if(phase(index) == FLUID)
 				pbf_step(index, 0);
-			else if(phase(index) >= BOUNDARY)
+			else if(phase(index) == SOLID){
+				pbd_step(index, 0);
 				ssbo_density[index] = boundary_computePseudoMass(index);
+			}else if(phase(index) >= BOUNDARY)
+				ssbo_density[index] = boundary_computePseudoMass(index);
+
+			if(phase(index) < BOUNDARY) ssbo_temperature[index] += computeTemperatureDelta(index);
 
 			break;
 		case 3: 
 			if(phase(index) == FLUID)
 				pbf_step(index, 1);
+			else if(phase(index) == SOLID)
+				pbd_step(index, 1);
 			break;
 		case 4:
 			if(phase(index) == FLUID)
 				pbf_step(index, 2);
+			else if(phase(index) == SOLID)
+				pbd_step(index, 2);
+
 			break;
 		case 5: 
 			if(phase(index) == FLUID)
 				pbf_step(index, 3);
+			else if(phase(index) == SOLID)
+				pbd_step(index, 3);
 			break;
 		}
 	else if(kernel == 6)

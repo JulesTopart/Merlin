@@ -32,7 +32,7 @@ float boundary_computePseudoMass(uint i){
 	vec3 position = b_xi.xyz;
 	OVERNNS
 		if(c_Dij >= H || c_Dij < 1e-6) continue;
-		if(phase(j) >= BOUNDARY)
+		if(phase(j) >= BOUNDARY || phase(j) == SOLID)
 			pseudomass += poly6(c_Dij);
 	OVERNNS_END
 	return pseudomass;

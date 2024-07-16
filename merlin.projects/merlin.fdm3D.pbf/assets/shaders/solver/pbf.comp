@@ -9,11 +9,9 @@
 //?#include "sph.kernels.comp" 
 //?#include "boundary.comp" 
 
-float pbf_computePseudoMass();
 float pbf_computeLambda(uint i);
 vec3 pbf_computePositionDelta(uint i);
 vec3 pbf_computeXPSH(uint i);
-void pbf_velocityUpdateFirstOrder(inout vec3 v, in vec3 x, in vec3 old_x, float h);
 
 void pbf_step(uint i, uint kernel) {
 	if(kernel == 0){
@@ -81,7 +79,10 @@ vec3 pbf_computeXPSH(uint i){
 			xsphSum += (1.0/b_rho_j) * c_Vji * Wij;
 
 	OVERNNS_END
-	return u_artificialViscosityMultiplier * xsphSum;
+
+	float thermal_visco = u_artificialViscosityMultiplier * ((275 + 400)/b_Ti) + 0.002;
+
+	return thermal_visco * xsphSum;
 }
 
 float pbf_computeLambda(uint i) {
@@ -100,7 +101,7 @@ float pbf_computeLambda(uint i) {
 
 		if(phase(j) == FLUID){
 			gradCi += mj * gradCj;
-		}else if (phase(j) >= BOUNDARY){
+		}else if (phase(j) >= BOUNDARY || phase(j) == SOLID){
 			if(b_rho_j > 1e-6)
 				gradCi += (1.0/b_rho_j) * gradCj;
 		}
@@ -110,7 +111,7 @@ float pbf_computeLambda(uint i) {
 			if(phase(j) == FLUID){
 				sumGradCj += dot(gradCj, gradCj);
 				density += mj * poly6(dist);
-			}else if (phase(j) >= BOUNDARY){
+			}else if (phase(j) >= BOUNDARY || phase(j) == SOLID){
 				if(b_rho_j > 1e-6){
 					density += (rho0/b_rho_j) * poly6(dist);
 					vec3 gradCk = (1.0/b_rho_j) * gradCj;
@@ -155,8 +156,8 @@ vec3 pbf_computePositionDelta(uint i) {
 		sCorr = -u_artificialPressureMultiplier * H2 * pow(poly6(dist) / poly6(normalize(vec3(1)) * 0.2*H), 4);
 		if(phase(j) == FLUID){
 			posDelta += (spikyGradient(c_Rij) * (b_lambda_i + b_lambda_j + sCorr)) / rho0;
-		}else if(phase(j) >= BOUNDARY){
-			posDelta += spikyGradient(c_Rij) * (1.0/b_rho_j) * (2.0 * b_lambda_i + sCorr)*4.0;
+		}else if(phase(j) >= BOUNDARY || phase(j) == SOLID){
+			posDelta += spikyGradient(c_Rij) * (1.0/b_rho_j) * (2.0 * b_lambda_i + sCorr)*5.0;
 		}
 
 	OVERNNS_END

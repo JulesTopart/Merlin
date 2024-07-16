@@ -28,7 +28,7 @@ mat3 visco_computeTakashiStress(uint i){
 
 	OVERNNS_END
 
-	return restDensity * viscosity * (nablaV + transpose(nablaV));
+	return u_rho0 * viscosity * (nablaV + transpose(nablaV));
 }
 
 vec3 visco_computeTakashiAccel(uint i){

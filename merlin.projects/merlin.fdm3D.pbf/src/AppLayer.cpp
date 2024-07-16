@@ -93,7 +93,7 @@ void AppLayer::SyncUniforms() {
 	settings.artificialPressureMultiplier.sync(*solver);
 
 	settings.emitter_transform = glm::mat4(1);
-	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(0, 0, 50));
+	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(-20, 0, 50));
 	settings.emitter_transform.sync(*solver);
 
 	particleShader->use();
@@ -146,11 +146,11 @@ void AppLayer::InitGraphics() {
 	bunny = ModelLoader::loadMesh("./assets/common/models/bunny.stl");
 	bunny->setMaterial("pearl");
 	bunny->smoothNormals();
-	bunny->translate(glm::vec3(-15, 0, 0));
+	bunny->translate(glm::vec3(-15, 0, -2));
 	bunny->scale(4);
 
 	scene.add(floor);
-	scene.add(bunny);
+	//scene.add(bunny);
 	scene.add(TransformObject::create("origin"));
 }
 
@@ -168,7 +168,7 @@ void AppLayer::InitPhysics() {
 	//create particle system
 	ps = ParticleSystem::create("ParticleSystem", settings.pThread);
 	ps->setShader(particleShader);
-	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
+	ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
 
 	Shared<Mesh> binInstance = Primitives::createQuadCube(settings.bWidth, false);
 	binInstance->rename("bin");
@@ -250,7 +250,7 @@ void AppLayer::ResetSimulation() {
 	settings.numParticles = 0;
 	std::vector<glm::vec3> positions;
 
-	/**/
+	/*
 	fluid->computeBoundingBox();
 	fluid->voxelize(spacing);
 	positions = Voxelizer::getVoxelposition(fluid->getVoxels(), fluid->getBoundingBox(), spacing);
@@ -282,20 +282,20 @@ void AppLayer::ResetSimulation() {
 
 	for (int i = 0; i < positions.size(); i++) {
 		cpu_position.push_back(glm::vec4(positions[i], 0));
-		cpu_temp.push_back(298.15); //ambient
+		cpu_temp.push_back(275.15 + 20); //ambient
 		cpu_meta.push_back(glm::uvec4(BOUNDARY, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
 	}
 
 
 	bunny->computeBoundingBox();
-	bunny->voxelizeSurface(spacing, 2);
+	bunny->voxelize(spacing);
 	positions = Voxelizer::getVoxelposition(bunny->getVoxels(), bunny->getBoundingBox(), spacing);
 
 	for (int i = 0; i < positions.size(); i++) {
 		cpu_position.push_back(glm::vec4(positions[i], 0));
-		cpu_temp.push_back(298.15); //ambient
-		cpu_meta.push_back(glm::uvec4(BOUNDARY, settings.numParticles(), settings.numParticles(), 0.0));
+		cpu_temp.push_back(275.15); //ambient
+		cpu_meta.push_back(glm::uvec4(SOLID, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
 	}
 
@@ -381,6 +381,13 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	elapsedTime += ts.getSeconds();
 	settings.setTimestep(ts.getSeconds());
 
+
+	float dx = cos(elapsedTime), dy = sin(elapsedTime);
+	settings.emitter_transform = glm::mat4(1);
+	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(-20+ dx*10, dy*10, 50));
+	settings.emitter_transform.sync(*solver);
+
+
 	ps->clearField("correction_buffer");
 
 	solver->use();
@@ -411,7 +418,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 				}
 				)
 				solver->execute(5);
-				solver->execute(7);
+				//solver->execute(7);
 			}
 		}
 	)
@@ -545,7 +552,7 @@ void AppLayer::onImGuiRender() {
 	}
 
 	static float artificialViscosityMultiplier = settings.artificialViscosityMultiplier.value() * 100.0;
-	if (ImGui::SliderFloat("XPSH Viscosity", &artificialViscosityMultiplier, 0.0, 100.0)) {
+	if (ImGui::SliderFloat("XPSH Viscosity", &artificialViscosityMultiplier, 0.0, 200.0)) {
 		settings.artificialViscosityMultiplier.value() = artificialViscosityMultiplier * 0.01;
 		solver->use();
 		settings.artificialViscosityMultiplier.sync(*solver);
