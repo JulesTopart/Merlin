@@ -1,0 +1,32 @@
+//? #version 430
+#ifndef INCLUDE_CONSTANTS_GLSL
+#define INCLUDE_CONSTANTS_GLSL
+
+#define BTHREAD 1
+#define PTHREAD 1
+
+#define UNUSED 0
+#define SOLID 1
+#define FLUIDA 2
+#define FLUIDB 3
+#define FLUID_EMITTER 4
+#define GRANULAR 5
+#define BOUNDARY 6
+
+#define MAXNN 64
+#define EPSILON 1e-6
+#define MAX_DELTA_PI 0.1
+
+
+// --- Domain ---
+const vec3 cst_domain = vec3(0);
+const vec3 cst_halfdomain = vec3(0);
+const vec3 cst_boundaryMin = vec3(0);
+const vec3 cst_boundaryMax = vec3(0);
+
+const float cst_particleRadius = 0;
+const float cst_smoothingRadius = 0;
+const float cst_binSize = 0;
+const uvec3 cst_binMax = uvec3(0);
+const uint cst_binCount = 0;
+#endif

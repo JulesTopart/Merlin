@@ -82,9 +82,6 @@ void exec(uint index, uint kernel){
 			sortBuffers(index);
 			break;
 		case 2:
-			if(phase(index) == FLUID && ssbo_temperature[index] < 275+80) phase(index) = SOLID;
-			else if(phase(index) == SOLID && ssbo_temperature[index] > 275+90) phase(index) = FLUID;
-
 			if(phase(index) == FLUID)
 				pbf_step(index, 0);
 			else if(phase(index) == SOLID){
@@ -114,6 +111,14 @@ void exec(uint index, uint kernel){
 				pbf_step(index, 3);
 			else if(phase(index) == SOLID)
 				pbd_step(index, 3);
+
+
+			if(phase(index) == FLUID && ssbo_temperature[index] < 275+80){ 
+				phase(index) = SOLID;
+				ssbo_last_position[index] = ssbo_position[index]; // Fix rest position
+			}
+			else if(phase(index) == SOLID && ssbo_temperature[index] > 275+90) phase(index) = FLUID;
+
 			break;
 		}
 	else if(kernel == 6)

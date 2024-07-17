@@ -94,11 +94,10 @@ vec3 pbd_computePositionDelta(uint i) {
 			// Calculate the effective mass matrix
 			float inverseMass = 0.22;
 
-			float compliance = 0.000000001 * (b_Ti/175.15); // Compliance of the constraints
+			float compliance = 0.000000001; // Compliance of the constraints
 			float complianceSc = compliance/(u_dt*u_dt);
 			//float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
 			float deltaLambda = -C / ( inverseMass + complianceSc); 
-
 			// Calculate and apply the position corrections
 			deltaPosition += gradC * deltaLambda * mi;
 			n++;

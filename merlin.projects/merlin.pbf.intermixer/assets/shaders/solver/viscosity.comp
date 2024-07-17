@@ -1,0 +1,61 @@
+//?#version 430
+
+#pragma once
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/colors.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+
+
+//Tetsuya Takashi 2015
+mat3 visco_computeTakashiStress(uint i){
+	vec3 position = b_pi.xyz;
+
+	mat3 nablaV = mat3(0);
+	
+	OVERNNS
+		if(j == i) continue;
+		float dist = c_Dij;
+		if(dist > H || dist <= 1e-6) continue;
+
+		if(phase(j) == FLUID){
+			vec3 gradW = poly6_grad(c_Rji);
+			mat3 dyad = outerProduct((c_Vji), (gradW));
+			nablaV += (mj/b_rho_j) * dyad;
+		}
+
+	OVERNNS_END
+
+	return u_rho0 * viscosity * (nablaV + transpose(nablaV));
+}
+
+vec3 visco_computeTakashiAccel(uint i){
+	vec3 position = b_pi.xyz;
+
+	vec3 ai = vec3(0);
+	
+	float rho_i = b_rho_i;
+	float rho_i2 = rho_i * rho_i;
+
+	OVERNNS
+		if(j == i) continue;
+		float dist = c_Dij;
+		if(dist > H || dist <= 1e-6) continue;
+
+		if(phase(j) == FLUID){
+
+			float rho_j = b_rho_j;
+			float rho_j2 = rho_j * rho_j;
+			ai += mj * mat3(b_sigma_i/rho_i2 + b_sigma_j/rho_j2) * poly6_grad(c_Rij);
+
+		}else if(phase(j) >= BOUNDARY){
+			
+		}
+
+
+	OVERNNS_END
+
+	return ai;
+}
