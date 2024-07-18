@@ -85,7 +85,7 @@ void AppLayer::SyncUniforms() {
 void AppLayer::InitGraphics() {
 	// init OpenGL stuff
 	renderer.initialize();
-	renderer.setBackgroundColor(0.203, 0.203, 0.203, 1.0);
+	renderer.setBackgroundColor(0.953, 0.953, 0.953, 1.0);
 	renderer.disableEnvironment();
 	renderer.enableTransparency();
 	renderer.enableSampleShading();
@@ -111,7 +111,7 @@ void AppLayer::InitGraphics() {
 
 	Model_Ptr mdl = Model::create("bbox", Primitives::createQuadRectangle(settings.bb.x, settings.bb.y, true));
 	mdl->enableWireFrameMode();
-	scene.add(mdl);
+	//scene.add(mdl);
 
 }
 

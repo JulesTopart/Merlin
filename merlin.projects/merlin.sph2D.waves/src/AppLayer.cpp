@@ -86,7 +86,7 @@ void AppLayer::SyncUniforms() {
 void AppLayer::InitGraphics() {
 	// init OpenGL stuff
 	renderer.initialize();
-	renderer.setBackgroundColor(0.203, 0.203, 0.203, 1.0);
+	renderer.setBackgroundColor(1, 1, 1, 1);
 	renderer.disableEnvironment();
 	renderer.enableTransparency();
 	renderer.enableSampleShading();
@@ -112,7 +112,7 @@ void AppLayer::InitGraphics() {
 
 	Model_Ptr mdl = Model::create("bbox", Primitives::createQuadRectangle(settings.bb.x, settings.bb.y, true));
 	mdl->enableWireFrameMode();
-	scene.add(mdl);
+	//scene.add(mdl);
 
 	dam = Model::create("bbox", Primitives::createQuadRectangle(5, 50, false));
 	dam->translate(glm::vec3(40-settings.bb.x/2.0, -settings.bb.y/2,0));

@@ -138,40 +138,40 @@ void AppLayer::InitGraphics() {
 	scene.add(bbox);
 
 	static_emitterA = Primitives::createCylinder(5, 1.2, 10);
-	static_emitterA->translate(glm::vec3(3.5*12, 0, 9*12));
+	static_emitterA->translate(glm::vec3(3.5*10, 0, 9*10));
 	static_emitterA->rotate(glm::vec3(0, 45 * DEG_TO_RAD, 0));
 
 	static_emitterB = Primitives::createCylinder(5, 1.28, 10);
-	static_emitterB->translate(glm::vec3(-3.5*12, 0, 9*12));
+	static_emitterB->translate(glm::vec3(-3.5*10, 0, 9*10));
 	static_emitterB->rotate(glm::vec3(0, -45 * DEG_TO_RAD, 0));
 
 	capA = Primitives::createCylinder(10, 4, 10);
-	capA->translate(glm::vec3(3.5 * 12, 0, 9 * 12));
+	capA->translate(glm::vec3(3.5 * 10, 0, 9 * 10));
 	capA->rotate(glm::vec3(0, 45 * DEG_TO_RAD, 0));
-	capA->translate(glm::vec3(0, 0, 3.8 * 12));
+	capA->translate(glm::vec3(0, 0, 3.8 * 10));
 
 	capB = Primitives::createCylinder(10, 4, 10);
-	capB->translate(glm::vec3(-3.5 * 12, 0, 9 * 12));
+	capB->translate(glm::vec3(-3.5 * 10, 0, 9 * 10));
 	capB->rotate(glm::vec3(0, -45 * DEG_TO_RAD, 0));
-	capB->translate(glm::vec3(0, 0, 3.8 * 12));
+	capB->translate(glm::vec3(0, 0, 3.8 * 10));
 
 	nozzle = ModelLoader::loadMesh("./assets/models/binozzle.stl");
 	nozzle->setMaterial("gold");
 	nozzle->smoothNormals();
 	nozzle->translate(glm::vec3(0, 0, 30));
-	nozzle->scale(12);
+	nozzle->scale(10);
 
 	Mesh_Ptr half_nozzle = ModelLoader::loadMesh("./assets/models/binozzle_half.stl");
 	half_nozzle->setMaterial("gold");
 	//half_nozzle->smoothNormals();
 	half_nozzle->translate(glm::vec3(0, 0, 30));
-	half_nozzle->scale(12);
+	half_nozzle->scale(10);
 
 	intermixer = ModelLoader::loadMesh("./assets/models/intermixer.stl");
 	intermixer->setMaterial("silver");
-	intermixer->smoothNormals();
+	//intermixer->smoothNormals();
 	intermixer->translate(glm::vec3(0, 0, 30));
-	intermixer->scale(12);
+	intermixer->scale(10);
 
 	floor = Primitives::createFloor(10, 10);
 
@@ -182,7 +182,7 @@ void AppLayer::InitGraphics() {
 	scene.add(half_nozzle);
 	scene.add(intermixer);
 	scene.add(floor);
-	//scene.add(bunny);
+	
 	scene.add(TransformObject::create("origin"));
 }
 
@@ -329,21 +329,21 @@ void AppLayer::ResetSimulation() {
 		cpu_meta.push_back(glm::uvec4(BOUNDARY, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
 	}
-
+	/**/
 	nozzle->computeBoundingBox();
-	nozzle->voxelizeSurface(spacing,4);
+	nozzle->voxelize(spacing);
 	positions = Voxelizer::getVoxelposition(nozzle->getVoxels(), nozzle->getBoundingBox(), spacing);
 
 	for (int i = 0; i < positions.size(); i++) {
+		if (positions[i].z > settings.bb.z)continue;
 		cpu_position.push_back(glm::vec4(positions[i], 0));
 		cpu_temp.push_back(275.15 + 215); //ambient
 		cpu_meta.push_back(glm::uvec4(BOUNDARY, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
-	}
+	}/**/
 
 	spacing = settings.particleRadius * 1.0;
-	intermixer->computeBoundingBox();
-	intermixer->voxelize(spacing);
+	intermixer->voxelizeSurface(spacing, 0.5);
 	positions = Voxelizer::getVoxelposition(intermixer->getVoxels(), intermixer->getBoundingBox(), spacing);
 
 	for (int i = 0; i < positions.size(); i++) {
