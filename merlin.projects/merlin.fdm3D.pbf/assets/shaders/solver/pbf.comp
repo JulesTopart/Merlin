@@ -106,7 +106,8 @@ float pbf_computeLambda(uint i) {
 		if(phase(j) == FLUID){
 			gradCi += mj * gradCj;
 		}else if (phase(j) == SOLID){
-			gradCi += mj * gradCj;
+			if(b_rho_j > 1e-6)
+				gradCi += (1.0/b_rho_j) * gradCj;
 		}else if (phase(j) >= BOUNDARY || phase(j) == SOLID){
 			if(b_rho_j > 1e-6)
 				gradCi += (1.0/b_rho_j) * gradCj;
@@ -118,8 +119,9 @@ float pbf_computeLambda(uint i) {
 				sumGradCj += dot(gradCj, gradCj);
 				density += mj * poly6(dist);
 			}else if (phase(j) == SOLID){
-				sumGradCj += dot(gradCj, gradCj);
-				density += mj * poly6(dist);
+				density += (rho0/b_rho_j) * 2.0 * poly6(dist);
+				vec3 gradCk = (1.0/b_rho_j) * 2.0 *  gradCj;
+				sumGradCj += dot(gradCk, gradCk);
 			}else if (phase(j) >= BOUNDARY){
 				if(b_rho_j > 1e-6){
 					density += (rho0/b_rho_j) * poly6(dist);
@@ -166,7 +168,7 @@ vec3 pbf_computePositionDelta(uint i) {
 		if(phase(j) == FLUID){
 			posDelta += (spikyGradient(c_Rij) * (b_lambda_i + b_lambda_j + sCorr)) / rho0;
 		}else if(phase(j) == SOLID){
-			posDelta += (spikyGradient(c_Rij) * (b_lambda_i + b_lambda_j + sCorr)) / rho0;
+			posDelta += spikyGradient(c_Rij) * (1.0/b_rho_j) * (2.0 * b_lambda_i + sCorr)*2.0;
 		}else if(phase(j) >= BOUNDARY){
 			posDelta += spikyGradient(c_Rij) * (1.0/b_rho_j) * (2.0 * b_lambda_i + sCorr)*5.0;
 		}

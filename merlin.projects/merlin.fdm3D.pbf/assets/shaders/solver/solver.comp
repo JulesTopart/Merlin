@@ -87,7 +87,7 @@ void exec(uint index, uint kernel){
 				pbf_step(index, 0);
 			else if(phase(index) == SOLID){
 				pbs_step(index, 0);
-				//ssbo_density[index] = boundary_computePseudoMass(index);
+				ssbo_density[index] = boundary_computePseudoMass(index);
 			}else if(phase(index) >= BOUNDARY)
 				ssbo_density[index] = boundary_computePseudoMass(index);
 
@@ -122,11 +122,11 @@ void exec(uint index, uint kernel){
 			//else if(phase(index) == SOLID)
 				//pbs_step(index, 3);
 
-			/*if(phase(index) == FLUID && ssbo_temperature[index] < 275+80){ 
+			if(phase(index) == FLUID && ssbo_temperature[index] < 275+80){ 
 				phase(index) = SOLID;
 				ssbo_last_position[index] = ssbo_position[index]; // Fix rest position
 			}
-			else*/ //if(phase(index) == SOLID && ssbo_temperature[index] > 275+90) phase(index) = FLUID;
+			else //if(phase(index) == SOLID && ssbo_temperature[index] > 275+90) phase(index) = FLUID;
 
 			break;
 		}

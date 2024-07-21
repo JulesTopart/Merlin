@@ -22,12 +22,15 @@ void computeStress(uint i) {
         vec3 xj = b_xj.xyz;
         vec3 xj0 = b_last_xj.xyz;
 
-        if(distance(xi, xj) > H || distance(xi0, xj0) > H) continue;
+        if(distance(xi0, xj0) > H) continue;
 
-        vec3 xj_xi = xj - xi;
-        vec3 xi_xj_0 = xi0 - xj0;
-        vec3 correctedRotatedKernel = poly6_grad(xi_xj_0);
-        F += restVolume * outerProduct(xj_xi - (xj0 - xi0), correctedRotatedKernel);
+        if(phase(j) == SOLID){
+            vec3 xj_xi = xj - xi;
+            vec3 xi_xj_0 = xi0 - xj0;
+            vec3 correctedRotatedKernel = poly6_grad(xi_xj_0);
+            F += restVolume * outerProduct(xj_xi - (xj0 - xi0), correctedRotatedKernel);
+        }
+
     OVERNNS_END
 
     F += mat3(1.0);
@@ -43,7 +46,7 @@ void computeStress(uint i) {
     vec6 strain = vec6(vec4(strain1, 0), vec4(strain2, 0));
     
     //stress
-    float youngsModulus = 6000000;
+    float youngsModulus = 3000000;
     float poissonRatio = 0.2;
     float mu = youngsModulus / (2.0 * (1.0 + poissonRatio));
 	float lambda = youngsModulus * poissonRatio / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio));
@@ -78,20 +81,24 @@ vec3 computeForces(uint i) {
         vec3 xj = b_xj.xyz;
         vec3 xj0 = b_last_xj.xyz;
         
-        if(distance(xi, xj) > H || distance(xi0, xj0) > H) continue;
+        if(distance(xi0, xj0) > H) continue;
 
-        vec3 xj_xi = xj - xi;
-        vec3 xi_xj_0 = xi0 - xj0;
+        if(phase(j) == SOLID){
+            vec3 xj_xi = xj - xi;
+            vec3 xi_xj_0 = xi0 - xj0;
         
-        //float vO_i = mi / (b_rho_i);
-        //float vO_j = mj / (b_rho_j);
+            //float vO_i = mi / (b_rho_i);
+            //float vO_j = mj / (b_rho_j);
 
-        float vO_i = mi / (u_rho0);
-        float vO_j = mj / (u_rho0);
+            float vO_i = mi / (u_rho0);
+            float vO_j = mj / (u_rho0);
 
-        vec3 PWi = symMatTimesVec(b_sigma_i, poly6_grad(xi_xj_0));
-        vec3 PWj = symMatTimesVec(b_sigma_j, poly6_grad(-xi_xj_0));
-        forces += vO_i * vO_j * (PWi - PWj);
+            vec3 PWi = symMatTimesVec(b_sigma_i, poly6_grad(xi_xj_0));
+            vec3 PWj = symMatTimesVec(b_sigma_j, poly6_grad(-xi_xj_0));
+            forces += vO_i * vO_j * (PWi - PWj);
+        }
+
+
     OVERNNS_END
 
     return forces;
@@ -120,20 +127,58 @@ vec3 pbs_computeXPSH(uint i){
 
 	OVERNNS
 		if(j == i) continue;
+
 		float dist = c_Dij;
 		if(dist < 1e-6 || dist > H) continue;
 		float Wij = poly6(dist);
 
 		if(phase(j) == FLUID)
-			xsphSum += (mj/b_rho_j) * c_Vji * Wij;
+			xsphSum += 0.5*(mj/b_rho_j) * c_Vji * Wij;
 		else if(phase(j) == SOLID)
 			xsphSum += (mj/b_rho_j) * c_Vji * Wij;
        else if(phase(j) == BOUNDARY)
-			xsphSum += (1.0/b_rho_j) * c_Vji * Wij;
+			xsphSum += 10.0*(1.0/b_rho_j) * c_Vji * Wij;
 
 	OVERNNS_END
 
 	//float thermal_visco = u_artificialViscosityMultiplier * ((275 + 400)/b_Ti) + 0.002;
 
-	return u_artificialViscosityMultiplier * 0.001 * xsphSum;
+	return u_artificialViscosityMultiplier * 0.5 * xsphSum;
+}
+
+vec3 pbs_computeContactDelta(uint i) {
+	int n = 0;
+	vec3 deltaPosition = vec3(0);
+
+	vec3 position = b_pi.xyz;
+	OVERNNS
+		float l0 = 2.0*cst_particleRadius;
+		if(i == j) continue;
+		if(l0 >= 2.1*cst_particleRadius || c_Dij < 1e-6) continue; //Ignore particle that are too far
+
+		float l = c_Dij; // Calculate the current length
+		
+		float C = l - l0; // Calculate the constraint violation
+		if( C >= 0) continue;
+		//if(abs(C) < 1e-06) continue;
+		// Calculate the gradient of the constraint function
+		vec3 gradC = normalize(c_Rij);
+
+		// Calculate the effective mass matrix
+		float inverseMass = (1.0/mi*4.0) + (1.0/mj);
+
+		float compliance = 0.00001; // Compliance of the constraints
+		float complianceSc = compliance/(u_dt*u_dt);
+		//float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
+		float deltaLambda = -C / ( inverseMass + complianceSc); 
+
+		// Calculate and apply the position corrections
+		deltaPosition += gradC * deltaLambda * mi;
+		n++;
+		//particles[i].lambda += deltaLambda;
+		
+	OVERNNS_END
+
+	if(n > 1) return deltaPosition / float(n);
+	else return deltaPosition;
 }

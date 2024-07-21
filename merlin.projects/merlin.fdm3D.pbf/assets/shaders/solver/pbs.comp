@@ -10,6 +10,9 @@
 //?#include "boundary.comp" 
 //?#include "elasticity.comp" 
 
+float pbs_computeLambda(uint i);
+vec3 pbs_computePositionDelta(uint i);
+
 void pbs_step(uint i, uint kernel) {
 	if(kernel == 0){
 		//b_last_xi = b_xi;
@@ -19,26 +22,103 @@ void pbs_step(uint i, uint kernel) {
 		//semi-implicit Euler integration (or Sympletic scheme)
 		b_vi.xyz += a * u_dt;
 		b_pi.xyz += b_vi.xyz * u_dt;
-
-		b_rho_i = computeDensity(i);
+		b_pi.xyz += pbs_computeContactDelta(i); //apply floor induced deformation
+		//b_rho_i = computeDensity(i);
 		return;
 	}
 	if(kernel == 1){
+		//b_lambda_i = pbs_computeLambda(i);
 		computeStress(i);
 		return;
 	}
 
 	if(kernel == 2){
-		b_pi.xyz += computeForces(i) * 0.00001;
-
+		//b_last_xi.xyz += computeForces(i) * 0.000001;
+		b_pi.xyz += computeForces(i) * 0.00002;
+		//b_pi.xyz += pbs_computePositionDelta(i); //apply floor induced deformation
 		b_pi.xyz += boundary_solveFloorCollision(i); //apply floor induced deformation
 		return;
 	}
 
 	if(kernel == 3){	
 		b_vi.xyz = (b_pi.xyz - b_xi.xyz)/u_dt; // First order velocity update
-		//b_vi.xyz += pbs_computeXPSH(i);
+		b_vi.xyz += pbs_computeXPSH(i);
 		return;
 	}
 
+}
+
+float pbs_computeLambda(uint i) {
+    float rho0 = u_rho0;
+    float sumGradCj = 0;
+    vec3 gradCi = vec3(0);
+    float density = 0.0;
+    vec3 position = b_pi.xyz;
+
+    OVERNNS
+		vec3 diff = c_Rij;
+		float dist = length(diff);
+		if(dist >= H || dist < 1e-6) continue;
+
+		vec3 gradCj = -spiky_grad(diff);
+
+		if(phase(j) == FLUID){
+			gradCi += mj * gradCj;
+		}else if (phase(j) == SOLID){
+			if(b_rho_j > 1e-6)
+				gradCi += (1.0/b_rho_j) * gradCj;
+		}else if (phase(j) >= BOUNDARY || phase(j) == SOLID){
+			if(b_rho_j > 1e-6)
+				gradCi += (1.0/b_rho_j) * gradCj;
+		}
+
+		
+		if(i != j){
+			if(phase(j) == FLUID){
+				sumGradCj += dot(gradCj, gradCj);
+				density += mj * poly6(dist);
+			}else if (phase(j) == SOLID){
+				density += (rho0/b_rho_j) * poly6(dist);
+				vec3 gradCk = (1.0/b_rho_j) * gradCj;
+				sumGradCj += dot(gradCk, gradCk);
+			}else if (phase(j) >= BOUNDARY){
+				if(b_rho_j > 1e-6){
+					density += (rho0/b_rho_j) * poly6(dist);
+					vec3 gradCk = (1.0/b_rho_j) * gradCj;
+					sumGradCj += dot(gradCk, gradCk);
+				}
+			}
+		}
+	OVERNNS_END
+
+	sumGradCj += dot(gradCi, gradCi);
+	sumGradCj = max(sumGradCj, 1e-6);
+
+	float C = max((density / rho0) - 1.0, 0.0);
+
+    return - ((1.0/mi) * C) / (sumGradCj/pow(rho0, 2));
+}
+
+
+//Compute position deltas w neigbor
+vec3 pbs_computePositionDelta(uint i) {
+	vec3 posDelta = vec3(0.0f);
+	float rho0 = u_rho0;
+	float sCorr = 0.0;
+	
+	if(b_rho_i - u_rho0 < 0) return posDelta;
+
+	vec3 position = b_pi.xyz;
+	OVERNNS
+		if(j == i) continue;
+		float dist = c_Dij;
+		if(dist > H || dist <= 1e-6) continue;
+		if(phase(j) == FLUID){
+			posDelta += (spikyGradient(c_Rij) * (b_lambda_i + b_lambda_i)) / rho0;
+		}
+
+	OVERNNS_END
+
+	//posDelta = clamp(posDelta, -MAX_DELTA_PI, MAX_DELTA_PI);
+	return posDelta;
 }

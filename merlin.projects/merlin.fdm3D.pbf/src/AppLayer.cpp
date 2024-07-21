@@ -135,7 +135,7 @@ void AppLayer::InitGraphics() {
 
 	floor = Primitives::createFloor(20, 10);
 
-	static_emitter = Primitives::createCylinder(5, 1, 10);
+	static_emitter = Primitives::createCylinder(1.5, 2, 10);
 	static_emitter->translate(glm::vec3(0, 0, 0));
 	//scene.add(static_emitter);
 
@@ -288,7 +288,7 @@ void AppLayer::ResetSimulation() {
 		settings.numParticles()++;
 	}
 
-	
+	/*
 	bunny->computeBoundingBox();
 	bunny->voxelize(spacing);
 	positions = Voxelizer::getVoxelposition(bunny->getVoxels(), bunny->getBoundingBox(), spacing);
@@ -298,7 +298,7 @@ void AppLayer::ResetSimulation() {
 		cpu_temp.push_back(275.15); //ambient
 		cpu_meta.push_back(glm::uvec4(SOLID, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
-	}
+	}/**/
 
 
 	while (cpu_position.size() < settings.max_pThread) {
@@ -378,6 +378,9 @@ void AppLayer::NeigborSearch() {
 	solver->execute(1); //Sort
 }
 
+
+float nz = 2;
+
 void AppLayer::Simulate(Merlin::Timestep ts) {
 	elapsedTime += ts.getSeconds();
 	settings.setTimestep(ts.getSeconds());
@@ -387,10 +390,14 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 	settings.dt.sync(*solver);
 
-	float dx = cos(elapsedTime * 10.0) * 50.0, dy = sin(elapsedTime * 10.0) * 50.0;
+	float dx = cos(elapsedTime * 5.0) * 40.0, dy = sin(elapsedTime * 5.0) * 40.0;
+
+	if (dx < 1 && dy < 1) {
+		nz+=0.01;
+	}
 
 	settings.emitter_transform = glm::mat4(1);
-	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(50+dx, dy, 50));
+	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(50+dx, dy, nz));
 	settings.emitter_transform.sync(*solver);
 
 	if(use_emitter)
