@@ -50,15 +50,19 @@ void pbf_step(uint i, uint kernel) {
 
 		//b_vi.xyz = (b_pi.xyz - b_xi.xyz)/u_dt; // First order velocity update
 		b_vi.xyz = (1.0/u_dt) * (1.5*b_pi.xyz - 2.0* b_xi.xyz + 0.5*b_last_xi.xyz); // Second order velocity update
-		b_vi.xyz += pbf_computeXPSH(i);
 
-
+		
 		//sigma_i = mat4(visco_computeViscoStress(i));
 		return;
 	}
 
 	if(kernel == 4){//apply XSPH velocity correction
-		//Vi += computeViscoAccel(i) * dt;
+		b_dpi.xyz = pbf_computeXPSH(i);
+		return;
+	}
+
+	if(kernel == 5){//apply XSPH velocity correction
+		b_vi.xyz += b_dpi.xyz;
 		return;
 	}
 }
@@ -101,6 +105,8 @@ float pbf_computeLambda(uint i) {
 
 		if(phase(j) == FLUID){
 			gradCi += mj * gradCj;
+		}else if (phase(j) == SOLID){
+			gradCi += mj * gradCj;
 		}else if (phase(j) >= BOUNDARY || phase(j) == SOLID){
 			if(b_rho_j > 1e-6)
 				gradCi += (1.0/b_rho_j) * gradCj;
@@ -111,7 +117,10 @@ float pbf_computeLambda(uint i) {
 			if(phase(j) == FLUID){
 				sumGradCj += dot(gradCj, gradCj);
 				density += mj * poly6(dist);
-			}else if (phase(j) >= BOUNDARY || phase(j) == SOLID){
+			}else if (phase(j) == SOLID){
+				sumGradCj += dot(gradCj, gradCj);
+				density += mj * poly6(dist);
+			}else if (phase(j) >= BOUNDARY){
 				if(b_rho_j > 1e-6){
 					density += (rho0/b_rho_j) * poly6(dist);
 					vec3 gradCk = (1.0/b_rho_j) * gradCj;
@@ -156,7 +165,9 @@ vec3 pbf_computePositionDelta(uint i) {
 		sCorr = -u_artificialPressureMultiplier * H2 * pow(poly6(dist) / poly6(normalize(vec3(1)) * 0.2*H), 4);
 		if(phase(j) == FLUID){
 			posDelta += (spikyGradient(c_Rij) * (b_lambda_i + b_lambda_j + sCorr)) / rho0;
-		}else if(phase(j) >= BOUNDARY || phase(j) == SOLID){
+		}else if(phase(j) == SOLID){
+			posDelta += (spikyGradient(c_Rij) * (b_lambda_i + b_lambda_j + sCorr)) / rho0;
+		}else if(phase(j) >= BOUNDARY){
 			posDelta += spikyGradient(c_Rij) * (1.0/b_rho_j) * (2.0 * b_lambda_i + sCorr)*5.0;
 		}
 

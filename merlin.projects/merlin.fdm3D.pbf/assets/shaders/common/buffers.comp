@@ -84,9 +84,7 @@ layout(std430) buffer temperature_buffer {
 	float ssbo_temperature[];
 };
 
-layout(std430) buffer stress_buffer {
-	mat4  ssbo_sigma[];
-};
+
 
 layout(std430) buffer meta_buffer {
 	uvec4 ssbo_meta[]; //phase, binindex, id , sortedID
@@ -103,6 +101,16 @@ layout(std430) buffer BinBuffer {
 	Bin ssbo_bins[];
 };
 
+
+struct vec6{
+	vec4 a; 
+	vec4 b;
+};
+
+layout(std430) buffer stress_buffer {
+	vec6 ssbo_sigma[];
+};
+
 struct CopyContent{
 	vec4 last_position;
 	vec4 position;
@@ -113,7 +121,7 @@ struct CopyContent{
 	float lambda;
 	float temperature;
 	float _padding;
-	mat4  sigma;
+	vec6  sigma;
 	uvec4 meta;
 };
 

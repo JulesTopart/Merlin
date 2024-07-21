@@ -20,9 +20,10 @@ struct CopyContent {
 	float density;
 	float lambda;
 	float temperature;
+	float _padding;
+	float sigma[8];
 	glm::uvec4 meta;
 };
-
 
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
@@ -146,7 +147,7 @@ void AppLayer::InitGraphics() {
 	bunny = ModelLoader::loadMesh("./assets/common/models/bunny.stl");
 	bunny->setMaterial("pearl");
 	bunny->smoothNormals();
-	bunny->translate(glm::vec3(-15, 0, -2));
+	bunny->translate(glm::vec3(-15, 0, 0));
 	bunny->scale(4);
 
 	scene.add(floor);
@@ -157,7 +158,7 @@ void AppLayer::InitGraphics() {
 void AppLayer::InitPhysics() {
 
 	//Compute Shaders
-	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 8, false);
+	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 9, false);
 	settings.setConstants(*solver);
 	solver->compile();
 	
@@ -194,7 +195,7 @@ void AppLayer::InitPhysics() {
 	ps->addField<float>("density_buffer");
 	ps->addField<float>("lambda_buffer");
 	ps->addField<float>("temperature_buffer");
-	ps->addField<glm::mat4>("stress_buffer");
+	ps->addField<float[8]>("stress_buffer");
 	ps->addField<glm::uvec4>("meta_buffer");
 	ps->addField<CopyContent>("copy_buffer");
 	ps->addBuffer<glm::vec4>("emitter_position_buffer");
@@ -287,7 +288,7 @@ void AppLayer::ResetSimulation() {
 		settings.numParticles()++;
 	}
 
-
+	
 	bunny->computeBoundingBox();
 	bunny->voxelize(spacing);
 	positions = Voxelizer::getVoxelposition(bunny->getVoxels(), bunny->getBoundingBox(), spacing);
@@ -381,17 +382,16 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	elapsedTime += ts.getSeconds();
 	settings.setTimestep(ts.getSeconds());
 
-
-	float dx = cos(elapsedTime), dy = sin(elapsedTime);
-	settings.emitter_transform = glm::mat4(1);
-	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(-20+ dx*10, dy*10, 50));
-	settings.emitter_transform.sync(*solver);
-
-
 	ps->clearField("correction_buffer");
 
 	solver->use();
 	settings.dt.sync(*solver);
+
+	float dx = cos(elapsedTime * 10.0) * 50.0, dy = sin(elapsedTime * 10.0) * 50.0;
+
+	settings.emitter_transform = glm::mat4(1);
+	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(50+dx, dy, 50));
+	settings.emitter_transform.sync(*solver);
 
 	if(use_emitter)
 	if (elapsedTime - lastSpawTime > (settings.emitterDelay/1000.0)) {
@@ -418,6 +418,8 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 				}
 				)
 				solver->execute(5);
+				solver->execute(6);
+				solver->execute(7);
 				//solver->execute(7);
 			}
 		}
@@ -435,7 +437,7 @@ void AppLayer::SpawnParticle() {
 	settings.numEmitter.sync(*solver);
 	settings.numParticles.sync(*solver);
 
-	solver->execute(6);
+	solver->execute(8);
 
 	settings.numParticles() += settings.numEmitter();
 	settings.numEmitter.sync(*solver);
