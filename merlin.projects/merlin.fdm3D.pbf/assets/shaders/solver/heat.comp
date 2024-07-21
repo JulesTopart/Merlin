@@ -23,6 +23,6 @@ float computeTemperatureDelta(uint i) {
 	if(particles[i].position.z < H/2.0){
 		temperatureDelta += kPlateau * (floorTemperature - Ti);
 	}*/
-	//temperatureDelta += kAmbient * (ambientTemperature - Ti);
+	temperatureDelta += 0.001 * (298.15 - b_Ti);
 	return temperatureDelta;
 }

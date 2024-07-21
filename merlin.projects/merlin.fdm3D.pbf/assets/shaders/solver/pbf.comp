@@ -79,7 +79,7 @@ vec3 pbf_computeXPSH(uint i){
 
 		if(phase(j) == FLUID)
 			xsphSum += (mj/b_rho_j) * c_Vji * Wij;
-		else if(phase(j) == BOUNDARY)
+		else if(phase(j) == BOUNDARY || phase(j) == SOLID)
 			xsphSum += (1.0/b_rho_j) * c_Vji * Wij;
 
 	OVERNNS_END

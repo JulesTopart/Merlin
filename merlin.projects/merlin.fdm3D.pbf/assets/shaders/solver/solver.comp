@@ -126,7 +126,7 @@ void exec(uint index, uint kernel){
 				phase(index) = SOLID;
 				ssbo_last_position[index] = ssbo_position[index]; // Fix rest position
 			}
-			else //if(phase(index) == SOLID && ssbo_temperature[index] > 275+90) phase(index) = FLUID;
+			else if(phase(index) == SOLID && ssbo_temperature[index] > 275+90) phase(index) = FLUID;
 
 			break;
 		}

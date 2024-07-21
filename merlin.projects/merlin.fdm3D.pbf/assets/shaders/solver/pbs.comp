@@ -34,7 +34,7 @@ void pbs_step(uint i, uint kernel) {
 
 	if(kernel == 2){
 		//b_last_xi.xyz += computeForces(i) * 0.000001;
-		b_pi.xyz += computeForces(i) * 0.00002;
+		b_pi.xyz += computeForces(i) * 0.000001;
 		//b_pi.xyz += pbs_computePositionDelta(i); //apply floor induced deformation
 		b_pi.xyz += boundary_solveFloorCollision(i); //apply floor induced deformation
 		return;

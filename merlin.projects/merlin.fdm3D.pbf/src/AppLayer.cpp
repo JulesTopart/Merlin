@@ -157,6 +157,8 @@ void AppLayer::InitGraphics() {
 
 void AppLayer::InitPhysics() {
 
+	simulator.readFile("assets/cube.gcode");
+
 	//Compute Shaders
 	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 9, false);
 	settings.setConstants(*solver);
@@ -224,6 +226,7 @@ void AppLayer::InitPhysics() {
 
 	scene.add(ps);
 	scene.add(bs);
+	scene.add(TransformObject::create("origin", 10));
 	bs->hide();
 }
 
@@ -231,7 +234,7 @@ void AppLayer::InitPhysics() {
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
 	lastSpawTime = 0;
-
+	simulator.reset();
 	BindingPointManager::instance().resetBindings();
 
 	ps->detach(solver);
@@ -258,7 +261,7 @@ void AppLayer::ResetSimulation() {
 
 	for (int i = 0; i < positions.size(); i++) {
 		cpu_position.push_back(glm::vec4(positions[i],0));
-		cpu_temp.push_back(298.15); //ambient
+		cpu_temp.push_back(275.15 + 200); //ambient
 		cpu_meta.push_back(glm::uvec4(FLUID, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
 	}/**/
@@ -390,14 +393,14 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 	settings.dt.sync(*solver);
 
-	float dx = cos(elapsedTime * 5.0) * 40.0, dy = sin(elapsedTime * 5.0) * 40.0;
+	//simulator.update(ts.getSeconds());
+	//simulator.update(ts.getSeconds());
+	float dx = cos(elapsedTime * 8.0) * 40.0, dy = sin(elapsedTime * 8.0) * 40.0;
 
-	if (dx < 1 && dy < 1) {
-		nz+=0.01;
-	}
+	if (dx > 38 && dy < 1 && dy > -1) nz += 0.3;
 
 	settings.emitter_transform = glm::mat4(1);
-	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(50+dx, dy, nz));
+	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(dx, dy, nz));
 	settings.emitter_transform.sync(*solver);
 
 	if(use_emitter)

@@ -22,7 +22,7 @@ void computeStress(uint i) {
         vec3 xj = b_xj.xyz;
         vec3 xj0 = b_last_xj.xyz;
 
-        if(distance(xi0, xj0) > H) continue;
+        if(distance(xi0, xj0) > H || distance(xi, xj) > 2*H) continue;
 
         if(phase(j) == SOLID){
             vec3 xj_xi = xj - xi;
@@ -46,7 +46,7 @@ void computeStress(uint i) {
     vec6 strain = vec6(vec4(strain1, 0), vec4(strain2, 0));
     
     //stress
-    float youngsModulus = 3000000;
+    float youngsModulus = 1000000;
     float poissonRatio = 0.2;
     float mu = youngsModulus / (2.0 * (1.0 + poissonRatio));
 	float lambda = youngsModulus * poissonRatio / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio));
@@ -81,7 +81,7 @@ vec3 computeForces(uint i) {
         vec3 xj = b_xj.xyz;
         vec3 xj0 = b_last_xj.xyz;
         
-        if(distance(xi0, xj0) > H) continue;
+        if(distance(xi0, xj0) > H || distance(xi, xj) > 2*H) continue;
 
         if(phase(j) == SOLID){
             vec3 xj_xi = xj - xi;
@@ -133,7 +133,7 @@ vec3 pbs_computeXPSH(uint i){
 		float Wij = poly6(dist);
 
 		if(phase(j) == FLUID)
-			xsphSum += 0.5*(mj/b_rho_j) * c_Vji * Wij;
+			xsphSum += 0.01*(mj/b_rho_j) * c_Vji * Wij;
 		else if(phase(j) == SOLID)
 			xsphSum += (mj/b_rho_j) * c_Vji * Wij;
        else if(phase(j) == BOUNDARY)

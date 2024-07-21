@@ -1,5 +1,6 @@
 #pragma once
 #include "settings.h"
+#include "GcodeReader.h"
 
 using namespace Merlin;
 
@@ -34,6 +35,8 @@ public:
 private:
 
 	// --- Graphics ---
+
+	GcodeSimulator simulator;
 
 	Scene scene;
 	Renderer renderer;
