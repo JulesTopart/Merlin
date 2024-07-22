@@ -330,4 +330,16 @@ namespace Merlin {
 		return ConsoleStream(*this);
 	}
 
+	ConsoleStream ConsoleStream::operator<<(glm::vec4 v) {
+		if (_level >= Console::getLevel()) {
+			std::string str = this->font();
+			std::stringstream ss;
+			ss << "[" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << "]";
+			str += ss.str() + ConsoleStream::endFont();
+
+			Console::write(str);
+		}
+		return ConsoleStream(*this);
+	}
+
 }

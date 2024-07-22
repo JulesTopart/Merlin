@@ -22,9 +22,9 @@ void GcodeSimulator::readFile(const std::string& filepath) {
             std::istringstream iss(line.substr(1));
             int commandNum;
             iss >> commandNum;
-
+            static Command command = { glm::vec4(0), 0 };
             if (commandNum == 1) {  // We handle G1 commands
-                static Command command = {glm::vec4(0), 0};
+                
                 char coord;
                 float value;
                 while (iss >> coord >> value) {
@@ -37,8 +37,16 @@ void GcodeSimulator::readFile(const std::string& filepath) {
                     }
                 }
                 m_commands.push_back(command);
+            } else if (commandNum == 92) {  // We handle G1 commands
+                char coord;
+                float value;
+                while (iss >> coord >> value) {
+                    switch (coord) {
+                    case 'E': command.position.w = value; break;
+                    }
+                }
+                m_commands.push_back(command);
             }
-
         }
     }
 
@@ -58,11 +66,9 @@ void GcodeSimulator::reset() {
 }
 
 void GcodeSimulator::update(float dt) {
-    glm::vec4 delta = m_current_target - m_current_position;
-    glm::vec4 direction = glm::normalize(delta);
-    glm::vec4 movement = direction * m_current_speed * dt;
-
-    float speed = glm::length(movement);
+    glm::vec3 delta = glm::vec3(m_current_target) - glm::vec3(m_current_position);
+    glm::vec3 direction = glm::normalize(delta);
+    glm::vec3 movement = direction * m_current_speed * dt;
 
     if (glm::length(glm::vec3(delta)) < 0.1) {
         m_current_position = m_current_target;
@@ -76,7 +82,7 @@ void GcodeSimulator::update(float dt) {
         }
     }
     else {
-        m_current_position += movement;
+        m_current_position += glm::vec4(movement,1.0);
     }
 }
 
@@ -84,7 +90,7 @@ glm::vec3 GcodeSimulator::getNozzlePosition() {
     return glm::vec3(m_current_position) + m_origin_offset;
 }
 
-float GcodeSimulator::getExtruderSpeed() {
-    if (m_current_target.w - m_current_position.w) return m_current_speed;
+float GcodeSimulator::getExtruderDistance() {
+    if (m_current_target.w != m_current_position.w && m_current_target.w != 0) return m_current_speed;
        return 0.0;
 }

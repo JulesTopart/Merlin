@@ -63,18 +63,32 @@ void AppLayer::onUpdate(Timestep ts) {
 	ps->detach(particleShader);
 	bs->detach(binShader);
 
-	ps->solveLink(solver);
-	bs->solveLink(prefixSum);
+
 
 	if (!paused) {
+
+		ps->solveLink(solver);
+		bs->solveLink(prefixSum);
 		GPU_PROFILE(solver_total_time,
 			if(use_real_time) Simulate(glm::max<float>(ts, 0.016));
 			else Simulate(settings.timestep);
 		)
-	}
+	
 
-	ps->detach(solver);
-	bs->detach(prefixSum);
+		ps->detach(solver);
+		bs->detach(prefixSum);
+
+		ps->solveLink(isoGen);
+		volume->bindImage(0);
+		isoGen->use();
+		isoGen->dispatch();
+		isoGen->barrier(GL_ALL_BARRIER_BITS);
+		ps->detach(isoGen);
+
+		isosurface->setIsoLevel(0.1);
+		isosurface->compute();
+
+	}
 }
 
 
@@ -104,6 +118,10 @@ void AppLayer::SyncUniforms() {
 	prefixSum->use();
 	prefixSum->setUInt("dataSize", settings.bThread); //data size
 	prefixSum->setUInt("blockSize", settings.blockSize); //block size
+
+	isoGen->use();
+	settings.numParticles.sync(*isoGen);
+	settings.particleMass.sync(*isoGen);
 }
 
 
@@ -135,14 +153,13 @@ void AppLayer::InitGraphics() {
 
 	floor = Primitives::createFloor(50, 2);
 
-	static_emitter = Primitives::createSphere(1);
+	static_emitter = Primitives::createCylinder(1.5, 0.6, 10);
 	static_emitter->translate(glm::vec3(0, 0, 0));
 	//scene.add(static_emitter);
 
 	//fluid = Primitives::createSphere(10, 20);
 	fluid = Primitives::createSphere(20, 20, 20);
 	fluid->translate(glm::vec3(0, 0, 70));
-
 
 	bunny = ModelLoader::loadMesh("./assets/common/models/bunny.stl");
 	bunny->setMaterial("pearl");
@@ -153,10 +170,11 @@ void AppLayer::InitGraphics() {
 	nozzle = ModelLoader::loadMesh("./assets/models/nozzle.stl");
 	nozzle->setMaterial("gold");
 	nozzle->smoothNormals();
-	nozzle->translate(glm::vec3(0, 0, 15));
+	nozzle->translate(glm::vec3(0, 0, 20));
 	nozzle->rotate(glm::vec3(180*DEG_TO_RAD, 0, 0));
-	nozzle->scale(0.4);
+	nozzle->scale(0.5);
 	nozzle->applyMeshTransform();
+	nozzle->enableWireFrameMode();
 
 	scene.add(floor);
 	scene.add(nozzle);
@@ -165,7 +183,7 @@ void AppLayer::InitGraphics() {
 
 void AppLayer::InitPhysics() {
 
-	simulator.readFile("assets/cube.gcode");
+	simulator.readFile("assets/box.gcode");
 
 	//Compute Shaders
 	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 9, false);
@@ -175,6 +193,10 @@ void AppLayer::InitPhysics() {
 	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4, false);
 	settings.setConstants(*prefixSum);
 	prefixSum->compile();
+
+
+	isoGen = ComputeShader::create("isoGen", "assets/shaders/solver/isoGen.comp");
+	isoGen->SetWorkgroupLayout(settings.iWkgCount);
 
 	//create particle system
 	ps = ParticleSystem::create("ParticleSystem", settings.pThread);
@@ -222,15 +244,30 @@ void AppLayer::InitPhysics() {
 	ps->link(particleShader->name(), "position_buffer");
 	ps->link(particleShader->name(), "velocity_buffer");
 	ps->link(particleShader->name(), "density_buffer");
-	ps->link(particleShader->name(), "lambda_buffer");
+	//ps->link(particleShader->name(), "lambda_buffer");
 	ps->link(particleShader->name(), "temperature_buffer");
 	ps->link(particleShader->name(), "meta_buffer");
 	ps->solveLink(particleShader);
 	ps->detach(particleShader);//test binding points
 
+	ps->link(isoGen->name(), "position_buffer");
+	ps->link(isoGen->name(), "density_buffer");
+	ps->link(isoGen->name(), "meta_buffer");
+	ps->link(isoGen->name(), binBuffer->name());
+
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
 	bs->detach(binShader);//test binding points
+
+
+	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 4, 16);
+	volume->setUnit(0);
+	isosurface = IsoSurface::create("isosurface", volume);
+
+	//isosurface->mesh()->translate(settings.bb * glm::vec3(0, 0, 0.5));
+	//isosurface->mesh()->scale(settings.bb * glm::vec3(1.0, 1.0, 0.5));
+
+	scene.add(isosurface);
 
 	scene.add(ps);
 	scene.add(bs);
@@ -276,7 +313,7 @@ void AppLayer::ResetSimulation() {
 	
 	
 
-	/*
+	/**/
 	static_emitter->computeBoundingBox();
 	static_emitter->voxelize(spacing);
 	positions = Voxelizer::getVoxelposition(static_emitter->getVoxels(), static_emitter->getBoundingBox(), spacing);
@@ -290,7 +327,7 @@ void AppLayer::ResetSimulation() {
 	}
 	/**/
 
-
+	/**/
 	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(0, 0.5 * spacing, 0), 1));
 	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(0.5 * spacing, -0.5 * spacing, 0), 1));
 	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(-0.5 * spacing, -0.5 * spacing, 0), 1));
@@ -299,6 +336,8 @@ void AppLayer::ResetSimulation() {
 	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(0.5 * spacing, 0.5 * spacing, spacing), 1));
 	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(-0.5 * spacing, 0.5 * spacing, spacing), 1));
 	settings.numEmitter()+=6;
+	/**/
+
 
 	/**/
 	floor->computeBoundingBox();
@@ -413,28 +452,31 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->use();
 	settings.dt.sync(*solver);
-
-	simulator.update(ts.getSeconds());
-	nozzle_position = simulator.getNozzlePosition();
-	nozzle->setPosition(nozzle_position);
-
-	settings.emitter_transform = glm::mat4(1);
-	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(nozzle_position));
-	settings.emitter_transform.sync(*solver);
-
-	float emitterDelay = 1500.0 / simulator.getExtruderSpeed();
-
-	if(use_emitter && simulator.getExtruderSpeed() > 0.01)
-	if (elapsedTime - lastSpawTime > (emitterDelay/1000.0)) {
-		SpawnParticle();
-		lastSpawTime = elapsedTime;
-	}
-
-
+	 
 
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
+
+
+			for (int i = 0; i < 10; i++) simulator.update(ts.getSeconds() / (settings.solver_substep * 10));
+			nozzle_position = simulator.getNozzlePosition();
+			nozzle->setPosition(nozzle_position);
+
+			settings.emitter_transform = glm::mat4(1);
+			settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(nozzle_position));
+			settings.emitter_transform.sync(*solver);
+
+			float e_speed = simulator.getExtruderDistance();
+			float emitterDelay = 200.0 / (settings.particleVolume * 1.0) / e_speed;
+			if (use_emitter && simulator.getExtruderDistance() > 0.01)
+			if (elapsedTime - lastSpawTime > (emitterDelay / 1000.0)) {
+				SpawnParticle();
+				lastSpawTime = elapsedTime;
+			}
+
 			solver->execute(2);
+
+
 
 			GPU_PROFILE(nns_time,
 				NeigborSearch();

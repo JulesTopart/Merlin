@@ -41,6 +41,7 @@ private:
 	Scene scene;
 	Renderer renderer;
 	
+	ComputeShader_Ptr isoGen;
 	StagedComputeShader_Ptr solver;
 	StagedComputeShader_Ptr prefixSum;
 
@@ -62,6 +63,9 @@ private:
 	glm::vec3 nozzle_position = { 0.0f, 0.0f, 0.0f };
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 
+	IsoSurface_Ptr isosurface;
+	Texture3D_Ptr volume;
+
 	double nns_time = 0;
 	double jacobi_time = 0;
 	double solver_substep_time = 0;
@@ -79,6 +83,6 @@ private:
 	bool mousePressed = false;
 
 	bool use_real_time = false;
-	bool use_emitter = false;
+	bool use_emitter = true;
 
 };

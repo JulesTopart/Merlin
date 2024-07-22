@@ -11,7 +11,7 @@ layout (location = 5) in vec3 _bitangent;
 
 #define MAX_LIGHTS 10
 
-out Vertex{
+out VS_out{
 	vec3 position;
 	vec3 normal;
 	vec3 color;
@@ -19,6 +19,7 @@ out Vertex{
 	vec3 viewPos;
 	mat3 tangentBasis;
 } vout;
+
 
 layout(std430) buffer position_buffer {
 	vec4 ssbo_position[];
@@ -29,15 +30,14 @@ uniform mat4 projection;
 uniform mat4 model;
 uniform vec3 viewPos;
 
-void main() {
 
+void main() {
 	vec3 offset = ssbo_position[gl_InstanceID].xyz;
 	vout.position = vec3(model * (vec4(_position + vec3(offset),1)));
 	vout.color = _color;
 	vout.normal = _normal;
 	vout.texcoord = _texcoord;
 	vout.viewPos = viewPos;
-
 
 	if(length(_tangent) == 0 || length(_bitangent) == 0 || length(_normal) == 0){
 		vout.tangentBasis = mat3(1);//set to identity

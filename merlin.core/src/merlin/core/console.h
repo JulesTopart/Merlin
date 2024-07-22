@@ -43,6 +43,7 @@ namespace Merlin {
 		ConsoleStream operator<<(const void* i);
 		ConsoleStream operator<<(std::ostream os);
 		ConsoleStream operator<<(glm::vec3 v);
+		ConsoleStream operator<<(glm::vec4 v);
 
 		ConsoleLevel level() const { return _level; }
 		std::string font() const { return getFont(_level); }

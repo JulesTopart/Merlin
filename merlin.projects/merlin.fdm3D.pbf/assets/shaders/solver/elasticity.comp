@@ -8,7 +8,7 @@
 //?#include "../common/nns.comp"
 //?#include "sph.kernels.comp" 
 
-const float restVolume = 0.01;//g
+const float restVolume = 0.001;//g
 
 void computeStress(uint i) {
     vec3 xi = b_pi.xyz;
@@ -152,30 +152,63 @@ vec3 pbs_computeContactDelta(uint i) {
 
 	vec3 position = b_pi.xyz;
 	OVERNNS
-		float l0 = 2.0*cst_particleRadius;
-		if(i == j) continue;
-		if(l0 >= 2.1*cst_particleRadius || c_Dij < 1e-6) continue; //Ignore particle that are too far
+        if(i == j) continue;
 
-		float l = c_Dij; // Calculate the current length
+        if(phase(j) == SOLID){
+
+		    float l0 = 2.0*cst_particleRadius;
 		
-		float C = l - l0; // Calculate the constraint violation
-		if( C >= 0) continue;
-		//if(abs(C) < 1e-06) continue;
-		// Calculate the gradient of the constraint function
-		vec3 gradC = normalize(c_Rij);
+		    if(l0 >= 2.1*cst_particleRadius || c_Dij < 1e-6) continue; //Ignore particle that are too far
 
-		// Calculate the effective mass matrix
-		float inverseMass = (1.0/mi*4.0) + (1.0/mj);
+		    float l = c_Dij; // Calculate the current length
+		
+		    float C = l - l0; // Calculate the constraint violation
+		    if( C >= 0) continue;
+		    //if(abs(C) < 1e-06) continue;
+		    // Calculate the gradient of the constraint function
+		    vec3 gradC = normalize(c_Rij);
 
-		float compliance = 0.00001; // Compliance of the constraints
-		float complianceSc = compliance/(u_dt*u_dt);
-		//float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
-		float deltaLambda = -C / ( inverseMass + complianceSc); 
+		    // Calculate the effective mass matrix
+		    float inverseMass = (1.0/mi*4.0) + (1.0/mj);
 
-		// Calculate and apply the position corrections
-		deltaPosition += gradC * deltaLambda * mi;
-		n++;
-		//particles[i].lambda += deltaLambda;
+		    float compliance = 0.00001; // Compliance of the constraints
+		    float complianceSc = compliance/(u_dt*u_dt);
+		    //float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
+		    float deltaLambda = -C / ( inverseMass + complianceSc); 
+
+		    // Calculate and apply the position corrections
+		    deltaPosition += gradC * deltaLambda * mi;
+		    n++;
+		    //particles[i].lambda += deltaLambda;
+        }else if(phase(j) == BOUNDARY){
+			vec3 xi0 = b_last_xi.xyz;
+			vec3 xj0 = b_last_xj.xyz;
+		    float l0 = distance(xi0, xj0);
+		
+		    if(l0 >= H || c_Dij < 1e-6) continue; //Ignore particle that are too far
+
+		    float l = c_Dij; // Calculate the current length
+		
+		    float C = l - l0; // Calculate the constraint violation
+		    //if(abs(C) < 1e-06) continue;
+		    // Calculate the gradient of the constraint function
+		    vec3 gradC = normalize(c_Rij);
+
+		    // Calculate the effective mass matrix
+		    float inverseMass = (1.0/mi*4.0) + (1.0/mj);
+
+		    float compliance = 0.00001; // Compliance of the constraints
+		    float complianceSc = compliance/(u_dt*u_dt);
+		    //float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
+		    float deltaLambda = -C / ( inverseMass + complianceSc); 
+
+		    // Calculate and apply the position corrections
+		    deltaPosition += gradC * deltaLambda * mi;
+		    n++;
+		    //particles[i].lambda += deltaLambda;
+        }
+
+
 		
 	OVERNNS_END
 

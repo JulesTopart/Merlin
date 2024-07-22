@@ -18,22 +18,25 @@ struct Constraint {
 
 struct Settings {
 	const float particleRadius = 0.4;
+	const float particleVolume = (4.0 / 3.0) * glm::pi<float>() * particleRadius * particleRadius * particleRadius;
 	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius;
+	const float volumeWidth = smoothingRadius* 0.5;
 
 	//Solver settings
-	int solver_substep = 3;
-	int solver_iteration = 3;
+	int solver_substep = 8;
+	int solver_iteration = 10;
 	float overRelaxation = 1.0;
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(100, 100, 80);
+	glm::vec3 bb = glm::vec3(100, 100, 70);
 
 	// Physics Parameters
-	float timestep									= 0.001;
+	float timestep									= 0.005;
 	Uniform<float> dt								= Uniform<float>("u_dt", timestep / solver_substep);
 	Uniform<float> restDensity						= Uniform<float>("u_rho0", 1.0);
-	Uniform<float> particleMass						= Uniform<float>("u_mass", (4.0/3.0)*glm::pi<float>() * particleRadius * particleRadius * particleRadius * 2);
+	//Uniform<float> particleMass						= Uniform<float>("u_mass", particleVolume * 8);
+	Uniform<float> particleMass						= Uniform<float>("u_mass", 1);
 
 	Uniform<float> viscosity						= Uniform<float>("u_viscosity", 0.5);
 	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 45 * 0.01);
@@ -64,6 +67,10 @@ struct Settings {
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
 	GLuint cThread = max_pThread * 32; //Max Number of constraint (thread) (32 * 1M)
+
+	glm::ivec3 iWkgSize = glm::ivec3(8); //Number of thread per workgroup
+	glm::ivec3 volume_size = glm::ivec3(int(bb.x / (volumeWidth)), int(bb.y / (volumeWidth)), int((bb.z) / (volumeWidth)));
+	glm::ivec3 iWkgCount = (volume_size + iWkgSize - glm::ivec3(1)) / iWkgSize; //Total number of workgroup needed
 
 
 

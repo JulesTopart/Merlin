@@ -17,7 +17,7 @@ void pbs_step(uint i, uint kernel) {
 	if(kernel == 0){
 		//b_last_xi = b_xi;
 		b_xi.xyz = b_pi.xyz;
-		vec3 a = vec3(0, 0, -u_g*0.01);
+		vec3 a = vec3(0, 0, -u_g);
 
 		//semi-implicit Euler integration (or Sympletic scheme)
 		b_vi.xyz += a * u_dt;
@@ -33,7 +33,7 @@ void pbs_step(uint i, uint kernel) {
 	}
 
 	if(kernel == 2){
-		//b_last_xi.xyz += computeForces(i) * 0.000001;
+		//b_last_xi.xyz += computeForces(i) * 0.0000001;
 		b_pi.xyz += computeForces(i) * 0.000001;
 		//b_pi.xyz += pbs_computePositionDelta(i); //apply floor induced deformation
 		b_pi.xyz += boundary_solveFloorCollision(i); //apply floor induced deformation
@@ -114,7 +114,7 @@ vec3 pbs_computePositionDelta(uint i) {
 		float dist = c_Dij;
 		if(dist > H || dist <= 1e-6) continue;
 		if(phase(j) == FLUID){
-			posDelta += (spikyGradient(c_Rij) * (b_lambda_i + b_lambda_i)) / rho0;
+			posDelta += 0.1*(spikyGradient(c_Rij) * (b_lambda_i + b_lambda_i)) / rho0;
 		}
 
 	OVERNNS_END

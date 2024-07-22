@@ -33,7 +33,7 @@ void spawnParticle(uint i){
 		b_xi.w = b_pi.w = 1;
 		b_xi.xyz = b_pi.xyz = (u_emitterTransform * vec4(ssbo_emitter_positions[emmiterID].xyz,1.0)).xyz;
 		b_rho_i = u_rho0;
-		b_vi = vec4(0, 0, -0.1, 0);
+		b_vi = vec4(0, 0, 0.0, 0);
 		b_Ti = 275.15 + 230;
 
 		ssbo_meta[i] = uvec4(FLUID, getBinIndex(b_xi.xyz), i, i); //phase, binindex, id , sortedID
@@ -124,7 +124,7 @@ void exec(uint index, uint kernel){
 
 			if(phase(index) == FLUID && ssbo_temperature[index] < 275+80){ 
 				phase(index) = SOLID;
-				ssbo_last_position[index] = ssbo_position[index]; // Fix rest position
+				ssbo_last_position[index] = ssbo_predicted_position[index]; // Fix rest position
 			}
 			else if(phase(index) == SOLID && ssbo_temperature[index] > 275+90) phase(index) = FLUID;
 

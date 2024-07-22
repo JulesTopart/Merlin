@@ -17,7 +17,7 @@ public:
     void update(float dt);
 
     glm::vec3 getNozzlePosition();
-    float getExtruderSpeed();
+    float getExtruderDistance();
 
 private:
     std::vector<Command> m_commands;
@@ -25,6 +25,6 @@ private:
     float m_current_speed = 0;
     glm::vec4 m_current_position;
     glm::vec4 m_current_target;
-    glm::vec3 m_origin_offset = glm::vec3(-50,-50,0);
+    glm::vec3 m_origin_offset = glm::vec3(-50,-50,0.2);
 };
 
