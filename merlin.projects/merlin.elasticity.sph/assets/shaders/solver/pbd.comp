@@ -1,0 +1,135 @@
+//?#version 430
+
+#pragma once
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/colors.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+//?#include "boundary.comp" 
+
+vec3 pbd_computePositionDelta(uint i);
+vec3 pbd_computeXPSH(uint i);
+
+void pbd_step(uint i, uint kernel) {
+	if(kernel == 0){
+		//b_last_xi = b_xi;
+		b_xi = b_pi;
+		vec3 a = vec3(0, 0, -u_g);
+
+		//semi-implicit Euler integration (or Sympletic scheme)
+		b_vi.xyz += a * u_dt;
+		b_pi.xyz += b_vi.xyz * u_dt;
+
+		return;
+	}
+	if(kernel == 1){//correct density error and update position
+		b_dpi.xyz = pbd_computePositionDelta(i);
+		b_dpi.xyz += boundary_solveFloorCollision(i);
+		//particles[i].pposition = clampToDomain(particles[i].pposition);
+		return;
+	}
+
+	if(kernel == 2){//apply XSPH velocity correction
+		vec3 corr = b_dpi.xyz;
+		if(isnan(corr.x) || isnan(corr.y) || isnan(corr.z)) corr = vec3(0);
+
+		b_pi.xyz += corr;
+	}
+	if(kernel == 3){//apply XSPH velocity correction
+		b_vi.xyz = (b_pi.xyz - b_xi.xyz)/u_dt; // First order velocity update
+		//b_vi.xyz = (1.0/u_dt) * (1.5*b_pi.xyz - 2.0* b_xi.xyz + 0.5*b_last_xi.xyz); // Second order velocity update
+		b_vi.xyz += pbd_computeXPSH(i);
+
+
+		//sigma_i = mat4(visco_computeViscoStress(i));
+		return;
+	}
+
+}
+
+vec3 pbd_computeXPSH(uint i){
+	vec3 xsphSum = vec3(0);
+	vec3 position = b_pi.xyz;
+
+	OVERNNS
+		if(j == i) continue;
+		float dist = c_Dij;
+		if(dist < 1e-6 || dist > 2*H) continue;
+		float Wij = poly6(dist);
+
+		if(phase(j) == SOLID) //friction with SOLID
+			xsphSum += c_Vji * Wij;
+		else if(phase(j) == FLUID) //friction with SOLID
+			xsphSum += 0.05*c_Vji * Wij;
+		else if(phase(j) == BOUNDARY) //friction with BOUNDARY
+			xsphSum += 3*c_Vji * Wij;
+
+	OVERNNS_END
+	return 0.5 * xsphSum; //damping
+}
+
+
+//Compute position deltas w neigbor
+vec3 pbd_computePositionDelta(uint i) {
+	int n = 0;
+	vec3 deltaPosition = vec3(0);
+
+	vec3 position = b_pi.xyz;
+	OVERNNS
+		if(phase(j) == SOLID){
+			float l0 = distance(b_last_xi, b_last_xj);
+			if(i == j) continue;
+			if(l0 >= 4*cst_particleRadius || c_Dij < 1e-6) continue; //Ignore particle that are too far
+
+			float l = c_Dij; // Calculate the current length
+		
+			float C = l - l0; // Calculate the constraint violation
+
+			//if(abs(C) < 1e-06) continue;
+			// Calculate the gradient of the constraint function
+			vec3 gradC = normalize(c_Rij);
+
+			// Calculate the effective mass matrix
+			float inverseMass = 0.22;
+
+			float compliance = 0.000000001; // Compliance of the constraints
+			float complianceSc = compliance/(u_dt*u_dt);
+			//float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
+			float deltaLambda = -C / ( inverseMass + complianceSc); 
+			// Calculate and apply the position corrections
+			deltaPosition += gradC * deltaLambda * mi;
+			n++;
+			//particles[i].lambda += deltaLambda;
+		}else if(phase(j) == FLUID){
+			float l0 = 2.0*cst_particleRadius;
+			if(i == j) continue;
+			if(l0 >= 2.1*cst_particleRadius || c_Dij < 1e-6) continue; //Ignore particle that are too far
+
+			float l = c_Dij; // Calculate the current length
+		
+			float C = l - l0; // Calculate the constraint violation
+			if( C >= 0) continue;
+			//if(abs(C) < 1e-06) continue;
+			// Calculate the gradient of the constraint function
+			vec3 gradC = normalize(c_Rij);
+
+			// Calculate the effective mass matrix
+			float inverseMass = (1.0/mi*4.0) + (1.0/mj);
+
+			float compliance = 0.1; // Compliance of the constraints
+			float complianceSc = compliance/(u_dt*u_dt);
+			//float deltaLambda = (-C - gamma )/ ((1+gamma) * inverseMass + complianceSc);
+			float deltaLambda = -C / ( inverseMass + complianceSc); 
+
+			// Calculate and apply the position corrections
+			deltaPosition += gradC * deltaLambda * mi;
+			n++;
+			//particles[i].lambda += deltaLambda;
+		}
+	OVERNNS_END
+
+	if(n > 1) return deltaPosition / float(n);
+	else return deltaPosition;
+}

@@ -133,9 +133,9 @@ void AppLayer::InitGraphics() {
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
 
-	floor = Primitives::createFloor(20, 10);
+	floor = Primitives::createFloor(50, 2);
 
-	static_emitter = Primitives::createCylinder(1.5, 2, 10);
+	static_emitter = Primitives::createSphere(1);
 	static_emitter->translate(glm::vec3(0, 0, 0));
 	//scene.add(static_emitter);
 
@@ -150,8 +150,16 @@ void AppLayer::InitGraphics() {
 	bunny->translate(glm::vec3(-15, 0, 0));
 	bunny->scale(4);
 
+	nozzle = ModelLoader::loadMesh("./assets/models/nozzle.stl");
+	nozzle->setMaterial("gold");
+	nozzle->smoothNormals();
+	nozzle->translate(glm::vec3(0, 0, 15));
+	nozzle->rotate(glm::vec3(180*DEG_TO_RAD, 0, 0));
+	nozzle->scale(0.4);
+	nozzle->applyMeshTransform();
+
 	scene.add(floor);
-	//scene.add(bunny);
+	scene.add(nozzle);
 	scene.add(TransformObject::create("origin"));
 }
 
@@ -267,6 +275,8 @@ void AppLayer::ResetSimulation() {
 	}/**/
 	
 	
+
+	/*
 	static_emitter->computeBoundingBox();
 	static_emitter->voxelize(spacing);
 	positions = Voxelizer::getVoxelposition(static_emitter->getVoxels(), static_emitter->getBoundingBox(), spacing);
@@ -278,10 +288,21 @@ void AppLayer::ResetSimulation() {
 		cpu_emitterPosition.push_back(glm::vec4(positions[i], 0.0));
 		settings.numEmitter()++;
 	}
+	/**/
 
 
+	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(0, 0.5 * spacing, 0), 1));
+	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(0.5 * spacing, -0.5 * spacing, 0), 1));
+	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(-0.5 * spacing, -0.5 * spacing, 0), 1));
+
+	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(0, -0.5 * spacing, spacing), 1));
+	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(0.5 * spacing, 0.5 * spacing, spacing), 1));
+	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(-0.5 * spacing, 0.5 * spacing, spacing), 1));
+	settings.numEmitter()+=6;
+
+	/**/
 	floor->computeBoundingBox();
-	floor->voxelizeSurface(spacing, 2);
+	floor->voxelizeSurface(spacing, 0.5);
 	positions = Voxelizer::getVoxelposition(floor->getVoxels(), floor->getBoundingBox(), spacing);
 
 	for (int i = 0; i < positions.size(); i++) {
@@ -289,7 +310,7 @@ void AppLayer::ResetSimulation() {
 		cpu_temp.push_back(275.15 + 20); //ambient
 		cpu_meta.push_back(glm::uvec4(BOUNDARY, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
-	}
+	}/**/
 
 	/*
 	bunny->computeBoundingBox();
@@ -393,18 +414,18 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 	settings.dt.sync(*solver);
 
-	//simulator.update(ts.getSeconds());
-	//simulator.update(ts.getSeconds());
-	float dx = cos(elapsedTime * 8.0) * 40.0, dy = sin(elapsedTime * 8.0) * 40.0;
-
-	if (dx > 38 && dy < 1 && dy > -1) nz += 0.3;
+	simulator.update(ts.getSeconds());
+	nozzle_position = simulator.getNozzlePosition();
+	nozzle->setPosition(nozzle_position);
 
 	settings.emitter_transform = glm::mat4(1);
-	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(dx, dy, nz));
+	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(nozzle_position));
 	settings.emitter_transform.sync(*solver);
 
-	if(use_emitter)
-	if (elapsedTime - lastSpawTime > (settings.emitterDelay/1000.0)) {
+	float emitterDelay = 1500.0 / simulator.getExtruderSpeed();
+
+	if(use_emitter && simulator.getExtruderSpeed() > 0.01)
+	if (elapsedTime - lastSpawTime > (emitterDelay/1000.0)) {
 		SpawnParticle();
 		lastSpawTime = elapsedTime;
 	}
@@ -541,7 +562,7 @@ void AppLayer::onImGuiRender() {
 		else prev_time = settings.timestep;
 	}
 	
-	ImGui::SliderFloat("Emitter delay (ms)", &settings.emitterDelay, 0.0, 10.0f);
+	ImGui::SliderFloat("Emitter delay (ms)", &settings.emitterDelay, 0.0, 100.0f);
 	ImGui::Checkbox("Use emitter", &use_emitter);
 
 

@@ -57,7 +57,9 @@ private:
 	Mesh_Ptr fluid;
 	Mesh_Ptr floor;
 	Mesh_Ptr static_emitter;
+	Mesh_Ptr nozzle;
 	
+	glm::vec3 nozzle_position = { 0.0f, 0.0f, 0.0f };
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 
 	double nns_time = 0;
