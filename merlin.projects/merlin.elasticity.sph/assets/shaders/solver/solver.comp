@@ -64,7 +64,12 @@ void exec(uint index, uint kernel){
 		sortBuffers(index);
 		break;
 	case 2:
-		pbs_step(index, 0);
+		if(phase(index) == SOLID)
+			pbs_step(index, 0);
+		else if(phase(index) == SOLIDA)
+			ssbo_predicted_position[index] = ssbo_position[index] = ssbo_last_position[index] - vec4(u_pullDistance, 0, 0, 0);
+		else if(phase(index) == SOLIDB)
+			ssbo_predicted_position[index] = ssbo_position[index] = ssbo_last_position[index] + vec4(u_pullDistance,0, 0, 0);
 		ssbo_density[index] = boundary_computePseudoMass(index);
 		break;
 	case 3: 

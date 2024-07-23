@@ -13,6 +13,7 @@ using namespace Merlin;
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
 struct CopyContent {
+	glm::vec4 lx;
 	glm::vec4 x;
 	glm::vec4 p;
 	glm::vec4 dp;
@@ -29,8 +30,8 @@ void AppLayer::onAttach() {
 	Layer3D::onAttach();
 	camera().setNearPlane(0.5);
 	camera().setFarPlane(2000.0);
-	camera().translate(glm::vec3(0, -300, 50));
-	camera().rotate(glm::vec3(20, 0, 90));
+	camera().translate(glm::vec3(0, -200, 50));
+	camera().rotate(glm::vec3(200, 0, 90));
 
 	glfwSwapInterval(0);
 
@@ -125,15 +126,20 @@ void AppLayer::InitGraphics() {
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
 
-	sample = Primitives::createCube(10,2, 80);
-	sample->enableWireFrameMode();
-	scene.add(sample);
+	//sample = Primitives::createCube(10,10, 80);
+	sample = ModelLoader::loadMesh("./assets/models/tensile.test.flat.stl");
+	//sample->enableWireFrameMode();
+	//sample->centerMeshOrigin();
+	//sample->rotate(glm::vec3(0,90*DEG_TO_RAD,0));
+	sample->applyMeshTransform();
+	sample->smoothNormals();
+	//scene.add(sample);
 
 
 	Mesh_Ptr bbox = Primitives::createCube(settings.bb.x, settings.bb.y, settings.bb.z);
 	bbox->enableWireFrameMode();
 	bbox->setMaterial("red plastic");
-	scene.add(bbox);
+	//scene.add(bbox);
 
 
 	scene.add(TransformObject::create("origin"));
@@ -194,6 +200,7 @@ void AppLayer::InitPhysics() {
 	ps->link(particleShader->name(), "position_buffer");
 	ps->link(particleShader->name(), "velocity_buffer");
 	ps->link(particleShader->name(), "density_buffer");
+	ps->link(particleShader->name(), "stress_buffer");
 	ps->link(particleShader->name(), "meta_buffer");
 	ps->solveLink(particleShader);
 	ps->detach(particleShader);//test binding points
@@ -209,8 +216,10 @@ void AppLayer::InitPhysics() {
 }
 
 
+float pullDistance = 0;
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
+	pullDistance = 0;
 	BindingPointManager::instance().resetBindings();
 
 	ps->detach(solver);
@@ -234,20 +243,32 @@ void AppLayer::ResetSimulation() {
 
 	for (int i = 0; i < positions.size(); i++) {
 		cpu_position.push_back(glm::vec4(positions[i],0));
-		cpu_meta.push_back(glm::uvec4(SOLID, settings.numParticles(), settings.numParticles(), 0.0));
+		if(positions[i].x < sample->getBoundingBox().min.x + 25) 
+			cpu_meta.push_back(glm::uvec4(SOLIDA, settings.numParticles(), settings.numParticles(), 0.0));
+
+		else if(positions[i].x > sample->getBoundingBox().max.x - 25) 
+			cpu_meta.push_back(glm::uvec4(SOLIDB, settings.numParticles(), settings.numParticles(), 0.0));
+
+		else 
+			cpu_meta.push_back(glm::uvec4(SOLID, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
 	}
 	
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 
+	settings.pThread = settings.numParticles();
+	settings.max_pThread = settings.numParticles();
+	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
+	settings.blockSize = std::floor(log2f(settings.bThread));
+	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
+	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
+
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
-	settings.pThread = settings.numParticles();
 	ps->setInstancesCount(settings.pThread);
 	ps->setActiveInstancesCount(settings.pThread);
 	bs->setInstancesCount(settings.bThread);
-
 
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
@@ -302,7 +323,6 @@ void AppLayer::NeigborSearch() {
 }
 
 
-float nz = 2;
 
 void AppLayer::Simulate(Merlin::Timestep ts) {
 	elapsedTime += ts.getSeconds();
@@ -312,7 +332,10 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	solver->use();
 	settings.dt.sync(*solver);
-
+	if (pullDistance < 20) {
+		pullDistance += 4 * ts.getSeconds();
+		solver->setFloat("u_pullDistance", pullDistance);
+	}
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
 			solver->execute(2);
@@ -450,7 +473,7 @@ void AppLayer::onImGuiRender() {
 	}
 
 	static int colorMode = 4;
-	static const char* options[] = { "Solid color", "Bin index", "Density", "Temperature", "Velocity", "Mass", "Neighbors" };
+	static const char* options[] = { "Solid color", "Bin index", "Density", "Stress", "Velocity", "Mass", "Neighbors" };
 	if (ImGui::ListBox("Colored field", &colorMode, options, 7)) {
 		particleShader->use();
 		particleShader->setInt("colorCycle", colorMode);

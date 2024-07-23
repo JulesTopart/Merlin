@@ -9,34 +9,28 @@ struct Bin {
 	GLuint index; //bin index
 };
 
-struct Constraint {
-	GLuint a[32];
-	GLuint b[32];
-	float restLength[32];
-	GLuint count;
-};
 
 struct Settings {
-	const float particleRadius = 0.4;
+	const float particleRadius = 0.3;
 	const float smoothingRadius = 4 * particleRadius;
-	const float bWidth = smoothingRadius;
+	const float bWidth = smoothingRadius*1.0;
 
 	//Solver settings
-	int solver_substep = 3;
-	int solver_iteration = 3;
+	int solver_substep = 1;
+	int solver_iteration = 1;
 	float overRelaxation = 1.0;
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(30, 10, 100);
+	glm::vec3 bb = glm::vec3(230, 30, 30);
 
 	// Physics Parameters
-	float timestep									= 0.001;
+	float timestep									= 0.0001;
 	Uniform<float> dt								= Uniform<float>("u_dt", timestep / solver_substep);
 	Uniform<float> restDensity						= Uniform<float>("u_rho0", 1.0);
-	Uniform<float> particleMass						= Uniform<float>("u_mass", (4.0/3.0)*glm::pi<float>() * particleRadius * particleRadius * particleRadius);
+	Uniform<float> particleMass						= Uniform<float>("u_mass", 1.0 * particleRadius * 2.0 * 0.1);
 
 	Uniform<float> viscosity						= Uniform<float>("u_viscosity", 0.5);
-	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 45 * 0.01);
+	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 160 * 0.01);
 	Uniform<float> artificialPressureMultiplier		= Uniform<float>("u_artificialPressureMultiplier",  4 * 0.001);
 
 	//calculated (don't change value here)
@@ -48,7 +42,7 @@ struct Settings {
 	//GPU Threading settings
 	GLuint max_pThread = 6600; //Max Number of particles (thread) (10 milion)
 	GLuint pThread = 1;
-	GLuint pWkgSize = 64; //Number of thread per workgroup
+	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
 	GLuint bWkgSize = 512; //Number of thread per workgroup
@@ -69,8 +63,8 @@ struct Settings {
 	inline void setConstants(ShaderBase& shader) {
 		shader.setConstVec3("cst_domain", bb);
 		shader.setConstVec3("cst_halfdomain", bb*glm::vec3(0.5));
-		shader.setConstVec3("cst_boundaryMin", bb*glm::vec3(-0.5, -0.5, 0));
-		shader.setConstVec3("cst_boundaryMax", bb*glm::vec3(0.5, 0.5, 1));
+		shader.setConstVec3("cst_boundaryMin", bb*glm::vec3(-0.5, -0.5, -0.5));
+		shader.setConstVec3("cst_boundaryMax", bb*glm::vec3(0.5, 0.5, 0.5));
 
 		shader.setConstFloat("cst_particleRadius", particleRadius);
 		shader.setConstFloat("cst_smoothingRadius", smoothingRadius);

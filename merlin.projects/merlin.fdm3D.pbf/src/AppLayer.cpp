@@ -13,6 +13,7 @@ using namespace Merlin;
 #define PROFILE_END(STARTVAR, VAR) VAR = (glfwGetTime() - STARTVAR)*1000.0
 
 struct CopyContent {
+	glm::vec4 lx;
 	glm::vec4 x;
 	glm::vec4 p;
 	glm::vec4 dp;

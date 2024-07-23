@@ -5,8 +5,8 @@ using namespace Merlin;
 
 #define UNUSED 0
 #define SOLID 1
-#define FLUID 2
-#define FLUID_EMITTER 3
+#define SOLIDA 2
+#define SOLIDB 3
 #define GRANULAR 4
 #define BOUNDARY 5
 
@@ -28,8 +28,6 @@ public:
 
 	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);
-
-	void SpawnParticle();
 
 private:
 
