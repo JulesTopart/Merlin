@@ -307,9 +307,9 @@ void AppLayer::InitPhysics() {
 
 	//--- Setup IsoSurface Generation ---
 
-	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 1, 32);
+	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 4, 16);
 
-	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 1, 32);
+	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 4, 16);
 	volume->setUnit(0);
 	isosurface = IsoSurface::create("isosurface", volume);
 

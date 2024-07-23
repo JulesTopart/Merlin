@@ -46,7 +46,7 @@ void main() {
 	}else if(colorCycle == 2){ 
 		color = colorMap(map(b_rho_i*1000, 1000 * u_rho0, 1050 * u_rho0), warmcool);
 	}else if(colorCycle == 3){ 
-		color = colorMap(map(b_Ti,275,275+300.0), inferno);
+		color = vec4(randomColor(binindex), 1);
 	}else if(colorCycle == 4){ 
 		color = colorMap(map(length(b_vi),0,1000.0), parula);
 	}else if(colorCycle == 5){ 

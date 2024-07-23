@@ -78,15 +78,17 @@ void AppLayer::onUpdate(Timestep ts) {
 		ps->detach(solver);
 		bs->detach(prefixSum);
 
-		ps->solveLink(isoGen);
-		volume->bindImage(0);
-		isoGen->use();
-		isoGen->dispatch();
-		isoGen->barrier(GL_ALL_BARRIER_BITS);
-		ps->detach(isoGen);
 
-		isosurface->setIsoLevel(0.1);
-		isosurface->compute();
+		if (use_isosurface) {
+			ps->solveLink(isoGen);
+			volume->bindImage(0);
+			isoGen->use();
+			isoGen->dispatch();
+			isoGen->barrier(GL_ALL_BARRIER_BITS);
+			ps->detach(isoGen);
+			isosurface->setIsoLevel(0.5);
+			isosurface->compute();
+		}
 
 	}
 }
@@ -195,7 +197,9 @@ void AppLayer::InitPhysics() {
 	prefixSum->compile();
 
 
-	isoGen = ComputeShader::create("isoGen", "assets/shaders/solver/isoGen.comp");
+	isoGen = ComputeShader::create("isoGen", "assets/shaders/solver/isoGen.comp", false);
+	settings.setConstants(*isoGen);
+	isoGen->compile();
 	isoGen->SetWorkgroupLayout(settings.iWkgCount);
 
 	//create particle system
@@ -241,6 +245,7 @@ void AppLayer::InitPhysics() {
 	bs->solveLink(prefixSum);
 	bs->detach(prefixSum);//test binding points
 
+	
 	ps->link(particleShader->name(), "position_buffer");
 	ps->link(particleShader->name(), "velocity_buffer");
 	ps->link(particleShader->name(), "density_buffer");
@@ -250,8 +255,11 @@ void AppLayer::InitPhysics() {
 	ps->solveLink(particleShader);
 	ps->detach(particleShader);//test binding points
 
+	//ps->addProgram(isoGen);
 	ps->link(isoGen->name(), "position_buffer");
+	ps->link(isoGen->name(), "predicted_position_buffer");
 	ps->link(isoGen->name(), "density_buffer");
+	ps->link(isoGen->name(), "temperature_buffer");
 	ps->link(isoGen->name(), "meta_buffer");
 	ps->link(isoGen->name(), binBuffer->name());
 
@@ -260,12 +268,23 @@ void AppLayer::InitPhysics() {
 	bs->detach(binShader);//test binding points
 
 
+	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 4, 16);
+
 	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 4, 16);
 	volume->setUnit(0);
 	isosurface = IsoSurface::create("isosurface", volume);
+	//isosurface->mesh()->setMaterial("red plastic");
+
+	PhongShader_Ptr plasticShader = PhongShader::create("plastic", "assets/shaders/plastic.vert", "assets/shaders/plastic.frag", "assets/shaders/plastic.geom");
+	plasticShader->supportShadows(false);
+	plasticShader->supportMaterial(false);
+	plasticShader->supportLights(false);
+	isosurface->mesh()->setShader(plasticShader);
+	isosurface->mesh()->useVertexColors(true);
+	//isosurface->mesh()->useFlatShading(true);
 
 	//isosurface->mesh()->translate(settings.bb * glm::vec3(0, 0, 0.5));
-	//isosurface->mesh()->scale(settings.bb * glm::vec3(1.0, 1.0, 0.5));
+	isosurface->mesh()->scale(settings.bb * glm::vec3(1.0, 1.0, 1.0));
 
 	scene.add(isosurface);
 
@@ -519,6 +538,9 @@ void AppLayer::SpawnParticle() {
 	particleShader->use();
 	settings.numParticles.sync(*particleShader);
 
+	isoGen->use();
+	settings.numParticles.sync(*isoGen);
+
 	solver->use();
 }
 
@@ -552,13 +574,9 @@ void AppLayer::onImGuiRender() {
 		else ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
 	}
 
-	static bool showbed = true;
-	if (ImGui::Checkbox("Show build plate", &showbed)) {
-		auto bedRef = scene.getChild("bed");
-		if (bedRef) {
-			if (showbed) scene.getChild("bed")->show();
-			else scene.getChild("bed")->hide();
-		}
+	if (ImGui::Checkbox("Show Isosurface", &use_isosurface)) {
+		if (use_isosurface) isosurface->show();
+		else isosurface->hide();
 	}
 
 	ImGui::Checkbox("Integrate", &integrate);
@@ -710,6 +728,22 @@ void AppLayer::onImGuiRender() {
 			Simulate(0.016);
 		)
 	}
+
+	static bool first_frame = true;
+	static int debug_layer = 0;
+
+	ImGui::Begin("Debug");
+	if (ImGui::SliderInt("Layer", (int*)&debug_layer, 0, settings.volume_size.z - 1) || first_frame)
+	{
+		// Copy one layer of the 3D volume texture into the "debug" 2D texture for display
+		glCopyImageSubData(volume->id(), GL_TEXTURE_3D, 0, 0, 0, debug_layer,
+			texture_debug->id(), GL_TEXTURE_2D, 0, 0, 0, 0,
+			settings.volume_size.x, settings.volume_size.y, 1);
+
+		first_frame = false;
+	}
+	ImGui::Image((void*)(intptr_t)texture_debug->id(), ImVec2(settings.volume_size.x, settings.volume_size.y), ImVec2(1, 1), ImVec2(0, 0));
+	ImGui::End();
 
 	if (ImGui::Button("Debug")) {
 		throw("DEBUG");

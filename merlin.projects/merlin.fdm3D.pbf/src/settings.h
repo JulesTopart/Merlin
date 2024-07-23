@@ -21,7 +21,7 @@ struct Settings {
 	const float particleVolume = (4.0 / 3.0) * glm::pi<float>() * particleRadius * particleRadius * particleRadius;
 	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius;
-	const float volumeWidth = smoothingRadius* 0.5;
+	const float volumeWidth = smoothingRadius * 0.3;
 
 	//Solver settings
 	int solver_substep = 8;

@@ -47,6 +47,7 @@ struct Vertex
 {
 	vec3 position;
 	vec3 normal;
+	float alpha;
 };
 
 Vertex find_vertex(float isolevel, in ivec2 edge, float value_1, float value_2)
@@ -59,19 +60,24 @@ Vertex find_vertex(float isolevel, in ivec2 edge, float value_1, float value_2)
 	vec3 n1 = imageLoad(u_volume, ivec3(p1)).gba;
 	vec3 n2 = imageLoad(u_volume, ivec3(p2)).gba;
 
+	float colorHeatMap = length(0.5*(n1+n2));
+
+	n1 = normalize(n1);
+	n2 = normalize(n2);
+
 	const float eps = 0.00001;
 
 	if (abs(isolevel - value_1) < eps) 
 	{
-		return Vertex(p1, n1);
+		return Vertex(p1, n1, colorHeatMap);
 	}
 	if (abs(isolevel - value_2) < eps) 
 	{
-		return Vertex(p2, n2);
+		return Vertex(p2, n2, colorHeatMap);
 	}
 	if (abs(value_1 - value_2) < eps) 
 	{
-		return Vertex(p1, n1);
+		return Vertex(p1, n1, colorHeatMap);
 	}
 
 	const float mu = (isolevel - value_1) / (value_2 - value_1);
@@ -79,7 +85,7 @@ Vertex find_vertex(float isolevel, in ivec2 edge, float value_1, float value_2)
 	vec3 p = p1 + mu * (p2 - p1);
 	vec3 n = n1 + mu * (n2 - n1);
 
-	return Vertex(p, normalize(n));
+	return Vertex(p, normalize(n), colorHeatMap);
 }
 
 const ivec2 edge_table[12] = 
@@ -176,24 +182,29 @@ void march(in ivec3 cell_index)
 			Vertex vertex;
 			vec3 position;
 			vec3 normal;
+			float alpha;
 
+			
 			vertex = vertex_list[triangle_table[triangle_start_memory + (3 * i + 0)]];
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
+			alpha = vertex.alpha > 1.0 ? vertex.alpha : 1.0;
 			output_vertices[cell_start_memory +  3 * i + 0] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 0] = vec4(vertex.normal, 1.0);
+			output_normals[cell_start_memory +  3 * i + 0] = vec4(vertex.normal * alpha, 1.0);
 
 			vertex = vertex_list[triangle_table[triangle_start_memory + (3 * i + 1)]];
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
+			alpha = vertex.alpha > 1.0 ? vertex.alpha : 1.0;
 			output_vertices[cell_start_memory +  3 * i + 1] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 1] = vec4(vertex.normal, 1.0);
+			output_normals[cell_start_memory +  3 * i + 1] = vec4(vertex.normal * alpha, 1.0);
 
 			vertex = vertex_list[triangle_table[triangle_start_memory + (3 * i + 2)]];
 			position = vertex.position * inv_volume_size;
 			position = position * 2.0 - 1.0;
+			alpha = vertex.alpha > 1.0 ? vertex.alpha : 1.0;
 			output_vertices[cell_start_memory +  3 * i + 2] = vec4(position, 1.0);
-			output_normals[cell_start_memory +  3 * i + 2] = vec4(vertex.normal, 1.0);
+			output_normals[cell_start_memory +  3 * i + 2] = vec4(vertex.normal * alpha, 1.0);
 		}
 		else
 		{

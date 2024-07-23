@@ -20,5 +20,7 @@ namespace Merlin {
 
 
 	};
+
+	typedef Shared<PhongShader> PhongShader_Ptr;
 }
 

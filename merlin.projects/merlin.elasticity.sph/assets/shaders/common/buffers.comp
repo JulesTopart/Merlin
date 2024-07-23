@@ -34,9 +34,6 @@
 #define b_sigma_i ssbo_sigma[i] //Stress
 #define b_sigma_j ssbo_sigma[j]
 
-#define b_Ti ssbo_temperature[i]
-#define b_Tj ssbo_temperature[j]
-
 #define b_rho_i ssbo_density[i]
 #define b_rho_j ssbo_density[j]
 
@@ -80,11 +77,6 @@ layout(std430) buffer lambda_buffer {
 	float ssbo_lambda[];
 };
 
-layout(std430) buffer temperature_buffer {
-	float ssbo_temperature[];
-};
-
-
 
 layout(std430) buffer meta_buffer {
 	uvec4 ssbo_meta[]; //phase, binindex, id , sortedID
@@ -119,18 +111,14 @@ struct CopyContent{
 	vec4 velocity;
 	float density;
 	float lambda;
-	float temperature;
 	float _padding;
+	float _paddingB;
 	vec6  sigma;
 	uvec4 meta;
 };
 
 layout(std430) buffer copy_buffer {
 	CopyContent ssbo_copy[]; //phase, binindex, id , sortedID
-};
-
-layout(std430) buffer emitter_position_buffer {
-	vec4 ssbo_emitter_positions[];
 };
 
 

@@ -17,7 +17,7 @@ struct Constraint {
 };
 
 struct Settings {
-	const float particleRadius = 0.5;
+	const float particleRadius = 0.4;
 	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius;
 
@@ -27,7 +27,7 @@ struct Settings {
 	float overRelaxation = 1.0;
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(200, 200, 100);
+	glm::vec3 bb = glm::vec3(30, 10, 100);
 
 	// Physics Parameters
 	float timestep									= 0.001;
@@ -39,23 +39,16 @@ struct Settings {
 	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 45 * 0.01);
 	Uniform<float> artificialPressureMultiplier		= Uniform<float>("u_artificialPressureMultiplier",  4 * 0.001);
 
-	float emitterDelay = 0.120;//ms
-
-
 	//calculated (don't change value here)
 	Uniform<GLuint> numParticles					= Uniform<GLuint>("u_numParticles", 0);
-	Uniform<GLuint> numEmitter						= Uniform<GLuint>("u_numEmitter", 0);
-
-	Uniform<glm::mat4> emitter_transform			= Uniform<glm::mat4>("u_emitterTransform", glm::mat4(1));
-
 
 	//Elastic solids
 	float stiffness = 0.0;
 
 	//GPU Threading settings
-	GLuint max_pThread = 1000000; //Max Number of particles (thread) (10 milion)
+	GLuint max_pThread = 6600; //Max Number of particles (thread) (10 milion)
 	GLuint pThread = 1;
-	GLuint pWkgSize = 1024; //Number of thread per workgroup
+	GLuint pWkgSize = 64; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
 	GLuint bWkgSize = 512; //Number of thread per workgroup
@@ -65,7 +58,6 @@ struct Settings {
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
 	GLuint cThread = max_pThread * 32; //Max Number of constraint (thread) (32 * 1M)
-
 
 
 	inline void setTimestep(float t) {

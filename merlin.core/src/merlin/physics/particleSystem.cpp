@@ -45,7 +45,7 @@ namespace Merlin{
 	}
 
 	void ParticleSystem::setActiveInstancesCount(size_t count){
-		if (count < m_instancesCount)
+		if (count <= m_instancesCount)
 			m_active_instancesCount = count;
 		else {
 			Console::error() << "Active instance count is greater than the total instance count" << Console::endl;

@@ -65,6 +65,7 @@ private:
 
 	IsoSurface_Ptr isosurface;
 	Texture3D_Ptr volume;
+	Texture2D_Ptr texture_debug;
 
 	double nns_time = 0;
 	double jacobi_time = 0;
@@ -84,5 +85,6 @@ private:
 
 	bool use_real_time = false;
 	bool use_emitter = true;
+	bool use_isosurface = true;
 
 };

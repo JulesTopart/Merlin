@@ -1,6 +1,5 @@
 #pragma once
 #include "settings.h"
-#include "GcodeReader.h"
 
 using namespace Merlin;
 
@@ -36,8 +35,6 @@ private:
 
 	// --- Graphics ---
 
-	GcodeSimulator simulator;
-
 	Scene scene;
 	Renderer renderer;
 	
@@ -53,11 +50,7 @@ private:
 	// --- Simulation--- 
 	Settings settings;
 
-	Mesh_Ptr bunny;
-	Mesh_Ptr fluid;
-	Mesh_Ptr floor;
-	Mesh_Ptr static_emitter;
-	Mesh_Ptr nozzle;
+	Mesh_Ptr sample;
 	
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 
@@ -67,8 +60,6 @@ private:
 	double solver_total_time = 0;
 	double render_time = 0; double render_start_time = 0;
 	double total_time = 0; double total_start_time = 0;
-
-	float lastSpawTime = 0;
 	
 	float elapsedTime = 0;
 	bool paused = true;
@@ -78,6 +69,5 @@ private:
 	bool mousePressed = false;
 
 	bool use_real_time = false;
-	bool use_emitter = false;
 
 };

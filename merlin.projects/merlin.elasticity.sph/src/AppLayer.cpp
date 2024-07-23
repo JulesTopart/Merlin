@@ -19,8 +19,8 @@ struct CopyContent {
 	glm::vec4 v;
 	float density;
 	float lambda;
-	float temperature;
-	float _padding;
+	float _paddingA;
+	float _paddingB;
 	float sigma[8];
 	glm::uvec4 meta;
 };
@@ -87,15 +87,7 @@ void AppLayer::SyncUniforms() {
 	settings.particleMass.sync(*solver);
 	settings.restDensity.sync(*solver);
 	settings.numParticles.sync(*solver);
-	settings.numEmitter.sync(*solver);
 	settings.dt.sync(*solver);
-	settings.viscosity.sync(*solver);
-	settings.artificialViscosityMultiplier.sync(*solver);
-	settings.artificialPressureMultiplier.sync(*solver);
-
-	settings.emitter_transform = glm::mat4(1);
-	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(-20, 0, 50));
-	settings.emitter_transform.sync(*solver);
 
 	particleShader->use();
 	settings.numParticles.sync(*particleShader);
@@ -133,41 +125,24 @@ void AppLayer::InitGraphics() {
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
 
-	floor = Primitives::createFloor(20, 10);
-
-	static_emitter = Primitives::createCylinder(1.5, 2, 10);
-	static_emitter->translate(glm::vec3(0, 0, 0));
-	//scene.add(static_emitter);
-
-	//fluid = Primitives::createSphere(10, 20);
-	fluid = Primitives::createSphere(20, 20, 20);
-	fluid->translate(glm::vec3(0, 0, 70));
+	sample = Primitives::createCube(10,2, 80);
+	sample->enableWireFrameMode();
+	scene.add(sample);
 
 
-	bunny = ModelLoader::loadMesh("./assets/common/models/bunny.stl");
-	bunny->setMaterial("pearl");
-	bunny->smoothNormals();
-	bunny->translate(glm::vec3(-15, 0, 0));
-	bunny->scale(4);
+	Mesh_Ptr bbox = Primitives::createCube(settings.bb.x, settings.bb.y, settings.bb.z);
+	bbox->enableWireFrameMode();
+	bbox->setMaterial("red plastic");
+	scene.add(bbox);
 
-	nozzle = ModelLoader::loadMesh("./assets/common/models/bunny.stl");
-	nozzle->setMaterial("gold");
-	nozzle->smoothNormals();
-	nozzle->translate(glm::vec3(0, 0, 8));
-	nozzle->scale(0.5);
-	nozzle->applyMeshTransform();
 
-	scene.add(floor);
-	scene.add(nozzle);
 	scene.add(TransformObject::create("origin"));
 }
 
 void AppLayer::InitPhysics() {
 
-	simulator.readFile("assets/cube.gcode");
-
 	//Compute Shaders
-	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 9, false);
+	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6, false);
 	settings.setConstants(*solver);
 	solver->compile();
 	
@@ -203,11 +178,9 @@ void AppLayer::InitPhysics() {
 	ps->addField<glm::vec4>("velocity_buffer");
 	ps->addField<float>("density_buffer");
 	ps->addField<float>("lambda_buffer");
-	ps->addField<float>("temperature_buffer");
 	ps->addField<float[8]>("stress_buffer");
 	ps->addField<glm::uvec4>("meta_buffer");
 	ps->addField<CopyContent>("copy_buffer");
-	ps->addBuffer<glm::vec4>("emitter_position_buffer");
 	ps->addBuffer(binBuffer);
 	ps->solveLink(solver);
 	ps->detach(solver);//test binding points
@@ -221,8 +194,6 @@ void AppLayer::InitPhysics() {
 	ps->link(particleShader->name(), "position_buffer");
 	ps->link(particleShader->name(), "velocity_buffer");
 	ps->link(particleShader->name(), "density_buffer");
-	ps->link(particleShader->name(), "lambda_buffer");
-	ps->link(particleShader->name(), "temperature_buffer");
 	ps->link(particleShader->name(), "meta_buffer");
 	ps->solveLink(particleShader);
 	ps->detach(particleShader);//test binding points
@@ -240,8 +211,6 @@ void AppLayer::InitPhysics() {
 
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
-	lastSpawTime = 0;
-	simulator.reset();
 	BindingPointManager::instance().resetBindings();
 
 	ps->detach(solver);
@@ -253,83 +222,29 @@ void AppLayer::ResetSimulation() {
 
 	float spacing = settings.particleRadius * 2.0;
 	auto cpu_position = std::vector<glm::vec4>();
-	auto cpu_temp = std::vector<float>();
 	auto cpu_meta = std::vector<glm::uvec4>();
-	auto cpu_emitterPosition = std::vector<glm::vec4>();
 
-	settings.numEmitter = 0;
 	settings.numParticles = 0;
 	std::vector<glm::vec3> positions;
 
-	/*
-	fluid->computeBoundingBox();
-	fluid->voxelize(spacing);
-	positions = Voxelizer::getVoxelposition(fluid->getVoxels(), fluid->getBoundingBox(), spacing);
+	
+	sample->computeBoundingBox();
+	sample->voxelize(spacing);
+	positions = Voxelizer::getVoxelposition(sample->getVoxels(), sample->getBoundingBox(), spacing);
 
 	for (int i = 0; i < positions.size(); i++) {
 		cpu_position.push_back(glm::vec4(positions[i],0));
-		cpu_temp.push_back(275.15 + 200); //ambient
-		cpu_meta.push_back(glm::uvec4(FLUID, settings.numParticles(), settings.numParticles(), 0.0));
-		settings.numParticles()++;
-	}/**/
-	
-	
-	static_emitter->computeBoundingBox();
-	static_emitter->voxelize(spacing);
-	positions = Voxelizer::getVoxelposition(static_emitter->getVoxels(), static_emitter->getBoundingBox(), spacing);
-
-	for (int i = 0; i < positions.size(); i++) {
-		//cpu_position.push_back(glm::vec4(positions[i], 0));
-		//cpu_temp.push_back(298.15); //ambient
-		//cpu_meta.push_back(glm::uvec4(FLUID_EMITTER, numParticles, numParticles, 0.0));
-		cpu_emitterPosition.push_back(glm::vec4(positions[i], 0.0));
-		settings.numEmitter()++;
-	}
-
-
-	floor->computeBoundingBox();
-	floor->voxelizeSurface(spacing, 2);
-	positions = Voxelizer::getVoxelposition(floor->getVoxels(), floor->getBoundingBox(), spacing);
-
-	for (int i = 0; i < positions.size(); i++) {
-		cpu_position.push_back(glm::vec4(positions[i], 0));
-		cpu_temp.push_back(275.15 + 20); //ambient
-		cpu_meta.push_back(glm::uvec4(BOUNDARY, settings.numParticles(), settings.numParticles(), 0.0));
-		settings.numParticles()++;
-	}
-
-	/**/
-	bunny->computeBoundingBox();
-	bunny->voxelize(spacing);
-	positions = Voxelizer::getVoxelposition(bunny->getVoxels(), bunny->getBoundingBox(), spacing);
-
-	for (int i = 0; i < positions.size(); i++) {
-		cpu_position.push_back(glm::vec4(positions[i], 0));
-		cpu_temp.push_back(275.15); //ambient
 		cpu_meta.push_back(glm::uvec4(SOLID, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
-	}/**/
-
-
-	while (cpu_position.size() < settings.max_pThread) {
-		cpu_position.push_back(glm::vec4(0, 0, 0, 0.0));
-		cpu_temp.push_back(298.15);
-		cpu_meta.push_back(glm::uvec4(FLUID_EMITTER, settings.numParticles(), settings.numParticles(), 0.0));
 	}
-
-
+	
 	Console::info() << "Uploading buffer on device..." << Console::endl;
-
-	settings.pThread = settings.numParticles()++;;
-	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	settings.blockSize = std::floor(log2f(settings.bThread));
-	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
-	settings.bWkgCount = (settings.blocks + settings.bWkgSize - 1) / settings.bWkgSize; //Total number of workgroup needed
 
 	solver->SetWorkgroupLayout(settings.pWkgCount);
 	prefixSum->SetWorkgroupLayout(settings.bWkgCount);
 
-	ps->setInstancesCount(settings.max_pThread);
+	settings.pThread = settings.numParticles();
+	ps->setInstancesCount(settings.pThread);
 	ps->setActiveInstancesCount(settings.pThread);
 	bs->setInstancesCount(settings.bThread);
 
@@ -339,9 +254,7 @@ void AppLayer::ResetSimulation() {
 	ps->writeField("position_buffer", cpu_position);
 	ps->writeField("predicted_position_buffer", cpu_position);
 	ps->writeField("last_position_buffer", cpu_position);
-	ps->writeField("temperature_buffer", cpu_temp);
 	ps->writeField("meta_buffer", cpu_meta);
-	ps->writeBuffer("emitter_position_buffer", cpu_emitterPosition);
 
 	ps->clearField("velocity_buffer");
 	ps->clearField("density_buffer");
@@ -400,24 +313,6 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 	settings.dt.sync(*solver);
 
-	//simulator.update(ts.getSeconds());
-	//simulator.update(ts.getSeconds());
-	float dx = cos(elapsedTime * 8.0) * 40.0, dy = sin(elapsedTime * 8.0) * 40.0;
-
-	if (dx > 38 && dy < 1 && dy > -1) nz += 0.3;
-
-	settings.emitter_transform = glm::mat4(1);
-	settings.emitter_transform = glm::translate(settings.emitter_transform(), glm::vec3(dx, dy, nz));
-	settings.emitter_transform.sync(*solver);
-
-	if(use_emitter)
-	if (elapsedTime - lastSpawTime > (settings.emitterDelay/1000.0)) {
-		SpawnParticle();
-		lastSpawTime = elapsedTime;
-	}
-
-
-
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
 			solver->execute(2);
@@ -435,36 +330,12 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 				}
 				)
 				solver->execute(5);
-				solver->execute(6);
-				solver->execute(7);
-				//solver->execute(7);
 			}
 		}
 	)
 
 }
 
-void AppLayer::SpawnParticle() {
-	settings.pThread = settings.numParticles() + settings.numEmitter();
-	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
-	solver->SetWorkgroupLayout(settings.pWkgCount);
-	ps->setActiveInstancesCount(settings.pThread);
-
-	solver->use();
-	settings.numEmitter.sync(*solver);
-	settings.numParticles.sync(*solver);
-
-	solver->execute(8);
-
-	settings.numParticles() += settings.numEmitter();
-	settings.numEmitter.sync(*solver);
-	settings.numParticles.sync(*solver);
-
-	particleShader->use();
-	settings.numParticles.sync(*particleShader);
-
-	solver->use();
-}
 
 void AppLayer::onImGuiRender() {
 	//ImGui::ShowDemoWindow();
@@ -548,10 +419,6 @@ void AppLayer::onImGuiRender() {
 		else prev_time = settings.timestep;
 	}
 	
-	ImGui::SliderFloat("Emitter delay (ms)", &settings.emitterDelay, 0.0, 10.0f);
-	ImGui::Checkbox("Use emitter", &use_emitter);
-
-
 	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.1, 2.0)) {
 		solver->use();
 		settings.particleMass.sync(*solver);
