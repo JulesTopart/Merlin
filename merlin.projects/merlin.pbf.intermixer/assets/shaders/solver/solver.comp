@@ -35,7 +35,7 @@ void spawnParticle(uint i){
 		b_vi = vec4(0);
 		b_Ti = 275.15 + 230;
 
-		ssbo_meta[i] = uvec4((emmiterID > 58) ? FLUIDB : FLUIDA, getBinIndex(b_xi.xyz), i, i); //phase, binindex, id , sortedID
+		ssbo_meta[i] = uvec4((emmiterID > 74) ? FLUIDB : FLUIDA, getBinIndex(b_xi.xyz), i, i); //phase, binindex, id , sortedID
 	}
 }
 

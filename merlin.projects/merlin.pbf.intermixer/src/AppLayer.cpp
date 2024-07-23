@@ -138,24 +138,24 @@ void AppLayer::InitGraphics() {
 	scene.add(bbox);
 
 	static_emitterA = Primitives::createCylinder(5, 1.2, 10);
-	static_emitterA->translate(glm::vec3(3.5*10, 0, 9*10));
+	static_emitterA->translate(glm::vec3(3.5*10, 0, 9.4*10));
 	static_emitterA->rotate(glm::vec3(0, 45 * DEG_TO_RAD, 0));
 
 	static_emitterB = Primitives::createCylinder(5, 1.28, 10);
-	static_emitterB->translate(glm::vec3(-3.5*10, 0, 9*10));
+	static_emitterB->translate(glm::vec3(-3.5*10, 0, 9.4*10));
 	static_emitterB->rotate(glm::vec3(0, -45 * DEG_TO_RAD, 0));
 
 	capA = Primitives::createCylinder(10, 4, 10);
-	capA->translate(glm::vec3(3.5 * 10, 0, 9 * 10));
+	capA->translate(glm::vec3(3.5 * 10, 0, 9.4 * 10));
 	capA->rotate(glm::vec3(0, 45 * DEG_TO_RAD, 0));
 	capA->translate(glm::vec3(0, 0, 3.8 * 10));
 
 	capB = Primitives::createCylinder(10, 4, 10);
-	capB->translate(glm::vec3(-3.5 * 10, 0, 9 * 10));
+	capB->translate(glm::vec3(-3.5 * 10, 0, 9.4 * 10));
 	capB->rotate(glm::vec3(0, -45 * DEG_TO_RAD, 0));
 	capB->translate(glm::vec3(0, 0, 3.8 * 10));
 
-	nozzle = ModelLoader::loadMesh("./assets/models/binozzle.stl");
+	nozzle = ModelLoader::loadMesh("./assets/models/binozzle_half.stl");
 	nozzle->setMaterial("gold");
 	nozzle->smoothNormals();
 	nozzle->translate(glm::vec3(0, 0, 30));
@@ -302,10 +302,12 @@ void AppLayer::ResetSimulation() {
 	for (int i = 0; i < positions.size(); i++) {
 		//cpu_position.push_back(glm::vec4(positions[i], 0));
 		//cpu_temp.push_back(298.15); //ambient
-		//cpu_meta.push_back(glm::uvec4(FLUID_EMITTER, numParticles, numParticles, 0.0));
+		//cpu_meta.push_back(glm::uvec4(FLUID_EMITTER, settings.numParticles(), settings.numParticles(), 0.0));
 		cpu_emitterPosition.push_back(glm::vec4(positions[i], 0.0));
+		//settings.numParticles()++;
 		settings.numEmitter()++;
 	}
+	Console::info() << positions.size() << " particles in emmiter A" << Console::endl;
 
 	static_emitterB->computeBoundingBox();
 	static_emitterB->voxelize(spacing);
@@ -314,10 +316,12 @@ void AppLayer::ResetSimulation() {
 	for (int i = 0; i < positions.size(); i++) {
 		//cpu_position.push_back(glm::vec4(positions[i], 0));
 		//cpu_temp.push_back(298.15); //ambient
-		//cpu_meta.push_back(glm::uvec4(FLUID_EMITTER, numParticles, numParticles, 0.0));
+		//cpu_meta.push_back(glm::uvec4(FLUID_EMITTER, settings.numParticles(), settings.numParticles(), 0.0));
 		cpu_emitterPosition.push_back(glm::vec4(positions[i], 0.0));
+		//settings.numParticles()++;
 		settings.numEmitter()++;
 	}
+	Console::info() << positions.size() << " particles in emmiter B" << Console::endl;
 
 	floor->computeBoundingBox();
 	floor->voxelize(spacing);
