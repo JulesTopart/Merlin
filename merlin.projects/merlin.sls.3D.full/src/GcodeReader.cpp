@@ -33,7 +33,7 @@ void GcodeSimulator::readFile(const std::string& filepath) {
                     case 'Y': command.position.y = value; break;
                     case 'Z': command.position.z = value; break;
                     case 'E': command.position.w = value; break;
-                    case 'F': command.speed = value/20.0; break;
+                    case 'F': command.speed = value/10.0; break;
                     }
                 }
                 m_commands.push_back(command);
@@ -59,6 +59,7 @@ void GcodeSimulator::readFile(const std::string& filepath) {
 
 void GcodeSimulator::reset() {
     m_current_position = glm::vec4(0.0f);
+    currentIndex = 0;
     if (!m_commands.empty()) {
         m_current_target = m_commands[0].position; // Set the first target
         m_current_speed = m_commands[0].speed; // Set the first target
@@ -73,7 +74,7 @@ void GcodeSimulator::update(float dt) {
     if (glm::length(glm::vec3(delta)) < 0.1) {
         m_current_position = m_current_target;
         // Move to the next target if available
-        static size_t currentIndex = 0;
+        
         if (++currentIndex < m_commands.size()) {
             m_current_target = m_commands[currentIndex].position;
             m_current_speed = m_commands[currentIndex].speed; // Set the first target

@@ -46,7 +46,7 @@ void main() {
 	}else if(colorCycle == 2){ 
 		color = colorMap(map(b_rho_i*1000, 1000 * u_rho0, 1050 * u_rho0), warmcool);
 	}else if(colorCycle == 3){ 
-		color = colorMap(map(b_Ti,275,275+850.0), inferno);
+		color = colorMap(map(b_Ti,200,275+750.0), inferno);
 	}else if(colorCycle == 4){ 
 		color = colorMap(map(length(b_vi),0,1000.0), parula);
 	}else if(colorCycle == 5){ 
@@ -93,7 +93,8 @@ void main() {
 		mv = projection * view;
 		
 		gl_Position = screen_position;
-		gl_PointSize = 5.0*cst_particleRadius*400.0/(gl_Position.w);
+		if(phase(i) == GRANULAR) gl_PointSize = 1.5*5.0*cst_particleRadius*400.0/(gl_Position.w);
+		else gl_PointSize = 5.0*cst_particleRadius*400.0/(gl_Position.w);
 		if(colorCycle == 5 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = 400.0/(gl_Position.w);
 		
 	}

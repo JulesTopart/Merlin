@@ -23,7 +23,7 @@ void solveParticleCollision(uint i){
 		vec3 xj = b_pj.xyz;
 
 		float ri, rj;
-		ri = rj = cst_particleRadius;
+		ri = rj = cst_particleRadius *1.5;
 
 		// Compute the constraint C
 		vec3 xij = xi - xj;
@@ -54,7 +54,7 @@ void solveParticleCollision(uint i){
 			vec3 delta_x_perp = (
 			b_pi.xyz - b_xi.xyz) - (b_pj.xyz - b_xj.xyz);
 
-			float static_friction = 0.6;
+			float static_friction = 0.8;
 			float dynamic_friction = 0.9;
 
 			vec3 friction_delta_x = delta_x_perp;

@@ -156,9 +156,9 @@ void AppLayer::InitGraphics() {
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
 
-	powder = Primitives::createCube(75, 75, 2);
+	powder = Primitives::createCube(75, 75, 4);
 	//powder = Primitives::createCube(10, 10, 10);
-	powder->translate(glm::vec3(0,0,1));
+	powder->translate(glm::vec3(0,0,2));
 
 	scene.add(TransformObject::create("origin"));
 }
@@ -270,7 +270,7 @@ void AppLayer::InitPhysics() {
 
 	scene.add(ps);
 	scene.add(bs);
-	scene.add(TransformObject::create("origin", 10));
+	//scene.add(TransformObject::create("origin", 10));
 	bs->hide();
 	
 
@@ -314,13 +314,14 @@ void AppLayer::ResetSimulation() {
 	std::vector<glm::vec3> positions;
 
 	powder->computeBoundingBox();
-	powder->voxelize(spacing);
-	positions = Voxelizer::getVoxelposition(powder->getVoxels(), powder->getBoundingBox(), spacing);
+	powder->voxelize(spacing*1.51);
+	positions = Voxelizer::getVoxelposition(powder->getVoxels(), powder->getBoundingBox(), spacing*1.51);
 
 	for (int i = 0; i < positions.size(); i++) {
 		cpu_position.push_back(glm::vec4(positions[i],0));
 		cpu_temp.push_back(275.15 + 25); //ambient
-		cpu_meta.push_back(glm::uvec4(GRANULAR, settings.numParticles(), settings.numParticles(), 0.0));
+		if(positions[i].z <= 1)cpu_meta.push_back(glm::uvec4(SOLID, settings.numParticles(), settings.numParticles(), 0.0));
+		else cpu_meta.push_back(glm::uvec4(GRANULAR, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
 	}
 
@@ -446,7 +447,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 			settings.laser_transform.sync(*solver);
 
 			if (simulator.getExtruderDistance() > 0.01)
-				solver->setFloat("u_laser_power", 80);
+				solver->setFloat("u_laser_power", 21000);
 
 			solver->execute(2);
 

@@ -84,7 +84,7 @@ void exec(uint index, uint kernel){
 				ssbo_lambda[index] = 0;
 			}
 
-			if(phase(index) < BOUNDARY) ssbo_temperature[index] += computeTemperatureDelta(index);
+			if(phase(index) < BOUNDARY) ssbo_temperature[index] += computeTemperatureDelta(index) *u_dt;
 
 			break;
 		case 3: 

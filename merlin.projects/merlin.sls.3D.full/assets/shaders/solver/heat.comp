@@ -12,7 +12,7 @@ const float KERNEL_Heat = (40.0 / (7.0 * (M_PI*H*H)));
 
 float cubicKernelHeat2D(float r) {
   float result = 0;
-  float q = r / 5;
+  float q = r / 10;
   if (q <= 1.0){
     float q2 = q*q;
     float q3 = q2*q;
@@ -41,9 +41,10 @@ float computeTemperatureDelta(uint i) {
 	OVERNNS
 		if(j == i || c_Dij < 1e-6 ) continue;
 		float rhoj = mj / (3.1415926*(4/3)*pow(cst_particleRadius,3));
-		float lambda = 0.000001;//( 0.13 / (1590  * rhoj));
+		float lambda = 0.00001;//( 0.13 / (1590  * rhoj));
 
-		if(phase(i) == phase(j) && (phase(i) == SOLID || phase(i) == FLUID )) lambda *= 10.0;
+		if(phase(i) == phase(j) && (phase(i) == SOLID || phase(i) == FLUID )) lambda *= 200.0;
+		if(phase(i) != phase(j) && phase(j) == FLUID ) lambda *= 100.0;
 
 
 		temperatureDelta += lambda*(b_Tj-b_Ti)/(c_Dij*1e-3);
@@ -53,7 +54,8 @@ float computeTemperatureDelta(uint i) {
 	if(particles[i].position.z < H/2.0){
 		temperatureDelta += kPlateau * (floorTemperature - Ti);
 	}*/
-	temperatureDelta += 0.0001 * (298.15 - b_Ti);
+
+	temperatureDelta += 3.0 * (298.15 - b_Ti);
 	return temperatureDelta + computeLaserDelta(i);
 }
 
