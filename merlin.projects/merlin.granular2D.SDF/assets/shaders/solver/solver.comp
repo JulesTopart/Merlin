@@ -79,7 +79,7 @@ void SolveDEM(uint i, uint simStep) {
 			Xi -= normal * min(((dist-particleRadius)), 0.0)/50;
 			Ti += 0.04*(500 - Ti)*dt;
 		}
-
+		/*
 		vec2 position = Xi;
 		vec2 xT = vec2(0);
 		OVERNNS
@@ -92,7 +92,7 @@ void SolveDEM(uint i, uint simStep) {
 		
 		if(Xi.y < boundaryMin.y + particleRadius*1.2){
 			Xi.x -= (Xi.x - xi.x)*0.8;
-		}
+		}*/
 
 
 		return;

@@ -48,8 +48,8 @@ void pbf_step(uint i, uint kernel) {
 
 		b_pi.xyz += corr;
 
-		//b_vi.xyz = (b_pi.xyz - b_xi.xyz)/u_dt; // First order velocity update
-		b_vi.xyz = (1.0/u_dt) * (1.5*b_pi.xyz - 2.0* b_xi.xyz + 0.5*b_last_xi.xyz); // Second order velocity update
+		b_vi.xyz = (b_pi.xyz - b_xi.xyz)/u_dt; // First order velocity update
+		//b_vi.xyz = (1.0/u_dt) * (1.5*b_pi.xyz - 2.0* b_xi.xyz + 0.5*b_last_xi.xyz); // Second order velocity update
 
 		
 		//sigma_i = mat4(visco_computeViscoStress(i));

@@ -14,15 +14,15 @@ vec3 boundary_solveFloorCollision(uint i){
 	vec3 correctedPosition = b_pi.xyz;
 	for (int i = 0; i < 3; i++){
 		if (correctedPosition[i] - cst_particleRadius <= cst_boundaryMin[i] ){
-			correctedPosition[i] = (cst_boundaryMin[i]) + cst_particleRadius + 1e-6;;
+			correctedPosition[i] = (cst_boundaryMin[i]) + cst_particleRadius;
 		}
 		else if (correctedPosition[i] + cst_particleRadius >= cst_boundaryMax[i])
 		{
-			correctedPosition[i] =  cst_boundaryMax[i] - cst_particleRadius - 1e-6;
+			correctedPosition[i] =  cst_boundaryMax[i] - cst_particleRadius;
 		}
 	}
 
-	return (correctedPosition - b_pi.xyz)*0.8;
+	return 0.5*(correctedPosition - b_pi.xyz);
 }
 
 

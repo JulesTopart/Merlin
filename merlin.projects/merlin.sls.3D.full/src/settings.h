@@ -29,7 +29,7 @@ struct Settings {
 	float overRelaxation = 1.0;
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(80, 80, 30);
+	glm::vec3 bb = glm::vec3(80, 80, 80);
 
 	// Physics Parameters
 	float timestep									= 0.005;
@@ -39,7 +39,7 @@ struct Settings {
 	Uniform<float> particleMass						= Uniform<float>("u_mass", 1);
 
 	Uniform<float> viscosity						= Uniform<float>("u_viscosity", 0.5);
-	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 45 * 0.01);
+	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 1* 0.01);
 	Uniform<float> artificialPressureMultiplier		= Uniform<float>("u_artificialPressureMultiplier",  4 * 0.001);
 
 	float emitterDelay = 0.120;//ms

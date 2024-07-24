@@ -306,7 +306,21 @@ void AppLayer::ResetSimulation() {
 		cpu_meta.push_back(glm::uvec4(GRANULAR, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
 	}
-	
+	/*
+	Mesh_Ptr droplet = Primitives::createSphere(10, 20, 20);
+	droplet->translate(glm::vec3(0, 0, 50));
+	droplet->computeBoundingBox();
+	droplet->voxelize(spacing);
+	positions = Voxelizer::getVoxelposition(droplet->getVoxels(), droplet->getBoundingBox(), spacing);
+
+	for (int i = 0; i < positions.size(); i++) {
+		cpu_position.push_back(glm::vec4(positions[i], 0));
+		cpu_temp.push_back(275.15 + 25); //ambient
+		cpu_meta.push_back(glm::uvec4(SOLID, settings.numParticles(), settings.numParticles(), 0.0));
+		settings.numParticles()++;
+	}*/
+
+
 
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 

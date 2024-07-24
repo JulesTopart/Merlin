@@ -8,42 +8,112 @@
 //?#include "../common/nns.comp"
 //?#include "sph.kernels.comp" 
 
-float rand(float n){return 1e-2*fract(sin(n) * 43758.5453123);}
 
-vec3 solveParticleCollision(uint i){
-	int n = 0;
+void solveParticleCollision(uint i){
+	
 	vec3 deltaPosition = vec3(0);
-	vec3 pi = b_pi.xyz;
-	vec3 position = pi;
+	vec3 xi = b_pi.xyz;
+	vec3 position = xi;
+	int n = 0;
 	OVERNNS
 		if(i == j) continue;
-		vec3 pj = b_pj.xyz;
-		if(pi == pj) pj = pj + 1e-4;
-		vec3 diff = pi - pj;
-		float dist = length(diff);
-		if(dist >= 2.0*cst_particleRadius) continue; //Ignore particle that are too far
-		float l0 = 2.0*cst_particleRadius;
-		float l = dist; // Calculate the current length
-		// Calculate the constraint violation
-		float C = l - l0 - 0.001*rand(l);
+		vec3 xj = b_pj.xyz;
 
-		if( C >= 0) continue;
-		// Calculate the gradient of the constraint function
-		vec3 gradC = normalize(diff);
-		 
-		// Calculate the effective mass matrix
-		float inverseMass = (1.0/mi) + (1.0/mj);
-		float compliance = 0.0001; // Compliance of the constraints
-		float deltaLambda = -C / ( inverseMass + (compliance/ (u_dt * u_dt)));
+		float ri, rj;
+		ri = rj = cst_particleRadius;
 
+		// Compute the constraint C
+		vec3 xij = xi - xj;
+		float dist = length(xij);
+		float C = dist - (ri + rj);
+		if(dist < 1e-6)continue;
 
-		// Calculate and apply the position corrections
-		deltaPosition += gradC * deltaLambda * mi;
-		n++;
+		if (C < 0.0) { // Only apply correction if there is a collision
+			// Compute the gradient of the constraint
+			//vec3 grad_i = xij / dist;
+			vec3 grad_i = normalize(xij);
+			vec3 grad_j = -grad_i;
+
+			// Compute the Lagrange multiplier update
+			float wi = 1.0 / mi;
+			float wj = 1.0 / mj;
+			//float grad_norm2 = wi * dot(grad_i, grad_i) + wj * dot(grad_j, grad_j); //Magnitude or gradient are 1 so it simplify
+			float grad_norm2 = wi + wj;
+			float alpha = 0.01; // Compliance parameter, should be set appropriately
+
+			//float delta_lambda = -(C + alpha * b_lambda_j) / (grad_norm2 + alpha);
+			float delta_lambda = -C / (grad_norm2 + alpha);
+			b_lambda_j += delta_lambda;
+
+			// Apply position corrections
+			vec3 delta_xi = wi * b_lambda_j * grad_i;
+			vec3 delta_xj = wj * b_lambda_j * grad_j;
+
+			//b_pi.xyz -= delta_xi; // Update the total position correction for particle i
+			//b_pj.xyz += delta_xj; // Apply the correction to particle j
+
+			vec3 delta_x_perp = (b_pi.xyz - b_xi.xyz) - (b_pj.xyz - b_xj.xyz);
+
+			float static_friction = 0.1;
+			float dynamic_friction = 0.1;
+
+			vec3 friction_delta_x = delta_x_perp;
+			if (length(delta_x_perp) >= static_friction * dist) {
+                friction_delta_x = delta_x_perp * min((dynamic_friction * dist) / length(delta_x_perp), 1.0f);
+			}
+			
+			delta_xi -= (wi / (wi + wj)) * friction_delta_x;
+			n++;
+			deltaPosition += delta_xi; // Update the total position correction for particle i
+			//b_pj.xyz += delta_xj; // Apply the correction to particle j
+		}
 
 	OVERNNS_END
 
-	if(n > 1) return deltaPosition/float(n);
-	else return deltaPosition;
+	if(n > 1) deltaPosition = deltaPosition/float(n);
+
+	float relaxation = 0.01;
+
+	b_pi.xyz += relaxation * deltaPosition;
+
+
 }
 
+
+
+vec3 granular_solveFloorCollision(uint i){
+	vec3 correctedPosition = b_pi.xyz;
+	for (int i = 0; i < 3; i++){
+		if (correctedPosition[i] - cst_particleRadius <= cst_boundaryMin[i] ){
+			correctedPosition[i] = (cst_boundaryMin[i]) + cst_particleRadius;
+		}
+		else if (correctedPosition[i] + cst_particleRadius >= cst_boundaryMax[i])
+		{
+			correctedPosition[i] =  cst_boundaryMax[i] - cst_particleRadius;
+		}
+	}
+
+	float penetration = length(correctedPosition - b_pi.xyz);
+
+	if(penetration > 0){
+		vec3 grad = normalize(correctedPosition - b_pi.xyz);
+
+
+		vec3 delta_x_perp = (b_pi.xyz - b_xi.xyz);
+
+		float static_friction = 0.5;
+		float dynamic_friction = 0.5;
+
+		vec3 friction_delta_x = delta_x_perp;
+		if (length(delta_x_perp) >= static_friction * penetration) {
+			friction_delta_x = delta_x_perp * min((dynamic_friction * penetration) / length(delta_x_perp), 1.0f);
+			grad -= friction_delta_x;
+		}
+			
+	
+
+		return 0.5 * grad * penetration;
+	}
+
+	return vec3(0);
+}
