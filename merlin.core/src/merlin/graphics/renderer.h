@@ -42,6 +42,9 @@ namespace Merlin {
 		inline void hideLights() { display_lights = false; }
 		inline void showLights() { display_lights = true; }
 
+		inline void useDefaultLight(bool state) { use_default_light = state; }
+		inline bool useDefaultLight() { return use_default_light; }
+
 		inline void enableShadows() { use_shadows = true; }
 		inline void disableShadows() { use_shadows = false; }
 
@@ -56,6 +59,7 @@ namespace Merlin {
 		bool use_shadows = true;
 		bool use_environment = true;
 		bool display_lights = false;
+		bool use_default_light = false; //Use has backup if no light set
 
 		Shared<AmbientLight> m_defaultAmbient;
 		Shared<DirectionalLight> m_defaultDirLight;

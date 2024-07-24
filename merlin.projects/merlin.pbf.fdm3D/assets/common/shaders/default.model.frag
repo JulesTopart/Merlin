@@ -97,7 +97,7 @@ float computeShadow(Light li, vec4 fragPosLightSpace)
     if(li.castShadow == 0) return 0.0;
     float shadow = 0.0;
 
-    if(li.type == DIRECTIONAL_LIGHT){
+    if(li.type == DIRECTIONAL_LIGHT || li.type == SPOT_LIGHT ){
         // perform perspective divide
         vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
         // transform to [0,1] range
@@ -209,8 +209,8 @@ vec3 calculatePointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, v
     vec3 specular = light.specular * spec * specularColor;
     vec4 fragPosLightSpace = light.lightSpaceMatrix * vec4(vin.position, 1.0);
     float shadow_inv = (1.0 - computeShadow(light, fragPosLightSpace));
-    
-    return attenuation * (ambient +  shadow_inv * (diffuse + specular));
+   
+    return ambient + attenuation * shadow_inv * (diffuse + specular);
 }
 
 vec3 calculateSpotLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 ambientColor, vec3 diffuseColor, vec3 specularColor) {
@@ -220,9 +220,9 @@ vec3 calculateSpotLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, ve
     float dist = length(light_position - fragPos);
     float attenuation = 1.0 / (light.attenuation.x + light.attenuation.y * dist + light.attenuation.z * (dist * dist));
 
-    float theta = dot(lightDir, normalize(-vin.tangentBasis * light.direction));
-    float epsilon = light.cutOff - 0.95;
-    float intensity = clamp((theta - 0.95) / epsilon, 0.0, 1.0);
+    float theta = dot(lightDir, normalize(-light.direction));
+    float epsilon = radians(light.cutOff) -  radians(0.95);
+    float intensity = clamp((theta -  radians(0.95)) / epsilon, 0.0, 1.0);
 
     float diff = max(dot(normal, lightDir), 0.0);
     float spec = 0;
@@ -232,7 +232,10 @@ vec3 calculateSpotLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir, ve
     vec3 diffuse = light.diffuse * diff * diffuseColor;
     vec3 specular = light.specular * spec * specularColor;
 
-    return intensity * attenuation * (ambient + diffuse + specular);
+    vec4 fragPosLightSpace = light.lightSpaceMatrix * vec4(vin.position, 1.0);
+    float shadow_inv = (1.0 - computeShadow(light, fragPosLightSpace));
+
+    return ambient + (intensity * attenuation * shadow_inv * (diffuse + specular));
 }
 
 void main() {

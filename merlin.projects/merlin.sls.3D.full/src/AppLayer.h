@@ -57,11 +57,15 @@ private:
 	glm::vec3 laser_position = { 0.0f, 0.0f, 0.0f };
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 
+	Mesh_Ptr floor;
 	Mesh_Ptr powder;
 
 	IsoSurface_Ptr isosurface;
 	Texture3D_Ptr volume;
 	Texture2D_Ptr texture_debug;
+
+	SpotLight_Ptr laser;
+	Texture2D_Ptr laser_map;//depth
 
 	double nns_time = 0;
 	double jacobi_time = 0;

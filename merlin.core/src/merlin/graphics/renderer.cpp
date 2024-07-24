@@ -56,7 +56,7 @@ namespace Merlin {
 		}
 		if(debug)Console::info() << "Rendering scene shadows" << Console::endl;
 
-		if (m_activeLights.size() == 0) {
+		if (m_activeLights.size() == 0 || use_default_light) {
 			m_activeLights.push_back(m_defaultAmbient);
 			m_activeLights.push_back(m_defaultDirLight);
 			m_activeLights.push_back(m_defaultDirLight2);
@@ -147,6 +147,7 @@ namespace Merlin {
 		shader->setVec3("light_color", li.diffuse() + li.ambient() + li.specular());
 
 		shader->setMat4("model", currentTransform); //sync model matrix with GPU
+
 		shader->setMat4("view", camera.getViewMatrix()); //sync model matrix with GPU
 		shader->setMat4("projection", camera.getProjectionMatrix()); //sync model matrix with GPU
 		li.draw();

@@ -120,7 +120,7 @@ void ExampleLayer::onAttach(){
 	glm::ivec3 pWkgCount = (volume_size + pWkgSize - glm::ivec3(1)) / pWkgSize; //Total number of workgroup needed
 	noise->SetWorkgroupLayout(pWkgCount);
 
-	volume = Texture3D::create(volume_size.x, volume_size.y, volume_size.z, 1, 32);
+	volume = Texture3D::create(volume_size.x, volume_size.y, volume_size.z, 4, 16);
 
 	isosurface = IsoSurface::create("isosurface", volume);
 	isosurface->mesh()->setMaterial("gold");

@@ -104,7 +104,7 @@ void main(){
     uint index = gl_GlobalInvocationID.x;
     if(index >= voxelCount) return;
     uvec3 index3D = getVoxelCoordFromIndex(index);
-     const vec3 rd = vec3(0,0,1); //random vector
+     const vec3 rd = vec3(1,1,1); //random vector
      vec3 ro = aabbMin.xyz + (vec3(index3D) + 0.5) * voxelSize;
 
      int hit = raytrace(ro, rd);

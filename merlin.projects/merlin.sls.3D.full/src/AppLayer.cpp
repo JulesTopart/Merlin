@@ -136,6 +136,8 @@ void AppLayer::InitGraphics() {
 	renderer.enableSampleShading();
 	//renderer.disableShadows();
 	renderer.disableFaceCulling();
+	renderer.showLights();
+	renderer.useDefaultLight(true);
 	//renderer.applyGlobalTransform(glm::scale(glm::mat4(1), glm::vec3(0.001)));
 
 	particleShader = Shader::create("particle", "assets/shaders/particle.vert", "assets/shaders/particle.frag", "", false);
@@ -154,9 +156,9 @@ void AppLayer::InitGraphics() {
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
 
-	powder = Primitives::createCube(75, 75, 10);
+	powder = Primitives::createCube(75, 75, 2);
 	//powder = Primitives::createCube(10, 10, 10);
-	powder->translate(glm::vec3(0,0,5));
+	powder->translate(glm::vec3(0,0,1));
 
 	scene.add(TransformObject::create("origin"));
 }
@@ -270,6 +272,21 @@ void AppLayer::InitPhysics() {
 	scene.add(bs);
 	scene.add(TransformObject::create("origin", 10));
 	bs->hide();
+	
+
+	floor = Primitives::createRectangle(100, 100);
+	floor->setMaterial("gray plastic");
+	scene.add(floor);
+
+	laser = SpotLight::create("laser", glm::vec3(0, 0, 30), glm::vec3(0, 0.0, -1), 50, glm::vec3(0.0), glm::vec3(0.8, 0.2, 0.2), glm::vec3(0));
+	scene.add(laser);
+	laser_map = laser->getShadowMap();
+
+	//Mesh_Ptr cube = Primitives::createSphere(5, 30, 30);
+	//cube->translate(glm::vec3(0,0,15));
+	//scene.add(cube);
+
+
 }
 
 
@@ -304,6 +321,18 @@ void AppLayer::ResetSimulation() {
 		cpu_position.push_back(glm::vec4(positions[i],0));
 		cpu_temp.push_back(275.15 + 25); //ambient
 		cpu_meta.push_back(glm::uvec4(GRANULAR, settings.numParticles(), settings.numParticles(), 0.0));
+		settings.numParticles()++;
+	}
+
+
+	floor->computeBoundingBox();
+	floor->voxelizeSurface(spacing, 2);
+	positions = Voxelizer::getVoxelposition(floor->getVoxels(), floor->getBoundingBox(), spacing);
+
+	for (int i = 0; i < positions.size(); i++) {
+		cpu_position.push_back(glm::vec4(positions[i], 0));
+		cpu_temp.push_back(275.15 + 25); //ambient
+		cpu_meta.push_back(glm::uvec4(BOUNDARY, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
 	}
 	/*
@@ -407,6 +436,17 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	GPU_PROFILE(solver_substep_time,
 		for (int i = 0; i < settings.solver_substep; i++) {
+
+			for (int i = 0; i < 10; i++) simulator.update(ts.getSeconds() / (settings.solver_substep * 10));
+			laser_position = simulator.getNozzlePosition();
+			laser->setPosition(laser_position + glm::vec3(0,0,10));
+
+			settings.laser_transform = glm::mat4(1);
+			settings.laser_transform = glm::translate(settings.laser_transform(), glm::vec3(laser_position));
+			settings.laser_transform.sync(*solver);
+
+			if (simulator.getExtruderDistance() > 0.01)
+				solver->setFloat("u_laser_power", 80);
 
 			solver->execute(2);
 
@@ -657,6 +697,14 @@ void AppLayer::onImGuiRender() {
 	}
 	ImGui::Image((void*)(intptr_t)texture_debug->id(), ImVec2(settings.volume_size.x, settings.volume_size.y), ImVec2(1, 1), ImVec2(0, 0));
 	ImGui::End();
+
+
+	ImGui::Begin("Debug Laser");
+	laser_map->bind();
+	
+	ImGui::Image((void*)(intptr_t)laser_map->id(), ImVec2(settings.volume_size.x, settings.volume_size.y), ImVec2(1, 1), ImVec2(0, 0));
+	ImGui::End();
+
 
 	if (ImGui::Button("Debug")) {
 		throw("DEBUG");

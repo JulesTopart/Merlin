@@ -141,6 +141,12 @@ namespace Merlin {
 		red_plastic->setSpecular(glm::vec3(0.7, 0.6, 0.6));
 		red_plastic->setShininess(0.25);
 
+		Shared<PhongMaterial> gray_plastic = createShared<PhongMaterial>("gray plastic");
+		gray_plastic->setAmbient(glm::vec3(0.0, 0.0, 0.0));
+		gray_plastic->setDiffuse(glm::vec3(0.25, 0.25, 0.25));
+		gray_plastic->setSpecular(glm::vec3(0.60, 0.60, 0.60));
+		gray_plastic->setShininess(0.25);
+
 		Shared<PhongMaterial> white_plastic = createShared<PhongMaterial>("white plastic");
 		white_plastic->setAmbient(glm::vec3(0.0, 0.0, 0.0));
 		white_plastic->setDiffuse(glm::vec3(0.55, 0.55, 0.55));
@@ -213,6 +219,7 @@ namespace Merlin {
 		add(cyan_plastic);
 		add(green_plastic);
 		add(red_plastic);
+		add(gray_plastic);
 		add(white_plastic);
 		add(yellow_plastic);
 		add(black_rubber);

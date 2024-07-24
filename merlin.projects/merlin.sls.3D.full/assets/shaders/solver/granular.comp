@@ -9,12 +9,15 @@
 //?#include "sph.kernels.comp" 
 
 
+float rand(float n){return 1e-2*fract(sin(n) * 43758.5453123);}
+
 void solveParticleCollision(uint i){
 	
 	vec3 deltaPosition = vec3(0);
 	vec3 xi = b_pi.xyz;
 	vec3 position = xi;
 	int n = 0;
+
 	OVERNNS
 		if(i == j) continue;
 		vec3 xj = b_pj.xyz;
@@ -25,7 +28,7 @@ void solveParticleCollision(uint i){
 		// Compute the constraint C
 		vec3 xij = xi - xj;
 		float dist = length(xij);
-		float C = dist - (ri + rj);
+		float C = dist - (ri + rj) - 0.01*rand(dist);
 		if(dist < 1e-6)continue;
 
 		if (C < 0.0) { // Only apply correction if there is a collision
@@ -39,23 +42,20 @@ void solveParticleCollision(uint i){
 			float wj = 1.0 / mj;
 			//float grad_norm2 = wi * dot(grad_i, grad_i) + wj * dot(grad_j, grad_j); //Magnitude or gradient are 1 so it simplify
 			float grad_norm2 = wi + wj;
-			float alpha = 0.01; // Compliance parameter, should be set appropriately
-
+			float alpha = 0.000001; // Compliance parameter, should be set appropriately
+			
 			//float delta_lambda = -(C + alpha * b_lambda_j) / (grad_norm2 + alpha);
 			float delta_lambda = -C / (grad_norm2 + alpha);
-			b_lambda_j += delta_lambda;
+			//b_lambda_j += delta_lambda;
 
 			// Apply position corrections
-			vec3 delta_xi = wi * b_lambda_j * grad_i;
-			vec3 delta_xj = wj * b_lambda_j * grad_j;
+			vec3 delta_xi = wi * delta_lambda * grad_i;
 
-			//b_pi.xyz -= delta_xi; // Update the total position correction for particle i
-			//b_pj.xyz += delta_xj; // Apply the correction to particle j
+			vec3 delta_x_perp = (
+			b_pi.xyz - b_xi.xyz) - (b_pj.xyz - b_xj.xyz);
 
-			vec3 delta_x_perp = (b_pi.xyz - b_xi.xyz) - (b_pj.xyz - b_xj.xyz);
-
-			float static_friction = 0.1;
-			float dynamic_friction = 0.1;
+			float static_friction = 0.6;
+			float dynamic_friction = 0.9;
 
 			vec3 friction_delta_x = delta_x_perp;
 			if (length(delta_x_perp) >= static_friction * dist) {
@@ -65,14 +65,13 @@ void solveParticleCollision(uint i){
 			delta_xi -= (wi / (wi + wj)) * friction_delta_x;
 			n++;
 			deltaPosition += delta_xi; // Update the total position correction for particle i
-			//b_pj.xyz += delta_xj; // Apply the correction to particle j
 		}
 
 	OVERNNS_END
 
 	if(n > 1) deltaPosition = deltaPosition/float(n);
 
-	float relaxation = 0.01;
+	float relaxation = 0.9;
 
 	b_pi.xyz += relaxation * deltaPosition;
 

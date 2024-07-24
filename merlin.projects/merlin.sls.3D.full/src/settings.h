@@ -17,30 +17,30 @@ struct Constraint {
 };
 
 struct Settings {
-	const float particleRadius = 0.4;
+	const float particleRadius = 0.3;
 	const float particleVolume = (4.0 / 3.0) * glm::pi<float>() * particleRadius * particleRadius * particleRadius;
 	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius;
 	const float volumeWidth = smoothingRadius * 0.3;
 
 	//Solver settings
-	int solver_substep = 8;
-	int solver_iteration = 10;
+	int solver_substep = 6;
+	int solver_iteration = 5;
 	float overRelaxation = 1.0;
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(80, 80, 80);
+	glm::vec3 bb = glm::vec3(80, 80, 20);
 
 	// Physics Parameters
-	float timestep									= 0.005;
+	float timestep									= 0.004;
 	Uniform<float> dt								= Uniform<float>("u_dt", timestep / solver_substep);
 	Uniform<float> restDensity						= Uniform<float>("u_rho0", 1.0);
 	//Uniform<float> particleMass						= Uniform<float>("u_mass", particleVolume * 8);
 	Uniform<float> particleMass						= Uniform<float>("u_mass", 1);
 
 	Uniform<float> viscosity						= Uniform<float>("u_viscosity", 0.5);
-	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 1* 0.01);
-	Uniform<float> artificialPressureMultiplier		= Uniform<float>("u_artificialPressureMultiplier",  4 * 0.001);
+	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 50* 0.01);
+	Uniform<float> artificialPressureMultiplier		= Uniform<float>("u_artificialPressureMultiplier",  5 * 0.001);
 
 	float emitterDelay = 0.120;//ms
 

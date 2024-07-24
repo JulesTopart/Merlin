@@ -33,7 +33,7 @@ void GcodeSimulator::readFile(const std::string& filepath) {
                     case 'Y': command.position.y = value; break;
                     case 'Z': command.position.z = value; break;
                     case 'E': command.position.w = value; break;
-                    case 'F': command.speed = value/60.0; break;
+                    case 'F': command.speed = value/20.0; break;
                     }
                 }
                 m_commands.push_back(command);
