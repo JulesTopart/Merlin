@@ -29,7 +29,7 @@ struct Settings {
 	float overRelaxation = 1.0;
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(80, 80, 20);
+	glm::vec3 bb = glm::vec3(70, 70, 40);
 
 	// Physics Parameters
 	float timestep									= 0.004;

@@ -1,0 +1,77 @@
+#version 430
+
+#pragma once
+#include "../common/uniforms.comp"
+#include "../common/constants.comp"
+#include "../common/buffers.comp"
+#include "../common/nns.comp"
+#include "sph.kernels.comp" 
+
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+
+layout (rgba16f, binding = 0) writeonly uniform image3D u_output;
+
+
+float map(in vec3 position){
+	float density = 0;
+
+	OVERNNS
+		float dist = distance(b_xj.xyz, position);
+		if(dist < 1e-6 || dist > H) continue;
+		float Wij = poly6(dist);
+
+		if(phase(j) == SOLID || phase(j) == FLUID)
+			density += mj * Wij;
+	OVERNNS_END
+	return density;
+}
+
+float mapHeat(in vec3 position){
+	float temp = 0;
+	int n = 0;
+	OVERNNS
+		if(phase(j) == SOLID || phase(j) == FLUID){
+			temp += b_Tj;
+			n++;
+		}
+	OVERNNS_END
+	if(n > 1) temp /= float(n);
+	return temp;
+}
+
+vec3 calculate_normal(in vec3 p)
+{
+    const vec3 e = vec3(0.001, 0.0, 0.0);
+    vec3 n = vec3(map(p + e.xyy) - map(p - e.xyy),  // Gradient x
+                  map(p + e.yxy) - map(p - e.yxy),  // Gradient y
+                  map(p + e.yyx) - map(p - e.yyx)); // Gradient z
+
+	if(length(n) == 0) n = vec3(1);
+    return normalize(n);
+}
+
+void main()
+{
+	// Resolution of the 3D texture (W, H, D) - integer values
+    ivec3 dims = imageSize(u_output);
+    ivec3 pixel_coords = ivec3(gl_GlobalInvocationID.xyz);
+
+	vec3 uvw = vec3(pixel_coords) / vec3(dims);
+    uvw = uvw * 2.0f - 1.0f;
+   
+	vec3 position = uvw * vec3(cst_domain);
+
+	vec3 norm = -calculate_normal(position);
+
+	if(mapHeat(position) > 1.0f)
+		norm *= mapHeat(position);
+
+	//imageStore(u_output, pixel_coords,  vec4(map(position),0.0, 0.0, 1.0));
+	imageStore(u_output, pixel_coords,  vec4(map(position),norm.x, norm.y, norm.z));
+	//imageStore(u_output, pixel_coords,  vec4(position.x,position.y, position.z, 1));
+	return;
+	
+
+
+    
+}

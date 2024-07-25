@@ -1,0 +1,258 @@
+//?#version 430
+
+#pragma once
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/colors.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+
+
+float rand(float n){return 1e-2*fract(sin(n) * 43758.5453123);}
+
+void solveParticleCollision(uint i){
+	
+	vec3 deltaPosition = vec3(0);
+	vec3 xi = b_pi.xyz;
+	vec3 position = xi;
+	int n = 0;
+
+	OVERNNS
+		if(i == j) continue;
+		vec3 xj = b_pj.xyz;
+
+		float ri, rj;
+		ri = rj = cst_particleRadius;
+
+		// Compute the constraint C
+		vec3 xij = xi - xj;
+		float dist = length(xij);
+		float C = dist - (ri + rj) - 0.01*rand(dist);;
+		if(dist < 1e-6)continue;
+
+		if (C < 0.0) { // Only apply correction if there is a collision
+			// Compute the gradient of the constraint
+			//vec3 grad_i = xij / dist;
+			vec3 grad_i = normalize(xij);
+			vec3 grad_j = -grad_i;
+
+			// Compute the Lagrange multiplier update
+			float wi = 1.0 / mi;
+			float wj = 1.0 / mj;
+			//float grad_norm2 = wi * dot(grad_i, grad_i) + wj * dot(grad_j, grad_j); //Magnitude or gradient are 1 so it simplify
+			float grad_norm2 = wi + wj;
+			float alpha = 0.0000001; // Compliance parameter, should be set appropriately
+			
+			//float delta_lambda = -(C + alpha * b_lambda_j) / (grad_norm2 + alpha);
+			float delta_lambda = -C / (grad_norm2 + alpha);
+			//b_lambda_j += delta_lambda;
+
+			// Apply position corrections
+			deltaPosition += wi * delta_lambda * grad_i;
+		}
+
+	OVERNNS_END
+
+	if(n > 1) deltaPosition = deltaPosition/float(n);
+
+	float relaxation = 0.9;
+
+	b_pi.xyz += relaxation * deltaPosition;
+	
+
+
+}
+
+
+void solveParticleCollisionAndFriction(uint i){
+	
+	vec3 deltaPosition = vec3(0);
+	vec3 xi = b_pi.xyz;
+	vec3 position = xi;
+	int n = 0;
+
+	OVERNNS
+		if(i == j) continue;
+		vec3 xj = b_pj.xyz;
+
+		float ri, rj;
+		ri = rj = cst_particleRadius;
+
+		// Compute the constraint C
+		vec3 xij = xi - xj;
+		float dist = length(xij);
+		float C = dist - (ri + rj) - 0.01*rand(dist);
+		if(dist < 1e-6)continue;
+
+		if (C < 0.0) { // Only apply correction if there is a collision
+			// Compute the gradient of the constraint
+			//vec3 grad_i = xij / dist;
+			vec3 grad_i = normalize(xij);
+			vec3 grad_j = -grad_i;
+
+			// Compute the Lagrange multiplier update
+			float wi = 1.0 / mi;
+			float wj = 1.0 / mj;
+			//float grad_norm2 = wi * dot(grad_i, grad_i) + wj * dot(grad_j, grad_j); //Magnitude or gradient are 1 so it simplify
+			float grad_norm2 = wi + wj;
+			float alpha = 0.0000001; // Compliance parameter, should be set appropriately
+			
+			//float delta_lambda = -(C + alpha * b_lambda_j) / (grad_norm2 + alpha);
+			float delta_lambda = -C / (grad_norm2 + alpha);
+			//b_lambda_j += delta_lambda;
+
+			// Apply position corrections
+			vec3 delta_xi = wi * delta_lambda * grad_i;
+
+			vec3 delta_x_perp = (b_pi.xyz - b_xi.xyz) - (b_pj.xyz - b_xj.xyz);
+
+			float static_friction = 0.1;
+			float dynamic_friction = 0.2;
+
+			vec3 friction_delta_x = delta_x_perp;
+			if (length(delta_x_perp) >= static_friction * dist) {
+                friction_delta_x = delta_x_perp * min((dynamic_friction * dist) / length(delta_x_perp), 1.0f);
+			}
+			
+			delta_xi -= (wi / (wi + wj)) * friction_delta_x;
+			n++;
+			deltaPosition += delta_xi; // Update the total position correction for particle i
+			//b_pj.xyz -= 0.8 * delta_xi;
+		}
+
+	OVERNNS_END
+
+	if(n > 1) deltaPosition = deltaPosition/float(n);
+
+	float relaxation = 0.9;
+
+	b_pi.xyz += relaxation * deltaPosition;
+	
+
+
+}
+
+void solveParticleFriction(uint i){
+	
+	vec3 deltaPosition = vec3(0);
+	vec3 xi = b_pi.xyz;
+	vec3 position = xi;
+	int n = 0;
+
+	OVERNNS
+		if(i == j) continue;
+		vec3 xj = b_pj.xyz;
+
+		float ri, rj;
+		ri = rj = cst_particleRadius;
+
+		// Compute the constraint C
+		vec3 xij = xi - xj;
+		float dist = length(xij);
+		float C = dist - (ri + rj);
+		if(dist < 1e-6)continue;
+
+		if (C < 0.0) { // Only apply correction if there is a collision
+
+			float wi = 1.0 / mi;
+			float wj = 1.0 / mj;
+
+
+			// Apply position corrections
+			vec3 delta_xi = vec3(0);
+
+			vec3 d = (b_pi.xyz - b_xi.xyz) - (b_pj.xyz - b_xj.xyz);
+			vec3 n = normalize(b_pj.xyz - b_pi.xyz);
+
+			vec3 d_parallel = (dot(d, n) / dot(n, n)) * n;
+			vec3 delta_x_perp = d - d_parallel;
+
+			float static_friction = 0.06;
+			float dynamic_friction = 0.01;
+
+			vec3 friction_delta_x = delta_x_perp;
+			if (length(delta_x_perp) >= static_friction * length(d)) {
+                friction_delta_x = delta_x_perp * min((dynamic_friction * dist) / length(delta_x_perp), 1.0f);
+			}
+			
+			delta_xi -= (wi / (wi + wj)) * friction_delta_x;
+			n++;
+			deltaPosition += delta_xi; // Update the total position correction for particle i
+			//b_pj.xyz -= 0.8 * delta_xi;
+		}
+
+	OVERNNS_END
+
+	if(n > 1) deltaPosition = deltaPosition/float(n);
+
+	float relaxation = 0.6;
+
+	b_pi.xyz += relaxation * deltaPosition;
+	
+
+
+}
+
+
+
+vec3 granular_solveFloorCollision(uint i){
+	vec3 correctedPosition = b_pi.xyz;
+	for (int i = 0; i < 3; i++){
+		if (correctedPosition[i] - cst_particleRadius <= cst_boundaryMin[i] ){
+			correctedPosition[i] = (cst_boundaryMin[i]) + cst_particleRadius;
+		}
+		else if (correctedPosition[i] + cst_particleRadius >= cst_boundaryMax[i])
+		{
+			correctedPosition[i] =  cst_boundaryMax[i] - cst_particleRadius;
+		}
+	}
+
+	float penetration = length(correctedPosition - b_pi.xyz);
+
+	if(penetration > 0){
+		vec3 grad = normalize(correctedPosition - b_pi.xyz);
+		return 0.5 * (grad * penetration);
+	}
+
+	return vec3(0);
+}
+
+
+
+void solveFloorFriction(uint i){
+	vec3 correctedPosition = b_pi.xyz;
+	for (int i = 0; i < 3; i++){
+		if (correctedPosition[i] - cst_particleRadius <= cst_boundaryMin[i] ){
+			correctedPosition[i] = (cst_boundaryMin[i]) + cst_particleRadius;
+		}
+		else if (correctedPosition[i] + cst_particleRadius >= cst_boundaryMax[i])
+		{
+			correctedPosition[i] =  cst_boundaryMax[i] - cst_particleRadius;
+		}
+	}
+
+	float penetration = length(correctedPosition - b_pi.xyz);
+
+	if(penetration > 0){
+		vec3 grad = normalize(correctedPosition - b_pi.xyz);
+
+		
+		vec3 d = (b_pi.xyz - b_xi.xyz)*vec3(1,1,0);
+
+		vec3 delta_x_perp = d;
+
+		float static_friction = 1.30;
+		float dynamic_friction = 1.80;
+
+		vec3 friction_delta_x = delta_x_perp;
+		if (length(delta_x_perp) >= static_friction * length(d)) {
+			friction_delta_x = delta_x_perp * min((dynamic_friction * penetration) / length(delta_x_perp), 1.0f);
+		}
+
+
+		float relaxation = 0.6;
+
+		b_pi.xyz += relaxation * -friction_delta_x;
+	}
+}

@@ -1,0 +1,61 @@
+//?#version 430
+
+#pragma once
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+//?#include "boundary.comp" 
+
+const float KERNEL_Heat = (40.0 / (7.0 * (M_PI*H*H)));
+
+float cubicKernelHeat2D(float r) {
+  float result = 0;
+  float q = r / 10;
+  if (q <= 1.0){
+    float q2 = q*q;
+    float q3 = q2*q;
+    if (q <= 0.5)
+      result = KERNEL_Heat * (6.0*q3 - 6.0*q2 + 1.0);
+    else
+      result = KERNEL_Heat * (2.0*pow(1.0 - q, 3));
+  }
+  return result;
+}
+
+float computeLaserDelta(uint i) {
+
+	float temperatureDelta = 0.0;
+	vec3 position = b_pi.xyz;
+	float d = distance(position, vec3(u_laser_transform * vec4(0,0,0,1)));
+	temperatureDelta += u_laser_power * cubicKernelHeat2D(d);
+
+	return temperatureDelta;
+}
+
+float computeTemperatureDelta(uint i) {
+
+	float temperatureDelta = 0.0;
+	vec3 position = b_pi.xyz;
+	OVERNNS
+		if(j == i || c_Dij < 1e-6 ) continue;
+		float rhoj = mj / (3.1415926*(4/3)*pow(cst_particleRadius,3));
+		float lambda = 0.00001;//( 0.13 / (1590  * rhoj));
+
+		if(phase(i) == phase(j) && (phase(i) == SOLID || phase(i) == FLUID )) lambda *= 200.0;
+		if(phase(i) != phase(j) && phase(j) == FLUID ) lambda *= 100.0;
+
+
+		temperatureDelta += lambda*(b_Tj-b_Ti)/(c_Dij*1e-3);
+	OVERNNS_END
+	//temperatureDelta /= float(n);
+	/*
+	if(particles[i].position.z < H/2.0){
+		temperatureDelta += kPlateau * (floorTemperature - Ti);
+	}*/
+
+	temperatureDelta += 3.0 * (298.15 - b_Ti);
+	return temperatureDelta + computeLaserDelta(i);
+}
+

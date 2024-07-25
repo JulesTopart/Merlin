@@ -1,0 +1,43 @@
+//? #version 430
+#ifndef INCLUDE_CONSTRAINTS_GLSL
+#define INCLUDE_CONSTRAINTS_GLSL
+
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+
+//#define USE_ONLY_POSITIVE_PRESSURE
+
+vec3 boundary_solveFloorCollision(uint i){
+	vec3 correctedPosition = b_pi.xyz;
+	for (int i = 0; i < 3; i++){
+		if (correctedPosition[i] - cst_particleRadius <= cst_boundaryMin[i] ){
+			correctedPosition[i] = (cst_boundaryMin[i]) + cst_particleRadius;
+		}
+		else if (correctedPosition[i] + cst_particleRadius >= cst_boundaryMax[i])
+		{
+			correctedPosition[i] =  cst_boundaryMax[i] - cst_particleRadius;
+		}
+	}
+
+	return 0.5*(correctedPosition - b_pi.xyz);
+}
+
+
+float boundary_computePseudoMass(uint i){
+	float pseudomass = 1; //to avoid dividing by zero in compute delta
+	vec3 position = b_xi.xyz;
+	OVERNNS
+		if(c_Dij >= H || c_Dij < 1e-6) continue;
+		if(phase(j) >= BOUNDARY || phase(j) == SOLID)
+			pseudomass += poly6(c_Dij);
+	OVERNNS_END
+	return pseudomass;
+}
+
+
+ 
+
+#endif
