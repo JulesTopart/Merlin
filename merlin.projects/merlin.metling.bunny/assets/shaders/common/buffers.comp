@@ -1,0 +1,137 @@
+//? #version 430
+#ifndef INCLUDE_BUFFERS_GLSL
+#define INCLUDE_BUFFERS_GLSL
+
+//Macro to access buffer elements
+#define phase(index)		ssbo_meta[index].x		//phase
+#define bin_index(index)	ssbo_meta[index].y		//bin index
+#define id(index)			ssbo_meta[index].z		//particle ID
+#define sorted_id(index)	ssbo_meta[index].w		//particle destination ID (sort)
+
+//Free aliases
+#define mi u_mass
+#define mj u_mass
+
+//buffer access aliases (cost memory bandwidth)
+#define b_xi ssbo_position[i]
+#define b_xj ssbo_position[j]
+
+#define b_pi ssbo_predicted_position[i]
+#define b_pj ssbo_predicted_position[j]
+
+#define b_dpi ssbo_position_correction[i]
+#define b_dpj ssbo_position_correction[j]
+
+#define b_last_xi ssbo_last_position[i]
+#define b_last_xj ssbo_last_position[j]
+
+#define b_lambda_i ssbo_lambda[i]
+#define b_lambda_j ssbo_lambda[j]
+
+#define b_vi ssbo_velocity[i]
+#define b_vj ssbo_velocity[j]
+
+#define b_sigma_i ssbo_sigma[i] //Stress
+#define b_sigma_j ssbo_sigma[j]
+
+#define b_Ti ssbo_temperature[i]
+#define b_Tj ssbo_temperature[j]
+
+#define b_rho_i ssbo_density[i]
+#define b_rho_j ssbo_density[j]
+
+//computation aliases (cost memory bandwidth and/or operations)
+#define c_Vij (b_vi.xyz - b_vj.xyz)
+#define c_Vji (b_vj.xyz - b_vi.xyz)
+#define c_Rij (b_pi.xyz - b_pj.xyz)
+#define c_Rji (b_pj.xyz - b_pi.xyz)
+#define c_Dij distance(b_pi.xyz, b_pj.xyz)
+
+#define c_wi (1.0/particleMass)
+#define c_wj (1.0/particleMass)
+
+// SSBO declaration
+layout(std430) buffer last_position_buffer {
+	vec4 ssbo_last_position[];
+};
+
+layout(std430) buffer position_buffer {
+	vec4 ssbo_position[];
+};
+
+layout(std430) buffer predicted_position_buffer {
+	vec4 ssbo_predicted_position[];
+};
+
+layout(std430) buffer correction_buffer {
+	vec4 ssbo_position_correction[];
+};
+
+
+layout(std430) buffer velocity_buffer {
+	vec4 ssbo_velocity[];
+};
+
+layout(std430) buffer density_buffer {
+	float ssbo_density[];
+};
+
+layout(std430) buffer lambda_buffer {
+	float ssbo_lambda[];
+};
+
+layout(std430) buffer temperature_buffer {
+	float ssbo_temperature[];
+};
+
+
+
+layout(std430) buffer meta_buffer {
+	uvec4 ssbo_meta[]; //phase, binindex, id , sortedID
+};
+
+struct Bin {
+	uint count;
+	uint sum;
+	uint csum;
+	uint index;
+};
+
+layout(std430) buffer BinBuffer {
+	Bin ssbo_bins[];
+};
+
+
+struct vec6{
+	vec4 a; 
+	vec4 b;
+};
+
+layout(std430) buffer stress_buffer {
+	vec6 ssbo_sigma[];
+};
+
+struct CopyContent{
+	vec4 last_position;
+	vec4 position;
+	vec4 predicted_position;
+	vec4 position_correction;
+	vec4 velocity;
+	float density;
+	float lambda;
+	float temperature;
+	float _padding;
+	vec6  sigma;
+	uvec4 meta;
+};
+
+layout(std430) buffer copy_buffer {
+	CopyContent ssbo_copy[]; //phase, binindex, id , sortedID
+};
+
+layout(std430) buffer emitter_position_buffer {
+	vec4 ssbo_emitter_positions[];
+};
+
+
+#endif// INCLUDE_BUFFERS_HLSL
