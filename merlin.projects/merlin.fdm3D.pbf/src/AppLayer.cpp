@@ -47,6 +47,39 @@ void AppLayer::onEvent(Event& event) {
 	Layer3D::onEvent(event);
 }
 
+void AppLayer::genTexXY() {
+	int x = (settings.tex_size.x - 1) / settings.texWkgSize.x;
+	int y = (settings.tex_size.y - 1) / settings.texWkgSize.y;
+
+	texPlot->setVec3("axis", glm::vec3(1, 1, 0));
+	texPlot->dispatch(x, y);
+	texPlot->barrier(GL_ALL_BARRIER_BITS);
+	
+}
+
+
+
+void AppLayer::genTexXZ() {
+	int x = (settings.tex_size.x - 1) / settings.texWkgSize.x;
+	int z = (settings.tex_size.z - 1) / settings.texWkgSize.z;
+
+	texPlot->setVec3("axis", glm::vec3(1, 0, 1));
+	texPlot->dispatch(x, z);
+	texPlot->barrier(GL_ALL_BARRIER_BITS);
+}
+
+
+void AppLayer::genTexYZ() {
+	int y = (settings.tex_size.x - 1) / settings.texWkgSize.x;
+	int z = (settings.tex_size.y - 1) / settings.texWkgSize.y;
+
+	texPlot->setVec3("axis", glm::vec3(0, 1, 1));
+	texPlot->dispatch(y, z);
+	texPlot->barrier(GL_ALL_BARRIER_BITS);
+}
+
+
+
 void AppLayer::onUpdate(Timestep ts) {
 	Layer3D::onUpdate(ts);
 
@@ -92,6 +125,16 @@ void AppLayer::onUpdate(Timestep ts) {
 		}
 
 	}
+
+	ps->solveLink(texPlot);
+	texPlot->use();
+	texture_debugXZ->bindImage(0);
+	texture_debugXY->bindImage(1);
+	texture_debugYZ->bindImage(2);
+	genTexXY();
+	genTexXZ();
+	genTexYZ();
+	ps->detach(texPlot);
 }
 
 
@@ -125,6 +168,10 @@ void AppLayer::SyncUniforms() {
 	isoGen->use();
 	settings.numParticles.sync(*isoGen);
 	settings.particleMass.sync(*isoGen);
+
+	texPlot->use();
+	settings.numParticles.sync(*texPlot);
+	settings.particleMass.sync(*texPlot);
 }
 
 
@@ -179,6 +226,41 @@ void AppLayer::InitGraphics() {
 	nozzle->applyMeshTransform();
 	nozzle->enableWireFrameMode();
 
+	Mesh_Ptr texturePlaneXZ = Primitives::createRectangle(settings.bb.x, settings.bb.z);
+	texturePlaneXZ->rotate(glm::vec3(90*DEG_TO_RAD,0,0));
+	texturePlaneXZ->applyMeshTransform();
+	texturePlaneXZ->translate(glm::vec3(0,0,settings.bb.z/2));
+
+	Mesh_Ptr texturePlaneXY = Primitives::createRectangle(settings.bb.x, settings.bb.y);
+	texturePlaneXY->translate(glm::vec3(0, 0, 2));
+
+	Mesh_Ptr texturePlaneYZ = Primitives::createRectangle(settings.bb.y, settings.bb.z);
+	texturePlaneYZ->rotate(glm::vec3(0, 90 * DEG_TO_RAD,0));
+	texturePlaneYZ->applyMeshTransform();
+	texturePlaneYZ->rotate(glm::vec3(90 * DEG_TO_RAD, 0, 0));
+	texturePlaneYZ->applyMeshTransform();
+	texturePlaneYZ->translate(glm::vec3(0, 0, settings.bb.z / 2));
+
+	texture_debugXZ = Texture2D::create(settings.tex_size.x, settings.tex_size.z, 4, 16);
+	texture_debugXZ->setUnit(0);
+	texture_debugXY = Texture2D::create(settings.tex_size.x, settings.tex_size.y, 4, 16);
+	texture_debugXY->setUnit(1);
+	texture_debugYZ = Texture2D::create(settings.tex_size.y, settings.tex_size.z, 4, 16);
+	texture_debugYZ->setUnit(2);
+
+	Shader_Ptr plotShader = Shader::create("plot", "./assets/shaders/plot.vert", "./assets/shaders/plot.frag");
+
+	texturePlaneXZ->setShader(plotShader);
+	texturePlaneXY->setShader(plotShader);
+	texturePlaneYZ->setShader(plotShader);
+
+
+	/*
+	scene.add(texturePlaneXZ);
+	scene.add(texturePlaneXY);
+	scene.add(texturePlaneYZ);
+	*/
+
 	scene.add(floor);
 	scene.add(nozzle);
 	scene.add(TransformObject::create("origin"));
@@ -186,7 +268,7 @@ void AppLayer::InitGraphics() {
 
 void AppLayer::InitPhysics() {
 
-	simulator.readFile("assets/box.gcode");
+	//simulator.readFile("assets/box.gcode");
 
 	//Compute Shaders
 	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 9, false);
@@ -197,11 +279,14 @@ void AppLayer::InitPhysics() {
 	settings.setConstants(*prefixSum);
 	prefixSum->compile();
 
-
 	isoGen = ComputeShader::create("isoGen", "assets/shaders/solver/isoGen.comp", false);
 	settings.setConstants(*isoGen);
 	isoGen->compile();
 	isoGen->SetWorkgroupLayout(settings.iWkgCount);
+
+	texPlot = ComputeShader::create("texPlot", "assets/shaders/solver/texturePlot.comp", false);
+	settings.setConstants(*texPlot);
+	texPlot->compile();
 
 	//create particle system
 	ps = ParticleSystem::create("ParticleSystem", settings.pThread);
@@ -264,12 +349,19 @@ void AppLayer::InitPhysics() {
 	ps->link(isoGen->name(), "meta_buffer");
 	ps->link(isoGen->name(), binBuffer->name());
 
+	ps->link(texPlot->name(), "position_buffer");
+	ps->link(texPlot->name(), "predicted_position_buffer");
+	ps->link(texPlot->name(), "density_buffer");
+	ps->link(texPlot->name(), "temperature_buffer");
+	ps->link(texPlot->name(), "meta_buffer");
+	ps->link(texPlot->name(), binBuffer->name());
+
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
 	bs->detach(binShader);//test binding points
 
 
-	texture_debug = Texture2D::create(settings.volume_size.x, settings.volume_size.y, 4, 16);
+	
 
 	volume = Texture3D::create(settings.volume_size.x, settings.volume_size.y, settings.volume_size.z, 4, 16);
 	volume->setUnit(0);
@@ -288,6 +380,9 @@ void AppLayer::InitPhysics() {
 	isosurface->mesh()->scale(settings.bb * glm::vec3(1.0, 1.0, 1.0));
 
 	scene.add(isosurface);
+
+
+
 
 	scene.add(ps);
 	scene.add(bs);
@@ -542,6 +637,9 @@ void AppLayer::SpawnParticle() {
 	isoGen->use();
 	settings.numParticles.sync(*isoGen);
 
+	texPlot->use();
+	settings.numParticles.sync(*texPlot);
+
 	solver->use();
 }
 
@@ -732,18 +830,20 @@ void AppLayer::onImGuiRender() {
 
 	static bool first_frame = true;
 	static int debug_layer = 0;
+	float scale;
+	ImGui::Begin("Debug XY");
+	scale = 0.25;
+	ImGui::Image((void*)(intptr_t)texture_debugXY->id(), ImVec2(settings.tex_size.x * scale, settings.tex_size.y * scale), ImVec2(1, 1), ImVec2(0, 0));
+	ImGui::End();
 
-	ImGui::Begin("Debug");
-	if (ImGui::SliderInt("Layer", (int*)&debug_layer, 0, settings.volume_size.z - 1) || first_frame)
-	{
-		// Copy one layer of the 3D volume texture into the "debug" 2D texture for display
-		glCopyImageSubData(volume->id(), GL_TEXTURE_3D, 0, 0, 0, debug_layer,
-			texture_debug->id(), GL_TEXTURE_2D, 0, 0, 0, 0,
-			settings.volume_size.x, settings.volume_size.y, 1);
+	ImGui::Begin("Debug XZ");
+	scale = 0.25;
+	ImGui::Image((void*)(intptr_t)texture_debugXZ->id(), ImVec2(settings.tex_size.x * scale, settings.tex_size.z * scale), ImVec2(1, 1), ImVec2(0, 0));
+	ImGui::End();
 
-		first_frame = false;
-	}
-	ImGui::Image((void*)(intptr_t)texture_debug->id(), ImVec2(settings.volume_size.x, settings.volume_size.y), ImVec2(1, 1), ImVec2(0, 0));
+	ImGui::Begin("Debug YZ");
+	scale = 0.25;
+	ImGui::Image((void*)(intptr_t)texture_debugYZ->id(), ImVec2(settings.tex_size.y * scale, settings.tex_size.z * scale), ImVec2(1, 1), ImVec2(0, 0));
 	ImGui::End();
 
 	if (ImGui::Button("Debug")) {

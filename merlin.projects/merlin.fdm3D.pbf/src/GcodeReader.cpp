@@ -6,7 +6,10 @@
 
 using namespace Merlin;
 
-GcodeSimulator::GcodeSimulator() : m_current_position(0.0f), m_current_target(0.0f) {}
+GcodeSimulator::GcodeSimulator() : m_current_position(0.0f), m_current_target(0.0f) {
+    m_commands.push_back({ glm::vec4(0, 0, 2, 0) - glm::vec4(m_origin_offset,0), 50 });
+    m_commands.push_back({ glm::vec4(40, 0, 2, 80) - glm::vec4(m_origin_offset,0), 50 });
+}
 
 void GcodeSimulator::readFile(const std::string& filepath) {
     std::ifstream file(filepath);

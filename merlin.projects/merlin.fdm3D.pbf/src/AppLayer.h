@@ -27,6 +27,10 @@ public:
 
 	void SyncUniforms();
 
+	void genTexXY();
+	void genTexXZ();
+	void genTexYZ();
+
 	void NeigborSearch();
 	void Simulate(Merlin::Timestep ts);
 
@@ -42,6 +46,7 @@ private:
 	Renderer renderer;
 	
 	ComputeShader_Ptr isoGen;
+	ComputeShader_Ptr texPlot;
 	StagedComputeShader_Ptr solver;
 	StagedComputeShader_Ptr prefixSum;
 
@@ -65,7 +70,10 @@ private:
 
 	IsoSurface_Ptr isosurface;
 	Texture3D_Ptr volume;
-	Texture2D_Ptr texture_debug;
+
+	Texture2D_Ptr texture_debugXZ;
+	Texture2D_Ptr texture_debugXY;
+	Texture2D_Ptr texture_debugYZ;
 
 	double nns_time = 0;
 	double jacobi_time = 0;

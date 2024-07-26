@@ -1,0 +1,72 @@
+#version 430
+
+#pragma once
+#include "../../common/shaders/colors.comp"
+#include "../common/uniforms.comp"
+#include "../common/constants.comp"
+#include "../common/buffers.comp"
+#include "../common/nns.comp"
+#include "sph.kernels.comp" 
+
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+layout (rgba16f, binding = 0) writeonly uniform image2D u_output;
+
+float interpolate(in vec3 position){
+	float density = 0;
+
+	OVERNNS
+		float dist = distance(b_xj.xyz, position);
+		if(dist < 1e-6 || dist > H) continue;
+		float Wij = poly6(dist);
+
+		if(phase(j) == SOLID || phase(j) == FLUID)
+			density += mj * Wij;
+	OVERNNS_END
+	return density;
+}
+
+float interpolateHeat(in vec3 position){
+	float temp = 0;
+
+	OVERNNS
+		float dist = distance(b_xj.xyz, position);
+		if(dist < 1e-6 || dist > H) continue;
+		float Wij = poly6(dist);
+		if(phase(j) == SOLID || phase(j) == FLUID){
+			temp += b_Tj* Wij;
+		}
+	OVERNNS_END
+	return temp;
+}
+
+
+uniform vec3 axis;
+
+void main(){
+    ivec2 dims = imageSize(u_output).xy;
+    ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
+
+	vec2 uv = vec2(pixel_coords) / vec2(dims);
+	vec2 position = vec2(0);
+	float temp = 0;
+
+	if(axis == vec3(1,1,0)){
+		uv.x = uv.x * 2.0f - 1.0f;
+		uv.y = uv.y * 2.0f - 1.0f;
+		position = uv * vec2(cst_domain.xy);
+		temp = interpolateHeat(vec3(position.x, position.y, 2));
+	}else if(axis == vec3(1,0,1)){
+		uv.x = uv.x * 2.0f - 1.0f;
+		position = uv * vec2(cst_domain.xz);
+		temp = interpolateHeat(vec3(position.x, 22, position.y));
+	}else if(axis == vec3(0,1,1)){
+		uv.y = uv.y * 2.0f - 1.0f;
+		position = uv * vec2(cst_domain.yz);
+		temp = interpolateHeat(vec3(0, position.x, position.y));
+	}
+
+	imageStore(u_output, pixel_coords, vec4(colorMap(map(temp,275,275+300.0), inferno).rgb, temp > 0 ? 1:0 ));
+	return;
+
+}

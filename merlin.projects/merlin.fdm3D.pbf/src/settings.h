@@ -29,7 +29,7 @@ struct Settings {
 	float overRelaxation = 1.0;
 
 	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(100, 100, 70);
+	glm::vec3 bb = glm::vec3(100, 100, 30);
 
 	// Physics Parameters
 	float timestep									= 0.005;
@@ -72,7 +72,8 @@ struct Settings {
 	glm::ivec3 volume_size = glm::ivec3(int(bb.x / (volumeWidth)), int(bb.y / (volumeWidth)), int((bb.z) / (volumeWidth)));
 	glm::ivec3 iWkgCount = (volume_size + iWkgSize - glm::ivec3(1)) / iWkgSize; //Total number of workgroup needed
 
-
+	glm::ivec3 texWkgSize = glm::ivec3(8, 8, 8); //Number of thread per workgroup
+	glm::ivec3 tex_size = glm::ivec3(int(bb.x / (volumeWidth * 0.1)), int(bb.y / (volumeWidth * 0.1)), int(bb.z / (volumeWidth * 0.1)));
 
 	inline void setTimestep(float t) {
 		timestep = t;
