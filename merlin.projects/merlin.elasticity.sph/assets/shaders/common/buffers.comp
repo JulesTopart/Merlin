@@ -121,6 +121,7 @@ struct CopyContent {
     vec4 velocity;                 // 16 bytes
     float density;                 // 1 bytes
     float[3] padding;              // 3 bytes
+	vec4[3] rotation;
     uvec4 meta;                    // 16 bytes
 };
 

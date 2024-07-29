@@ -1,0 +1,35 @@
+//? #version 430
+#ifndef INCLUDE_MATH_GLSL
+#define INCLUDE_MATH_GLSL
+
+mat3 extractRotation(mat3 A, mat3 R, int maxIter) {
+    for (int iter = 0; iter < maxIter; iter++) {
+        vec3 omega = vec3(
+            cross(R[0], A[0]) + cross(R[1], A[1]) + cross(R[2], A[2])
+        ) * (1.0 / (abs(dot(R[0], A[0]) + dot(R[1], A[1]) + dot(R[2], A[2])) + 1.0e-9));
+        float w_ = length(omega);
+        if (w_ < 1.0e-9) break;
+
+        // Constructing the skew-symmetric matrix for omega
+        mat3 omega_skew = mat3(
+            0, -omega.z, omega.y,
+            omega.z, 0, -omega.x,
+            -omega.y, omega.x, 0
+        );
+
+        // Update the rotation matrix
+        R += omega_skew * R;
+
+        // Re-orthogonalize the rotation matrix to avoid drift
+        vec3 u = normalize(R[0]);
+        vec3 v = normalize(R[1] - dot(u, R[1]) * u);
+        vec3 w = cross(u, v);
+        R[0] = u;
+        R[1] = v;
+        R[2] = w;
+    }
+    return R;
+}
+
+
+#endif// INCLUDE_MATHHLSL

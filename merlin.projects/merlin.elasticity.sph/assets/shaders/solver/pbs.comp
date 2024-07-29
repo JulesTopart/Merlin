@@ -17,7 +17,7 @@ void pbs_step(uint i, uint kernel) {
 	if(kernel == 0){
 		//b_last_xi = b_xi;
 		b_xi.xyz = b_pi.xyz;
-		vec3 a = vec3(0, 0, -u_g);// + (pbs_computeForces(i)/mi);
+		vec3 a = vec3(0, 0, -u_g) + (pbs_computeForces(i)/mi)*1e-3;
 
 		//semi-implicit Euler integration (or Sympletic scheme)
 		b_vi.xyz += a * u_dt;
@@ -45,6 +45,8 @@ void pbs_step(uint i, uint kernel) {
 	
 	if(kernel == 4){	
 		pbs_computeDensity(i);
+		b_R_i = mat3(1);
+		b_sigma_i = sym_tensor3x3(0,0,0,0,0,0);
 		return;
 	}
 

@@ -7,32 +7,19 @@
 //?#include "../common/colors.comp"
 //?#include "../common/nns.comp"
 //?#include "sph.kernels.comp" 
+#include "../common/math.comp"
 
 //stress
-const float youngsModulus = 1e6;//MPa
-const float poissonRatio = 0.33;//dimless
+const float youngsModulus = 1e6*1e-3;//Pa -> g/mm/s2
+const float poissonRatio = 0.2;//dimless
 const float mu = youngsModulus / (2.0 * (1.0 + poissonRatio));
 const float lambda = youngsModulus * poissonRatio / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio));
 
-
-mat3 extractRotation(mat3 m) {
-    // Use the Gram-Schmidt process to orthogonalize the matrix
-    vec3 x = m[0];
-    vec3 y = m[1];
-    vec3 z = m[2];
-    
-    x = normalize(x);
-    y = normalize(y - dot(y, x) * x);
-    z = normalize(z - dot(z, x) * x - dot(z, y) * y);
-    
-    return mat3(x, y, z);
-}
-
-
 void pbs_computeRotation(uint i) {
-    vec3 xi = b_pi.xyz;
-    vec3 xi0 = b_last_xi.xyz;
-    mat3 R = mat3(0.0);
+    vec3 xi = b_pi.xyz; // i current position
+    vec3 xi0 = b_last_xi.xyz; // i reference position
+    mat3 R = b_R_i; // i current rotation
+    mat3 F = mat3(0);
 
 	vec3 position = b_last_xi.xyz;
    OVERNNS
@@ -45,11 +32,11 @@ void pbs_computeRotation(uint i) {
         vec3 xj_xi = xj - xi;
         vec3 xj_xi_0 = xj0 - xi0 ;
         float kernel = poly6(xj_xi_0);
-        R += mj * kernel * outerProduct(xj_xi*1e-3, xj_xi_0*1e-3);
+        F += mj * kernel * outerProduct(xj_xi, xj_xi_0);
         
     OVERNNS_END
 
-    b_R_i = extractRotation(R);
+    b_R_i = mat3(1);//extractRotation(F, R, 10);
 }
 
 sym_tensor3x3 multiplyMatrixByTensor(float matrix[6][6], sym_tensor3x3 tensor) {
@@ -83,52 +70,38 @@ sym_tensor3x3 multiplyMatrixByTensor(float matrix[6][6], sym_tensor3x3 tensor) {
     return result;
 }
 
+
+
 void pbs_computeStress(uint i) {
-    vec3 xi = b_pi.xyz;
-    vec3 xi0 = b_last_xi.xyz;
-    //mat3 F = mat3(0.0);
-    mat3 R = b_R_i;
+    vec3 xi = b_pi.xyz; // i current position
+    vec3 xi0 = b_last_xi.xyz; // i reference position
+    mat3 F = mat3(0.0); // Deformation tensor
+    mat3 R = mat3(1);//b_R_i; //rotation
 
-    float C[6][6];
-    for (int i = 0; i < 6; ++i) {
-        for (int j = 0; j < 6; ++j) {
-            C[i][j] = 0.0;
-        }
-    }
-
-    // Calculate the factor
-    float factor = youngsModulus / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio));
-
-    // Set the values in the matrix
-    C[0][0] = C[1][1] = C[2][2] = factor * (1.0 - poissonRatio);
-    C[0][1] = C[0][2] = C[1][0] = C[1][2] = C[2][0] = C[2][1] = factor * poissonRatio;
-    C[3][3] = C[4][4] = C[5][5] = factor * 0.5 * (1.0 - 2.0 * poissonRatio);
-
-
-    mat3 nablaU = mat3(0);
-
+    mat3 nablaU = mat3(0); //displacement gradient
 
 	vec3 position = b_last_xi.xyz;
    OVERNNS
         if(i == j) continue;
-        vec3 xj = b_pi.xyz;
+        vec3 xj = b_pj.xyz;
         vec3 xj0 = b_last_xj.xyz;
 
         if(distance(xi0, xj0) > H) continue;
 
-        vec3 xj_xi = xj - xi;
-        vec3 xj_xi_0 = xj0 - xi0;
-        vec3 kernel = poly6_grad(xj_xi_0);
-        float restVolume_j = (mj/b_rho_j)*1e-6; //g/(g/cm3) -> cm3 -> m3
-        vec3 uji = transpose(R) * (xj_xi - xj_xi_0)*1e-3;
-        nablaU -= outerProduct(restVolume_j * uji, kernel);
+        vec3 xj_xi = xj - xi;       //current distance between j and i
+        vec3 xj_xi_0 = xj0 - xi0;   //reference distance between j and i
+        vec3 kernel = -poly6_grad(xj_xi_0);
+        float restVolume_j = mj/b_rho_j; //g/(g/mm3) -> mm3
+        vec3 uji = transpose(R) * xj_xi - xj_xi_0;
+        nablaU += outerProduct(restVolume_j * uji, kernel); //dimensionless
     OVERNNS_END
-
+   
     // compute Deformation : F = nabla u + I
-    //F = nablaU + mat3(1);
+    F = nablaU + mat3(1); //dimensionless
     
     // compute Cauchy strain: epsilon = 0.5 (nabla u + nabla u^T) (voigt notation)
     sym_tensor3x3 E;
+
     E.xx = nablaU[0][0];
     E.yy = nablaU[1][1];
     E.zz = nablaU[2][2];
@@ -136,8 +109,15 @@ void pbs_computeStress(uint i) {
     E.xz = 0.5 * (nablaU[0][2] + nablaU[2][0]);
     E.yz = 0.5 * (nablaU[1][2] + nablaU[2][1]);
     
-    
-    b_sigma_i = multiplyMatrixByTensor(C, E);
+
+    // First Piola Kirchhoff stress = 2 mu epsilon + lambda trace(epsilon) I
+    float trace = E.xx + E.yy + E.zz;
+    float ltrace = lambda * trace;
+    vec3 stress_a = ltrace + vec3(E.xx , E.yy, E.zz) * 2.0 * mu;
+    vec3 stress_b = vec3(E.xy , E.xz, E.yz) * 2.0 * mu;
+
+
+    b_sigma_i = sym_tensor3x3(stress_a.x, stress_a.y, stress_a.z, stress_b.x, stress_b.y, stress_b.z);
 }
 
 vec3 symMatTimesVec(sym_tensor3x3 M, vec3 v){
@@ -148,42 +128,40 @@ vec3 symMatTimesVec(sym_tensor3x3 M, vec3 v){
     return res;
 }
 
+
 vec3 pbs_computeForces(uint i) {
     vec3 xi = b_pi.xyz;
     vec3 xi0 = b_last_xi.xyz;
 	vec3 position = b_last_xi.xyz;
 
-    mat3 R = b_R_i;
+    mat3 Ri =  mat3(1);//b_R_i;
     
-    const float restVolume_i = (mi/u_rho0)*1e-6; //g/(g/cm3) -> cm3 -> m3
+    const float restVolume_i = mi/u_rho0; //g/(g/mm3) -> mm3
+
     vec3 forces = vec3(0);
    OVERNNS
         if(i == j) continue;
-        vec3 xj = b_pi.xyz;
+        vec3 xj = b_pj.xyz;
         vec3 xj0 = b_last_xj.xyz;
+        mat3 Rj = mat3(1);//b_R_j;
         
         if(distance(xi0, xj0) > H) continue;
 
-        vec3 xj_xi_0 = (xj0 - xi0);//mm
-        const float restVolume_j = (mj/u_rho0)*1e-6; //g/(g/cm3) -> cm3 -> m3
+        vec3 xi_xj_0 = (xi0 - xj0);
+        const float restVolume_j = mj/u_rho0; //g/(g/mm3)-> mm3
 
-        vec3 kernel = poly6_grad(xj_xi_0);
+        vec3 kernel = poly6_grad(xi_xj_0);
 
-		const vec3 dji = restVolume_i * kernel;
-		const vec3 dij = -restVolume_j * kernel;
+		vec3 PWi = symMatTimesVec(b_sigma_i,  Ri*kernel);
+		vec3 PWj = symMatTimesVec(b_sigma_j, -Rj*kernel);
 
-		vec3 sdji = symMatTimesVec(b_sigma_j, dji);
-		vec3 sdij = symMatTimesVec(b_sigma_i, dij);
-
-		const vec3 fij = -restVolume_j * sdji;
-		const vec3 fji = -restVolume_i * sdij;
-
-		forces += R * fij - R * fji;
+		forces += restVolume_i * restVolume_j * (PWi - PWj);
        
     OVERNNS_END
 
     return forces;
 }
+
 
 void pbs_computeDensity(uint i){
 	float density = 0;

@@ -35,6 +35,10 @@ void copyBuffers(uint i){
 		ssbo_copy[i].velocity = ssbo_velocity[i];
 		ssbo_copy[i].density = ssbo_density[i];
 		ssbo_copy[i].meta = ssbo_meta[i];
+
+		ssbo_copy[i].rotation[0].xyz = ssbo_rotation[i][0];
+		ssbo_copy[i].rotation[1].xyz = ssbo_rotation[i][1];
+		ssbo_copy[i].rotation[2].xyz = ssbo_rotation[i][2];
 }
 
 void sortBuffers(uint i){
@@ -49,6 +53,8 @@ void sortBuffers(uint i){
 	ssbo_meta[newID].x				= ssbo_copy[i].meta.x;
 	ssbo_meta[newID].y				= ssbo_copy[i].meta.y;
 	ssbo_meta[newID].z				= ssbo_copy[i].meta.z;
+
+	ssbo_rotation[newID]			= mat3(ssbo_copy[i].rotation[0].xyz, ssbo_copy[i].rotation[1].xyz,ssbo_copy[i].rotation[2].xyz);
 
 	ssbo_meta[ssbo_copy[i].meta.z].w = newID;
 }

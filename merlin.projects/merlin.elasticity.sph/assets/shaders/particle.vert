@@ -61,9 +61,8 @@ void main() {
 	}else if(colorCycle == 2){ 
 		color = colorMap(map(b_rho_i*1000, 1000 * u_rho0, 1050 * u_rho0), warmcool);
 	}else if(colorCycle == 3){ 
-		
-
 		color = colorMap(map(computeVonMisesStress(ssbo_sigma[i]),0, 2e6), jet);//stress
+		//color = vec4(ssbo_sigma[i].xx, ssbo_sigma[i].yy, ssbo_sigma[i].zz, 1);///stress
 	}else if(colorCycle == 4){ 
 		color = colorMap(map(length(b_vi),0,1000.0), parula);
 	}else if(colorCycle == 5){ 

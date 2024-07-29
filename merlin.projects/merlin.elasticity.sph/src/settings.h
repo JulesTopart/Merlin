@@ -19,17 +19,17 @@ struct sym_tensor3x3 {
 };
 
 struct Settings {
-	const float particleRadius = 0.4;
-	const float smoothingRadius = 4 * particleRadius;
-	const float bWidth = smoothingRadius*1.0;
+	const float smoothingRadius = 0.5;
+	const float particleRadius = smoothingRadius/2.0;
+	const float bWidth = smoothingRadius*2.0;
 
 	//Boundary Volume dimensions 
 	glm::vec3 bb = glm::vec3(280, 50, 8);
 
 	// Physics Parameters
 	Uniform<float> dt								= Uniform<float>("u_dt", 0.5e-4);
-	Uniform<float> restDensity						= Uniform<float>("u_rho0", 1.43);//PLA
-	Uniform<float> particleMass = Uniform<float>("u_mass", particleRadius * particleRadius * particleRadius * restDensity.value());
+	Uniform<float> restDensity						= Uniform<float>("u_rho0", 1.43*1e-3);//PLA g/mm3
+	Uniform<float> particleMass						= Uniform<float>("u_mass", particleRadius * particleRadius * particleRadius * restDensity.value());
 
 	Uniform<float> viscosity						= Uniform<float>("u_viscosity", 0.0);
 	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 0 * 0.01);

@@ -20,6 +20,7 @@ struct CopyContent {
 	glm::vec4 v;
 	float density;
 	float pad[3];
+	float rotation[12];
 	glm::uvec4 meta;
 };
 
@@ -85,6 +86,9 @@ void AppLayer::SyncUniforms() {
 	settings.restDensity.sync(*solver);
 	settings.numParticles.sync(*solver);
 	settings.dt.sync(*solver);
+
+	Console::info() << "Total averaged solid mass (g): " << settings.particleMass() * settings.numParticles() << Console::endl;
+	Console::info() << "Total averaged solid volume (mm3): " << settings.restDensity() * pow(settings.particleRadius,3) * settings.numParticles() << Console::endl;
 
 	particleShader->use();
 	settings.numParticles.sync(*particleShader);
@@ -394,6 +398,7 @@ void AppLayer::onImGuiRender() {
 
 	if (ImGui::SmallButton("Reset simulation")) {
 		ResetSimulation();
+		firstRun = true;
 	}
 
 	static bool Pstate = true;
