@@ -51,17 +51,19 @@ void AppLayer::genTexXY() {
 	int x = (settings.tex_size.x - 1) / settings.texWkgSize.x;
 	int y = (settings.tex_size.y - 1) / settings.texWkgSize.y;
 
+	texture_debugXY->bindImage(0);
+
 	texPlot->setVec3("axis", glm::vec3(1, 1, 0));
 	texPlot->dispatch(x, y);
 	texPlot->barrier(GL_ALL_BARRIER_BITS);
 	
 }
 
-
-
 void AppLayer::genTexXZ() {
 	int x = (settings.tex_size.x - 1) / settings.texWkgSize.x;
 	int z = (settings.tex_size.z - 1) / settings.texWkgSize.z;
+
+	texture_debugXZ->bindImage(0);
 
 	texPlot->setVec3("axis", glm::vec3(1, 0, 1));
 	texPlot->dispatch(x, z);
@@ -70,8 +72,10 @@ void AppLayer::genTexXZ() {
 
 
 void AppLayer::genTexYZ() {
-	int y = (settings.tex_size.x - 1) / settings.texWkgSize.x;
-	int z = (settings.tex_size.y - 1) / settings.texWkgSize.y;
+	int y = (settings.tex_size.y - 1) / settings.texWkgSize.y;
+	int z = (settings.tex_size.z - 1) / settings.texWkgSize.z;
+
+	texture_debugYZ->bindImage(0);
 
 	texPlot->setVec3("axis", glm::vec3(0, 1, 1));
 	texPlot->dispatch(y, z);
@@ -128,9 +132,6 @@ void AppLayer::onUpdate(Timestep ts) {
 
 	ps->solveLink(texPlot);
 	texPlot->use();
-	texture_debugXZ->bindImage(0);
-	texture_debugXY->bindImage(1);
-	texture_debugYZ->bindImage(2);
 	genTexXY();
 	genTexXZ();
 	genTexYZ();
@@ -203,7 +204,7 @@ void AppLayer::InitGraphics() {
 
 	floor = Primitives::createFloor(50, 2);
 
-	static_emitter = Primitives::createCylinder(1.5, 0.6, 10);
+	static_emitter = Primitives::createCylinder(1, 2, 10);
 	static_emitter->translate(glm::vec3(0, 0, 0));
 	//scene.add(static_emitter);
 
@@ -244,9 +245,9 @@ void AppLayer::InitGraphics() {
 	texture_debugXZ = Texture2D::create(settings.tex_size.x, settings.tex_size.z, 4, 16);
 	texture_debugXZ->setUnit(0);
 	texture_debugXY = Texture2D::create(settings.tex_size.x, settings.tex_size.y, 4, 16);
-	texture_debugXY->setUnit(1);
+	texture_debugXY->setUnit(0);
 	texture_debugYZ = Texture2D::create(settings.tex_size.y, settings.tex_size.z, 4, 16);
-	texture_debugYZ->setUnit(2);
+	texture_debugYZ->setUnit(0);
 
 	Shader_Ptr plotShader = Shader::create("plot", "./assets/shaders/plot.vert", "./assets/shaders/plot.frag");
 
@@ -376,7 +377,7 @@ void AppLayer::InitPhysics() {
 	isosurface->mesh()->useVertexColors(true);
 	//isosurface->mesh()->useFlatShading(true);
 
-	//isosurface->mesh()->translate(settings.bb * glm::vec3(0, 0, 0.5));
+	isosurface->mesh()->translate(settings.bb * glm::vec3(0, 0, 1.0));
 	isosurface->mesh()->scale(settings.bb * glm::vec3(1.0, 1.0, 1.0));
 
 	scene.add(isosurface);
@@ -433,6 +434,7 @@ void AppLayer::ResetSimulation() {
 	static_emitter->voxelize(spacing);
 	positions = Voxelizer::getVoxelposition(static_emitter->getVoxels(), static_emitter->getBoundingBox(), spacing);
 
+	/**/
 	for (int i = 0; i < positions.size(); i++) {
 		//cpu_position.push_back(glm::vec4(positions[i], 0));
 		//cpu_temp.push_back(298.15); //ambient
@@ -442,7 +444,7 @@ void AppLayer::ResetSimulation() {
 	}
 	/**/
 
-	/**/
+	/*
 	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(0, 0.5 * spacing, 0), 1));
 	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(0.5 * spacing, -0.5 * spacing, 0), 1));
 	cpu_emitterPosition.push_back(glm::vec4(static_emitter->position() + glm::vec3(-0.5 * spacing, -0.5 * spacing, 0), 1));
@@ -832,17 +834,17 @@ void AppLayer::onImGuiRender() {
 	static int debug_layer = 0;
 	float scale;
 	ImGui::Begin("Debug XY");
-	scale = 0.25;
+	scale = 1;
 	ImGui::Image((void*)(intptr_t)texture_debugXY->id(), ImVec2(settings.tex_size.x * scale, settings.tex_size.y * scale), ImVec2(1, 1), ImVec2(0, 0));
 	ImGui::End();
 
 	ImGui::Begin("Debug XZ");
-	scale = 0.25;
+	scale = 1;
 	ImGui::Image((void*)(intptr_t)texture_debugXZ->id(), ImVec2(settings.tex_size.x * scale, settings.tex_size.z * scale), ImVec2(1, 1), ImVec2(0, 0));
 	ImGui::End();
 
 	ImGui::Begin("Debug YZ");
-	scale = 0.25;
+	scale = 1;
 	ImGui::Image((void*)(intptr_t)texture_debugYZ->id(), ImVec2(settings.tex_size.y * scale, settings.tex_size.z * scale), ImVec2(1, 1), ImVec2(0, 0));
 	ImGui::End();
 

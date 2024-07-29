@@ -19,10 +19,7 @@ struct CopyContent {
 	glm::vec4 dp;
 	glm::vec4 v;
 	float density;
-	float lambda;
-	float _paddingA;
-	float _paddingB;
-	float sigma[8];
+	float pad[3];
 	glm::uvec4 meta;
 };
 
@@ -69,8 +66,7 @@ void AppLayer::onUpdate(Timestep ts) {
 
 	if (!paused) {
 		GPU_PROFILE(solver_total_time,
-			if(use_real_time) Simulate(glm::max<float>(ts, 0.016));
-			else Simulate(settings.timestep);
+			Simulate(0);
 		)
 	}
 
@@ -127,7 +123,7 @@ void AppLayer::InitGraphics() {
 	renderer.addShader(binShader);
 
 	//sample = Primitives::createCube(10,10, 80);
-	sample = ModelLoader::loadMesh("./assets/models/tensile.test.flat.stl");
+	sample = ModelLoader::loadMesh("./assets/models/tensile.D5766.stl");
 	//sample->enableWireFrameMode();
 	//sample->centerMeshOrigin();
 	//sample->rotate(glm::vec3(0,90*DEG_TO_RAD,0));
@@ -148,7 +144,7 @@ void AppLayer::InitGraphics() {
 void AppLayer::InitPhysics() {
 
 	//Compute Shaders
-	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 6, false);
+	solver = StagedComputeShader::create("solver", "assets/shaders/solver/solver.comp", 7, false);
 	settings.setConstants(*solver);
 	solver->compile();
 	
@@ -185,6 +181,7 @@ void AppLayer::InitPhysics() {
 	ps->addField<float>("density_buffer");
 	ps->addField<float>("lambda_buffer");
 	ps->addField<float[8]>("stress_buffer");
+	ps->addField<float[12]>("rotation_buffer");
 	ps->addField<glm::uvec4>("meta_buffer");
 	ps->addField<CopyContent>("copy_buffer");
 	ps->addBuffer(binBuffer);
@@ -197,6 +194,7 @@ void AppLayer::InitPhysics() {
 	bs->solveLink(prefixSum);
 	bs->detach(prefixSum);//test binding points
 
+	ps->link(particleShader->name(), "last_position_buffer");
 	ps->link(particleShader->name(), "position_buffer");
 	ps->link(particleShader->name(), "velocity_buffer");
 	ps->link(particleShader->name(), "density_buffer");
@@ -257,7 +255,6 @@ void AppLayer::ResetSimulation() {
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 
 	settings.pThread = settings.numParticles();
-	settings.max_pThread = settings.numParticles();
 	settings.pWkgCount = (settings.pThread + settings.pWkgSize - 1) / settings.pWkgSize; //Total number of workgroup needed
 	settings.blockSize = std::floor(log2f(settings.bThread));
 	settings.blocks = (settings.bThread + settings.blockSize - 1) / settings.blockSize;
@@ -323,40 +320,34 @@ void AppLayer::NeigborSearch() {
 }
 
 
+static bool firstRun = true;
 
 void AppLayer::Simulate(Merlin::Timestep ts) {
-	elapsedTime += ts.getSeconds();
-	settings.setTimestep(ts.getSeconds());
-
-	ps->clearField("correction_buffer");
+	elapsedTime += settings.dt.value();
 
 	solver->use();
 	settings.dt.sync(*solver);
+
 	if (pullDistance < 20) {
-		pullDistance += 4 * ts.getSeconds();
+		pullDistance += 1.0 * settings.dt.value();
 		solver->setFloat("u_pullDistance", pullDistance);
 	}
-	GPU_PROFILE(solver_substep_time,
-		for (int i = 0; i < settings.solver_substep; i++) {
-			solver->execute(2);
 
-			GPU_PROFILE(nns_time,
-				NeigborSearch();
-			)
-
-			if (integrate) {
-				GPU_PROFILE(jacobi_time,
-				for (int j = 0; j < settings.solver_iteration; j++) {
-					solver->execute(3);
-					solver->execute(4);
-					
-				}
-				)
-				solver->execute(5);
-			}
-		}
+	GPU_PROFILE(nns_time,
+		NeigborSearch();
 	)
 
+	if (firstRun) {
+		solver->execute(6);
+		firstRun = false;
+	}
+
+	GPU_PROFILE(solver_time,
+		solver->execute(2);
+		solver->execute(3);
+		solver->execute(4);
+		solver->execute(5);
+	)
 }
 
 
@@ -424,25 +415,17 @@ void AppLayer::onImGuiRender() {
 	}
 
 
-	ImGui::DragInt("Solver substep", &settings.solver_substep, 1, 1, 200);
-	ImGui::DragInt("Solver iteration", &settings.solver_iteration, 1, 1, 200);
-
 	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
 		camera().setPosition(model_matrix_translation);
 	}
 
-	if (ImGui::InputFloat("Time step", &settings.timestep, 0.0, 0.02f)) {
-		solver->use();
-		solver->setFloat("dt", settings.timestep);
+	static float dt = settings.dt.value()*1.0e6;
+	if (ImGui::InputFloat("Time step (µs)", &dt, 0.0, 1000.0f)) {
+		settings.dt.value() = dt * 1.0e-6;
 	}
 
-	static float prev_time = settings.timestep;
-	if (ImGui::Checkbox("Real Time", &use_real_time)) {
-		if (!use_real_time) settings.timestep = prev_time;
-		else prev_time = settings.timestep;
-	}
 	
-	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.1, 2.0)) {
+	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.0 , 1.0)) {
 		solver->use();
 		settings.particleMass.sync(*solver);
 	}
@@ -453,23 +436,12 @@ void AppLayer::onImGuiRender() {
 		settings.restDensity.sync(*particleShader);
 	}
 
-	static float artificialPressureMultiplier = settings.artificialPressureMultiplier.value() * 1000.0;
-	if (ImGui::SliderFloat("Pressure multiplier", &artificialPressureMultiplier, 0.0, 10.0)) {
-		settings.artificialPressureMultiplier.value() = artificialPressureMultiplier * 0.001;
-		solver->use();
-		settings.artificialPressureMultiplier.sync(*solver);
-	}
 
 	static float artificialViscosityMultiplier = settings.artificialViscosityMultiplier.value() * 100.0;
 	if (ImGui::SliderFloat("XPSH Viscosity", &artificialViscosityMultiplier, 0.0, 200.0)) {
 		settings.artificialViscosityMultiplier.value() = artificialViscosityMultiplier * 0.01;
 		solver->use();
 		settings.artificialViscosityMultiplier.sync(*solver);
-	}
-
-	if (ImGui::SliderFloat("Viscosity", &settings.viscosity.value(), 0.0, 100.0)) {
-		solver->use();
-		solver->setFloat("viscosity", settings.viscosity.value());
 	}
 
 	static int colorMode = 4;
@@ -514,8 +486,7 @@ void AppLayer::onImGuiRender() {
 
 	ImGui::Begin("Performance");
 	ImGui::Text("Nearest Neighbor Search %.1f ms", nns_time);
-	ImGui::Text("Substep solver %.1f ms", solver_substep_time - nns_time);
-	ImGui::Text("Jacobi iteration %.1f ms", jacobi_time);
+	ImGui::Text("Solver %.1f ms", solver_time);
 	ImGui::Text("Total physics time %.1f ms", solver_total_time);
 	ImGui::Text("Render time %.1f ms", render_time);
 	ImGui::Text("Total frame time %.1f ms", total_time);
@@ -546,7 +517,13 @@ void AppLayer::onImGuiRender() {
 	}
 
 	if (ImGui::Button("Debug")) {
+
+		std::vector<glm::uvec4> metabuf;
+		metabuf.resize(settings.pThread);
+		ps->getField("meta_buffer")->readBuffer(settings.pThread*sizeof(glm::uvec4), metabuf.data());
+
 		throw("DEBUG");
+
 		Console::info() << "DEBUG" << Console::endl;
 	}
 	ImGui::End();

@@ -7,8 +7,8 @@
 using namespace Merlin;
 
 GcodeSimulator::GcodeSimulator() : m_current_position(0.0f), m_current_target(0.0f) {
-    m_commands.push_back({ glm::vec4(0, 0, 2, 0) - glm::vec4(m_origin_offset,0), 50 });
-    m_commands.push_back({ glm::vec4(40, 0, 2, 80) - glm::vec4(m_origin_offset,0), 50 });
+    m_commands.push_back({ glm::vec4(0, 0, 2, 0) - glm::vec4(m_origin_offset,0), 180 });
+    m_commands.push_back({ glm::vec4(40, 0, 2, 800) - glm::vec4(m_origin_offset,0), 30 });
 }
 
 void GcodeSimulator::readFile(const std::string& filepath) {
@@ -65,6 +65,7 @@ void GcodeSimulator::reset() {
     if (!m_commands.empty()) {
         m_current_target = m_commands[0].position; // Set the first target
         m_current_speed = m_commands[0].speed; // Set the first target
+        currentIndex = 0;
     }
 }
 
@@ -76,7 +77,7 @@ void GcodeSimulator::update(float dt) {
     if (glm::length(glm::vec3(delta)) < 0.1) {
         m_current_position = m_current_target;
         // Move to the next target if available
-        static size_t currentIndex = 0;
+        
         if (++currentIndex < m_commands.size()) {
             m_current_target = m_commands[currentIndex].position;
             m_current_speed = m_commands[currentIndex].speed; // Set the first target
@@ -94,6 +95,6 @@ glm::vec3 GcodeSimulator::getNozzlePosition() {
 }
 
 float GcodeSimulator::getExtruderDistance() {
-    if (m_current_target.w != m_current_position.w && m_current_target.w != 0) return m_current_speed;
+    if (m_current_target.w != m_current_position.w && m_current_target.w != 0) return m_current_speed * m_current_target.w/30;
        return 0.0;
 }

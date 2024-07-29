@@ -37,6 +37,9 @@
 #define b_rho_i ssbo_density[i]
 #define b_rho_j ssbo_density[j]
 
+#define b_R_i ssbo_rotation[i]
+#define b_R_j ssbo_rotation[j]
+
 //computation aliases (cost memory bandwidth and/or operations)
 #define c_Vij (b_vi.xyz - b_vj.xyz)
 #define c_Vji (b_vj.xyz - b_vi.xyz)
@@ -93,28 +96,32 @@ layout(std430) buffer BinBuffer {
 	Bin ssbo_bins[];
 };
 
-
-struct vec6{
-	vec4 a; 
-	vec4 b;
+struct sym_tensor3x3{
+	float xx;
+	float yy;
+	float zz;
+	float yz;
+	float xz;
+	float xy;
 };
 
 layout(std430) buffer stress_buffer {
-	vec6 ssbo_sigma[];
+	sym_tensor3x3 ssbo_sigma[];
 };
 
-struct CopyContent{
-	vec4 last_position;
-	vec4 position;
-	vec4 predicted_position;
-	vec4 position_correction;
-	vec4 velocity;
-	float density;
-	float lambda;
-	float _padding;
-	float _paddingB;
-	vec6  sigma;
-	uvec4 meta;
+layout(std430) buffer rotation_buffer {
+	mat3 ssbo_rotation[];
+};
+
+struct CopyContent {
+    vec4 last_position;            // 16 bytes
+    vec4 position;                 // 16 bytes
+    vec4 predicted_position;       // 16 bytes
+    vec4 position_correction;      // 16 bytes
+    vec4 velocity;                 // 16 bytes
+    float density;                 // 1 bytes
+    float[3] padding;              // 3 bytes
+    uvec4 meta;                    // 16 bytes
 };
 
 layout(std430) buffer copy_buffer {

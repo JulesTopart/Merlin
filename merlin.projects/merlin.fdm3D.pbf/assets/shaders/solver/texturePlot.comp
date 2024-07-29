@@ -34,7 +34,7 @@ float interpolateHeat(in vec3 position){
 		if(dist < 1e-6 || dist > H) continue;
 		float Wij = poly6(dist);
 		if(phase(j) == SOLID || phase(j) == FLUID){
-			temp += b_Tj* Wij;
+			temp += b_Tj * (mj/b_rho_j) * Wij;
 		}
 	OVERNNS_END
 	return temp;
@@ -50,23 +50,30 @@ void main(){
 	vec2 uv = vec2(pixel_coords) / vec2(dims);
 	vec2 position = vec2(0);
 	float temp = 0;
+	float density = 0;
 
 	if(axis == vec3(1,1,0)){
-		uv.x = uv.x * 2.0f - 1.0f;
-		uv.y = uv.y * 2.0f - 1.0f;
+		uv.x = uv.x - 0.5f;
+		uv.y = uv.y - 0.5f;
 		position = uv * vec2(cst_domain.xy);
 		temp = interpolateHeat(vec3(position.x, position.y, 2));
+		density = interpolate(vec3(position.x, position.y, 2));
+
 	}else if(axis == vec3(1,0,1)){
-		uv.x = uv.x * 2.0f - 1.0f;
+		uv.x = uv.x - 0.5f;
 		position = uv * vec2(cst_domain.xz);
-		temp = interpolateHeat(vec3(position.x, 22, position.y));
+		temp = interpolateHeat(vec3(position.x, 0, position.y));
+		density = interpolate(vec3(position.x, 0, position.y));
+
 	}else if(axis == vec3(0,1,1)){
-		uv.y = uv.y * 2.0f - 1.0f;
+		uv.x = uv.x - 0.5f;
 		position = uv * vec2(cst_domain.yz);
 		temp = interpolateHeat(vec3(0, position.x, position.y));
+		density = interpolate(vec3(0, position.x, position.y));	
 	}
 
-	imageStore(u_output, pixel_coords, vec4(colorMap(map(temp,275,275+300.0), inferno).rgb, temp > 0 ? 1:0 ));
+	imageStore(u_output, pixel_coords, vec4(colorMap(map(temp,275,275+300.0), inferno).rgb, density));
+	
 	return;
 
 }

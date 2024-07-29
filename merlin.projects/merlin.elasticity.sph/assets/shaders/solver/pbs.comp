@@ -17,59 +17,37 @@ void pbs_step(uint i, uint kernel) {
 	if(kernel == 0){
 		//b_last_xi = b_xi;
 		b_xi.xyz = b_pi.xyz;
-		vec3 a = vec3(0, 0, -u_g) + (computeForces(i)/mi);
+		vec3 a = vec3(0, 0, -u_g);// + (pbs_computeForces(i)/mi);
 
 		//semi-implicit Euler integration (or Sympletic scheme)
 		b_vi.xyz += a * u_dt;
 		b_pi.xyz += b_vi.xyz * u_dt;
-		//b_rho_i = computeDensity(i);
 		return;
 	}
+
 	if(kernel == 1){
-		computeStress(i);
+		pbs_computeRotation(i);
 		return;
 	}
 
 	if(kernel == 2){
-		//b_last_xi.xyz += computeForces(i) * 0.000001; //plasticity
-		//b_pi.xyz += computeForces(i) * 0.0001;
-
-		b_pi.xyz += boundary_solveFloorCollision(i); //apply floor induced deformation
+		pbs_computeStress(i);
 		return;
 	}
 
 	if(kernel == 3){	
 		b_vi.xyz = (b_pi.xyz - b_xi.xyz)/u_dt; // First order velocity update
-		b_vi.xyz += pbs_computeXPSH(i);
-		//b_vi.xyz = vec3(0);
+		//b_vi.xyz += pbs_computeXPSH(i);
 
 		vec3 xi = b_pi.xyz;
-		/*
-		vec6 smoothStress = vec6(vec4(0), vec4(0));
-		vec3 position = b_pi.xyz;
-		int n = 0;
-		OVERNNS
-			if(i == j) continue;
-			vec3 xj = b_xj.xyz;
-
-			
-			if(distance(xi, xj) > H) continue;
-
-			n++;
-			smoothStress.a += b_sigma_j.a;
-			smoothStress.b += b_sigma_j.b;
-       
-		OVERNNS_END
-
-		if(n > 1){
-			smoothStress.a /= float(n);
-			smoothStress.b /= float(n);
-			b_sigma_i = smoothStress;
-		}*/
-
-		
-
+		return;
+	}
+	
+	if(kernel == 4){	
+		pbs_computeDensity(i);
 		return;
 	}
 
 }
+
+

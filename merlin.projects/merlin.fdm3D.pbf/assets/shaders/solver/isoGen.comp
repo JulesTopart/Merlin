@@ -57,7 +57,7 @@ void main()
     ivec3 pixel_coords = ivec3(gl_GlobalInvocationID.xyz);
 
 	vec3 uvw = vec3(pixel_coords) / vec3(dims);
-    uvw = uvw * 2.0f - 1.0f;
+    uvw = uvw * vec3(2.0f,2.0f, 1.0f) - vec3(1.0f, 1.0f, 0.0f);
    
 	vec3 position = uvw * vec3(cst_domain);
 

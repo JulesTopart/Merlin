@@ -25,11 +25,26 @@ uniform int showBoundary = 0;
 uniform vec2 WindowSize;
 uniform float zoomLevel = 20;
 
+float computeVonMisesStress(sym_tensor3x3 sigma) {
+
+    float vonMises = sqrt(
+        0.5 * (
+            pow(sigma.xx - sigma.yy, 2.0) + 
+            pow(sigma.yy - sigma.zz, 2.0) + 
+            pow(sigma.zz - sigma.xx, 2.0) + 
+            6.0 * (pow(sigma.xy, 2.0) + pow(sigma.yz, 2.0) + pow(sigma.xz, 2.0))
+        )
+    );
+
+    return vonMises;
+}
+
 void main() {
 	uint i = gl_InstanceID;
 	vec3 offset = b_xi.xyz;
 	position = model * (vec4(_position + vec3(offset),1));
 
+	uint testID = id(particleTest);
 	uint testsortedID = sorted_id(particleTest);
 	
 	bool binTest = true;
@@ -48,7 +63,7 @@ void main() {
 	}else if(colorCycle == 3){ 
 		
 
-		color = colorMap(map(length(ssbo_sigma[i].a + ssbo_sigma[i].b),0,1000.0), jet);//stress
+		color = colorMap(map(computeVonMisesStress(ssbo_sigma[i]),0, 2e6), jet);//stress
 	}else if(colorCycle == 4){ 
 		color = colorMap(map(length(b_vi),0,1000.0), parula);
 	}else if(colorCycle == 5){ 
@@ -60,7 +75,7 @@ void main() {
 		}else{
 
 			binTest = false;
-			uvec3 binIndexVec3 = getBinCoord(ssbo_predicted_position[testsortedID].xyz);
+			uvec3 binIndexVec3 = getBinCoord(ssbo_last_position[testsortedID].xyz);
 			for (int z = int(binIndexVec3.z) - 1; z <= int(binIndexVec3.z) + 1; z++) {
 				for (int y = int(binIndexVec3.y) - 1; y <= int(binIndexVec3.y) + 1; y++) {
 					for (int x = int(binIndexVec3.x) - 1; x <= int(binIndexVec3.x) + 1; x++) {
@@ -71,11 +86,11 @@ void main() {
 				}
 			}
 
-			vec3 position = ssbo_predicted_position[testsortedID].xyz;
+			vec3 position = ssbo_last_position[testsortedID].xyz;
 			OVERNNS
 				if(gl_InstanceID == j){
 					nnTest = true;
-					if(length(ssbo_predicted_position[testsortedID].xyz - b_pj.xyz) <= cst_smoothingRadius) hTest = true;
+					if(distance(ssbo_last_position[testsortedID].xyz,  ssbo_last_position[j].xyz) < cst_smoothingRadius) hTest = true;
 				}
 			OVERNNS_END
 
@@ -96,7 +111,7 @@ void main() {
 		
 		gl_Position = screen_position;
 		gl_PointSize = 4.0*cst_particleRadius*400.0/(gl_Position.w);
-		if(colorCycle == 5 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = 400.0/(gl_Position.w);
+		if(colorCycle == 6 && !hTest && !(gl_InstanceID == particleTest)) gl_PointSize = 400.0/(gl_Position.w);
 		
 	}
 }

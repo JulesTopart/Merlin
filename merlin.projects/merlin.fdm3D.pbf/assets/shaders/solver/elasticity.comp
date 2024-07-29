@@ -8,13 +8,13 @@
 //?#include "../common/nns.comp"
 //?#include "sph.kernels.comp" 
 
-const float restVolume = 0.001;//g
+
 
 void computeStress(uint i) {
     vec3 xi = b_pi.xyz;
     vec3 xi0 = b_last_xi.xyz;
     mat3 F = mat3(0.0);
-
+	const float restVolume = (mi/u_rho0)*0.1;
     //deformation
 	vec3 position = b_pi.xyz;
    OVERNNS
@@ -22,7 +22,7 @@ void computeStress(uint i) {
         vec3 xj = b_xj.xyz;
         vec3 xj0 = b_last_xj.xyz;
 
-        if(distance(xi0, xj0) > H || distance(xi, xj) > 2*H) continue;
+        if(distance(xi0, xj0) > 2.0*H || distance(xi, xj) > 2.0*H) continue;
 
         if(phase(j) == SOLID){
             vec3 xj_xi = xj - xi;
@@ -81,7 +81,7 @@ vec3 computeForces(uint i) {
         vec3 xj = b_xj.xyz;
         vec3 xj0 = b_last_xj.xyz;
         
-        if(distance(xi0, xj0) > H || distance(xi, xj) > 2*H) continue;
+        if(distance(xi0, xj0) > 2.0*H || distance(xi, xj) > 2.0*H) continue;
 
         if(phase(j) == SOLID){
             vec3 xj_xi = xj - xi;
@@ -111,7 +111,7 @@ float computeDensity(uint i){
 	OVERNNS
 		if(j == i) continue;
 		float dist = c_Dij;
-		if(dist < 1e-6 || dist > H) continue;
+		if(dist < 1e-6 || dist > 2.0*H) continue;
 		float Wij = poly6(dist);
 
 		if(phase(j) == SOLID)
@@ -129,7 +129,7 @@ vec3 pbs_computeXPSH(uint i){
 		if(j == i) continue;
 
 		float dist = c_Dij;
-		if(dist < 1e-6 || dist > H) continue;
+		if(dist < 1e-6 || dist > 2.0*H) continue;
 		float Wij = poly6(dist);
 
 		if(phase(j) == FLUID)
@@ -137,7 +137,7 @@ vec3 pbs_computeXPSH(uint i){
 		else if(phase(j) == SOLID)
 			xsphSum += (mj/b_rho_j) * c_Vji * Wij;
        else if(phase(j) == BOUNDARY)
-			xsphSum += 10.0*(1.0/b_rho_j) * c_Vji * Wij;
+			xsphSum += 5.0*(1.0/b_rho_j) * c_Vji * Wij;
 
 	OVERNNS_END
 
@@ -185,7 +185,7 @@ vec3 pbs_computeContactDelta(uint i) {
 			vec3 xj0 = b_last_xj.xyz;
 		    float l0 = distance(xi0, xj0);
 		
-		    if(l0 >= H || c_Dij < 1e-6) continue; //Ignore particle that are too far
+		    if(l0 >= 2.0*H || c_Dij < 1e-6) continue; //Ignore particle that are too far
 
 		    float l = c_Dij; // Calculate the current length
 		

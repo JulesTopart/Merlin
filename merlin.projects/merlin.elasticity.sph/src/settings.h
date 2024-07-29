@@ -9,29 +9,31 @@ struct Bin {
 	GLuint index; //bin index
 };
 
+struct sym_tensor3x3 {
+	float xx;
+	float yy;
+	float zz;
+	float xy;
+	float yz;
+	float zx;
+};
 
 struct Settings {
-	const float particleRadius = 0.3;
+	const float particleRadius = 0.4;
 	const float smoothingRadius = 4 * particleRadius;
 	const float bWidth = smoothingRadius*1.0;
 
-	//Solver settings
-	int solver_substep = 1;
-	int solver_iteration = 1;
-	float overRelaxation = 1.0;
-
-	//Boundary Volume dimensions
-	glm::vec3 bb = glm::vec3(230, 30, 30);
+	//Boundary Volume dimensions 
+	glm::vec3 bb = glm::vec3(280, 50, 8);
 
 	// Physics Parameters
-	float timestep									= 0.0001;
-	Uniform<float> dt								= Uniform<float>("u_dt", timestep / solver_substep);
-	Uniform<float> restDensity						= Uniform<float>("u_rho0", 1.0);
-	Uniform<float> particleMass						= Uniform<float>("u_mass", 1.0 * particleRadius * 2.0 * 0.1);
+	Uniform<float> dt								= Uniform<float>("u_dt", 0.5e-4);
+	Uniform<float> restDensity						= Uniform<float>("u_rho0", 1.43);//PLA
+	Uniform<float> particleMass = Uniform<float>("u_mass", particleRadius * particleRadius * particleRadius * restDensity.value());
 
-	Uniform<float> viscosity						= Uniform<float>("u_viscosity", 0.5);
-	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 160 * 0.01);
-	Uniform<float> artificialPressureMultiplier		= Uniform<float>("u_artificialPressureMultiplier",  4 * 0.001);
+	Uniform<float> viscosity						= Uniform<float>("u_viscosity", 0.0);
+	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 0 * 0.01);
+	Uniform<float> artificialPressureMultiplier		= Uniform<float>("u_artificialPressureMultiplier",  0 * 0.001);
 
 	//calculated (don't change value here)
 	Uniform<GLuint> numParticles					= Uniform<GLuint>("u_numParticles", 0);
@@ -40,24 +42,15 @@ struct Settings {
 	float stiffness = 0.0;
 
 	//GPU Threading settings
-	GLuint max_pThread = 6600; //Max Number of particles (thread) (10 milion)
 	GLuint pThread = 1;
 	GLuint pWkgSize = 512; //Number of thread per workgroup
 	GLuint pWkgCount = (pThread + pWkgSize - 1) / pWkgSize; //Total number of workgroup needed
 
-	GLuint bWkgSize = 512; //Number of thread per workgroup
+	GLuint bWkgSize = 64; //Number of thread per workgroup
 	GLuint bThread = int(bb.x / (bWidth)) * int(bb.y / (bWidth)) * int(bb.z / (bWidth)); //Total number of bin (thread)
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
-
-	GLuint cThread = max_pThread * 32; //Max Number of constraint (thread) (32 * 1M)
-
-
-	inline void setTimestep(float t) {
-		timestep = t;
-		dt = timestep / solver_substep;
-	}
 
 
 	inline void setConstants(ShaderBase& shader) {

@@ -26,7 +26,7 @@ void main() {
 }
 
 void copyBuffers(uint i){
-		uint bin = bin_index(i) = getBinIndex(b_pi.xyz);
+		uint bin = bin_index(i) = getBinIndex(b_last_xi.xyz);
 		atomicAdd(ssbo_bins[bin].count, 1);
 		ssbo_copy[i].last_position = ssbo_last_position[i];
 		ssbo_copy[i].position = ssbo_position[i];
@@ -34,8 +34,6 @@ void copyBuffers(uint i){
 		ssbo_copy[i].position_correction = ssbo_position_correction[i];
 		ssbo_copy[i].velocity = ssbo_velocity[i];
 		ssbo_copy[i].density = ssbo_density[i];
-		ssbo_copy[i].lambda = ssbo_lambda[i];
-		ssbo_copy[i].sigma = ssbo_sigma[i];
 		ssbo_copy[i].meta = ssbo_meta[i];
 }
 
@@ -48,11 +46,11 @@ void sortBuffers(uint i){
 	ssbo_position_correction[newID] = ssbo_copy[i].position_correction;
 	ssbo_velocity[newID]			= ssbo_copy[i].velocity;
 	ssbo_density[newID]				= ssbo_copy[i].density;
-	ssbo_lambda[newID]				= ssbo_copy[i].lambda;
-	ssbo_sigma[newID]				= ssbo_copy[i].sigma;
-	ssbo_meta[newID]				= ssbo_copy[i].meta;
+	ssbo_meta[newID].x				= ssbo_copy[i].meta.x;
+	ssbo_meta[newID].y				= ssbo_copy[i].meta.y;
+	ssbo_meta[newID].z				= ssbo_copy[i].meta.z;
 
-	ssbo_meta[ssbo_meta[newID].z].z = newID;
+	ssbo_meta[ssbo_copy[i].meta.z].w = newID;
 }
 
 void exec(uint index, uint kernel){
@@ -70,7 +68,6 @@ void exec(uint index, uint kernel){
 			ssbo_predicted_position[index] = ssbo_position[index] = ssbo_last_position[index] - vec4(u_pullDistance, 0, 0, 0);
 		else if(phase(index) == SOLIDB)
 			ssbo_predicted_position[index] = ssbo_position[index] = ssbo_last_position[index] + vec4(u_pullDistance,0, 0, 0);
-		ssbo_density[index] = boundary_computePseudoMass(index);
 		break;
 	case 3: 
 		pbs_step(index, 1);
@@ -78,8 +75,11 @@ void exec(uint index, uint kernel){
 	case 4:
 		pbs_step(index, 2);
 		break;
-	case 5: 
+	case 5:
 		pbs_step(index, 3);
+		break;
+	case 6:
+		pbs_step(index, 4); //to compute initial values
 		break;
 	}
 
