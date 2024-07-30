@@ -40,7 +40,12 @@ namespace Merlin {
 		void setIVec2(const std::string name, glm::ivec2 value) const;
 		void setIVec3(const std::string name, glm::ivec3 value) const;
 		void setIVec4(const std::string name, glm::ivec4 value) const;
+		void setDVec2(const std::string name, glm::dvec2 value) const;
+		void setDVec3(const std::string name, glm::dvec3 value) const;
+		void setDVec4(const std::string name, glm::dvec4 value) const;
+		void setMat3(const std::string name, glm::mat3 mat) const;
 		void setMat4(const std::string name, glm::mat4 mat) const;
+
 		void setIntArray(const std::string name, GLint* values, uint32_t count) const;
 
 
@@ -57,7 +62,13 @@ namespace Merlin {
 		void setConstIVec2(const std::string name, glm::ivec2 value);
 		void setConstIVec3(const std::string name, glm::ivec3 value);
 		void setConstIVec4(const std::string name, glm::ivec4 value);
+		void setConstDVec2(const std::string name, glm::dvec2 value);
+		void setConstDVec3(const std::string name, glm::dvec3 value);
+		void setConstDVec4(const std::string name, glm::dvec4 value);
+		void setConstMat3(const std::string name, glm::mat3 mat);
 		void setConstMat4(const std::string name, glm::mat4 mat);
+		void setConstDMat3(const std::string name, glm::dmat3 mat);
+		void setConstDMat4(const std::string name, glm::dmat4 mat);
 
 		void define(const std::string& name, const std::string& value);
 
@@ -162,6 +173,11 @@ namespace Merlin {
 	}
 
 	template<>
+	inline void Uniform<glm::dvec2>::sync(ShaderBase& shader) {
+		shader.setDVec2(m_name, m_data);
+	}
+
+	template<>
 	inline void Uniform<glm::vec3>::sync(ShaderBase& shader) {
 		shader.setVec3(m_name, m_data);
 	}
@@ -172,6 +188,10 @@ namespace Merlin {
 	template<>
 	inline void Uniform<glm::uvec3>::sync(ShaderBase& shader) {
 		shader.setUVec3(m_name, m_data);
+	}
+	template<>
+	inline void Uniform<glm::dvec3>::sync(ShaderBase& shader) {
+		shader.setDVec3(m_name, m_data);
 	}
 
 	template<>
@@ -186,11 +206,21 @@ namespace Merlin {
 	inline void Uniform<glm::uvec4>::sync(ShaderBase& shader) {
 		shader.setUVec4(m_name, m_data);
 	}
+	template<>
+	inline void Uniform<glm::dvec4>::sync(ShaderBase& shader) {
+		shader.setDVec4(m_name, m_data);
+	}
 
 	template<>
 	inline void Uniform<glm::mat4>::sync(ShaderBase& shader) {
 		shader.setMat4(m_name, m_data);
 	}
+
+	template<>
+	inline void Uniform<glm::mat3>::sync(ShaderBase& shader) {
+		shader.setMat3(m_name, m_data);
+	}
+
 
 	template<class T>
 	using UniformObject = Uniform<T>;

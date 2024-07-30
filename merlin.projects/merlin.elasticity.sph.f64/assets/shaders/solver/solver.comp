@@ -1,0 +1,95 @@
+#version 430
+
+#pragma once
+#pragma optionNV(fastmath off)
+#pragma optionNV(fastprecision off)
+
+#include "../common/uniforms.comp"
+#include "../common/constants.comp"
+#include "../common/buffers.comp"
+#include "../common/colors.comp"
+#include "../common/nns.comp"
+#include "sph.kernels.comp"
+#include "boundary.comp"
+#include "elasticity.comp"
+#include "pbs.comp"
+
+
+layout (local_size_x = PTHREAD) in;
+
+uniform uint stage;
+void exec(uint index, uint kernel);
+
+// XPBD_Main
+void main() {
+	uint index = gl_GlobalInvocationID.x;
+	if (index >= u_numParticles) return;
+
+	exec(index, stage);
+}
+
+void copyBuffers(uint i){
+		uint bin = bin_index(i) = getBinIndex(b_last_xi.xyz);
+		atomicAdd(ssbo_bins[bin].count, 1);
+		ssbo_copy[i].last_position = ssbo_last_position[i];
+		ssbo_copy[i].position = ssbo_position[i];
+		ssbo_copy[i].predicted_position = ssbo_predicted_position[i];
+		ssbo_copy[i].position_correction = ssbo_position_correction[i];
+		ssbo_copy[i].velocity = ssbo_velocity[i];
+		ssbo_copy[i].density = ssbo_density[i];
+		ssbo_copy[i].meta = ssbo_meta[i];
+
+		ssbo_copy[i].rotation[0].xyz = ssbo_rotation[i][0];
+		ssbo_copy[i].rotation[1].xyz = ssbo_rotation[i][1];
+		ssbo_copy[i].rotation[2].xyz = ssbo_rotation[i][2];
+}
+
+void sortBuffers(uint i){
+	uint newID = atomicAdd(ssbo_bins[ssbo_copy[i].meta.y].index, -1) -1;
+
+	ssbo_last_position[newID]		= ssbo_copy[i].last_position;
+	ssbo_position[newID]			= ssbo_copy[i].position;
+	ssbo_predicted_position[newID]	= ssbo_copy[i].predicted_position;
+	ssbo_position_correction[newID] = ssbo_copy[i].position_correction;
+	ssbo_velocity[newID]			= ssbo_copy[i].velocity;
+	ssbo_density[newID]				= ssbo_copy[i].density;
+	ssbo_meta[newID].x				= ssbo_copy[i].meta.x;
+	ssbo_meta[newID].y				= ssbo_copy[i].meta.y;
+	ssbo_meta[newID].z				= ssbo_copy[i].meta.z;
+
+	ssbo_rotation[newID]			= mat3(ssbo_copy[i].rotation[0].xyz, ssbo_copy[i].rotation[1].xyz,ssbo_copy[i].rotation[2].xyz);
+
+	ssbo_meta[ssbo_copy[i].meta.z].w = newID;
+}
+
+void exec(uint index, uint kernel){
+	switch(kernel){
+	case 0: 
+		copyBuffers(index);
+		break;
+	case 1: 
+		sortBuffers(index);
+		break;
+	case 2:
+		if(phase(index) == SOLID)
+			pbs_step(index, 0);
+		else if(phase(index) == SOLIDA)
+			ssbo_predicted_position[index] = ssbo_position[index] = ssbo_last_position[index] - vec4(u_pullDistance, 0, 0, 0);
+		else if(phase(index) == SOLIDB)
+			ssbo_predicted_position[index] = ssbo_position[index] = ssbo_last_position[index] + vec4(u_pullDistance,0, 0, 0);
+		break;
+	case 3: 
+		pbs_step(index, 1);
+		break;
+	case 4:
+		pbs_step(index, 2);
+		break;
+	case 5:
+		pbs_step(index, 3);
+		break;
+	case 6:
+		pbs_step(index, 4); //to compute initial values
+		break;
+	}
+
+}

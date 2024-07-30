@@ -103,6 +103,11 @@ namespace Merlin {
 		glUniformMatrix4fv(getUniformLocation(name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 	}
 
+	void ShaderBase::setMat3(const std::string name, glm::mat3 mat) const {
+		if (!isCompiled()) return;
+		glUniformMatrix3fv(getUniformLocation(name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+	}
+
 	void ShaderBase::setVec4(const std::string name, glm::vec4 value) const {
 		if (!isCompiled()) return;
 		glUniform4fv(getUniformLocation(name.c_str()), 1, glm::value_ptr(value));
@@ -116,6 +121,11 @@ namespace Merlin {
 	void ShaderBase::setUVec4(const std::string name, glm::uvec4 value) const {
 		if (!isCompiled()) return;
 		glUniform4ui(getUniformLocation(name.c_str()), value.x, value.y, value.z, value.w);
+	}
+
+	void ShaderBase::setDVec4(const std::string name, glm::dvec4 value) const {
+		if (!isCompiled()) return;
+		glUniform4d(getUniformLocation(name.c_str()), value.x, value.y, value.z, value.w);
 	}
 
 	void ShaderBase::setVec3(const std::string name, glm::vec3 value) const {
@@ -133,6 +143,11 @@ namespace Merlin {
 		glUniform3ui(getUniformLocation(name.c_str()), value.x, value.y, value.z);
 	}
 
+	void ShaderBase::setDVec3(const std::string name, glm::dvec3 value) const {
+		if (!isCompiled()) return;
+		glUniform3d(getUniformLocation(name.c_str()), value.x, value.y, value.z);
+	}
+
 	void ShaderBase::setVec2(const std::string name, glm::vec2 value) const {
 		if (!isCompiled()) return;
 		glUniform2fv(getUniformLocation(name.c_str()), 1, glm::value_ptr(value));
@@ -146,6 +161,11 @@ namespace Merlin {
 	void ShaderBase::setUVec2(const std::string name, glm::uvec2 value) const {
 		if (!isCompiled()) return;
 		glUniform2ui(getUniformLocation(name.c_str()), value.x, value.y);
+	}
+
+	void ShaderBase::setDVec2(const std::string name, glm::dvec2 value) const {
+		if (!isCompiled()) return;
+		glUniform2d(getUniformLocation(name.c_str()), value.x, value.y);
 	}
 
 	void ShaderBase::setIntArray(const std::string name, GLint* values, uint32_t count) const {
@@ -182,7 +202,37 @@ namespace Merlin {
 			for (int j = 0; j < 4; j++)
 				value += std::to_string(float(mat[i][j])) + ((i + j * 4 < 15) ? "," : "");
 
-		m_constants[name] = "const double " + name + " = " + value;
+		m_constants[name] = "const mat4 " + name + " = " + value;
+	}
+
+	void ShaderBase::setConstMat3(const std::string name, glm::mat3 mat) {
+		std::string value = "";
+
+		for (int i = 0; i < 4; i++)
+			for (int j = 0; j < 4; j++)
+				value += std::to_string(float(mat[i][j])) + ((i + j * 4 < 15) ? "," : "");
+
+		m_constants[name] = "const mat3 " + name + " = " + value;
+	}
+
+	void ShaderBase::setConstDMat3(const std::string name, glm::dmat3 mat) {
+		std::string value = "";
+
+		for (int i = 0; i < 4; i++)
+			for (int j = 0; j < 4; j++)
+				value += std::to_string(double(mat[i][j])) + ((i + j * 4 < 15) ? "," : "");
+
+		m_constants[name] = "const dmat3 " + name + " = " + value;
+	}
+
+	void ShaderBase::setConstDMat4(const std::string name, glm::dmat4 mat) {
+		std::string value = "";
+
+		for (int i = 0; i < 4; i++)
+			for (int j = 0; j < 4; j++)
+				value += std::to_string(double(mat[i][j])) + ((i + j * 4 < 15) ? "," : "");
+
+		m_constants[name] = "const dmat4 " + name + " = " + value;
 	}
 
 
@@ -214,6 +264,15 @@ namespace Merlin {
 		m_constants[name] = "const uvec4 " + name + " = uvec4(" + value + ")";
 	}
 
+	void ShaderBase::setConstDVec4(const std::string name, glm::dvec4 vec) {
+		std::string value = "";
+
+		for (int i = 0; i < 4; i++)
+			value += std::to_string(GLuint(vec[i])) + ((i < 3) ? "," : "");
+
+		m_constants[name] = "const dvec4 " + name + " = dvec4(" + value + ")";
+	}
+
 	void ShaderBase::setConstVec3(const std::string name, glm::vec3 vec) {
 		std::string value = "";
 
@@ -241,6 +300,15 @@ namespace Merlin {
 		m_constants[name] = "const uvec3 " + name + " = uvec3(" + value + ")";
 	}
 
+	void ShaderBase::setConstDVec3(const std::string name, glm::dvec3 vec) {
+		std::string value = "";
+
+		for (int i = 0; i < 3; i++)
+			value += std::to_string(GLuint(vec[i])) + ((i < 2) ? "," : "");
+
+		m_constants[name] = "const dvec3 " + name + " = dvec3(" + value + ")";
+	}
+
 	void ShaderBase::setConstVec2(const std::string name, glm::vec2 vec)  {
 		std::string value = "";
 
@@ -266,6 +334,15 @@ namespace Merlin {
 			value += std::to_string(GLuint(vec[i])) + ((i < 1) ? "," : "");
 
 		m_constants[name] = "const uvec2 " + name + " = uvec2(" + value + ")";
+	}
+
+	void ShaderBase::setConstDVec2(const std::string name, glm::dvec2 vec) {
+		std::string value = "";
+
+		for (int i = 0; i < 2; i++)
+			value += std::to_string(GLuint(vec[i])) + ((i < 1) ? "," : "");
+
+		m_constants[name] = "const dvec2 " + name + " = dvec2(" + value + ")";
 	}
 
 	void ShaderBase::define(const std::string& name, const std::string& value) {

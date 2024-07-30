@@ -1,0 +1,17 @@
+//? #version 430
+#ifndef INCLUDE_UNIFORMS_GLSL
+#define INCLUDE_UNIFORMS_GLSL
+
+uniform double u_rho0 = 1.0;
+uniform double u_mass = 1.0;
+
+uniform double u_dt = 0.005;//s
+uniform double u_g = 9.81f*0.0;//mm/s^-2
+
+uniform uint u_numParticles = 0;
+uniform uint u_maxParticles = 0;
+uniform uint u_numEmitter = 0;
+
+uniform double u_pullDistance = 0.0;
+
+#endif

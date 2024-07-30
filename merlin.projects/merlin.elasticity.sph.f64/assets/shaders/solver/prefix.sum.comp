@@ -1,0 +1,74 @@
+#version 430
+
+#include "../common/uniforms.comp"
+#include "../common/constants.comp"
+#include "../common/nns.comp"
+#include "../common/buffers.comp"
+
+layout (local_size_x = BTHREAD) in;
+
+uniform uint dataSize;
+uniform uint blockSize;
+
+//Return index of the i-th element of a given block
+uint getIndexOf(uint block, uint i){ 
+    return block*blockSize + i;
+}
+
+
+//Return the last element of the given block
+uint getLastIndexOf(uint block){ 
+   return getIndexOf(block, blockSize - 1);
+}
+
+//Do a sum operation over the right most element of block according to Blelloch
+void compactSum(uint bid, uint space){
+    ssbo_bins[getLastIndexOf(bid)].csum = ssbo_bins[getLastIndexOf(bid)].sum;
+    if (bid >= space) ssbo_bins[getLastIndexOf(bid)].csum += ssbo_bins[getLastIndexOf(bid-space)].sum;
+}
+
+uniform uint stage;
+uniform uint space;
+
+void main(){
+    uint bid = gl_GlobalInvocationID.x; //blockID
+
+    if(bid > uint(dataSize/blockSize)) return;
+
+    switch(stage){
+    case 0:
+        
+        //Sequential prefix sum on blocks
+        for (uint i = getIndexOf(bid, 0), k = 0; i < getIndexOf(bid, blockSize) && i < dataSize; i++, k++) { //Load into shared mem
+            if (i < dataSize){
+                ssbo_bins[i].sum = ssbo_bins[i].count;
+                if (k >= 1) ssbo_bins[i].sum += ssbo_bins[i-1].sum;
+            }
+        }
+    break;
+    case 1:
+        compactSum(bid, space);
+    break;
+    case 2:
+         ssbo_bins[getLastIndexOf(bid)].sum = ssbo_bins[getLastIndexOf(bid)].csum;
+    break;
+    case 3: 
+        for (uint i = 0; i < blockSize-1; i++) { //Load into global mem
+            ssbo_bins[getIndexOf(bid,i)].sum += (bid >= 1 ? ssbo_bins[getLastIndexOf(bid-1)].csum : 0);
+            ssbo_bins[getIndexOf(bid,i)].index = ssbo_bins[getIndexOf(bid,i)].sum; 
+        }
+        ssbo_bins[getIndexOf(bid, blockSize-1)].index = ssbo_bins[getIndexOf(bid, blockSize-1)].sum; 
+    break;
+    case 4:
+        for (uint i = 0; i < blockSize; i++) { //Load into global mem
+            ssbo_bins[getIndexOf(bid,i)].sum = 0;
+            ssbo_bins[getIndexOf(bid,i)].csum = 0;
+            ssbo_bins[getIndexOf(bid,i)].count = 0;
+            ssbo_bins[getIndexOf(bid,i)].index = 0;
+
+        }
+
+    break;
+    }
+    
+}

@@ -1,0 +1,127 @@
+//? #version 430
+#ifndef INCLUDE_BUFFERS_GLSL
+#define INCLUDE_BUFFERS_GLSL
+
+//Macro to access buffer elements
+#define phase(index)		ssbo_meta[index].x		//phase
+#define bin_index(index)	ssbo_meta[index].y		//bin index
+#define id(index)			ssbo_meta[index].z		//particle ID
+#define sorted_id(index)	ssbo_meta[index].w		//particle destination ID (sort)
+
+//Free aliases
+#define mi u_mass
+#define mj u_mass
+
+//buffer access aliases (cost memory bandwidth)
+#define b_xi ssbo_position[i]
+#define b_xj ssbo_position[j]
+
+#define b_pi ssbo_predicted_position[i]
+#define b_pj ssbo_predicted_position[j]
+
+#define b_dpi ssbo_position_correction[i]
+#define b_dpj ssbo_position_correction[j]
+
+#define b_last_xi ssbo_last_position[i]
+#define b_last_xj ssbo_last_position[j]
+
+#define b_lambda_i ssbo_lambda[i]
+#define b_lambda_j ssbo_lambda[j]
+
+#define b_vi ssbo_velocity[i]
+#define b_vj ssbo_velocity[j]
+
+#define b_sigma_i ssbo_sigma[i] //Stress
+#define b_sigma_j ssbo_sigma[j]
+
+#define b_rho_i ssbo_density[i]
+#define b_rho_j ssbo_density[j]
+
+#define b_R_i ssbo_rotation[i]
+#define b_R_j ssbo_rotation[j]
+
+#define c_wi (1.0/particleMass)
+#define c_wj (1.0/particleMass)
+
+// SSBO declaration
+layout(std430) buffer last_position_buffer {
+	dvec4 ssbo_last_position[];
+};
+
+layout(std430) buffer position_buffer {
+	dvec4 ssbo_position[];
+};
+
+layout(std430) buffer predicted_position_buffer {
+	dvec4 ssbo_predicted_position[];
+};
+
+layout(std430) buffer correction_buffer {
+	dvec4 ssbo_position_correction[];
+};
+
+
+layout(std430) buffer velocity_buffer {
+	dvec4 ssbo_velocity[];
+};
+
+layout(std430) buffer density_buffer {
+	double ssbo_density[];
+};
+
+layout(std430) buffer lambda_buffer {
+	double ssbo_lambda[];
+};
+
+
+layout(std430) buffer meta_buffer {
+	uvec4 ssbo_meta[]; //phase, binindex, id , sortedID
+};
+
+struct Bin {
+	uint count;
+	uint sum;
+	uint csum;
+	uint index;
+};
+
+layout(std430) buffer BinBuffer {
+	Bin ssbo_bins[];
+};
+
+struct sym_tensor3x3{
+	double xx;
+	double yy;
+	double zz;
+	double yz;
+	double xz;
+	double xy;
+};
+
+layout(std430) buffer stress_buffer {
+	sym_tensor3x3 ssbo_sigma[];
+};
+
+layout(std430) buffer rotation_buffer {
+	dmat3 ssbo_rotation[];
+};
+
+struct CopyContent {
+    dvec4 last_position;            // 32 bytes
+    dvec4 position;                 // 32 bytes
+    dvec4 predicted_position;       // 32 bytes
+    dvec4 position_correction;      // 32 bytes
+    dvec4 velocity;                 // 32 bytes
+    double density;                 // 8 bytes
+    double[3] padding;              // 8*3 bytes
+	dvec4[3] rotation;				// 32*3
+    uvec4 meta;                     // 16 bytes
+    uvec4 padding2;                 // 16 bytes
+};
+
+layout(std430) buffer copy_buffer {
+	CopyContent ssbo_copy[]; //phase, binindex, id , sortedID
+};
+
+
+#endif// INCLUDE_BUFFERS_HLSL

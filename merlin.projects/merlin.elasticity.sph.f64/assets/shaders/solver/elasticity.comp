@@ -1,0 +1,183 @@
+//?#version 430
+
+#pragma once
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/colors.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+#include "../common/math.comp"
+
+//stress
+const double youngsModulus = 1e6*1e-3;//Pa -> g/mm/s2
+const double poissonRatio = 0.2;//dimless
+const double mu = youngsModulus / (2.0 * (1.0 + poissonRatio));
+const double lambda = youngsModulus * poissonRatio / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio));
+
+void pbs_computeRotation(uint i) {
+    dvec3 xi = b_pi.xyz; // i current position
+    dvec3 xi0 = b_last_xi.xyz; // i reference position
+    dmat3 R = b_R_i; // i current rotation
+    dmat3 F = dmat3(0);
+
+	dvec3 position = b_last_xi.xyz;
+   OVERNNS
+        if(i == j) continue;
+        dvec3 xj = b_pi.xyz;
+        dvec3 xj0 = b_last_xj.xyz;
+
+        if(distance(xi0, xj0) > H) continue;
+
+        dvec3 xj_xi = xj - xi;
+        dvec3 xj_xi_0 = xj0 - xi0 ;
+        double kernel = poly6(xj_xi_0);
+        F += mj * kernel * outerProduct(xj_xi, xj_xi_0);
+        
+    OVERNNS_END
+
+    b_R_i = dmat3(1);//extractRotation(F, R, 10);
+}
+
+sym_tensor3x3 multiplyMatrixByTensor(double matrix[6][6], sym_tensor3x3 tensor) {
+    sym_tensor3x3 result;
+    result.xx = 0.0;
+    result.yy = 0.0;
+    result.zz = 0.0;
+    result.xy = 0.0;
+    result.yz = 0.0;
+    result.xz = 0.0;
+
+    // Define an array to easily access the tensor components
+    double tensorComponents[6] = double[](tensor.xx, tensor.yy, tensor.zz, tensor.xy, tensor.yz, tensor.xz);
+    double resultComponents[6] = double[](result.xx, result.yy, result.zz, result.xy, result.yz, result.xz);
+
+    for (int i = 0; i < 6; ++i) {
+        resultComponents[i] = 0.0;
+        for (int j = 0; j < 6; ++j) {
+            resultComponents[i] += matrix[i][j] * tensorComponents[j];
+        }
+    }
+
+    // Assign the result components back to the result tensor
+    result.xx = resultComponents[0];
+    result.yy = resultComponents[1];
+    result.zz = resultComponents[2];
+    result.xy = resultComponents[3];
+    result.yz = resultComponents[4];
+    result.xz = resultComponents[5];
+
+    return result;
+}
+
+
+
+void pbs_computeStress(uint i) {
+    dvec3 xi = b_pi.xyz; // i current position
+    dvec3 xi0 = b_last_xi.xyz; // i reference position
+    dmat3 F = dmat3(0.0); // Deformation tensor
+    dmat3 R = dmat3(1);//b_R_i; //rotation
+
+    dmat3 nablaU = dmat3(0); //displacement gradient
+
+	dvec3 position = b_last_xi.xyz;
+   OVERNNS
+        if(i == j) continue;
+        dvec3 xj = b_pj.xyz;
+        dvec3 xj0 = b_last_xj.xyz;
+
+        if(distance(xi0, xj0) > H) continue;
+
+        dvec3 xj_xi = xj - xi;       //current distance between j and i
+        dvec3 xj_xi_0 = xj0 - xi0;   //reference distance between j and i
+        dvec3 kernel = -poly6_grad(xj_xi_0);
+        double restVolume_j = mj/b_rho_j; //g/(g/mm3) -> mm3
+        dvec3 uji = transpose(R) * xj_xi - xj_xi_0;
+        nablaU += outerProduct(restVolume_j * uji, kernel); //dimensionless
+    OVERNNS_END
+   
+    // compute Deformation : F = nabla u + I
+    F = nablaU + dmat3(1); //dimensionless
+    
+    // compute Cauchy strain: epsilon = 0.5 (nabla u + nabla u^T) (voigt notation)
+    sym_tensor3x3 E;
+
+    E.xx = nablaU[0][0];
+    E.yy = nablaU[1][1];
+    E.zz = nablaU[2][2];
+    E.xy = 0.5 * (nablaU[0][1] + nablaU[1][0]);
+    E.xz = 0.5 * (nablaU[0][2] + nablaU[2][0]);
+    E.yz = 0.5 * (nablaU[1][2] + nablaU[2][1]);
+    
+
+    // First Piola Kirchhoff stress = 2 mu epsilon + lambda trace(epsilon) I
+    double trace = E.xx + E.yy + E.zz;
+    double ltrace = lambda * trace;
+    dvec3 stress_a = ltrace + dvec3(E.xx , E.yy, E.zz) * 2.0 * mu;
+    dvec3 stress_b = dvec3(E.xy , E.xz, E.yz) * 2.0 * mu;
+
+
+    b_sigma_i = sym_tensor3x3(stress_a.x, stress_a.y, stress_a.z, stress_b.x, stress_b.y, stress_b.z);
+}
+
+dvec3 symMatTimesVec(sym_tensor3x3 M, dvec3 v){
+    dvec3 res;
+    res[0] = double(M.xx) * v[0] + double(M.xy) * v[1] + double(M.xz) * v[2];
+    res[1] = double(M.xy) * v[0] + double(M.yy) * v[1] + double(M.yz) * v[2];
+    res[2] = double(M.xz) * v[0] + double(M.yz) * v[1] + double(M.zz) * v[2];
+    return res;
+}
+
+
+dvec3 pbs_computeForces(uint i) {
+    dvec3 xi = b_pi.xyz;
+    dvec3 xi0 = b_last_xi.xyz;
+	dvec3 position = b_last_xi.xyz;
+
+    dmat3 Ri =  dmat3(1);//b_R_i;
+    
+    const double restVolume_i = double(mi)/double(u_rho0); //g/(g/mm3) -> mm3
+
+    dvec3 forces = dvec3(0);
+   OVERNNS
+        if(i == j) continue;
+        dvec3 xj = b_pj.xyz;
+        dvec3 xj0 = b_last_xj.xyz;
+        dmat3 Rj = dmat3(1);//b_R_j;
+        
+        if(distance(xi0, xj0) > H) continue;
+
+        dvec3 xi_xj_0 = (xi0 - xj0);
+        const double restVolume_j = double(mj)/double(u_rho0); //g/(g/mm3)-> mm3
+
+        dvec3 kernel = dvec3(poly6_grad(xi_xj_0));
+
+		dvec3 PWi = symMatTimesVec(b_sigma_i,  dmat3(Ri)*kernel);
+		dvec3 PWj = symMatTimesVec(b_sigma_j, -dmat3(Rj)*kernel);
+
+		forces += restVolume_i * restVolume_j * (PWi - PWj);
+       
+    OVERNNS_END
+
+    return forces;
+}
+
+
+void pbs_computeDensity(uint i){
+	double density = 0;
+	dvec3 xi0 = b_last_xi.xyz;
+
+	dvec3 position = b_last_xi.xyz;
+
+	OVERNNS
+		if(j == i) continue;
+        dvec3 xj0 = b_last_xj.xyz;
+		double dist = distance(xi0, xj0);
+		if(dist > H) continue;
+		double Wij = poly6(dist);
+         
+		density += mj * Wij; //mg/mm3 -> g/cm3
+	OVERNNS_END
+
+	b_rho_i = density * 1.0e-3;
+}
