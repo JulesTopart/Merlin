@@ -14,29 +14,27 @@ void pbs_step(uint i, uint kernel) {
 	if(kernel == 0){
 		//b_last_xi = b_xi;
 		b_xi.xyz = b_pi.xyz;
-		vec3 a = vec3(0, 0, -u_g);
+		vec3 a = vec3(0, 0, -u_g) ;
 
 		//semi-implicit Euler integration (or Sympletic scheme)
-		b_vi.xyz += a * u_dt;
+		b_vi.xyz = 0.9*b_vi.xyz + a * u_dt;
 		b_pi.xyz += b_vi.xyz * u_dt;
 		return;
 	}
 
 	if(kernel == 1){
-		pbs_computeRotation(i);
-		return;
-	}
-
-	if(kernel == 2){
+		//pbs_computeRotation(i);
 		pbs_computeStress(i);
 		return;
 	}
 
-	if(kernel == 3){
-		b_pi.xyz += (pbs_computeForces(i)/mi) * u_dt * u_dt;
+	if(kernel == 2){
+		vec3 delta = (pbs_computeForces(i)/mi) * u_dt * u_dt * 0.2e-4 ;
+		b_pi.xyz += delta;
+		b_vi.xyz = (b_pi.xyz - b_xi.xyz) / u_dt;
 		return;
 	}
-	
+
 	if(kernel == 4){	
 		pbs_computeDensity(i);
 		b_R_i = mat3(1);

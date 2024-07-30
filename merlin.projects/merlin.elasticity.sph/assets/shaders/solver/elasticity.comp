@@ -11,7 +11,7 @@
 
 //stress
 //Pa -> g/mm/s2
-const float youngsModulus = 2.0e9;//PLA
+const float youngsModulus = 2.0e9 ;//PLA in Mpa
 
 const float poissonRatio = 0.38;//dimless
 const float mu = youngsModulus / (2.0 * (1.0 + poissonRatio));
@@ -101,7 +101,6 @@ void pbs_computeStress(uint i) {
 }
 
 vec3 pbs_computeForces(uint i) {
-    vec3 xi = b_pi.xyz;
     vec3 xi0 = b_last_xi.xyz;
 	vec3 position = b_last_xi.xyz;
 
@@ -112,11 +111,10 @@ vec3 pbs_computeForces(uint i) {
     vec3 forces = vec3(0);
     OVERNNS
         if(i == j) continue;
-        vec3 xj = b_pj.xyz;
         vec3 xj0 = b_last_xj.xyz;
         mat3 Rj = mat3(1);//b_R_j;
         
-        if(distance(xi0, xj0) > 2.0*H) continue;
+        //if(distance(xi0, xj0) > 2.0*H) continue;
 
         vec3 xi_xj_0 = (xi0 - xj0);
         const float restVolume_j = 0.125;//((mj)/b_rho_j); //g/(g/cm3)-> mm3
@@ -130,7 +128,7 @@ vec3 pbs_computeForces(uint i) {
        
     OVERNNS_END
 
-    return forces*1e-3; // units ??
+    return forces; // units ??
 }
 
 
@@ -148,7 +146,25 @@ void pbs_computeDensity(uint i){
 		float Wij = poly6(dist);
 
 		density += mj * Wij;
-	OVERNNS_END
+	OVERNNS_END 
 
 	b_rho_i = u_rho0;//density;
+}
+
+
+vec3 pbs_computeXPSH(uint i){
+	vec3 xsphSum = vec3(0);
+    vec3 xi0 = b_last_xi.xyz;
+	vec3 position = b_last_xi.xyz;
+
+	OVERNNS
+		if(j == i) continue;
+        vec3 xj0 = b_last_xj.xyz;
+		float dist = distance(xi0, xj0);
+		float Wij = poly6(dist);
+
+		xsphSum += 0.8 * (b_vj.xyz - b_vi.xyz) * Wij;
+	OVERNNS_END
+
+	return 0.5 * xsphSum;
 }

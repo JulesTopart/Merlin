@@ -390,9 +390,11 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 	GPU_PROFILE(solver_time,
 		solver->execute(2);
-		solver->execute(3);
-		solver->execute(4);
-		solver->execute(5);
+		
+		for (int i = 0; i < 8; i++) {
+			solver->execute(3);
+			solver->execute(4);
+		}
 	)
 }
 

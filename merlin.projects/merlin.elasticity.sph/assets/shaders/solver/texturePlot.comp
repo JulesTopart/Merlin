@@ -29,8 +29,8 @@ float computeVonMisesStress(sym_tensor3x3 sigma) {
 float interpolate(in vec3 position){
 	float density= 0;
 	OVERNNS
-        vec3 xj0 = b_xj.xyz;
-		float dist = distance(position, xj0);
+        vec3 xj = b_xj.xyz;
+		float dist = distance(position, xj);
 		float Wij = poly6(dist);
 
 		density += b_rho_j * Wij;
@@ -70,7 +70,7 @@ void main(){
 	stress = interpolateStress(vec3(position.x, position.y, 0));
 	float maxS = 50e6;
 
-	if(density < 1.2) imageStore(u_output, pixel_coords, vec4(1));
+	if(density < 1e-6) imageStore(u_output, pixel_coords, vec4(1));
 	else imageStore(u_output, pixel_coords, vec4(colorMap(map(stress,maxS/2.0, maxS), jet).rgb, 1));
 	
 	return;

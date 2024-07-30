@@ -19,7 +19,7 @@ struct sym_tensor3x3 {
 };
 
 struct Settings {
-	const float smoothingRadius = 0.5;
+	const float smoothingRadius = 0.9;
 	const float particleRadius = smoothingRadius/3.0;
 	const float bWidth = smoothingRadius*2.0;
 
@@ -27,7 +27,7 @@ struct Settings {
 	glm::vec3 bb = glm::vec3(280, 50, 8);
 
 	// Physics Parameters
-	Uniform<float> dt								= Uniform<float>("u_dt", 3e-4);
+	Uniform<float> dt								= Uniform<float>("u_dt", 6e-3);
 	Uniform<float> restDensity						= Uniform<float>("u_rho0", 1.43);//PLA g/cm3
 	Uniform<float> particleMass						= Uniform<float>("u_mass", pow(smoothingRadius, 3.0) * restDensity.value()); //mg
 
@@ -45,7 +45,7 @@ struct Settings {
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
 
-	glm::ivec3 texWkgSize = glm::ivec3(8, 8, 8); //Number of thread per workgroup
+	glm::ivec3 texWkgSize = glm::ivec3(8, 8, 1); //Number of thread per workgroup
 	glm::ivec3 tex_size = glm::ivec3(int(bb.x / (bWidth * 0.1)), int(bb.y / (bWidth * 0.1)), int(bb.z / (bWidth * 0.1)));
 
 
