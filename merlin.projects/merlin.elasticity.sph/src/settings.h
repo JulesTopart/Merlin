@@ -27,7 +27,7 @@ struct Settings {
 	glm::vec3 bb = glm::vec3(280, 50, 8);
 
 	// Physics Parameters
-	Uniform<float> dt								= Uniform<float>("u_dt", 0.1e-2);
+	Uniform<float> dt								= Uniform<float>("u_dt", 3e-4);
 	Uniform<float> restDensity						= Uniform<float>("u_rho0", 1.43);//PLA g/cm3
 	Uniform<float> particleMass						= Uniform<float>("u_mass", pow(smoothingRadius, 3.0) * restDensity.value()); //mg
 
@@ -44,6 +44,10 @@ struct Settings {
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
+
+	glm::ivec3 texWkgSize = glm::ivec3(8, 8, 8); //Number of thread per workgroup
+	glm::ivec3 tex_size = glm::ivec3(int(bb.x / (bWidth * 0.1)), int(bb.y / (bWidth * 0.1)), int(bb.z / (bWidth * 0.1)));
+
 
 	inline void setConstants(ShaderBase& shader) {
 		shader.setConstVec3("cst_domain", bb);

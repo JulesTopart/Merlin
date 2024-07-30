@@ -11,7 +11,7 @@
 
 //stress
 //Pa -> g/mm/s2
-const float youngsModulus = 3.3e9;//PLA
+const float youngsModulus = 2.0e9;//PLA
 
 const float poissonRatio = 0.38;//dimless
 const float mu = youngsModulus / (2.0 * (1.0 + poissonRatio));
@@ -69,7 +69,7 @@ void pbs_computeStress(uint i) {
         F += outerProduct(restVolume_j * uji, grad_Wij); //dimensionless
         B += outerProduct(restVolume_j * rij0, grad_Wij); //dimensionless
     OVERNNS_END
-    B = inverse(B);
+    B = inverse(B); //correction from Sphinx
     F = F * B + mat3(1);
     
     // compute Cauchy strain: epsilon = 0.5 (nabla u + nabla u^T) (voigt notation)
@@ -110,7 +110,7 @@ vec3 pbs_computeForces(uint i) {
     const float restVolume_i = 0.125;//((mi)/b_rho_i); //g/(g/mm3) -> mm3
 
     vec3 forces = vec3(0);
-   OVERNNS
+    OVERNNS
         if(i == j) continue;
         vec3 xj = b_pj.xyz;
         vec3 xj0 = b_last_xj.xyz;
@@ -123,14 +123,14 @@ vec3 pbs_computeForces(uint i) {
 
         vec3 kernel = -poly6_grad(xi_xj_0);
         
-		vec3 PWi = symMatTimesVec(b_sigma_i,  Ri*kernel);
-		vec3 PWj = symMatTimesVec(b_sigma_j, -Rj*kernel);
+	    vec3 PWi = symMatTimesVec(b_sigma_i,  Ri*kernel);
+	    vec3 PWj = symMatTimesVec(b_sigma_j, -Rj*kernel);
 
-		forces += restVolume_i * restVolume_j * (PWi - PWj);
+	    forces += restVolume_i * restVolume_j * (PWi - PWj);
        
     OVERNNS_END
 
-    return forces*1e-5; // units ??
+    return forces*1e-3; // units ??
 }
 
 

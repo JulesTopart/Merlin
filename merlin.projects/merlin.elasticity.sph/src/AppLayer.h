@@ -38,6 +38,7 @@ private:
 	
 	StagedComputeShader_Ptr solver;
 	StagedComputeShader_Ptr prefixSum;
+	ComputeShader_Ptr texPlot;
 
 	ParticleSystem_Ptr ps;
 	ParticleSystem_Ptr bs;
@@ -47,7 +48,7 @@ private:
 
 	// --- Simulation--- 
 	Settings settings;
-
+	Texture2D_Ptr texture_debugXY;
 	Mesh_Ptr sample;
 	
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };

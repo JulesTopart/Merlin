@@ -24,12 +24,13 @@ struct CopyContent {
 	glm::uvec4 meta;
 };
 
+
 void AppLayer::onAttach() {
 	Layer3D::onAttach();
 	camera().setNearPlane(0.5);
 	camera().setFarPlane(2000.0);
-	camera().translate(glm::vec3(0, -200, 50));
-	camera().rotate(glm::vec3(200, 0, 90));
+	camera().translate(glm::vec3(0, 0, 50));
+	camera().rotate(glm::vec3(0, 0, 90));
 
 	glfwSwapInterval(0);
 
@@ -73,6 +74,16 @@ void AppLayer::onUpdate(Timestep ts) {
 
 	ps->detach(solver);
 	bs->detach(prefixSum);
+
+	ps->solveLink(texPlot);
+	int x = (settings.tex_size.x - 1) / settings.texWkgSize.x;
+	int y = (settings.tex_size.y - 1) / settings.texWkgSize.y;
+
+	texture_debugXY->bindImage(0);
+	texPlot->use();
+	texPlot->dispatch(x, y);
+	texPlot->barrier(GL_ALL_BARRIER_BITS);
+	ps->detach(texPlot);
 }
 
 
@@ -97,6 +108,10 @@ void AppLayer::SyncUniforms() {
 	prefixSum->use();
 	prefixSum->setUInt("dataSize", settings.bThread); //data size
 	prefixSum->setUInt("blockSize", settings.blockSize); //block size
+
+	texPlot->use();
+	settings.numParticles.sync(*texPlot);
+	settings.particleMass.sync(*texPlot);
 }
 
 
@@ -135,6 +150,8 @@ void AppLayer::InitGraphics() {
 	sample->smoothNormals();
 	//scene.add(sample);
 
+	texture_debugXY = Texture2D::create(settings.tex_size.x, settings.tex_size.y, 4, 16);
+	texture_debugXY->setUnit(0);
 
 	Mesh_Ptr bbox = Primitives::createCube(settings.bb.x, settings.bb.y, settings.bb.z);
 	bbox->enableWireFrameMode();
@@ -155,6 +172,10 @@ void AppLayer::InitPhysics() {
 	prefixSum = StagedComputeShader::create("prefixSum", "assets/shaders/solver/prefix.sum.comp", 4, false);
 	settings.setConstants(*prefixSum);
 	prefixSum->compile();
+
+	texPlot = ComputeShader::create("texPlot", "assets/shaders/solver/texturePlot.comp", false);
+	settings.setConstants(*texPlot);
+	texPlot->compile();
 
 	//create particle system
 	ps = ParticleSystem::create("ParticleSystem", settings.pThread);
@@ -210,6 +231,14 @@ void AppLayer::InitPhysics() {
 	bs->link(binShader->name(), binBuffer->name());
 	bs->solveLink(binShader);
 	bs->detach(binShader);//test binding points
+
+	ps->link(texPlot->name(), "position_buffer");
+	ps->link(texPlot->name(), "last_position_buffer");
+	ps->link(texPlot->name(), "predicted_position_buffer");
+	ps->link(texPlot->name(), "density_buffer");
+	ps->link(texPlot->name(), "stress_buffer");
+	ps->link(texPlot->name(), "meta_buffer");
+	ps->link(texPlot->name(), binBuffer->name());
 
 	scene.add(ps);
 	scene.add(bs);
@@ -482,8 +511,6 @@ void AppLayer::onImGuiRender() {
 
 
 
-
-
 	static int colorMode = 4;
 	static const char* options[] = { "Solid color", "Bin index", "Density", "Stress", "Velocity", "Mass", "Neighbors" };
 	if (ImGui::ListBox("Colored field", &colorMode, options, 7)) {
@@ -531,6 +558,15 @@ void AppLayer::onImGuiRender() {
 	ImGui::Text("Render time %.1f ms", render_time);
 	ImGui::Text("Total frame time %.1f ms", total_time);
 	ImGui::End();
+
+	static bool first_frame = true;
+	static int debug_layer = 0;
+	float scale;
+	ImGui::Begin("Debug XY");
+	scale = 0.3;
+	ImGui::Image((void*)(intptr_t)texture_debugXY->id(), ImVec2(settings.tex_size.x* scale, settings.tex_size.y* scale), ImVec2(1, 1), ImVec2(0, 0));
+	ImGui::End();
+
 
 	ImGui::Begin("Compute Shader");
 	ImGui::LabelText("Solver", "");

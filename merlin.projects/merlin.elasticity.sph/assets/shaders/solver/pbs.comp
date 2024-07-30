@@ -34,9 +34,6 @@ void pbs_step(uint i, uint kernel) {
 
 	if(kernel == 3){
 		b_pi.xyz += (pbs_computeForces(i)/mi) * u_dt * u_dt;
-
-		b_vi.xyz = (b_pi.xyz - b_xi.xyz)/u_dt; // First order velocity update
-		vec3 xi = b_pi.xyz;
 		return;
 	}
 	
