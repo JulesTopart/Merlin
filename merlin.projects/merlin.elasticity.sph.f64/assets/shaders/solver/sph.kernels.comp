@@ -49,7 +49,7 @@ double poly6(dvec3 r){
 
 //Computed the poly6 gradient smoothing kernel
 dvec3 poly6_grad(dvec3 r){
-	double r2 = length(r.xy) * length(r.xy);
+	double r2 = length(r.xyz) * length(r.xyz);
 	if (r2 < EPSILON || r2 > H2 || H9 < EPSILON) return dvec3(0.0);
 	double B = H2-r2;
 	return -dvec3(r) * KERNEL_POLY6_GRAD_COEFFICIENT * (B * B);

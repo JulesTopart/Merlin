@@ -52,6 +52,9 @@ private:
 	
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 
+	std::vector<float> frameTimes;
+	float c_frameTime;
+
 	double nns_time = 0;
 	double solver_time = 0;
 	double solver_total_time = 0;

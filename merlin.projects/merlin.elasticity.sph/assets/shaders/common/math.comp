@@ -2,6 +2,22 @@
 #ifndef INCLUDE_MATH_GLSL
 #define INCLUDE_MATH_GLSL
 
+//?#include "../common/buffers.comp"
+
+float computeVonMisesStress(sym_tensor3x3 sigma) {
+
+    float vonMises = sqrt(
+        0.5 * (
+            pow(sigma.xx - sigma.yy, 2.0) + 
+            pow(sigma.yy - sigma.zz, 2.0) + 
+            pow(sigma.zz - sigma.xx, 2.0) + 
+            6.0 * (pow(sigma.xy, 2.0) + pow(sigma.yz, 2.0) + pow(sigma.xz, 2.0))
+        )
+    );
+
+    return vonMises;
+}
+
 mat3 extractRotation(mat3 A, mat3 R, int maxIter) {
     for (int iter = 0; iter < maxIter; iter++) {
         vec3 omega = vec3(
@@ -31,5 +47,31 @@ mat3 extractRotation(mat3 A, mat3 R, int maxIter) {
     return R;
 }
 
+vec3 symMatTimesVec(sym_tensor3x3 M, vec3 v){
+    vec3 res;
+    res[0] = M.xx * v[0] + M.xy * v[1] + M.xz * v[2];
+    res[1] = M.xy * v[0] + M.yy * v[1] + M.yz * v[2];
+    res[2] = M.xz * v[0] + M.yz * v[1] + M.zz * v[2];
+    return res;
+}
+
+mat3 symMatToMat3(sym_tensor3x3 M){
+    mat3 res;
+    res[0] = vec3(M.xx, M.xy, M.xz);
+    res[1] = vec3(M.xy, M.yy, M.yz);
+    res[2] = vec3(M.xz, M.yz, M.zz);
+    return res;
+}
+
+sym_tensor3x3 mat3ToSymMat(mat3 M){
+    sym_tensor3x3 res;
+    res.xx = M[0][0];
+    res.yy = M[1][1];
+    res.zz = M[2][2];
+    res.xy = M[0][1];
+    res.xz = M[0][2];
+    res.yz = M[1][2];
+    return res;
+}
 
 #endif// INCLUDE_MATHHLSL

@@ -26,19 +26,6 @@ vec3 boundary_solveFloorCollision(uint i){
 }
 
 
-
-float boundary_computePseudoMass(uint i){
-	float pseudomass = 1; //to avoid dividing by zero in compute delta
-	vec3 position = b_xi.xyz;
-	OVERNNS
-		if(c_Dij >= H || c_Dij < 1e-6) continue;
-		if(phase(j) >= BOUNDARY || phase(j) == SOLID)
-			pseudomass += poly6(c_Dij);
-	OVERNNS_END
-	return pseudomass;
-}
-
-
  
 
 #endif

@@ -40,13 +40,6 @@
 #define b_R_i ssbo_rotation[i]
 #define b_R_j ssbo_rotation[j]
 
-//computation aliases (cost memory bandwidth and/or operations)
-#define c_Vij (b_vi.xyz - b_vj.xyz)
-#define c_Vji (b_vj.xyz - b_vi.xyz)
-#define c_Rij (b_pi.xyz - b_pj.xyz)
-#define c_Rji (b_pj.xyz - b_pi.xyz)
-#define c_Dij distance(b_pi.xyz, b_pj.xyz)
-
 #define c_wi (1.0/particleMass)
 #define c_wj (1.0/particleMass)
 

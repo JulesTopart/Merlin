@@ -10,14 +10,11 @@
 //?#include "boundary.comp" 
 //?#include "elasticity.comp" 
 
-float pbs_computeLambda(uint i);
-vec3 pbs_computePositionDelta(uint i);
-
 void pbs_step(uint i, uint kernel) {
 	if(kernel == 0){
 		//b_last_xi = b_xi;
 		b_xi.xyz = b_pi.xyz;
-		vec3 a = vec3(0, 0, -u_g) + (pbs_computeForces(i)/mi)*1e-3;
+		vec3 a = vec3(0, 0, -u_g);
 
 		//semi-implicit Euler integration (or Sympletic scheme)
 		b_vi.xyz += a * u_dt;
@@ -35,10 +32,10 @@ void pbs_step(uint i, uint kernel) {
 		return;
 	}
 
-	if(kernel == 3){	
-		b_vi.xyz = (b_pi.xyz - b_xi.xyz)/u_dt; // First order velocity update
-		//b_vi.xyz += pbs_computeXPSH(i);
+	if(kernel == 3){
+		b_pi.xyz += (pbs_computeForces(i)/mi) * u_dt * u_dt;
 
+		b_vi.xyz = (b_pi.xyz - b_xi.xyz)/u_dt; // First order velocity update
 		vec3 xi = b_pi.xyz;
 		return;
 	}

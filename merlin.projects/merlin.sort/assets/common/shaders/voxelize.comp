@@ -18,7 +18,7 @@ uniform uint voxelCount = 0;
 uniform float surface_thickness = 0.0;
 uniform mat4 modelMatrix; // Model transformation matrix
 
-#define INTERSECT_EPSILON 1e-4
+#define INTERSECT_EPSILON 1e-6
 #define INTERSECT_MAX_DIST 1e6
 
 
@@ -104,7 +104,7 @@ void main(){
     uint index = gl_GlobalInvocationID.x;
     if(index >= voxelCount) return;
     uvec3 index3D = getVoxelCoordFromIndex(index);
-     const vec3 rd = vec3(1,1,1); //random vector
+     const vec3 rd = vec3(1,0,0); //random vector
      vec3 ro = aabbMin.xyz + (vec3(index3D) + 0.5) * voxelSize;
 
      int hit = raytrace(ro, rd);

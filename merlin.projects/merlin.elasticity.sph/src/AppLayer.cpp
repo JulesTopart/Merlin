@@ -271,6 +271,18 @@ void AppLayer::ResetSimulation() {
 	ps->setActiveInstancesCount(settings.pThread);
 	bs->setInstancesCount(settings.bThread);
 
+	float mass = settings.particleMass() * double(settings.numParticles()) * 1e-3;
+	float volume = pow(settings.smoothingRadius, 3.0) * double(settings.numParticles());
+	Console::print() << "---------------------------------------------------------" << Console::endl;
+	Console::info() << "Total averaged solid mass (g): " << mass << Console::endl;
+	Console::info() << "Total averaged solid volume (mm3): " << volume << Console::endl;
+	Console::info() << "Density (g/cm3): " << 1e3 * (mass / volume) << Console::endl;
+
+	Console::print() << "u_rho0 (g/cm3) : " << settings.restDensity() << Console::endl;
+	Console::print() << "u_dt : " << settings.dt() << Console::endl;
+	Console::print() << "u_particleMass (mg) : " << settings.particleMass() << Console::endl;
+	Console::print() << "---------------------------------------------------------" << Console::endl;
+
 	SyncUniforms();
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 	ps->writeField("position_buffer", cpu_position);
@@ -325,6 +337,7 @@ void AppLayer::NeigborSearch() {
 
 
 static bool firstRun = true;
+static bool pullTest = false;
 
 void AppLayer::Simulate(Merlin::Timestep ts) {
 	elapsedTime += settings.dt.value();
@@ -332,7 +345,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 	settings.dt.sync(*solver);
 
-	if (pullDistance < 20) {
+	if (pullTest && pullDistance < 20) {
 		pullDistance += 1.0 * settings.dt.value();
 		solver->setFloat("u_pullDistance", pullDistance);
 	}
@@ -357,16 +370,18 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 
 void AppLayer::onImGuiRender() {
 	//ImGui::ShowDemoWindow();
+
 	ImGui::DockSpaceOverViewport((ImGuiViewport*)0, ImGuiDockNodeFlags_PassthruCentralNode);
-	ImGui::Begin("Infos");
 
 
-	ImGui::LabelText(std::to_string(settings.numParticles()).c_str(), "particles");
-	ImGui::LabelText(std::to_string(settings.bThread).c_str(), "bins");
-	ImGui::LabelText(std::to_string(elapsedTime).c_str(), "s");
+	ImGui::Begin("General");
+	
+	ImGui::Text("time : %f s", elapsedTime);
+	ImGui::Text("dL : %f s", 2.0*pullDistance);
 
-	ImGui::LabelText("FPS", std::to_string(fps()).c_str());
+	ImGui::Checkbox("Pull", &pullTest);
 
+	
 	if (paused) {
 		if (ImGui::ArrowButton("Run simulation", 1)) {
 			paused = !paused;
@@ -378,76 +393,96 @@ void AppLayer::onImGuiRender() {
 		}
 	}
 
-
-	static bool transparency = true;
-	if (ImGui::Checkbox("Particle transparency", &transparency)) {
-		if (transparency) ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
-		else ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
-	}
-
-	static bool showbed = true;
-	if (ImGui::Checkbox("Show build plate", &showbed)) {
-		auto bedRef = scene.getChild("bed");
-		if (bedRef) {
-			if (showbed) scene.getChild("bed")->show();
-			else scene.getChild("bed")->hide();
-		}
-	}
-
-	ImGui::Checkbox("Integrate", &integrate);
-
+	static float maxTime = 0;
 	if (ImGui::SmallButton("Reset simulation")) {
 		ResetSimulation();
 		firstRun = true;
+		maxTime = 0;
 	}
 
-	static bool Pstate = true;
-	if (ImGui::Checkbox("Show Particles", &Pstate)) {
-		if (Pstate) ps->show();
-		else ps->hide();
+	ImGui::Separator();
+
+	if (ImGui::TreeNode("Stats"))
+	{
+		ImGui::Text("particles: %i", settings.numParticles());
+		ImGui::Text("bins : %i", settings.bThread);
+		ImGui::Text("%i FPS", fps());
+
+		
+		if (maxTime < frametime() * 1000.0) maxTime = frametime()*1300.0;
+		
+
+		frameTimes.push_back(frametime()*1000.0);
+		if (frameTimes.size() > 100) {
+			frameTimes.erase(frameTimes.begin());
+		}
+			
+		ImGui::PlotHistogram("Frame time (ms)", frameTimes.data(), frameTimes.size(),0, "", 0.0, maxTime, ImVec2(0, 80));
+
+		ImGui::TreePop();
 	}
 
-	static bool Bstate = false;
-	if (ImGui::Checkbox("Show Bins", &Bstate)) {
-		if (Bstate) bs->show();
-		else bs->hide();
-	}
 
-	static bool BBstate = false;
-	if (ImGui::Checkbox("Show Boundaries", &BBstate)) {
-		particleShader->use();
-		particleShader->setInt("showBoundary", BBstate);
-	}
+	if (ImGui::TreeNode("Graphics"))
+	{
+		if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
+			camera().setPosition(model_matrix_translation);
+		}
 
+		static bool transparency = true;
+		if (ImGui::Checkbox("Particle transparency", &transparency)) {
+			if (transparency) ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE_SHADED);
+			else ps->setDisplayMode(ParticleSystemDisplayMode::POINT_SPRITE);
+		}
 
-	if (ImGui::DragFloat3("Camera position", &model_matrix_translation.x, -100.0f, 100.0f)) {
-		camera().setPosition(model_matrix_translation);
-	}
+		static bool Pstate = true;
+		if (ImGui::Checkbox("Show Particles", &Pstate)) {
+			if (Pstate) ps->show();
+			else ps->hide();
+		}
 
-	static float dt = settings.dt.value()*1.0e6;
-	if (ImGui::InputFloat("Time step (µs)", &dt, 0.0, 1000.0f)) {
-		settings.dt.value() = dt * 1.0e-6;
+		static bool Bstate = false;
+		if (ImGui::Checkbox("Show Bins", &Bstate)) {
+			if (Bstate) bs->show();
+			else bs->hide();
+		}
+
+		static bool BBstate = false;
+		if (ImGui::Checkbox("Show Boundaries", &BBstate)) {
+			particleShader->use();
+			particleShader->setInt("showBoundary", BBstate);
+		}
+		ImGui::TreePop();
 	}
 
 	
-	if (ImGui::SliderFloat("Fluid particle mass", &settings.particleMass.value(), 0.0 , 1.0)) {
-		solver->use();
-		settings.particleMass.sync(*solver);
-	}
-	if (ImGui::SliderFloat("Rest density", &settings.restDensity.value(), 0.0, 2.0)) {
-		solver->use();
-		settings.restDensity.sync(*solver);
-		particleShader->use();
-		settings.restDensity.sync(*particleShader);
+	if (ImGui::TreeNode("Parameters"))
+	{
+		static float dt = settings.dt.value() * 1.0e6;
+		if (ImGui::InputFloat("Time step (us)", &dt, 0.0, 1000.0f)) {
+			settings.dt.value() = dt * 1.0e-6;
+		}
+
+
+		if (ImGui::SliderFloat("Fluid particle mass (g)", &settings.particleMass.value(), 0.0, 1.0)) {
+			solver->use();
+			settings.particleMass.sync(*solver);
+		}
+
+		if (ImGui::SliderFloat("Rest density (g/cm3)", &settings.restDensity.value(), 0.0, 2.0)) {
+			solver->use();
+			settings.restDensity.sync(*solver);
+			particleShader->use();
+			settings.restDensity.sync(*particleShader);
+		}
+
+		ImGui::TreePop();
 	}
 
 
-	static float artificialViscosityMultiplier = settings.artificialViscosityMultiplier.value() * 100.0;
-	if (ImGui::SliderFloat("XPSH Viscosity", &artificialViscosityMultiplier, 0.0, 200.0)) {
-		settings.artificialViscosityMultiplier.value() = artificialViscosityMultiplier * 0.01;
-		solver->use();
-		settings.artificialViscosityMultiplier.sync(*solver);
-	}
+
+
+
 
 	static int colorMode = 4;
 	static const char* options[] = { "Solid color", "Bin index", "Density", "Stress", "Velocity", "Mass", "Neighbors" };

@@ -20,26 +20,19 @@ struct sym_tensor3x3 {
 
 struct Settings {
 	const float smoothingRadius = 0.5;
-	const float particleRadius = smoothingRadius/2.0;
+	const float particleRadius = smoothingRadius/3.0;
 	const float bWidth = smoothingRadius*2.0;
 
 	//Boundary Volume dimensions 
 	glm::vec3 bb = glm::vec3(280, 50, 8);
 
 	// Physics Parameters
-	Uniform<float> dt								= Uniform<float>("u_dt", 0.5e-4);
-	Uniform<float> restDensity						= Uniform<float>("u_rho0", 1.43*1e-3);//PLA g/mm3
-	Uniform<float> particleMass						= Uniform<float>("u_mass", particleRadius * particleRadius * particleRadius * restDensity.value());
-
-	Uniform<float> viscosity						= Uniform<float>("u_viscosity", 0.0);
-	Uniform<float> artificialViscosityMultiplier	= Uniform<float>("u_artificialViscosityMultiplier", 0 * 0.01);
-	Uniform<float> artificialPressureMultiplier		= Uniform<float>("u_artificialPressureMultiplier",  0 * 0.001);
+	Uniform<float> dt								= Uniform<float>("u_dt", 0.1e-2);
+	Uniform<float> restDensity						= Uniform<float>("u_rho0", 1.43);//PLA g/cm3
+	Uniform<float> particleMass						= Uniform<float>("u_mass", pow(smoothingRadius, 3.0) * restDensity.value()); //mg
 
 	//calculated (don't change value here)
 	Uniform<GLuint> numParticles					= Uniform<GLuint>("u_numParticles", 0);
-
-	//Elastic solids
-	float stiffness = 0.0;
 
 	//GPU Threading settings
 	GLuint pThread = 1;
@@ -51,7 +44,6 @@ struct Settings {
 	GLuint blockSize = floor(log2f(bThread));
 	GLuint blocks = (bThread + blockSize - 1) / blockSize;
 	GLuint bWkgCount = (blocks + bWkgSize - 1) / bWkgSize; //Total number of workgroup needed
-
 
 	inline void setConstants(ShaderBase& shader) {
 		shader.setConstVec3("cst_domain", bb);

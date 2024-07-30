@@ -28,6 +28,12 @@ namespace Merlin {
 		return m_FPS;
 	}
 
+	float Layer::frametime() {
+		if (m_FrameCount > 0) {
+			return (m_accFrametime / m_FrameCount);
+		}
+	}
+
 	Layer2D::Layer2D(const std::string& debugName) : Layer(debugName){
 		Window* w = &Application::get().getWindow();
 		int height = w->getHeight();

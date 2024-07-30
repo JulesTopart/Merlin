@@ -21,6 +21,7 @@ namespace Merlin {
 		virtual void onEvent(Event& event) {}
 
 		int fps();
+		float frametime();
 
 		inline const std::string& getName() const { return m_DebugName; }
 	protected:
