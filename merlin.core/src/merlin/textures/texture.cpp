@@ -7,6 +7,8 @@
 #include "merlin/utils/textureLoader.h"
 #include "merlin/core/log.h"
 
+#include <stb_image_write.h>
+
 namespace Merlin {
 
 	TextureBase::TextureBase(GLenum target, TextureType t, TextureClass c) : m_type(t), m_class(c), m_Target(target), m_format(GL_RGB), m_internalFormat(GL_RGB8) {
@@ -279,6 +281,40 @@ namespace Merlin {
 
 	void Texture2D::loadFromFile(const std::string& path){
 		loadFromData(TextureLoader::loadImageData(path));
+	}
+
+	void Texture2D::exportPNG(const std::string& filename){
+		// Bind the texture
+		bind();
+
+		int channels = 0;
+
+		switch (m_format) {
+		case GL_RED:
+			channels = 1;
+			break;
+		case GL_RG:
+			channels = 2;
+			break;
+		case GL_RGB:
+			channels = 3;
+			break;
+		case GL_RGBA:
+			channels = 4;
+			break;
+		}
+
+		// Allocate memory for the pixel data
+		unsigned char* data = new unsigned char[m_width * m_height * channels];
+
+		// Get the pixel data from the GPU
+		glGetTexImage(GL_TEXTURE_2D, 0, m_format, GL_UNSIGNED_BYTE, data);
+
+		// Write the data to a PNG file
+		stbi_write_png(filename.c_str(), m_width, m_height, 4, data, m_width * 4);
+
+		// Clean up
+		delete[] data;
 	}
 
 	Shared<Texture2D> Texture2D::create(GLuint width, GLuint height, TextureType t){

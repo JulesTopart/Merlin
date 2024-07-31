@@ -35,6 +35,7 @@ project "merlin.example2D"
 		solutiondir .. "/merlin.core/vendor",
 		solutiondir .. "/merlin.core/%{IncludeDir.glm}",
 		solutiondir .. "/merlin.core/%{IncludeDir.glad}",
+		solutiondir .. "/merlin.core/%{IncludeDir.tinyfiledialogs}",
 		solutiondir .. "/merlin.core/%{IncludeDir.imgui}"
 	}
 
@@ -44,6 +45,7 @@ project "merlin.example2D"
 		"glad",
 		"glfw",
 		"imgui",
+		"tinyfiledialogs",
 		"opengl32"
 	}
 

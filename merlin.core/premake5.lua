@@ -39,6 +39,7 @@ project "merlin.core"
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
+		"%{IncludeDir.tinyfiledialogs}",
 		"%{IncludeDir.assimp}"
 	}
 
@@ -48,6 +49,7 @@ project "merlin.core"
 		"glad",
 		"imgui",
 		"stb_image",
+		"tinyfiledialogs",
 		"assimp",
 		"opengl32.lib"
 	}

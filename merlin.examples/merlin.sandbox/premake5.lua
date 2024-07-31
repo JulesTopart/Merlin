@@ -35,7 +35,8 @@ project "merlin.sandbox"
 		solutiondir .. "/merlin.core/vendor",
 		solutiondir .. "/merlin.core/%{IncludeDir.glm}",
 		solutiondir .. "/merlin.core/%{IncludeDir.glad}",
-		solutiondir .. "/merlin.core/%{IncludeDir.imgui}"
+		solutiondir .. "/merlin.core/%{IncludeDir.imgui}",
+		solutiondir .. "/merlin.core/%{IncludeDir.tinyfiledialogs}"
 	}
 
 	links
@@ -44,6 +45,7 @@ project "merlin.sandbox"
 		"glad",
 		"glfw",
 		"imgui",
+		"tinyfiledialogs",
 		"opengl32"
 	}
 

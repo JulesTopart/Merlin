@@ -92,6 +92,7 @@ IncludeDir["glad"] = "vendor/glad/include"
 IncludeDir["imgui"] = "vendor/imgui"
 IncludeDir["glm"] = "vendor/glm"
 IncludeDir["stb_image"] = "vendor/stb_image"
+IncludeDir["tinyfiledialogs"] = "vendor/tinyfiledialogs"
 IncludeDir["assimp"] = "vendor/assimp/include"
 
 -- Projects
@@ -100,6 +101,7 @@ group "Dependencies"
 	include "merlin.core/vendor/glad"
 	include "merlin.core/vendor/imgui"
 	include "merlin.core/vendor/stb_image"
+	include "merlin.core/vendor/tinyfiledialogs"
 	include "merlin.core/vendor/assimp"
 	
 group ""
@@ -110,7 +112,6 @@ group "Examples"
 	include "merlin.examples/merlin.sandbox"
 	include "merlin.examples/merlin.example2D"
 	include "merlin.examples/merlin.particles"
-	include "merlin.examples/merlin.neural.network"
 	
 group "Projects"
 	include "merlin.projects/merlin.granular2D"

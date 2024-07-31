@@ -567,6 +567,12 @@ void AppLayer::onImGuiRender() {
 	ImGui::Begin("Debug XY");
 	scale = 0.3;
 	ImGui::Image((void*)(intptr_t)texture_debugXY->id(), ImVec2(settings.tex_size.x* scale, settings.tex_size.y* scale), ImVec2(1, 1), ImVec2(0, 0));
+	if (ImGui::Button("Save picture")) {
+		std::string savePath = Dialog::saveFileDialog(Dialog::FileType::IMAGE);
+		if (!savePath.empty()) {
+			texture_debugXY->exportPNG(savePath);
+		}
+	}
 	ImGui::End();
 
 

@@ -34,6 +34,7 @@ function newProject(name)
 		solutiondir .. "/merlin.core/%{IncludeDir.glad}",
 		solutiondir .. "/merlin.core/%{IncludeDir.imgui}",
 		solutiondir .. "/merlin.core/%{IncludeDir.assimp}",
+		solutiondir .. "/merlin.core/%{IncludeDir.tinyfiledialogs}",
 		solutiondir .. "/merlin.core/%{IncludeDir.glfw}"
 	}
 
@@ -44,6 +45,7 @@ function newProject(name)
 		"glfw",
 		"imgui",
 		"assimp",
+		"tinyfiledialogs",
 		"opengl32"
 	}
 	
