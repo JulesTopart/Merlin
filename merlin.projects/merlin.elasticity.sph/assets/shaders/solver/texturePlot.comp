@@ -74,7 +74,7 @@ void main(){
 	position = uv * vec2(cst_domain.xy);
 	density = interpolate(vec3(position.x, position.y, 0));
 	stress = interpolateStress(vec3(position.x, position.y, 0));
-	float maxS = 50e6;
+	float maxS = 15e6;
 
 	if(density < 1e-6) imageStore(u_output, pixel_coords, vec4(1));
 	else imageStore(u_output, pixel_coords, vec4(colorMap(map(stress,maxS/2.0, maxS), jet).rgb, 1));

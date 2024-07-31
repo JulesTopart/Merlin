@@ -374,8 +374,8 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 	settings.dt.sync(*solver);
 
-	if (pullTest && pullDistance < 20) {
-		pullDistance += 1.0 * settings.dt.value();
+	if (pullTest && pullDistance < 0.5) {
+		pullDistance += 0.1 * settings.dt.value();
 		solver->setFloat("u_pullDistance", pullDistance);
 	}
 
