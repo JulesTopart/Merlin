@@ -13,4 +13,4 @@
 	url = https://github.com/AminAliari/assimp.git
 [submodule "merlin.core/vendor/tinyfiledialogs"]
 	path = merlin.core/vendor/tinyfiledialogs
-	url = https://github.com/LazyJazz/tinyfiledialogs.git
+	url = https://github.com/JulesTopart/tinyfiledialogs.git
