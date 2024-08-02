@@ -98,6 +98,8 @@ namespace Merlin {
 		void loadFromData(const ImageData& data);
 		void loadFromFile(const std::string& path);
 
+		void exportPNG(const std::string& filename);
+
 		static Shared<Texture2D> create(GLuint width, GLuint height, TextureType = TextureType::ALBEDO);
 		static Shared<Texture2D> create(const ImageData& data, TextureType = TextureType::ALBEDO);
 		static Shared<Texture2D> create(const std::string& path, TextureType = TextureType::ALBEDO, bool flipped = false);

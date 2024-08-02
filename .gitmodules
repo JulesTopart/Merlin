@@ -11,3 +11,6 @@
 [submodule "merlin.core/vendor/assimp"]
 	path = merlin.core/vendor/assimp
 	url = https://github.com/AminAliari/assimp.git
+[submodule "merlin.core/vendor/tinyfiledialogs"]
+	path = merlin.core/vendor/tinyfiledialogs
+	url = https://github.com/LazyJazz/tinyfiledialogs.git

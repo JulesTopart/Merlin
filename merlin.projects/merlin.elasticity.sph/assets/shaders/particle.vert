@@ -62,7 +62,7 @@ void main() {
 		color = colorMap(map(b_rho_i*1000, 1000 * u_rho0, 1050 * u_rho0), warmcool);
 	}else if(colorCycle == 3){ 
 		
-		float maxS = 50e6;
+		float maxS = 15e6;
 
 		float r = map(abs(ssbo_sigma[i].xx),-maxS, maxS);
 		float g = map(abs(ssbo_sigma[i].yy),0, maxS);

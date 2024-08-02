@@ -28,28 +28,34 @@ float computeVonMisesStress(sym_tensor3x3 sigma) {
 
 float interpolate(in vec3 position){
 	float density= 0;
+	float n = 0;
 	OVERNNS
-        vec3 xj = b_xj.xyz;
+	    vec3 xj = b_xj.xyz;
 		float dist = distance(position, xj);
-		float Wij = poly6(dist);
-
-		density += b_rho_j * Wij;
+		if(dist < H){
+			n++;
+			density += b_rho_j;
+		}
 	OVERNNS_END
 
+	if(n > 1) density = density/n;
 	return density;
 }
 
 float interpolateStress(in vec3 position){
     float vm_stress = 0;
+	float n = 0;
 
     OVERNNS
-		vec3 xj0 = b_xj.xyz;
-		float dist = distance(position, xj0);
-		float Wij = poly6(dist);
-
-		vm_stress += Wij*computeVonMisesStress(b_sigma_j);
-       
+		vec3 xj = b_xj.xyz;
+		float dist = distance(position, xj);
+		if(dist < H){
+			n++;
+			vm_stress += computeVonMisesStress(b_sigma_j);
+		}
     OVERNNS_END
+
+	if(n > 1) vm_stress = vm_stress/n;
 	return vm_stress;
 }
 
@@ -68,7 +74,7 @@ void main(){
 	position = uv * vec2(cst_domain.xy);
 	density = interpolate(vec3(position.x, position.y, 0));
 	stress = interpolateStress(vec3(position.x, position.y, 0));
-	float maxS = 50e6;
+	float maxS = 15e6;
 
 	if(density < 1e-6) imageStore(u_output, pixel_coords, vec4(1));
 	else imageStore(u_output, pixel_coords, vec4(colorMap(map(stress,maxS/2.0, maxS), jet).rgb, 1));

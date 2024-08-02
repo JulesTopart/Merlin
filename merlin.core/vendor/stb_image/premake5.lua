@@ -10,6 +10,7 @@ project "stb_image"
     {
         "stb_image.cpp",
         "stb_image.h",
+        "stb_image_write.h",
 		"glpch.h",
     }
     

@@ -113,8 +113,6 @@ vec3 pbs_computeForces(uint i) {
         if(i == j) continue;
         vec3 xj0 = b_last_xj.xyz;
         mat3 Rj = mat3(1);//b_R_j;
-        
-        //if(distance(xi0, xj0) > 2.0*H) continue;
 
         vec3 xi_xj_0 = (xi0 - xj0);
         const float restVolume_j = 0.125;//((mj)/b_rho_j); //g/(g/cm3)-> mm3
