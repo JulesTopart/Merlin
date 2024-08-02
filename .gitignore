@@ -2,6 +2,8 @@
 **bin/
 **bin-int/
 
+**assets/common/
+
 # Files
 *.user
 *imgui.ini
@@ -12,4 +14,4 @@
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
-#/merlin.examples/merlin.sandbox
+
