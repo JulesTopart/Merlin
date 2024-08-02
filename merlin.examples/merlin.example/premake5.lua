@@ -14,6 +14,12 @@ project "merlin.example"
 		"assets/shaders/**.*"
 	}
 
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS",
+		"GLM_ENABLE_EXPERIMENTAL"
+	}
+
 	removefiles { "assets/common/**.*" }
 
 	vpaths {

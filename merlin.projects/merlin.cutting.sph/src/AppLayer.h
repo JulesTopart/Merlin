@@ -50,6 +50,7 @@ private:
 	Settings settings;
 	Texture2D_Ptr texture_debugXY;
 	Mesh_Ptr sample;
+	Mesh_Ptr drill;
 	
 	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
 

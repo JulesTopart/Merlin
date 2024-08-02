@@ -16,6 +16,5 @@ uniform uint u_numParticles = 0;
 uniform uint u_maxParticles = 0;
 uniform uint u_numEmitter = 0;
 
-uniform float u_pullDistance = 0.0;
-
+uniform mat4 u_drill_transform;
 #endif

@@ -141,8 +141,23 @@ void AppLayer::InitGraphics() {
 	renderer.addShader(particleShader);
 	renderer.addShader(binShader);
 
-	//sample = Primitives::createCube(10,10, 80);
-	sample = ModelLoader::loadMesh("./assets/models/tensile.D5766.stl");
+	drill = ModelLoader::loadMesh("./assets/models/drill.obj");
+	drill->rotate(glm::vec3(90*DEG_TO_RAD, 0, 0));
+	drill->applyMeshTransform();
+	drill->centerMeshOrigin();
+	drill->setPosition(glm::vec3(0, 0, 0));
+	drill->applyMeshTransform();
+	drill->computeBoundingBox();
+	drill->translate(glm::vec3(0,0, drill->getBoundingBox().max.z)); //Set zero at tip
+	drill->applyMeshTransform();
+	drill->scale(8);
+	drill->applyMeshTransform();
+	drill->translate(glm::vec3(0, 0, 3.5));
+	drill->applyMeshTransform();
+	scene.add(drill);
+
+	sample = Primitives::createCube(40, 40, 5);
+	//sample = ModelLoader::loadMesh("./assets/models/tensile.D5766.stl");
 	//sample->enableWireFrameMode();
 	//sample->centerMeshOrigin();
 	//sample->rotate(glm::vec3(0,90*DEG_TO_RAD,0));
@@ -156,7 +171,7 @@ void AppLayer::InitGraphics() {
 	Mesh_Ptr bbox = Primitives::createCube(settings.bb.x, settings.bb.y, settings.bb.z);
 	bbox->enableWireFrameMode();
 	bbox->setMaterial("red plastic");
-	//scene.add(bbox);
+	scene.add(bbox);
 
 
 	scene.add(TransformObject::create("origin"));
@@ -247,10 +262,13 @@ void AppLayer::InitPhysics() {
 }
 
 
-float pullDistance = 0;
+glm::mat4 drillTransform = glm::mat4(1);
+
 void AppLayer::ResetSimulation() {
 	elapsedTime = 0;
-	pullDistance = 0;
+	drill->setTransform(glm::mat4(1));
+
+
 	BindingPointManager::instance().resetBindings();
 
 	ps->detach(solver);
@@ -274,16 +292,27 @@ void AppLayer::ResetSimulation() {
 
 	for (int i = 0; i < positions.size(); i++) {
 		cpu_position.push_back(glm::vec4(positions[i],0));
-		if(positions[i].x < sample->getBoundingBox().min.x + 25) 
+		if(positions[i].x < sample->getBoundingBox().min.x + 5) 
 			cpu_meta.push_back(glm::uvec4(SOLIDA, settings.numParticles(), settings.numParticles(), 0.0));
 
-		else if(positions[i].x > sample->getBoundingBox().max.x - 25) 
+		else if(positions[i].x > sample->getBoundingBox().max.x - 5) 
 			cpu_meta.push_back(glm::uvec4(SOLIDB, settings.numParticles(), settings.numParticles(), 0.0));
 
 		else 
 			cpu_meta.push_back(glm::uvec4(SOLID, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
 	}
+
+	drill->computeBoundingBox();
+	drill->voxelize(spacing);
+	positions = Voxelizer::getVoxelposition(drill->getVoxels(), drill->getBoundingBox(), spacing);
+
+	for (int i = 0; i < positions.size(); i++) {
+		cpu_position.push_back(glm::vec4(positions[i], 0));
+		cpu_meta.push_back(glm::uvec4(BOUNDARY, settings.numParticles(), settings.numParticles(), 0.0));
+		settings.numParticles()++;
+	}
+
 	
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 
@@ -366,7 +395,7 @@ void AppLayer::NeigborSearch() {
 
 
 static bool firstRun = true;
-static bool pullTest = false;
+static bool drillTest = false;
 
 void AppLayer::Simulate(Merlin::Timestep ts) {
 	elapsedTime += settings.dt.value();
@@ -374,9 +403,11 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 	settings.dt.sync(*solver);
 
-	if (pullTest && pullDistance < 20) {
-		pullDistance += 1.0 * settings.dt.value();
-		solver->setFloat("u_pullDistance", pullDistance);
+	if (drillTest) {
+		drillTransform = glm::translate(drillTransform, glm::vec3(0,0,-1.0 * settings.dt.value()));
+		drillTransform = glm::rotate(drillTransform, 10.0f * settings.dt.value(), glm::vec3(0,0,1));
+		solver->setMat4("u_drill_transform", drillTransform);
+		drill->setTransform(drillTransform);
 	}
 
 	GPU_PROFILE(nns_time,
@@ -391,10 +422,13 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	GPU_PROFILE(solver_time,
 		solver->execute(2);
 		
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 4; i++) {
 			solver->execute(3);
 			solver->execute(4);
+			solver->execute(5);
 		}
+
+		
 	)
 }
 
@@ -408,9 +442,8 @@ void AppLayer::onImGuiRender() {
 	ImGui::Begin("General");
 	
 	ImGui::Text("time : %f s", elapsedTime);
-	ImGui::Text("dL : %f s", 2.0*pullDistance);
 
-	ImGui::Checkbox("Pull", &pullTest);
+	ImGui::Checkbox("Pull", &drillTest);
 
 	
 	if (paused) {

@@ -26,6 +26,7 @@ void pbs_computeRotation(uint i) {
 	vec3 position = b_last_xi.xyz;
    OVERNNS
         if(i == j) continue;
+        if(phase(j) == BOUNDARY) continue;
         vec3 xj = b_pi.xyz;
         vec3 xj0 = b_last_xj.xyz;
 
@@ -56,6 +57,7 @@ void pbs_computeStress(uint i) {
     vec3 position = b_last_xi.xyz;
     OVERNNS
         if(i == j) continue;
+        if(phase(j) == BOUNDARY) continue;
         vec3 xj = b_pj.xyz;
         vec3 xj0 = b_last_xj.xyz;
 
@@ -96,7 +98,7 @@ void pbs_computeStress(uint i) {
 
     //b_sigma_i = E;
     b_sigma_i = PK;
-    //if(computeVonMisesStress(PK) > 50*1e7) b_sigma_i = sym_tensor3x3(0,0,0,0,0,0); //break
+    
 
 }
 
@@ -111,6 +113,7 @@ vec3 pbs_computeForces(uint i) {
     vec3 forces = vec3(0);
     OVERNNS
         if(i == j) continue;
+        if(phase(j) == BOUNDARY) continue;
         vec3 xj0 = b_last_xj.xyz;
         mat3 Rj = mat3(1);//b_R_j;
         
@@ -127,7 +130,6 @@ vec3 pbs_computeForces(uint i) {
 	    forces += restVolume_i * restVolume_j * (PWi - PWj);
        
     OVERNNS_END
-
     return forces; // units ??
 }
 
@@ -140,6 +142,7 @@ void pbs_computeDensity(uint i){
 
 	OVERNNS
 		if(j == i) continue;
+        if(phase(j) == BOUNDARY) continue;
         vec3 xj0 = b_last_xj.xyz;
 		float dist = distance(xi0, xj0);
 		if(dist < 1e-6 || dist > H) continue;
@@ -159,6 +162,7 @@ vec3 pbs_computeXPSH(uint i){
 
 	OVERNNS
 		if(j == i) continue;
+        if(phase(j) == BOUNDARY) continue;
         vec3 xj0 = b_last_xj.xyz;
 		float dist = distance(xi0, xj0);
 		float Wij = poly6(dist);
