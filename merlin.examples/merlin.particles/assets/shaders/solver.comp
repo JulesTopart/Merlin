@@ -1,4 +1,4 @@
-#version 430
+#version 440
 #pragma once
 #include "buffers.comp"
 #include "../common/shaders/colors.comp"
@@ -27,7 +27,7 @@ float sdPlane( vec3 p, vec3 n, float h ){
   return dot(p,n) + h;
 }
 
-void solvePlaneCollision(uint i, vec3 normal, vec3 center = vec3(0), float h = 0){
+void solvePlaneCollision(uint i, vec3 normal, vec3 center, float h){
 
     normal = normalize(normal);  // Ensure normal is normalized
     vec3 pos = (xi + vi*dt) - center;
@@ -48,7 +48,7 @@ void solve(uint i) {
     vec3 acceleration = vec3(0, 0, -9.8);  // Gravity acceleration
 
     vi += acceleration * dt;
-    solvePlaneCollision(i, vec3(0,0,1));//floor Z+
+    solvePlaneCollision(i, vec3(0,0,1), vec3(0), 0);//floor Z+
     xi += vi * dt;
 	return;
 }
