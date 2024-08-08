@@ -1,0 +1,76 @@
+//? #version 430
+#ifndef INCLUDE_MATH_GLSL
+#define INCLUDE_MATH_GLSL
+
+//?#include "../common/buffers.comp"
+
+
+float tr(mat3 m){ //trace
+    return m[0][0] + m[1][1] + m[2][2];
+}
+
+float det(mat3 m){ //determinant
+    return determinant(m);
+}
+
+mat3 inverseTranspose(mat3 M) {
+    return transpose(inverse(M));
+}
+
+mat3 extractRotation(mat3 A, mat3 R, int maxIter) {
+    for (int iter = 0; iter < maxIter; iter++) {
+        vec3 omega = vec3(
+            cross(R[0], A[0]) + cross(R[1], A[1]) + cross(R[2], A[2])
+        ) * (1.0 / (abs(dot(R[0], A[0]) + dot(R[1], A[1]) + dot(R[2], A[2])) + 1.0e-9));
+        float w_ = length(omega);
+        if (w_ < 1.0e-9) break;
+
+        // Constructing the skew-symmetric matrix for omega
+        mat3 omega_skew = mat3(
+            0, -omega.z, omega.y,
+            omega.z, 0, -omega.x,
+            -omega.y, omega.x, 0
+        );
+
+        // Update the rotation matrix
+        R += omega_skew * R;
+
+        // Re-orthogonalize the rotation matrix to avoid drift
+        vec3 u = normalize(R[0]);
+        vec3 v = normalize(R[1] - dot(u, R[1]) * u);
+        vec3 w = cross(u, v);
+        R[0] = u;
+        R[1] = v;
+        R[2] = w;
+    }
+    return R;
+}
+
+vec3 smat3_vec_product(smat3 M, vec3 v){
+    vec3 res;
+    res[0] = M.xx * v[0] + M.xy * v[1] + M.xz * v[2];
+    res[1] = M.xy * v[0] + M.yy * v[1] + M.yz * v[2];
+    res[2] = M.xz * v[0] + M.yz * v[1] + M.zz * v[2];
+    return res;
+}
+
+mat3 to_mat3(smat3 M){
+    mat3 res;
+    res[0] = vec3(M.xx, M.xy, M.xz);
+    res[1] = vec3(M.xy, M.yy, M.yz);
+    res[2] = vec3(M.xz, M.yz, M.zz);
+    return res;
+}
+
+smat3 to_smat3(mat3 M){
+    smat3 res;
+    res.xx = M[0][0];
+    res.yy = M[1][1];
+    res.zz = M[2][2];
+    res.xy = M[0][1];
+    res.xz = M[0][2];
+    res.yz = M[1][2];
+    return res;
+}
+
+#endif// INCLUDE_MATHHLSL

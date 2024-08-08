@@ -1,0 +1,84 @@
+#version 430
+
+#pragma once
+#include "../../common/shaders/colors.comp"
+#include "../common/uniforms.comp"
+#include "../common/constants.comp"
+#include "../common/buffers.comp"
+#include "../common/nns.comp"
+#include "sph.kernels.comp" 
+
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+layout (rgba16f, binding = 0) writeonly uniform image2D u_output;
+
+float computeVonMisesStress(smat3 sigma) {
+
+    float vonMises = sqrt(
+        0.5 * (
+            pow(sigma.xx - sigma.yy, 2.0) + 
+            pow(sigma.yy - sigma.zz, 2.0) + 
+            pow(sigma.zz - sigma.xx, 2.0) + 
+            6.0 * (pow(sigma.xy, 2.0) + pow(sigma.yz, 2.0) + pow(sigma.xz, 2.0))
+        )
+    );
+
+    return vonMises;
+}
+
+float interpolate(in vec3 position){
+	float density= 0;
+	float n = 0;
+	OVERNNS
+	    vec3 xj = b_xj.xyz;
+		float dist = distance(position, xj);
+		if(dist < H){
+			n++;
+			density += b_rho_j;
+		}
+	OVERNNS_END
+
+	if(n > 1) density = density/n;
+	return density;
+}
+
+float interpolateStress(in vec3 position){
+    float vm_stress = 0;
+	float n = 0;
+
+    OVERNNS
+		vec3 xj = b_xj.xyz;
+		float dist = distance(position, xj);
+		if(dist < H){
+			n++;
+			vm_stress += computeVonMisesStress(b_sigma_j);
+		}
+    OVERNNS_END
+
+	if(n > 1) vm_stress = vm_stress/n;
+	return vm_stress;
+}
+
+
+void main(){
+    ivec2 dims = imageSize(u_output).xy;
+    ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
+
+	vec2 uv = vec2(pixel_coords) / vec2(dims);
+	vec2 position = vec2(0);
+	float stress = 0;
+	float density = 0;
+
+	uv.x = uv.x - 0.5f;
+	uv.y = uv.y - 0.5f;
+	position = uv * vec2(cst_domain.xy);
+	density = interpolate(vec3(position.x, position.y, 0));
+	stress = interpolateStress(vec3(position.x, position.y, 0));
+	float maxS = 15e6;
+
+	if(density < 1e-6) imageStore(u_output, pixel_coords, vec4(1));
+	else imageStore(u_output, pixel_coords, vec4(colorMap(map(stress,maxS/2.0, maxS), jet).rgb, 1));
+	
+	return;
+
+}

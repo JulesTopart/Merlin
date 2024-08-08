@@ -1,0 +1,76 @@
+#pragma once
+#include "settings.h"
+
+using namespace Merlin;
+
+#define UNUSED 0
+#define SOLID 1
+#define SOLIDA 2
+#define SOLIDB 3
+#define GRANULAR 4
+#define BOUNDARY 5
+
+class AppLayer : public Merlin::Layer3D {
+public:
+	AppLayer(){}
+
+	void onAttach() override;
+	void onDetach() override;
+	void onEvent(Merlin::Event& event) override;
+	void onUpdate(Merlin::Timestep ts) override;
+	void onImGuiRender() override;
+
+	void InitGraphics();
+	void InitPhysics();
+	void ResetSimulation();
+
+	void SyncUniforms();
+
+	void NeigborSearch();
+	void Simulate(Merlin::Timestep ts);
+
+private:
+
+	// --- Graphics ---
+
+	Scene scene;
+	Renderer renderer;
+	
+	StagedComputeShader_Ptr solver;
+	StagedComputeShader_Ptr prefixSum;
+	ComputeShader_Ptr texPlot;
+
+	ParticleSystem_Ptr ps;
+	ParticleSystem_Ptr bs;
+
+	Shader_Ptr particleShader;
+	Shader_Ptr binShader;
+
+	// --- Simulation--- 
+	Settings settings;
+	Texture2D_Ptr texture_debugXY;
+
+	Mesh_Ptr solidA;
+	Mesh_Ptr solidB;
+	
+	glm::vec3 model_matrix_translation = { 0.0f, 0.0f, 0.0f };
+
+	std::vector<float> frameTimes;
+	float c_frameTime;
+
+	double nns_time = 0;
+	double solver_time = 0;
+	double solver_total_time = 0;
+	double render_time = 0; double render_start_time = 0;
+	double total_time = 0; double total_start_time = 0;
+	
+	float elapsedTime = 0;
+	bool paused = true;
+	bool integrate = true;
+	float sim_speed = 1;
+	float camera_speed = 1;
+	bool mousePressed = false;
+
+	bool use_real_time = false;
+
+};

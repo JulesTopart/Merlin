@@ -1,0 +1,74 @@
+//? #version 430
+#ifndef INCLUDE_SPH_KERNELS_GLSL
+#define INCLUDE_SPH_KERNELS_GLSL
+
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+
+// --- Kernels ---
+// Kernel Functions Precomputed Constants
+const float H = cst_smoothingRadius; // Kernel radius
+const double dH = double(H); // Kernel radius
+const double H2 = pow(H,2);
+const double H3 = pow(H,3);
+const double H5 = pow(H,5);
+const double H6 = pow(H,6);
+const double H8 = pow(H,8);
+const double H9 = pow(H,9);
+
+const double M_PI = 3.14159265358979323846;
+const double PI_FAC = 0.454728408833987;
+
+const double KERNEL_K =				( 40.0 / (7.0 * (M_PI * dH * dH)));
+const double KERNEL_L =				(240.0 / (7.0 * (M_PI * dH * dH)));
+const double SPIKY_KERNEL_CONST =	( 10.0 /        (M_PI * dH * dH));
+
+const double KERNEL_POLY6_COEFFICIENT       = (1.566681471061/H9);
+const double KERNEL_POLY6_GRAD_COEFFICIENT  =  (9.400088826365069/H9);
+const double KERNEL_POLY6_LAPL_COEFFICIENT  =  (37.600355305460276/H9);
+
+float poly6(float r);
+float poly6(vec3 r);
+vec3 poly6_grad(vec3 r);
+float poly6_lapl(vec3 r);
+
+
+// --- POLY6 KERNEL ---
+//Computed the poly6 scalar smoothing kernel
+float poly6(float r){
+	double r2 = double(dot(r, r));
+	if (r2 < EPSILON || r2 > H2) return 0.0;
+	double B = H2 - r2;
+	double W = KERNEL_POLY6_COEFFICIENT * (B * B * B);
+	return float(W);
+}
+
+float poly6(vec3 r){
+	return poly6(length(r));
+}
+
+//Computed the poly6 gradient smoothing kernel
+vec3 poly6_grad(vec3 r){
+	double r2 = double(dot(r, r));
+	if (r2 < EPSILON || r2 > H2) return vec3(0.0);
+	double B = H2-r2;
+	dvec3 W = -dvec3(r) *KERNEL_POLY6_GRAD_COEFFICIENT * (B * B);
+	return vec3(W);
+}
+
+//Computed the poly6 laplacian smoothing kernel
+float poly6_lapl(vec3 r) {
+	double r2 = double(dot(r, r));
+	if (r2 < EPSILON || r2 > H2) return 0.0;
+	double B = H2 - r2;
+	double W = KERNEL_POLY6_LAPL_COEFFICIENT * B * (r2 - (3.0*B/4.0));
+	return float(W);
+}
+
+
+
+
+
+
+#endif

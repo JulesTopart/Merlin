@@ -1,0 +1,217 @@
+//?#version 430
+
+#pragma once
+//?#include "../common/uniforms.comp"
+//?#include "../common/constants.comp"
+//?#include "../common/buffers.comp"
+//?#include "../common/colors.comp"
+//?#include "../common/nns.comp"
+//?#include "sph.kernels.comp" 
+//?#include "boundary.comp" 
+//?#include "elasticity.comp" 
+
+
+float pbs_computeDeltaLambda(uint i) {
+
+    float alpha = 1.0/(u_dt*u_dt);
+
+    float restVolume_i = 0.125;// ((1e3*mj)/b_rho_j); //g/(g/cm3) -> mm3
+    float restVolume_j = 0.125;// ((1e3*mj)/b_rho_j); //g/(g/cm3) -> mm3
+    
+    vec3 xi = b_pi.xyz; // i current position
+    vec3 xi0 = b_Xi.xyz; // i reference position
+    vec3 ui = xi - xi0;
+
+    //mat3 L = mat3(0.0); //correction matrix
+    mat3 F = mat3(0.0); // Deformation tensor
+
+    vec3 position = b_Xi.xyz;
+    OVERNNS
+        if(i == j) continue;
+        vec3 xj = b_pj.xyz;
+        vec3 xj0 = b_Xj.xyz;
+
+        vec3 uj = xj - xj0;
+        vec3 rij0 = xj0 - xi0;
+        vec3 grad_Wij = poly6_grad(rij0);
+
+        vec3 uji = uj-ui;
+
+        F += restVolume_j * outerProduct( uji, grad_Wij); //dimensionless
+        //L += outerProduct(restVolume_j * grad_Wij , rij0); //dimensionless
+    OVERNNS_END
+    //L = inverse(L);      //correction from Sphinx
+    //F = F * L + mat3(1); //correction from Sphinx
+
+    // compute Cauchy strain: epsilon = 0.5 (nabla u + nabla u^T) (voigt notation)
+    smat3 C = to_smat3(computeRightCauchyGreenStrain(F));
+    
+    {
+    // First Piola Kirchhoff stress = 2 mu epsilon + lambda trace(epsilon) I
+    float trace = C.xx + C.yy + C.zz;
+    float ltrace = lambda * trace;
+    smat3 PK;
+
+    PK.xx = ltrace + C.xx * 2.0 * mu;
+    PK.yy = ltrace + C.yy * 2.0 * mu;
+    PK.zz = ltrace + C.zz * 2.0 * mu;
+    PK.xy = C.xy * 2.0 * mu;
+    PK.xz = C.xz * 2.0 * mu;
+    PK.yz = C.yz * 2.0 * mu;
+
+    b_sigma_i = PK; //store stress
+    }
+
+    mat3 PK = to_mat3(b_sigma_i);
+    float sumGradCj = 0;
+    vec3 sumGradCi = vec3(0);
+   
+   OVERNNS
+        if(i == j) continue;
+        vec3 xj = b_pj.xyz;
+        vec3 xj0 = b_Xj.xyz;
+
+        vec3 uj = xj - xj0;
+        vec3 rij0 = xj0 - xi0;
+        //vec3 grad_Wij = L*poly6_grad(rij0);
+        vec3 grad_Wij = poly6_grad(rij0);
+
+        vec3 b = PK*restVolume_j*grad_Wij;
+        sumGradCj += dot(b,b);
+        sumGradCi += restVolume_j*grad_Wij;
+
+    OVERNNS_END
+
+    vec3 gradCk = -PK * sumGradCi;
+    sumGradCj += dot(gradCk, gradCk);
+    if(sumGradCj < 1e-6) return 0;
+
+    float psi = computeStrainEnergy(F);
+    float denominator = (1.0/mi) * (sumGradCj); 
+
+    if(isnan(denominator) || denominator == 0) return 0;
+    
+
+	//return (psi + alpha * b_lambda_i) / (denominator + alpha);
+	return -psi / (denominator + alpha); //small timestep
+}
+
+
+//Compute position deltas w neigbor
+vec3 pbs_computePositionDelta(uint i) {
+	vec3 posDelta = vec3(0.0f);
+	vec3 position = b_Xi.xyz;
+    vec3 xi0 = b_Xi.xyz; // i reference position
+
+    float restVolume_i = 0.125;// ((1e3*mj)/b_rho_j); //g/(g/cm3) -> mm3
+    float restVolume_j = 0.125;// ((1e3*mj)/b_rho_j); //g/(g/cm3) -> mm3
+
+
+    /*
+    mat3 L = mat3(0.0); //correction matrix
+    OVERNNS
+        if(i == j) continue;
+        vec3 xj0 = b_Xj.xyz;
+
+        vec3 rij0 = xj0 - xi0;
+        vec3 grad_Wij = -poly6_grad(rij0);
+
+        L += outerProduct(restVolume_j * grad_Wij , rij0); //dimensionless
+    OVERNNS_END
+    L = inverse(L);      //correction from Sphinx
+    */
+
+
+    float deltaLambda_i = b_dlambda_i;
+   
+	OVERNNS
+		if(j == i) continue;
+       
+        vec3 xj0 = b_Xj.xyz;
+        vec3 rij0 = xj0 - xi0;
+
+        //vec3 grad_Wij = L*poly6_grad(rij0);
+        vec3 grad_Wij = poly6_grad(rij0);
+        float Vi = restVolume_i;
+        float Vj = restVolume_j;
+
+        float deltaLambda_j = b_dlambda_j;
+        mat3 PKi = to_mat3(b_sigma_i);
+        mat3 PKj = to_mat3(b_sigma_j);
+
+        posDelta += (deltaLambda_i * PKj * grad_Wij * Vi) - (deltaLambda_i * PKi * grad_Wij * Vj);
+	OVERNNS_END
+
+    float relaxation = 0.9;
+
+	return relaxation*posDelta;
+}
+
+//Compute position deltas w neigbor
+vec3 pbs_computeKernel(uint i) {
+    mat3 B = mat3(0.0); //correction matrix
+    vec3 kernel = vec3(0);
+
+    vec3 xi0 = b_Xi.xyz;
+
+    vec3 position = b_Xi.xyz;
+    OVERNNS
+        if(i == j) continue;
+        vec3 xj = b_pj.xyz;
+        vec3 xj0 = b_Xj.xyz;
+
+        vec3 rij0 = xi0 - xj0;
+        vec3 grad_Wij = poly6_grad(rij0);
+		kernel += grad_Wij;
+
+        float restVolume_j = 0.125;// ((1e3*mj)/b_rho_j); //g/(g/cm3) -> mm3
+
+        B += outerProduct(restVolume_j * rij0, grad_Wij); //dimensionless
+    OVERNNS_END
+    B = inverse(B); //correction from Sphinx
+	return  B * kernel;
+}
+
+void pbs_step(uint i, uint kernel) {
+	if(kernel == 0){
+		//b_last_xi = b_xi;
+		b_xi.xyz = b_pi.xyz;
+		vec3 a = vec3(0, 0, -u_g) ;
+        b_dlambda_i = 0.0;
+		//semi-implicit Euler integration (or Sympletic scheme)
+		b_vi.xyz = 0.9*b_vi.xyz + a * u_dt;
+		b_pi.xyz += b_vi.xyz * u_dt;
+		return;
+	}
+
+	if(kernel == 1){
+		//pbs_computeRotation(i);
+		pbs_computeStressStrain(i);
+        //b_lambda_i = 0;
+		return;
+	}
+
+	if(kernel == 2){
+		float delta = pbs_computeDeltaLambda(i);
+		b_dlambda_i = delta;
+        //b_lambda_i += delta;
+		return;
+	}
+
+	if(kernel == 3){
+		vec3 delta = pbs_computePositionDelta(i);
+        if(isnan(delta.x) || isnan(delta.y) || isnan(delta.z)) delta = vec3(0);
+		b_pi.xyz += delta;
+		b_vi.xyz = (b_pi.xyz - b_xi.xyz) / u_dt;
+		return;
+	}
+
+	if(kernel == 4){	
+		pbs_computeDensity(i);
+		b_sigma_i = smat3(0,0,0,0,0,0,0,0);
+		return;
+	}
+
+}
+
+
