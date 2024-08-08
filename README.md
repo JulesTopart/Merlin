@@ -18,7 +18,7 @@ Merlin is in a developmental stage and might require some familiarity with GPU c
 
 1. **Clone the Repository**
 ```
-git clone --recurse-submodules https://github.com/yourusername/Merlin.git
+git clone --recurse-submodules https://github.com/JulesTopart/Merlin.git
 ```
 
 2. **Build the Engine**
