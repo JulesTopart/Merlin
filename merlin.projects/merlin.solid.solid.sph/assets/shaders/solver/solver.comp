@@ -61,21 +61,30 @@ void exec(uint index, uint kernel){
 		sortBuffers(index);
 		break;
 	case 2:
-		if(ssbo_rest_position[index].x < -39 || ssbo_rest_position[index].x > 39) ssbo_predicted_position[index] = ssbo_position[index] = ssbo_rest_position[index];
+		/*
+		if(ssbo_rest_position[index].x < -37 || ssbo_rest_position[index].x > 37) ssbo_predicted_position[index] = ssbo_position[index] = ssbo_rest_position[index];
 		if(phase(index) == SOLIDA || phase(index) == SOLIDB)
 			pbs_step(index, 0); //predict
 		break;
-	case 3: 
-		pbs_step(index, 1); //stress
+		*/
+
+		
+		if(ssbo_rest_position[index].x < -37)
+			ssbo_predicted_position[index] = ssbo_position[index] = ssbo_rest_position[index] - vec4(u_pullDistance, 0, 0, 0);
+		else if(ssbo_rest_position[index].x > 37)
+			ssbo_predicted_position[index] = ssbo_position[index] = ssbo_rest_position[index] + vec4(u_pullDistance,0, 0, 0);
+		else if(phase(index) == SOLIDA || phase(index) == SOLIDB)
+			pbs_step(index, 0);
+
+		break;
+	case 3:
+		pbs_step(index, 1);//lambda
 		break;
 	case 4:
-		pbs_step(index, 2);//lambda
+		pbs_step(index, 2);//position correction
 		break;
 	case 5:
-		pbs_step(index, 3);//position correction
-		break;
-	case 6:
-		pbs_step(index, 4); //to compute initial values
+		pbs_step(index, 3); //to compute initial values
 		break;
 	}
 

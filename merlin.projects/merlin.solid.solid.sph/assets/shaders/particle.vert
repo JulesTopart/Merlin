@@ -62,21 +62,21 @@ void main() {
 		color = colorMap(map(b_rho_i*1000, 1000 * u_rho0, 1050 * u_rho0), warmcool);
 	}else if(colorCycle == 3){ 
 		
-		float maxS = 15e6;
+		float maxS = 1.0e6;
 
-		float r = map(abs(ssbo_sigma[i].xx),-maxS, maxS);
-		float g = map(abs(ssbo_sigma[i].yy),0, maxS);
-		float b = map(abs(ssbo_sigma[i].zz),0, maxS);
+		float r = map(abs(ssbo_sigma[i].xx), 0, maxS);
+		float g = map(abs(ssbo_sigma[i].yy), 0, maxS);
+		float b = map(abs(ssbo_sigma[i].zz), 0, maxS);
 		
 		float r2 = map(abs(ssbo_sigma[i].xy),0, maxS);
 		float g2 = map(abs(ssbo_sigma[i].yz),0, maxS);
 		float b2 = map(abs(ssbo_sigma[i].xz),0, maxS);
 
-		//color = vec4(r, g, b,  1.0);
+		color = vec4(r, g, b,  1.0);
 		//color = vec4(r2, g2, b2,  1.0);
 
 		//color = colorMap(r, warmcool);//stress
-		color = colorMap(map(computeVonMisesStress(ssbo_sigma[i]),maxS/2.0, maxS), jet);//stress
+		//color = colorMap(map(computeVonMisesStress(ssbo_sigma[i]),maxS/2.0, maxS), jet);//stress
 	}else if(colorCycle == 4){ 
 		color = colorMap(map(length(b_vi),0,1000.0), parula);
 	}else if(colorCycle == 5){ 

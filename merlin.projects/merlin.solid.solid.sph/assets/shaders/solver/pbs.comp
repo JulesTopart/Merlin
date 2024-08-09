@@ -42,58 +42,44 @@ float pbs_computeDeltaLambda(uint i) {
     OVERNNS_END
     //L = inverse(L);      //correction from Sphinx
     //F = F * L + mat3(1); //correction from Sphinx
+    F += mat3(1);
 
     // compute Cauchy strain: epsilon = 0.5 (nabla u + nabla u^T) (voigt notation)
-    smat3 C = to_smat3(computeRightCauchyGreenStrain(F));
+    mat3 E = computeGreenStrain(F);
+    mat3 S = computeSecondPiolaKirchhoffStress(E);
+    //smat3 S = to_smat3(computeFirstPiolaKirchhoffStress(F));
+
+    b_sigma_i = to_smat3(S); //store stress
     
-    {
-    // First Piola Kirchhoff stress = 2 mu epsilon + lambda trace(epsilon) I
-    float trace = C.xx + C.yy + C.zz;
-    float ltrace = lambda * trace;
-    smat3 PK;
-
-    PK.xx = ltrace + C.xx * 2.0 * mu;
-    PK.yy = ltrace + C.yy * 2.0 * mu;
-    PK.zz = ltrace + C.zz * 2.0 * mu;
-    PK.xy = C.xy * 2.0 * mu;
-    PK.xz = C.xz * 2.0 * mu;
-    PK.yz = C.yz * 2.0 * mu;
-
-    b_sigma_i = PK; //store stress
-    }
-
-    mat3 PK = to_mat3(b_sigma_i);
     float sumGradCj = 0;
     vec3 sumGradCi = vec3(0);
-   
+
    OVERNNS
         if(i == j) continue;
-        vec3 xj = b_pj.xyz;
         vec3 xj0 = b_Xj.xyz;
 
-        vec3 uj = xj - xj0;
         vec3 rij0 = xj0 - xi0;
         //vec3 grad_Wij = L*poly6_grad(rij0);
         vec3 grad_Wij = poly6_grad(rij0);
 
-        vec3 b = PK*restVolume_j*grad_Wij;
+        vec3 b = S*restVolume_j*grad_Wij;
         sumGradCj += dot(b,b);
         sumGradCi += restVolume_j*grad_Wij;
 
     OVERNNS_END
 
-    vec3 gradCk = -PK * sumGradCi;
+    vec3 gradCk = -S * sumGradCi;
     sumGradCj += dot(gradCk, gradCk);
-    if(sumGradCj < 1e-6) return 0;
 
-    float psi = computeStrainEnergy(F);
+    float psi = computeStrainEnergyDensity(E);
     float denominator = (1.0/mi) * (sumGradCj); 
 
-    if(isnan(denominator) || denominator == 0) return 0;
+    if(isnan(denominator) || abs(denominator) < 1e-5) return 0;
     
 
-	//return (psi + alpha * b_lambda_i) / (denominator + alpha);
+	//return -(psi + alpha * b_lambda_i) / (denominator + alpha);
 	return -psi / (denominator + alpha); //small timestep
+	//return -psi; //small timestep
 }
 
 
@@ -139,14 +125,14 @@ vec3 pbs_computePositionDelta(uint i) {
         mat3 PKi = to_mat3(b_sigma_i);
         mat3 PKj = to_mat3(b_sigma_j);
 
-        posDelta += (deltaLambda_i * PKj * grad_Wij * Vi) - (deltaLambda_i * PKi * grad_Wij * Vj);
+        posDelta -= (deltaLambda_j * PKj * grad_Wij * Vi) + (deltaLambda_i * PKi * grad_Wij * Vj);
 	OVERNNS_END
 
-    float relaxation = 0.9;
+    float relaxation = 0.1;
 
 	return relaxation*posDelta;
 }
-
+/*
 //Compute position deltas w neigbor
 vec3 pbs_computeKernel(uint i) {
     mat3 B = mat3(0.0); //correction matrix
@@ -170,7 +156,7 @@ vec3 pbs_computeKernel(uint i) {
     OVERNNS_END
     B = inverse(B); //correction from Sphinx
 	return  B * kernel;
-}
+}*/
 
 void pbs_step(uint i, uint kernel) {
 	if(kernel == 0){
@@ -185,28 +171,23 @@ void pbs_step(uint i, uint kernel) {
 	}
 
 	if(kernel == 1){
-		//pbs_computeRotation(i);
-		pbs_computeStressStrain(i);
-        //b_lambda_i = 0;
+		float delta = pbs_computeDeltaLambda(i);
+		b_dlambda_i = delta;
+        b_lambda_i += delta;
 		return;
 	}
 
 	if(kernel == 2){
-		float delta = pbs_computeDeltaLambda(i);
-		b_dlambda_i = delta;
-        //b_lambda_i += delta;
-		return;
-	}
-
-	if(kernel == 3){
 		vec3 delta = pbs_computePositionDelta(i);
-        if(isnan(delta.x) || isnan(delta.y) || isnan(delta.z)) delta = vec3(0);
+        if(isnan(delta.x) || isnan(delta.y) || isnan(delta.z)){
+            delta = vec3(0);
+        }
 		b_pi.xyz += delta;
 		b_vi.xyz = (b_pi.xyz - b_xi.xyz) / u_dt;
 		return;
 	}
 
-	if(kernel == 4){	
+	if(kernel == 3){	
 		pbs_computeDensity(i);
 		b_sigma_i = smat3(0,0,0,0,0,0,0,0);
 		return;

@@ -200,7 +200,7 @@ void AppLayer::InitPhysics() {
 	ps->addField<glm::vec4>("predicted_position_buffer");
 	ps->addField<glm::vec4>("velocity_buffer");
 	ps->addField<float>("density_buffer");
-	//ps->addField<float>("lambda_buffer");
+	ps->addField<float>("lambda_buffer");
 	ps->addField<float>("dlambda_buffer");
 	ps->addField<float[8]>("stress_buffer");
 	ps->addField<glm::uvec4>("meta_buffer");
@@ -273,7 +273,7 @@ void AppLayer::ResetSimulation() {
 		cpu_meta.push_back(glm::uvec4(SOLIDA, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
 	}
-
+	/*
 	solidB->computeBoundingBox();
 	solidB->voxelize(spacing);
 	positions = Voxelizer::getVoxelposition(solidB->getVoxels(), solidB->getBoundingBox(), spacing);
@@ -282,7 +282,7 @@ void AppLayer::ResetSimulation() {
 		cpu_position.push_back(glm::vec4(positions[i], 0));
 		cpu_meta.push_back(glm::uvec4(SOLIDB, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
-	}
+	}*/
 	
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 
@@ -320,7 +320,7 @@ void AppLayer::ResetSimulation() {
 
 	ps->clearField("velocity_buffer");
 	ps->clearField("density_buffer");
-	//ps->clearField("lambda_buffer");
+	ps->clearField("lambda_buffer");
 	ps->clearField("dlambda_buffer");
 	ps->clearField("stress_buffer");
 
@@ -373,21 +373,25 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	solver->use();
 	settings.dt.sync(*solver);
 
+	if (pullTest && pullDistance < 0.5*10) {
+		pullDistance += 0.1 * settings.dt.value();
+		solver->setFloat("u_pullDistance", pullDistance);
+	}
+
 	if (firstRun) {
 		GPU_PROFILE(nns_time,
 			NeigborSearch();
 		)
-		solver->execute(6);
+		solver->execute(5);
 		firstRun = false;
 	}
 
 	GPU_PROFILE(solver_time,
 		solver->execute(2);//predict position
-		//solver->execute(3);//compute stress and reset lambda
 
-		for (int i = 0; i < 20; i++) {
-			solver->execute(4);//compute lambda
-			solver->execute(5);//compute position delta and apply
+		for (int i = 0; i < 1; i++) {
+			solver->execute(3);//compute lambda
+			solver->execute(4);//compute position delta and apply
 		}
 	)
 }
@@ -600,9 +604,17 @@ void AppLayer::onImGuiRender() {
 
 	if (ImGui::Button("Debug")) {
 
-		std::vector<float> metabuf;
-		metabuf.resize(settings.pThread);
-		ps->getField("dlambda_buffer")->readBuffer(settings.pThread*sizeof(float), metabuf.data());
+		std::vector<float> dlambda_buffer;
+		dlambda_buffer.resize(settings.pThread);
+		ps->getField("dlambda_buffer")->readBuffer(settings.pThread*sizeof(float), dlambda_buffer.data());
+
+		std::vector<float> lambda_buffer;
+		lambda_buffer.resize(settings.pThread);
+		ps->getField("lambda_buffer")->readBuffer(settings.pThread * sizeof(float), lambda_buffer.data());
+		
+		std::vector<float> stress_buffer;
+		stress_buffer.resize(settings.pThread * 8);
+		ps->getField("stress_buffer")->readBuffer(settings.pThread * sizeof(float)*8, stress_buffer.data());
 
 		throw("DEBUG");
 

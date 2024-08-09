@@ -22,8 +22,8 @@
 #define b_Xi ssbo_rest_position[i]
 #define b_Xj ssbo_rest_position[j]
 
-//#define b_lambda_i ssbo_lambda[i]
-//#define b_lambda_j ssbo_lambda[j]
+#define b_lambda_i ssbo_lambda[i]
+#define b_lambda_j ssbo_lambda[j]
 
 #define b_dlambda_i ssbo_dlambda[i]
 #define b_dlambda_j ssbo_dlambda[j]
@@ -62,10 +62,10 @@ layout(std430) buffer velocity_buffer {
 layout(std430) buffer density_buffer {
 	float ssbo_density[];
 };
-/*
+
 layout(std430) buffer lambda_buffer {
 	float ssbo_lambda[];
-};*/
+};
 
 layout(std430) buffer dlambda_buffer {
 	float ssbo_dlambda[];

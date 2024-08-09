@@ -82,7 +82,7 @@ void pbs_computeStress(uint i) {
     E.xz = 0.5 * (F[0][2] + F[2][0]);
     E.yz = 0.5 * (F[1][2] + F[2][1]);
     
-    // First Piola Kirchhoff stress = 2 mu epsilon + lambda trace(epsilon) I
+    // Second Piola Kirchhoff stress = 2 mu epsilon + lambda trace(epsilon) I
     float trace = E.xx + E.yy + E.zz;
     float ltrace = lambda * trace;
 
