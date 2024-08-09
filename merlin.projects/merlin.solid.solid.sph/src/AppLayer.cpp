@@ -263,17 +263,21 @@ void AppLayer::ResetSimulation() {
 	settings.numParticles = 0;
 	std::vector<glm::vec3> positions;
 
-	
+	/*
 	solidA->computeBoundingBox();
 	solidA->voxelize(spacing);
 	positions = Voxelizer::getVoxelposition(solidA->getVoxels(), solidA->getBoundingBox(), spacing);
 
 	for (int i = 0; i < positions.size(); i++) {
+
+		if (glm::distance(positions[i], glm::vec3(0)) < 10) continue;
+
 		cpu_position.push_back(glm::vec4(positions[i],0));
 		cpu_meta.push_back(glm::uvec4(SOLIDA, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
-	}
-	/*
+	}/**/
+
+	/**/
 	solidB->computeBoundingBox();
 	solidB->voxelize(spacing);
 	positions = Voxelizer::getVoxelposition(solidB->getVoxels(), solidB->getBoundingBox(), spacing);
@@ -282,7 +286,7 @@ void AppLayer::ResetSimulation() {
 		cpu_position.push_back(glm::vec4(positions[i], 0));
 		cpu_meta.push_back(glm::uvec4(SOLIDB, settings.numParticles(), settings.numParticles(), 0.0));
 		settings.numParticles()++;
-	}*/
+	}/**/
 	
 	Console::info() << "Uploading buffer on device..." << Console::endl;
 
@@ -389,7 +393,7 @@ void AppLayer::Simulate(Merlin::Timestep ts) {
 	GPU_PROFILE(solver_time,
 		solver->execute(2);//predict position
 
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 30; i++) {
 			solver->execute(3);//compute lambda
 			solver->execute(4);//compute position delta and apply
 		}

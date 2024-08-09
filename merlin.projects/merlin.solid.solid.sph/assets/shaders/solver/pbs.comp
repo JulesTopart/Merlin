@@ -77,8 +77,8 @@ float pbs_computeDeltaLambda(uint i) {
     if(isnan(denominator) || abs(denominator) < 1e-5) return 0;
     
 
-	//return -(psi + alpha * b_lambda_i) / (denominator + alpha);
-	return -psi / (denominator + alpha); //small timestep
+	return -(psi + alpha * b_lambda_i) / (denominator + alpha);
+	//return -psi / (denominator + alpha); //small timestep
 	//return -psi; //small timestep
 }
 
@@ -183,6 +183,7 @@ void pbs_step(uint i, uint kernel) {
             delta = vec3(0);
         }
 		b_pi.xyz += delta;
+        if(b_pi.z < 0) b_pi.z -= b_pi.z;
 		b_vi.xyz = (b_pi.xyz - b_xi.xyz) / u_dt;
 		return;
 	}
