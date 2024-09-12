@@ -1,0 +1,54 @@
+#version 440
+#pragma once
+#include "buffers.comp"
+#include "../common/shaders/colors.comp"
+
+layout (local_size_x = 64) in;
+
+void solve(uint i);
+
+// --- Domain ---
+uniform uint numParticles = 0;
+uniform float dt = 0.0008;
+// --- Constant ---
+const float particleRadius = 0.038;
+
+// XPBD_Main
+void main() {
+	uint i = gl_GlobalInvocationID.x;
+	if (i >= numParticles) return;
+
+	solve(i);
+}
+
+ 
+float sdPlane( vec3 p, vec3 n, float h ){
+  // n must be normalized
+  return dot(p,n) + h;
+}
+
+void solvePlaneCollision(uint i, vec3 normal, vec3 center, float h){
+
+    normal = normalize(normal);  // Ensure normal is normalized
+    vec3 pos = (xi + vi*dt) - center;
+    float distToPlane = dot(pos, normal) - h;
+
+    if (distToPlane < particleRadius) {
+        float dotProduct = dot(vi, normal);
+        if (dotProduct < 0) {
+            vi -= 2.0 * dotProduct * normal;
+            vi *= 0.95;
+        }
+
+    }
+}
+
+
+void solve(uint i) {
+    vec3 acceleration = vec3(0, 0, -9.8);  // Gravity acceleration
+
+    vi += acceleration * dt;
+    solvePlaneCollision(i, vec3(0,0,1), vec3(0), 0);//floor Z+
+    xi += vi * dt;
+	return;
+}
